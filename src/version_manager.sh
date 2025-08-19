@@ -349,10 +349,9 @@ if [[ ! $REPLY =~ ^[Ee]$ ]]; then
     exit 1
 fi
 
-# Otomatik push tercihi
-echo -n "git push otomatik yapılsın mı? (e/h): "
-read -n 1 -r AUTO_PUSH
-echo  # Yeni satır için
+# Otomatik push varsayılan olarak aktif
+AUTO_PUSH="e"
+echo -e "${BLUE}ℹ️  Otomatik push aktif${NC}"
 
 # Timestamp - İstanbul saati ile
 export TZ='Europe/Istanbul'
@@ -437,33 +436,26 @@ if [ -d ".git" ]; then
     # Main'e geri dön
     git checkout main 2>/dev/null
     
-    # Otomatik push işlemleri (kullanıcı onayına göre)
-    if [[ $AUTO_PUSH =~ ^[Ee]$ ]]; then
-        echo -e "${YELLOW}📤 Uzak repository'ye push ediliyor...${NC}"
-        
-        # Main branch'i push et
-        echo -e "${BLUE}   → main branch push ediliyor...${NC}"
-        if git push origin main 2>&1 | grep -q "Everything up-to-date\|successfully"; then
-            echo -e "${GREEN}   ✅ main branch başarıyla push edildi${NC}"
-        else
-            git push origin main 2>/dev/null && echo -e "${GREEN}   ✅ main branch başarıyla push edildi${NC}" || echo -e "${YELLOW}   ⚠️ main branch push başarısız (internet bağlantısı yok olabilir)${NC}"
-        fi
-        
-        # Yeni versiyon branch'ini push et
-        echo -e "${BLUE}   → ${new_version} branch push ediliyor...${NC}"
-        if git push origin ${new_version} 2>&1 | grep -q "Everything up-to-date\|successfully"; then
-            echo -e "${GREEN}   ✅ ${new_version} branch başarıyla push edildi${NC}"
-        else
-            git push origin ${new_version} 2>/dev/null && echo -e "${GREEN}   ✅ ${new_version} branch başarıyla push edildi${NC}" || echo -e "${YELLOW}   ⚠️ ${new_version} branch push başarısız (internet bağlantısı yok olabilir)${NC}"
-        fi
-        
-        echo -e "${GREEN}✅ Git işlemleri tamamlandı ve push edildi${NC}"
+    # Otomatik push işlemleri (her zaman aktif)
+    echo -e "${YELLOW}📤 Uzak repository'ye otomatik push ediliyor...${NC}"
+    
+    # Main branch'i push et
+    echo -e "${BLUE}   → main branch push ediliyor...${NC}"
+    if git push origin main 2>&1 | grep -q "Everything up-to-date\|successfully"; then
+        echo -e "${GREEN}   ✅ main branch başarıyla push edildi${NC}"
     else
-        echo -e "${GREEN}✅ Git işlemleri tamamlandı (push edilmedi)${NC}"
-        echo -e "${YELLOW}📤 Manuel push için:${NC}"
-        echo -e "   ${GREEN}git push origin main${NC}"
-        echo -e "   ${GREEN}git push origin ${new_version}${NC}"
+        git push origin main 2>/dev/null && echo -e "${GREEN}   ✅ main branch başarıyla push edildi${NC}" || echo -e "${YELLOW}   ⚠️ main branch push başarısız (internet bağlantısı yok olabilir)${NC}"
     fi
+    
+    # Yeni versiyon branch'ini push et
+    echo -e "${BLUE}   → ${new_version} branch push ediliyor...${NC}"
+    if git push origin ${new_version} 2>&1 | grep -q "Everything up-to-date\|successfully"; then
+        echo -e "${GREEN}   ✅ ${new_version} branch başarıyla push edildi${NC}"
+    else
+        git push origin ${new_version} 2>/dev/null && echo -e "${GREEN}   ✅ ${new_version} branch başarıyla push edildi${NC}" || echo -e "${YELLOW}   ⚠️ ${new_version} branch push başarısız (internet bağlantısı yok olabilir)${NC}"
+    fi
+    
+    echo -e "${GREEN}✅ Git işlemleri tamamlandı ve otomatik push edildi${NC}"
 else
     echo -e "${YELLOW}⚠️  Git repository değil, git işlemleri atlandı${NC}"
 fi
