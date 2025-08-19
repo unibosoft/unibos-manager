@@ -1,11 +1,11 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-🪐 unibos v498 - unicorn bodrum operating system
+🪐 unibos v499 - unicorn bodrum operating system
 Simplified Web Forge + Lowercase UI + Single Server Architecture
 
 Author: berk hatırlı - bitez, bodrum, muğla, türkiye
-Version: v498_20250819_0806
+Version: v499_20250819_1001
 Purpose: Professional terminal UI with multi-module support"""
 
 import os
@@ -128,9 +128,9 @@ except ImportError:
 
 # Version information
 VERSION_INFO = {
-    "version": "v498",
-    "build": "20250819_0806", 
-    "build_date": "2025-08-14 04:03:29 +03:00",
+    "version": "v499",
+    "build": "20250819_1001", 
+    "build_date": "2025-08-19 10:01:05 +03:00",
     "author": "berk hatırlı",
     "location": "bitez, bodrum, muğla, türkiye, dünya, güneş sistemi, samanyolu, yerel galaksi grubu, evren"
 }

@@ -1,0 +1,16752 @@
+--
+-- PostgreSQL database dump
+--
+
+-- Dumped from database version 14.18 (Homebrew)
+-- Dumped by pg_dump version 14.18 (Homebrew)
+
+-- Started on 2025-08-19 10:01:04 +03
+
+SET statement_timeout = 0;
+SET lock_timeout = 0;
+SET idle_in_transaction_session_timeout = 0;
+SET client_encoding = 'UTF8';
+SET standard_conforming_strings = on;
+SELECT pg_catalog.set_config('search_path', '', false);
+SET check_function_bodies = false;
+SET xmloption = content;
+SET client_min_messages = warning;
+SET row_security = off;
+
+ALTER TABLE IF EXISTS ONLY public.wims_warehouse DROP CONSTRAINT IF EXISTS wims_warehouse_user_id_ef28eb5c_fk_auth_user_id;
+ALTER TABLE IF EXISTS ONLY public.wims_stockmovement DROP CONSTRAINT IF EXISTS wims_stockmovement_user_id_937dbf8e_fk_auth_user_id;
+ALTER TABLE IF EXISTS ONLY public.wims_stockmovement DROP CONSTRAINT IF EXISTS wims_stockmovement_to_warehouse_id_139be900_fk_wims_ware;
+ALTER TABLE IF EXISTS ONLY public.wims_stockmovement DROP CONSTRAINT IF EXISTS wims_stockmovement_to_location_id_f97f9df2_fk_wims_stoc;
+ALTER TABLE IF EXISTS ONLY public.wims_stockmovement DROP CONSTRAINT IF EXISTS wims_stockmovement_item_id_9180ac56_fk_core_item_id;
+ALTER TABLE IF EXISTS ONLY public.wims_stockmovement DROP CONSTRAINT IF EXISTS wims_stockmovement_invoice_item_id_872b1e6d_fk_wimm_invo;
+ALTER TABLE IF EXISTS ONLY public.wims_stockmovement DROP CONSTRAINT IF EXISTS wims_stockmovement_invoice_id_089ef390_fk_wimm_invoice_id;
+ALTER TABLE IF EXISTS ONLY public.wims_stockmovement DROP CONSTRAINT IF EXISTS wims_stockmovement_from_warehouse_id_86887b59_fk_wims_ware;
+ALTER TABLE IF EXISTS ONLY public.wims_stockmovement DROP CONSTRAINT IF EXISTS wims_stockmovement_from_location_id_0ef98876_fk_wims_stoc;
+ALTER TABLE IF EXISTS ONLY public.wims_stocklocation DROP CONSTRAINT IF EXISTS wims_stocklocation_warehouse_id_ad86d2c3_fk_wims_warehouse_id;
+ALTER TABLE IF EXISTS ONLY public.wims_stocklocation DROP CONSTRAINT IF EXISTS wims_stocklocation_parent_id_3c51dc54_fk_wims_stocklocation_id;
+ALTER TABLE IF EXISTS ONLY public.wims_stockitem DROP CONSTRAINT IF EXISTS wims_stockitem_warehouse_id_506b6866_fk_wims_warehouse_id;
+ALTER TABLE IF EXISTS ONLY public.wims_stockitem DROP CONSTRAINT IF EXISTS wims_stockitem_location_id_82e767c9_fk_wims_stocklocation_id;
+ALTER TABLE IF EXISTS ONLY public.wims_stockitem DROP CONSTRAINT IF EXISTS wims_stockitem_item_id_226e484f_fk_core_item_id;
+ALTER TABLE IF EXISTS ONLY public.wims_stockcountitem DROP CONSTRAINT IF EXISTS wims_stockcountitem_stock_count_id_db1e2cf5_fk_wims_stoc;
+ALTER TABLE IF EXISTS ONLY public.wims_stockcountitem DROP CONSTRAINT IF EXISTS wims_stockcountitem_location_id_eaef3355_fk_wims_stoc;
+ALTER TABLE IF EXISTS ONLY public.wims_stockcountitem DROP CONSTRAINT IF EXISTS wims_stockcountitem_item_id_dd9fb2a2_fk_core_item_id;
+ALTER TABLE IF EXISTS ONLY public.wims_stockcount DROP CONSTRAINT IF EXISTS wims_stockcount_warehouse_id_44fc6631_fk_wims_warehouse_id;
+ALTER TABLE IF EXISTS ONLY public.wims_stockcount DROP CONSTRAINT IF EXISTS wims_stockcount_user_id_470e84b0_fk_auth_user_id;
+ALTER TABLE IF EXISTS ONLY public.wims_stockcount DROP CONSTRAINT IF EXISTS wims_stockcount_approved_by_id_0acce1bc_fk_auth_user_id;
+ALTER TABLE IF EXISTS ONLY public.wims_itemsupplier DROP CONSTRAINT IF EXISTS wims_itemsupplier_item_id_b30fc7a2_fk_core_item_id;
+ALTER TABLE IF EXISTS ONLY public.wimm_transactioncategory DROP CONSTRAINT IF EXISTS wimm_transactioncate_parent_id_daaad250_fk_wimm_tran;
+ALTER TABLE IF EXISTS ONLY public.wimm_transaction DROP CONSTRAINT IF EXISTS wimm_transaction_user_id_21d45b7b_fk_auth_user_id;
+ALTER TABLE IF EXISTS ONLY public.wimm_transaction DROP CONSTRAINT IF EXISTS wimm_transaction_to_account_id_6dea8ac9_fk_core_account_id;
+ALTER TABLE IF EXISTS ONLY public.wimm_transaction DROP CONSTRAINT IF EXISTS wimm_transaction_subscription_id_fad0014a_fk_documents;
+ALTER TABLE IF EXISTS ONLY public.wimm_transaction DROP CONSTRAINT IF EXISTS wimm_transaction_source_document_id_a3a53c02_fk_documents;
+ALTER TABLE IF EXISTS ONLY public.wimm_transaction DROP CONSTRAINT IF EXISTS wimm_transaction_invoice_id_bd68f11f_fk_wimm_invoice_id;
+ALTER TABLE IF EXISTS ONLY public.wimm_transaction DROP CONSTRAINT IF EXISTS wimm_transaction_from_account_id_9c58e59b_fk_core_account_id;
+ALTER TABLE IF EXISTS ONLY public.wimm_transaction DROP CONSTRAINT IF EXISTS wimm_transaction_expense_group_id_9cbf6a1d_fk_documents;
+ALTER TABLE IF EXISTS ONLY public.wimm_transaction DROP CONSTRAINT IF EXISTS wimm_transaction_expense_category_id_f44c14a9_fk_documents;
+ALTER TABLE IF EXISTS ONLY public.wimm_transaction DROP CONSTRAINT IF EXISTS wimm_transaction_credit_card_id_7b472bc1_fk_documents;
+ALTER TABLE IF EXISTS ONLY public.wimm_transaction DROP CONSTRAINT IF EXISTS wimm_transaction_category_id_55e8a94a_fk_wimm_tran;
+ALTER TABLE IF EXISTS ONLY public.wimm_recurringtransaction DROP CONSTRAINT IF EXISTS wimm_recurringtransaction_user_id_7f034981_fk_auth_user_id;
+ALTER TABLE IF EXISTS ONLY public.wimm_recurringtransaction DROP CONSTRAINT IF EXISTS wimm_recurringtransa_to_account_id_7c2792a8_fk_core_acco;
+ALTER TABLE IF EXISTS ONLY public.wimm_recurringtransaction DROP CONSTRAINT IF EXISTS wimm_recurringtransa_from_account_id_57f9c837_fk_core_acco;
+ALTER TABLE IF EXISTS ONLY public.wimm_recurringtransaction DROP CONSTRAINT IF EXISTS wimm_recurringtransa_category_id_59e3b892_fk_wimm_tran;
+ALTER TABLE IF EXISTS ONLY public.wimm_invoiceitem DROP CONSTRAINT IF EXISTS wimm_invoiceitem_item_id_30ebe675_fk_core_item_id;
+ALTER TABLE IF EXISTS ONLY public.wimm_invoiceitem DROP CONSTRAINT IF EXISTS wimm_invoiceitem_invoice_id_f0a49313_fk_wimm_invoice_id;
+ALTER TABLE IF EXISTS ONLY public.wimm_invoice DROP CONSTRAINT IF EXISTS wimm_invoice_user_id_02cb6353_fk_auth_user_id;
+ALTER TABLE IF EXISTS ONLY public.wimm_budget DROP CONSTRAINT IF EXISTS wimm_budget_user_id_778a3d42_fk_auth_user_id;
+ALTER TABLE IF EXISTS ONLY public.wimm_budget DROP CONSTRAINT IF EXISTS wimm_budget_category_id_b9f806ba_fk_wimm_transactioncategory_id;
+ALTER TABLE IF EXISTS ONLY public.web_ui_session_logs DROP CONSTRAINT IF EXISTS web_ui_session_logs_user_id_fe54c24c_fk_auth_user_id;
+ALTER TABLE IF EXISTS ONLY public.web_ui_preferences DROP CONSTRAINT IF EXISTS web_ui_preferences_user_id_efc87248_fk_auth_user_id;
+ALTER TABLE IF EXISTS ONLY public.web_ui_module_access DROP CONSTRAINT IF EXISTS web_ui_module_access_user_id_b2f57d1a_fk_auth_user_id;
+ALTER TABLE IF EXISTS ONLY public.web_ui_module_access DROP CONSTRAINT IF EXISTS web_ui_module_access_session_id_d9a95af0_fk_web_ui_se;
+ALTER TABLE IF EXISTS ONLY public.web_ui_command_history DROP CONSTRAINT IF EXISTS web_ui_command_history_user_id_0a2f6031_fk_auth_user_id;
+ALTER TABLE IF EXISTS ONLY public.version_manager_scansession DROP CONSTRAINT IF EXISTS version_manager_scan_started_by_id_384e539f_fk_auth_user;
+ALTER TABLE IF EXISTS ONLY public.transactions DROP CONSTRAINT IF EXISTS transactions_portfolio_id_f41f764e_fk_portfolios_id;
+ALTER TABLE IF EXISTS ONLY public.transactions DROP CONSTRAINT IF EXISTS transactions_fee_currency_id_8568ce42_fk_currencies_code;
+ALTER TABLE IF EXISTS ONLY public.transactions DROP CONSTRAINT IF EXISTS transactions_currency_id_a7fd19d0_fk_currencies_code;
+ALTER TABLE IF EXISTS ONLY public.store_synclog DROP CONSTRAINT IF EXISTS store_synclog_marketplace_id_0c015fc4_fk_store_marketplace_id;
+ALTER TABLE IF EXISTS ONLY public.store_product DROP CONSTRAINT IF EXISTS store_product_user_id_58ba19a0_fk_auth_user_id;
+ALTER TABLE IF EXISTS ONLY public.store_product DROP CONSTRAINT IF EXISTS store_product_marketplace_id_e8f55ca6_fk_store_marketplace_id;
+ALTER TABLE IF EXISTS ONLY public.store_orderitem DROP CONSTRAINT IF EXISTS store_orderitem_order_id_acf8722d_fk_store_order_id;
+ALTER TABLE IF EXISTS ONLY public.store_order DROP CONSTRAINT IF EXISTS store_order_user_id_ae5f7a5f_fk_auth_user_id;
+ALTER TABLE IF EXISTS ONLY public.store_order DROP CONSTRAINT IF EXISTS store_order_marketplace_id_8ce4d993_fk_store_marketplace_id;
+ALTER TABLE IF EXISTS ONLY public.store_marketplace DROP CONSTRAINT IF EXISTS store_marketplace_user_id_94674dc8_fk_auth_user_id;
+ALTER TABLE IF EXISTS ONLY public.solitaire_solitairestatistics DROP CONSTRAINT IF EXISTS solitaire_solitairestatistics_user_id_55bd1c51_fk_auth_user_id;
+ALTER TABLE IF EXISTS ONLY public.solitaire_solitairesession DROP CONSTRAINT IF EXISTS solitaire_solitairesession_user_id_15f9c6a0_fk_auth_user_id;
+ALTER TABLE IF EXISTS ONLY public.solitaire_solitaireplayer DROP CONSTRAINT IF EXISTS solitaire_solitaireplayer_user_id_bb56088a_fk_auth_user_id;
+ALTER TABLE IF EXISTS ONLY public.solitaire_solitairemove DROP CONSTRAINT IF EXISTS solitaire_solitairem_session_id_faf38fe6_fk_solitaire;
+ALTER TABLE IF EXISTS ONLY public.solitaire_solitairegamesession DROP CONSTRAINT IF EXISTS solitaire_solitaireg_player_id_ca28dc7a_fk_solitaire;
+ALTER TABLE IF EXISTS ONLY public.solitaire_solitaireactivity DROP CONSTRAINT IF EXISTS solitaire_solitairea_session_id_bee7d0d9_fk_solitaire;
+ALTER TABLE IF EXISTS ONLY public.restopos_table DROP CONSTRAINT IF EXISTS restopos_table_restaurant_id_52a099c2_fk_restopos_restaurant_id;
+ALTER TABLE IF EXISTS ONLY public.restopos_table DROP CONSTRAINT IF EXISTS restopos_table_current_order_id_79154c94_fk_restopos_order_id;
+ALTER TABLE IF EXISTS ONLY public.restopos_staff DROP CONSTRAINT IF EXISTS restopos_staff_user_id_cee05f0c_fk_auth_user_id;
+ALTER TABLE IF EXISTS ONLY public.restopos_staff DROP CONSTRAINT IF EXISTS restopos_staff_restaurant_id_7f6e383a_fk_restopos_restaurant_id;
+ALTER TABLE IF EXISTS ONLY public.restopos_reservation DROP CONSTRAINT IF EXISTS restopos_reservation_table_id_480c6163_fk_restopos_table_id;
+ALTER TABLE IF EXISTS ONLY public.restopos_reservation DROP CONSTRAINT IF EXISTS restopos_reservation_restaurant_id_c25029db_fk_restopos_;
+ALTER TABLE IF EXISTS ONLY public.restopos_receipt DROP CONSTRAINT IF EXISTS restopos_receipt_order_id_ba8066c3_fk_restopos_order_id;
+ALTER TABLE IF EXISTS ONLY public.restopos_orderitem DROP CONSTRAINT IF EXISTS restopos_orderitem_order_id_128bf52e_fk_restopos_order_id;
+ALTER TABLE IF EXISTS ONLY public.restopos_orderitem DROP CONSTRAINT IF EXISTS restopos_orderitem_menu_item_id_8b8d6e00_fk_restopos_;
+ALTER TABLE IF EXISTS ONLY public.restopos_order DROP CONSTRAINT IF EXISTS restopos_order_waiter_id_c82466c4_fk_auth_user_id;
+ALTER TABLE IF EXISTS ONLY public.restopos_order DROP CONSTRAINT IF EXISTS restopos_order_table_id_6b81e243_fk_restopos_table_id;
+ALTER TABLE IF EXISTS ONLY public.restopos_order DROP CONSTRAINT IF EXISTS restopos_order_restaurant_id_5edb146c_fk_restopos_restaurant_id;
+ALTER TABLE IF EXISTS ONLY public.restopos_order DROP CONSTRAINT IF EXISTS restopos_order_chef_id_674779f8_fk_auth_user_id;
+ALTER TABLE IF EXISTS ONLY public.restopos_menuitem DROP CONSTRAINT IF EXISTS restopos_menuitem_restaurant_id_4874b174_fk_restopos_;
+ALTER TABLE IF EXISTS ONLY public.restopos_menuitem DROP CONSTRAINT IF EXISTS restopos_menuitem_category_id_8ac7e03a_fk_restopos_;
+ALTER TABLE IF EXISTS ONLY public.restopos_menucategory DROP CONSTRAINT IF EXISTS restopos_menucategor_restaurant_id_c037f93a_fk_restopos_;
+ALTER TABLE IF EXISTS ONLY public.products DROP CONSTRAINT IF EXISTS products_category_id_a7a3a156_fk_product_categories_id;
+ALTER TABLE IF EXISTS ONLY public.product_categories DROP CONSTRAINT IF EXISTS product_categories_parent_id_22d4dfe1_fk_product_categories_id;
+ALTER TABLE IF EXISTS ONLY public.price_records DROP CONSTRAINT IF EXISTS price_records_user_id_3644d63e_fk_auth_user_id;
+ALTER TABLE IF EXISTS ONLY public.price_records DROP CONSTRAINT IF EXISTS price_records_store_id_b00c53ce_fk_stores_id;
+ALTER TABLE IF EXISTS ONLY public.price_records DROP CONSTRAINT IF EXISTS price_records_product_id_4dda0575_fk_products_id;
+ALTER TABLE IF EXISTS ONLY public.price_alerts DROP CONSTRAINT IF EXISTS price_alerts_user_id_75790b71_fk_auth_user_id;
+ALTER TABLE IF EXISTS ONLY public.price_alerts DROP CONSTRAINT IF EXISTS price_alerts_product_id_591045be_fk_products_id;
+ALTER TABLE IF EXISTS ONLY public.portfolios DROP CONSTRAINT IF EXISTS portfolios_user_id_bd964e53_fk_auth_user_id;
+ALTER TABLE IF EXISTS ONLY public.portfolio_transactions DROP CONSTRAINT IF EXISTS portfolio_transactions_portfolio_id_dc4b9175_fk_portfolios_id;
+ALTER TABLE IF EXISTS ONLY public.portfolio_transactions DROP CONSTRAINT IF EXISTS portfolio_transactions_currency_id_a678c202_fk_currencies_code;
+ALTER TABLE IF EXISTS ONLY public.portfolio_performance DROP CONSTRAINT IF EXISTS portfolio_performance_portfolio_id_68c09684_fk_portfolios_id;
+ALTER TABLE IF EXISTS ONLY public.portfolio_holdings DROP CONSTRAINT IF EXISTS portfolio_holdings_portfolio_id_b8feb880_fk_portfolios_id;
+ALTER TABLE IF EXISTS ONLY public.portfolio_holdings DROP CONSTRAINT IF EXISTS portfolio_holdings_currency_id_45463006_fk_currencies_code;
+ALTER TABLE IF EXISTS ONLY public.personal_baskets DROP CONSTRAINT IF EXISTS personal_baskets_user_id_2b8874cc_fk_auth_user_id;
+ALTER TABLE IF EXISTS ONLY public.music_usertrack DROP CONSTRAINT IF EXISTS music_usertrack_track_id_b562f750_fk_music_track_id;
+ALTER TABLE IF EXISTS ONLY public.music_usertrack DROP CONSTRAINT IF EXISTS music_usertrack_library_id_f4db77dd_fk_music_userlibrary_id;
+ALTER TABLE IF EXISTS ONLY public.music_userlibrary DROP CONSTRAINT IF EXISTS music_userlibrary_user_id_d241836d_fk_auth_user_id;
+ALTER TABLE IF EXISTS ONLY public.music_userartist DROP CONSTRAINT IF EXISTS music_userartist_library_id_4c8376bb_fk_music_userlibrary_id;
+ALTER TABLE IF EXISTS ONLY public.music_userartist DROP CONSTRAINT IF EXISTS music_userartist_artist_id_b9d786fc_fk_music_artist_id;
+ALTER TABLE IF EXISTS ONLY public.music_useralbum DROP CONSTRAINT IF EXISTS music_useralbum_library_id_415845ad_fk_music_userlibrary_id;
+ALTER TABLE IF EXISTS ONLY public.music_useralbum DROP CONSTRAINT IF EXISTS music_useralbum_album_id_95a00687_fk_music_album_id;
+ALTER TABLE IF EXISTS ONLY public.music_track_featured_artists DROP CONSTRAINT IF EXISTS music_track_featured_track_id_1c206fbc_fk_music_tra;
+ALTER TABLE IF EXISTS ONLY public.music_track_featured_artists DROP CONSTRAINT IF EXISTS music_track_featured_artist_id_eb00406e_fk_music_art;
+ALTER TABLE IF EXISTS ONLY public.music_track DROP CONSTRAINT IF EXISTS music_track_artist_id_a65d07d5_fk_music_artist_id;
+ALTER TABLE IF EXISTS ONLY public.music_track DROP CONSTRAINT IF EXISTS music_track_album_id_f2264d26_fk_music_album_id;
+ALTER TABLE IF EXISTS ONLY public.music_playlisttrack DROP CONSTRAINT IF EXISTS music_playlisttrack_track_id_427b6391_fk_music_track_id;
+ALTER TABLE IF EXISTS ONLY public.music_playlisttrack DROP CONSTRAINT IF EXISTS music_playlisttrack_playlist_id_585a8ed4_fk_music_playlist_id;
+ALTER TABLE IF EXISTS ONLY public.music_playlisttrack DROP CONSTRAINT IF EXISTS music_playlisttrack_added_by_id_85ed5672_fk_auth_user_id;
+ALTER TABLE IF EXISTS ONLY public.music_playlist DROP CONSTRAINT IF EXISTS music_playlist_user_id_c54fe691_fk_auth_user_id;
+ALTER TABLE IF EXISTS ONLY public.music_playlist_collaborators DROP CONSTRAINT IF EXISTS music_playlist_collaborators_user_id_f6d7bf77_fk_auth_user_id;
+ALTER TABLE IF EXISTS ONLY public.music_playlist_collaborators DROP CONSTRAINT IF EXISTS music_playlist_colla_playlist_id_ffc1a710_fk_music_pla;
+ALTER TABLE IF EXISTS ONLY public.music_listeningstats DROP CONSTRAINT IF EXISTS music_listeningstats_user_id_eb08efb9_fk_auth_user_id;
+ALTER TABLE IF EXISTS ONLY public.music_listeninghistory DROP CONSTRAINT IF EXISTS music_listeninghistory_user_id_0cc18943_fk_auth_user_id;
+ALTER TABLE IF EXISTS ONLY public.music_listeninghistory DROP CONSTRAINT IF EXISTS music_listeninghistory_track_id_03e4d01a_fk_music_track_id;
+ALTER TABLE IF EXISTS ONLY public.music_album_featured_artists DROP CONSTRAINT IF EXISTS music_album_featured_artist_id_9fca8850_fk_music_art;
+ALTER TABLE IF EXISTS ONLY public.music_album_featured_artists DROP CONSTRAINT IF EXISTS music_album_featured_album_id_7ba9d9bf_fk_music_alb;
+ALTER TABLE IF EXISTS ONLY public.music_album DROP CONSTRAINT IF EXISTS music_album_artist_id_f633b817_fk_music_artist_id;
+ALTER TABLE IF EXISTS ONLY public.movies_watchlist DROP CONSTRAINT IF EXISTS movies_watchlist_user_id_b7cb1960_fk_auth_user_id;
+ALTER TABLE IF EXISTS ONLY public.movies_watchlist DROP CONSTRAINT IF EXISTS movies_watchlist_movie_id_8007e236_fk_movies_movie_id;
+ALTER TABLE IF EXISTS ONLY public.movies_watchhistory DROP CONSTRAINT IF EXISTS movies_watchhistory_user_id_94fbd0e2_fk_auth_user_id;
+ALTER TABLE IF EXISTS ONLY public.movies_watchhistory DROP CONSTRAINT IF EXISTS movies_watchhistory_movie_id_7d3d0b4b_fk_movies_movie_id;
+ALTER TABLE IF EXISTS ONLY public.movies_userrating DROP CONSTRAINT IF EXISTS movies_userrating_user_id_632ec00f_fk_auth_user_id;
+ALTER TABLE IF EXISTS ONLY public.movies_userrating DROP CONSTRAINT IF EXISTS movies_userrating_movie_id_68d8aa46_fk_movies_movie_id;
+ALTER TABLE IF EXISTS ONLY public.movies_personalarchive DROP CONSTRAINT IF EXISTS movies_personalarchive_user_id_6b62c028_fk_auth_user_id;
+ALTER TABLE IF EXISTS ONLY public.movies_personalarchive DROP CONSTRAINT IF EXISTS movies_personalarchive_movie_id_4887f522_fk_movies_movie_id;
+ALTER TABLE IF EXISTS ONLY public.movies_movie_genres DROP CONSTRAINT IF EXISTS movies_movie_genres_movie_id_ff5e55a1_fk_movies_movie_id;
+ALTER TABLE IF EXISTS ONLY public.movies_movie_genres DROP CONSTRAINT IF EXISTS movies_movie_genres_genre_id_c3609db2_fk_movies_genre_id;
+ALTER TABLE IF EXISTS ONLY public.movies_collectionitem DROP CONSTRAINT IF EXISTS movies_collectionitem_movie_id_a4023bce_fk_movies_movie_id;
+ALTER TABLE IF EXISTS ONLY public.movies_collectionitem DROP CONSTRAINT IF EXISTS movies_collectionite_collection_id_07c53af7_fk_movies_co;
+ALTER TABLE IF EXISTS ONLY public.movies_collection DROP CONSTRAINT IF EXISTS movies_collection_user_id_e4d2c017_fk_auth_user_id;
+ALTER TABLE IF EXISTS ONLY public.inflation_reports DROP CONSTRAINT IF EXISTS inflation_reports_user_id_ffcb4586_fk_auth_user_id;
+ALTER TABLE IF EXISTS ONLY public.inflation_reports DROP CONSTRAINT IF EXISTS inflation_reports_basket_id_4062b4f4_fk_personal_baskets_id;
+ALTER TABLE IF EXISTS ONLY public.exchange_rates DROP CONSTRAINT IF EXISTS exchange_rates_target_currency_id_f8fd1c7c_fk_currencies_code;
+ALTER TABLE IF EXISTS ONLY public.exchange_rates DROP CONSTRAINT IF EXISTS exchange_rates_base_currency_id_45cfb739_fk_currencies_code;
+ALTER TABLE IF EXISTS ONLY public.documents_validationfeedback DROP CONSTRAINT IF EXISTS documents_validationfeedback_user_id_cf2c646f_fk_auth_user_id;
+ALTER TABLE IF EXISTS ONLY public.documents_userprofile DROP CONSTRAINT IF EXISTS documents_userprofile_user_id_545feba7_fk_auth_user_id;
+ALTER TABLE IF EXISTS ONLY public.documents_userchallenge DROP CONSTRAINT IF EXISTS documents_userchallenge_user_id_37d5d621_fk_auth_user_id;
+ALTER TABLE IF EXISTS ONLY public.documents_userchallenge DROP CONSTRAINT IF EXISTS documents_userchalle_challenge_id_74c25aa6_fk_documents;
+ALTER TABLE IF EXISTS ONLY public.documents_subscription DROP CONSTRAINT IF EXISTS documents_subscription_user_id_d154c76d_fk_auth_user_id;
+ALTER TABLE IF EXISTS ONLY public.documents_subscription DROP CONSTRAINT IF EXISTS documents_subscripti_payment_method_id_dbfc6a70_fk_documents;
+ALTER TABLE IF EXISTS ONLY public.documents_receiptitem DROP CONSTRAINT IF EXISTS documents_receiptite_receipt_id_684d6ad0_fk_documents;
+ALTER TABLE IF EXISTS ONLY public.documents_pointtransaction DROP CONSTRAINT IF EXISTS documents_pointtransaction_user_id_9cff8e9c_fk_auth_user_id;
+ALTER TABLE IF EXISTS ONLY public.documents_parsedreceipt DROP CONSTRAINT IF EXISTS documents_parsedrece_document_id_351d81b2_fk_documents;
+ALTER TABLE IF EXISTS ONLY public.documents_leaderboard DROP CONSTRAINT IF EXISTS documents_leaderboard_user_id_92b55750_fk_auth_user_id;
+ALTER TABLE IF EXISTS ONLY public.documents_expensegroup DROP CONSTRAINT IF EXISTS documents_expensegroup_user_id_ebdf45c2_fk_auth_user_id;
+ALTER TABLE IF EXISTS ONLY public.documents_expensecategory DROP CONSTRAINT IF EXISTS documents_expensecategory_user_id_e19ac3b6_fk_auth_user_id;
+ALTER TABLE IF EXISTS ONLY public.documents_expensecategory DROP CONSTRAINT IF EXISTS documents_expensecat_parent_id_5e980808_fk_documents;
+ALTER TABLE IF EXISTS ONLY public.documents_documentshare DROP CONSTRAINT IF EXISTS documents_documentshare_shared_with_id_cf66b884_fk_auth_user_id;
+ALTER TABLE IF EXISTS ONLY public.documents_documentshare DROP CONSTRAINT IF EXISTS documents_documentshare_shared_by_id_bb1db51d_fk_auth_user_id;
+ALTER TABLE IF EXISTS ONLY public.documents_documentshare DROP CONSTRAINT IF EXISTS documents_documentsh_document_id_9be134c4_fk_documents;
+ALTER TABLE IF EXISTS ONLY public.documents_documentbatch DROP CONSTRAINT IF EXISTS documents_documentbatch_user_id_b4b5232d_fk_auth_user_id;
+ALTER TABLE IF EXISTS ONLY public.documents_document DROP CONSTRAINT IF EXISTS documents_document_user_id_e543d099_fk_auth_user_id;
+ALTER TABLE IF EXISTS ONLY public.documents_document DROP CONSTRAINT IF EXISTS documents_document_deleted_by_id_d75ca342_fk_auth_user_id;
+ALTER TABLE IF EXISTS ONLY public.documents_creditcard DROP CONSTRAINT IF EXISTS documents_creditcard_user_id_83a92ad6_fk_auth_user_id;
+ALTER TABLE IF EXISTS ONLY public.documents_achievement DROP CONSTRAINT IF EXISTS documents_achievement_user_id_3a66684f_fk_auth_user_id;
+ALTER TABLE IF EXISTS ONLY public.currency_alerts DROP CONSTRAINT IF EXISTS currency_alerts_user_id_08a95a16_fk_auth_user_id;
+ALTER TABLE IF EXISTS ONLY public.currency_alerts DROP CONSTRAINT IF EXISTS currency_alerts_target_currency_id_1e184b84_fk_currencies_code;
+ALTER TABLE IF EXISTS ONLY public.currency_alerts DROP CONSTRAINT IF EXISTS currency_alerts_base_currency_id_dd720868_fk_currencies_code;
+ALTER TABLE IF EXISTS ONLY public.core_userprofile DROP CONSTRAINT IF EXISTS core_userprofile_user_id_5141ad90_fk_auth_user_id;
+ALTER TABLE IF EXISTS ONLY public.core_itemprice DROP CONSTRAINT IF EXISTS core_itemprice_item_id_7f2d3b2b_fk_core_item_id;
+ALTER TABLE IF EXISTS ONLY public.core_itemcategory DROP CONSTRAINT IF EXISTS core_itemcategory_parent_id_f5858ebb_fk_core_itemcategory_id;
+ALTER TABLE IF EXISTS ONLY public.core_item DROP CONSTRAINT IF EXISTS core_item_unit_id_436a7f13_fk_core_unit_id;
+ALTER TABLE IF EXISTS ONLY public.core_item DROP CONSTRAINT IF EXISTS core_item_category_id_2fe5bbc8_fk_core_itemcategory_id;
+ALTER TABLE IF EXISTS ONLY public.core_account DROP CONSTRAINT IF EXISTS core_account_user_id_8d2af6ae_fk_auth_user_id;
+ALTER TABLE IF EXISTS ONLY public.cctv_recordingsession DROP CONSTRAINT IF EXISTS cctv_recordingsession_user_id_88333beb_fk_auth_user_id;
+ALTER TABLE IF EXISTS ONLY public.cctv_recordingsession DROP CONSTRAINT IF EXISTS cctv_recordingsession_camera_id_2d6be004_fk_cctv_camera_id;
+ALTER TABLE IF EXISTS ONLY public.cctv_recordingschedule DROP CONSTRAINT IF EXISTS cctv_recordingschedule_user_id_15f7ada0_fk_auth_user_id;
+ALTER TABLE IF EXISTS ONLY public.cctv_recordingschedule DROP CONSTRAINT IF EXISTS cctv_recordingschedule_camera_id_8ece72ad_fk_cctv_camera_id;
+ALTER TABLE IF EXISTS ONLY public.cctv_camerastream DROP CONSTRAINT IF EXISTS cctv_camerastream_camera_id_6bb36e52_fk_cctv_camera_id;
+ALTER TABLE IF EXISTS ONLY public.cctv_cameragroup DROP CONSTRAINT IF EXISTS cctv_cameragroup_user_id_025ddb87_fk_auth_user_id;
+ALTER TABLE IF EXISTS ONLY public.cctv_cameragroup_cameras DROP CONSTRAINT IF EXISTS cctv_cameragroup_cameras_camera_id_e731eb60_fk_cctv_camera_id;
+ALTER TABLE IF EXISTS ONLY public.cctv_cameragroup_cameras DROP CONSTRAINT IF EXISTS cctv_cameragroup_cam_cameragroup_id_582d3745_fk_cctv_came;
+ALTER TABLE IF EXISTS ONLY public.cctv_camera DROP CONSTRAINT IF EXISTS cctv_camera_user_id_92d5d2c7_fk_auth_user_id;
+ALTER TABLE IF EXISTS ONLY public.cctv_alert DROP CONSTRAINT IF EXISTS cctv_alert_user_id_08e5ac13_fk_auth_user_id;
+ALTER TABLE IF EXISTS ONLY public.cctv_alert DROP CONSTRAINT IF EXISTS cctv_alert_resolved_by_id_6f4529dc_fk_auth_user_id;
+ALTER TABLE IF EXISTS ONLY public.cctv_alert DROP CONSTRAINT IF EXISTS cctv_alert_camera_id_10892e98_fk_cctv_camera_id;
+ALTER TABLE IF EXISTS ONLY public.birlikteyiz_message_relays DROP CONSTRAINT IF EXISTS birlikteyiz_message__relay_node_id_348d3579_fk_birliktey;
+ALTER TABLE IF EXISTS ONLY public.birlikteyiz_message_relays DROP CONSTRAINT IF EXISTS birlikteyiz_message__previous_node_id_68c90350_fk_birliktey;
+ALTER TABLE IF EXISTS ONLY public.birlikteyiz_message_relays DROP CONSTRAINT IF EXISTS birlikteyiz_message__message_id_36c2c9b9_fk_birliktey;
+ALTER TABLE IF EXISTS ONLY public.birlikteyiz_mesh_nodes DROP CONSTRAINT IF EXISTS birlikteyiz_mesh_nodes_owner_id_cfad42ed_fk_auth_user_id;
+ALTER TABLE IF EXISTS ONLY public.birlikteyiz_emergency_contacts DROP CONSTRAINT IF EXISTS birlikteyiz_emergency_contacts_user_id_6c434a68_fk_auth_user_id;
+ALTER TABLE IF EXISTS ONLY public.birlikteyiz_emergency_messages DROP CONSTRAINT IF EXISTS birlikteyiz_emergenc_sender_node_id_b9f148f6_fk_birliktey;
+ALTER TABLE IF EXISTS ONLY public.birlikteyiz_earthquake_comments DROP CONSTRAINT IF EXISTS birlikteyiz_earthqua_user_id_52ec2aa3_fk_auth_user;
+ALTER TABLE IF EXISTS ONLY public.birlikteyiz_earthquake_comments DROP CONSTRAINT IF EXISTS birlikteyiz_earthqua_earthquake_id_11877c02_fk_birliktey;
+ALTER TABLE IF EXISTS ONLY public.basket_items DROP CONSTRAINT IF EXISTS basket_items_product_id_82fb5bc4_fk_products_id;
+ALTER TABLE IF EXISTS ONLY public.basket_items DROP CONSTRAINT IF EXISTS basket_items_basket_id_2b854602_fk_personal_baskets_id;
+ALTER TABLE IF EXISTS ONLY public.authtoken_token DROP CONSTRAINT IF EXISTS authtoken_token_user_id_35299eff_fk_auth_user_id;
+ALTER TABLE IF EXISTS ONLY public.auth_user_user_permissions DROP CONSTRAINT IF EXISTS auth_user_user_permissions_user_id_a95ead1b_fk_auth_user_id;
+ALTER TABLE IF EXISTS ONLY public.auth_user_user_permissions DROP CONSTRAINT IF EXISTS auth_user_user_permi_permission_id_1fbb5f2c_fk_auth_perm;
+ALTER TABLE IF EXISTS ONLY public.auth_user_groups DROP CONSTRAINT IF EXISTS auth_user_groups_user_id_6a12ed8b_fk_auth_user_id;
+ALTER TABLE IF EXISTS ONLY public.auth_user_groups DROP CONSTRAINT IF EXISTS auth_user_groups_group_id_97559544_fk_auth_group_id;
+ALTER TABLE IF EXISTS ONLY public.auth_permission DROP CONSTRAINT IF EXISTS auth_permission_content_type_id_2f476e4b_fk_django_co;
+ALTER TABLE IF EXISTS ONLY public.auth_group_permissions DROP CONSTRAINT IF EXISTS auth_group_permissions_group_id_b120cbf9_fk_auth_group_id;
+ALTER TABLE IF EXISTS ONLY public.auth_group_permissions DROP CONSTRAINT IF EXISTS auth_group_permissio_permission_id_84c5c92e_fk_auth_perm;
+ALTER TABLE IF EXISTS ONLY public.administration_userrole DROP CONSTRAINT IF EXISTS administration_userrole_user_id_a00acf22_fk_auth_user_id;
+ALTER TABLE IF EXISTS ONLY public.administration_userrole DROP CONSTRAINT IF EXISTS administration_userrole_assigned_by_id_eb7586d2_fk_auth_user_id;
+ALTER TABLE IF EXISTS ONLY public.administration_userrole DROP CONSTRAINT IF EXISTS administration_userr_role_id_35e9c1a0_fk_administr;
+ALTER TABLE IF EXISTS ONLY public.administration_screenlock DROP CONSTRAINT IF EXISTS administration_screenlock_user_id_91767d4e_fk_auth_user_id;
+ALTER TABLE IF EXISTS ONLY public.administration_role_groups DROP CONSTRAINT IF EXISTS administration_role_groups_group_id_981adaf0_fk_auth_group_id;
+ALTER TABLE IF EXISTS ONLY public.administration_role_groups DROP CONSTRAINT IF EXISTS administration_role__role_id_c12d78c2_fk_administr;
+ALTER TABLE IF EXISTS ONLY public.administration_role_permissions DROP CONSTRAINT IF EXISTS administration_role__role_id_046d28df_fk_administr;
+ALTER TABLE IF EXISTS ONLY public.administration_role_permissions DROP CONSTRAINT IF EXISTS administration_role__permission_id_d20390a8_fk_auth_perm;
+ALTER TABLE IF EXISTS ONLY public.administration_permissionrequest DROP CONSTRAINT IF EXISTS administration_permi_user_id_078a5bea_fk_auth_user;
+ALTER TABLE IF EXISTS ONLY public.administration_permissionrequest DROP CONSTRAINT IF EXISTS administration_permi_role_id_223b9bae_fk_administr;
+ALTER TABLE IF EXISTS ONLY public.administration_permissionrequest DROP CONSTRAINT IF EXISTS administration_permi_reviewed_by_id_de931119_fk_auth_user;
+ALTER TABLE IF EXISTS ONLY public.administration_permissionrequest_permissions DROP CONSTRAINT IF EXISTS administration_permi_permissionrequest_id_4e70d19f_fk_administr;
+ALTER TABLE IF EXISTS ONLY public.administration_permissionrequest_permissions DROP CONSTRAINT IF EXISTS administration_permi_permission_id_38aef95b_fk_auth_perm;
+ALTER TABLE IF EXISTS ONLY public.administration_department DROP CONSTRAINT IF EXISTS administration_department_manager_id_8d4ed73f_fk_auth_user_id;
+ALTER TABLE IF EXISTS ONLY public.administration_department_members DROP CONSTRAINT IF EXISTS administration_depar_user_id_9dcf3c79_fk_auth_user;
+ALTER TABLE IF EXISTS ONLY public.administration_department DROP CONSTRAINT IF EXISTS administration_depar_parent_id_f0b18996_fk_administr;
+ALTER TABLE IF EXISTS ONLY public.administration_department_members DROP CONSTRAINT IF EXISTS administration_depar_department_id_beb695d0_fk_administr;
+ALTER TABLE IF EXISTS ONLY public.administration_department DROP CONSTRAINT IF EXISTS administration_depar_default_role_id_38ab3cdf_fk_administr;
+ALTER TABLE IF EXISTS ONLY public.administration_auditlog DROP CONSTRAINT IF EXISTS administration_auditlog_user_id_6876a212_fk_auth_user_id;
+ALTER TABLE IF EXISTS ONLY public.administration_auditlog DROP CONSTRAINT IF EXISTS administration_auditlog_target_user_id_7ac161da_fk_auth_user_id;
+DROP INDEX IF EXISTS public.wims_warehouse_user_id_ef28eb5c;
+DROP INDEX IF EXISTS public.wims_warehouse_code_b2b8d060_like;
+DROP INDEX IF EXISTS public.wims_stockmovement_user_id_937dbf8e;
+DROP INDEX IF EXISTS public.wims_stockmovement_to_warehouse_id_139be900;
+DROP INDEX IF EXISTS public.wims_stockmovement_to_location_id_f97f9df2;
+DROP INDEX IF EXISTS public.wims_stockmovement_item_id_9180ac56;
+DROP INDEX IF EXISTS public.wims_stockmovement_invoice_item_id_872b1e6d;
+DROP INDEX IF EXISTS public.wims_stockmovement_invoice_id_089ef390;
+DROP INDEX IF EXISTS public.wims_stockmovement_from_warehouse_id_86887b59;
+DROP INDEX IF EXISTS public.wims_stockmovement_from_location_id_0ef98876;
+DROP INDEX IF EXISTS public.wims_stockm_movemen_4b23f0_idx;
+DROP INDEX IF EXISTS public.wims_stockm_item_id_d72153_idx;
+DROP INDEX IF EXISTS public.wims_stocklocation_warehouse_id_ad86d2c3;
+DROP INDEX IF EXISTS public.wims_stocklocation_parent_id_3c51dc54;
+DROP INDEX IF EXISTS public.wims_stockitem_warehouse_id_506b6866;
+DROP INDEX IF EXISTS public.wims_stockitem_location_id_82e767c9;
+DROP INDEX IF EXISTS public.wims_stockitem_item_id_226e484f;
+DROP INDEX IF EXISTS public.wims_stocki_item_id_aa36ee_idx;
+DROP INDEX IF EXISTS public.wims_stocki_expiry__438acc_idx;
+DROP INDEX IF EXISTS public.wims_stockcountitem_stock_count_id_db1e2cf5;
+DROP INDEX IF EXISTS public.wims_stockcountitem_location_id_eaef3355;
+DROP INDEX IF EXISTS public.wims_stockcountitem_item_id_dd9fb2a2;
+DROP INDEX IF EXISTS public.wims_stockcount_warehouse_id_44fc6631;
+DROP INDEX IF EXISTS public.wims_stockcount_user_id_470e84b0;
+DROP INDEX IF EXISTS public.wims_stockcount_approved_by_id_0acce1bc;
+DROP INDEX IF EXISTS public.wims_itemsupplier_item_id_b30fc7a2;
+DROP INDEX IF EXISTS public.wimm_transactioncategory_slug_76e7b668_like;
+DROP INDEX IF EXISTS public.wimm_transactioncategory_parent_id_daaad250;
+DROP INDEX IF EXISTS public.wimm_transaction_user_id_21d45b7b;
+DROP INDEX IF EXISTS public.wimm_transaction_to_account_id_6dea8ac9;
+DROP INDEX IF EXISTS public.wimm_transaction_subscription_id_fad0014a;
+DROP INDEX IF EXISTS public.wimm_transaction_source_document_id_a3a53c02;
+DROP INDEX IF EXISTS public.wimm_transaction_invoice_id_bd68f11f;
+DROP INDEX IF EXISTS public.wimm_transaction_from_account_id_9c58e59b;
+DROP INDEX IF EXISTS public.wimm_transaction_expense_group_id_9cbf6a1d;
+DROP INDEX IF EXISTS public.wimm_transaction_expense_category_id_f44c14a9;
+DROP INDEX IF EXISTS public.wimm_transaction_credit_card_id_7b472bc1;
+DROP INDEX IF EXISTS public.wimm_transaction_category_id_55e8a94a;
+DROP INDEX IF EXISTS public.wimm_transa_user_id_457f73_idx;
+DROP INDEX IF EXISTS public.wimm_transa_categor_32e172_idx;
+DROP INDEX IF EXISTS public.wimm_recurringtransaction_user_id_7f034981;
+DROP INDEX IF EXISTS public.wimm_recurringtransaction_to_account_id_7c2792a8;
+DROP INDEX IF EXISTS public.wimm_recurringtransaction_from_account_id_57f9c837;
+DROP INDEX IF EXISTS public.wimm_recurringtransaction_category_id_59e3b892;
+DROP INDEX IF EXISTS public.wimm_invoiceitem_item_id_30ebe675;
+DROP INDEX IF EXISTS public.wimm_invoiceitem_invoice_id_f0a49313;
+DROP INDEX IF EXISTS public.wimm_invoice_user_id_02cb6353;
+DROP INDEX IF EXISTS public.wimm_invoice_invoice_number_bb2eea10_like;
+DROP INDEX IF EXISTS public.wimm_invoic_user_id_a3a26a_idx;
+DROP INDEX IF EXISTS public.wimm_invoic_payment_c06871_idx;
+DROP INDEX IF EXISTS public.wimm_invoic_invoice_4a17e2_idx;
+DROP INDEX IF EXISTS public.wimm_budget_user_id_778a3d42;
+DROP INDEX IF EXISTS public.wimm_budget_category_id_b9f806ba;
+DROP INDEX IF EXISTS public.web_ui_syst_module_0d77a5_idx;
+DROP INDEX IF EXISTS public.web_ui_syst_last_ch_6b0bd4_idx;
+DROP INDEX IF EXISTS public.web_ui_session_logs_user_id_fe54c24c;
+DROP INDEX IF EXISTS public.web_ui_session_logs_session_id_1a72268b_like;
+DROP INDEX IF EXISTS public.web_ui_sess_user_id_ae0a17_idx;
+DROP INDEX IF EXISTS public.web_ui_sess_session_f15dea_idx;
+DROP INDEX IF EXISTS public.web_ui_module_access_user_id_b2f57d1a;
+DROP INDEX IF EXISTS public.web_ui_module_access_session_id_d9a95af0;
+DROP INDEX IF EXISTS public.web_ui_modu_user_id_a15c09_idx;
+DROP INDEX IF EXISTS public.web_ui_modu_module_07687f_idx;
+DROP INDEX IF EXISTS public.web_ui_command_history_user_id_0a2f6031;
+DROP INDEX IF EXISTS public.web_ui_comm_user_id_bc2478_idx;
+DROP INDEX IF EXISTS public.web_ui_comm_module_e95b00_idx;
+DROP INDEX IF EXISTS public.version_manager_versionarchive_version_e486631f_like;
+DROP INDEX IF EXISTS public.version_manager_scansession_started_by_id_384e539f;
+DROP INDEX IF EXISTS public.version_man_version_e4ab53_idx;
+DROP INDEX IF EXISTS public.version_man_status_0ffa8a_idx;
+DROP INDEX IF EXISTS public.version_man_size_mb_0fd933_idx;
+DROP INDEX IF EXISTS public.version_man_is_anom_9d9dfc_idx;
+DROP INDEX IF EXISTS public.transactions_portfolio_id_f41f764e;
+DROP INDEX IF EXISTS public.transactions_fee_currency_id_8568ce42_like;
+DROP INDEX IF EXISTS public.transactions_fee_currency_id_8568ce42;
+DROP INDEX IF EXISTS public.transactions_currency_id_a7fd19d0_like;
+DROP INDEX IF EXISTS public.transactions_currency_id_a7fd19d0;
+DROP INDEX IF EXISTS public.transaction_portfol_2feec9_idx;
+DROP INDEX IF EXISTS public.transaction_execute_9861c2_idx;
+DROP INDEX IF EXISTS public.transaction_currenc_8518b3_idx;
+DROP INDEX IF EXISTS public.store_synclog_marketplace_id_0c015fc4;
+DROP INDEX IF EXISTS public.store_product_user_id_58ba19a0;
+DROP INDEX IF EXISTS public.store_product_sku_842ee8ec_like;
+DROP INDEX IF EXISTS public.store_product_sku_842ee8ec;
+DROP INDEX IF EXISTS public.store_product_marketplace_id_e8f55ca6;
+DROP INDEX IF EXISTS public.store_product_barcode_06b1fff0_like;
+DROP INDEX IF EXISTS public.store_product_barcode_06b1fff0;
+DROP INDEX IF EXISTS public.store_produ_status_3ab676_idx;
+DROP INDEX IF EXISTS public.store_produ_sku_8a55cb_idx;
+DROP INDEX IF EXISTS public.store_produ_barcode_f818f0_idx;
+DROP INDEX IF EXISTS public.store_orderitem_order_id_acf8722d;
+DROP INDEX IF EXISTS public.store_order_user_id_ae5f7a5f;
+DROP INDEX IF EXISTS public.store_order_status_428b25_idx;
+DROP INDEX IF EXISTS public.store_order_platform_order_id_003f281a_like;
+DROP INDEX IF EXISTS public.store_order_order_d_369723_idx;
+DROP INDEX IF EXISTS public.store_order_marketplace_id_8ce4d993;
+DROP INDEX IF EXISTS public.store_order_marketp_81a315_idx;
+DROP INDEX IF EXISTS public.store_marketplace_user_id_94674dc8;
+DROP INDEX IF EXISTS public.solitaire_solitairesession_user_id_15f9c6a0;
+DROP INDEX IF EXISTS public.solitaire_solitairesession_session_id_0d0e0465_like;
+DROP INDEX IF EXISTS public.solitaire_solitaireplayer_user_id_bb56088a;
+DROP INDEX IF EXISTS public.solitaire_solitaireplayer_session_key_c4e4d061_like;
+DROP INDEX IF EXISTS public.solitaire_solitaireplayer_session_key_c4e4d061;
+DROP INDEX IF EXISTS public.solitaire_solitairemove_session_id_faf38fe6;
+DROP INDEX IF EXISTS public.solitaire_solitairegamesession_session_id_013aa92e_like;
+DROP INDEX IF EXISTS public.solitaire_solitairegamesession_player_id_ca28dc7a;
+DROP INDEX IF EXISTS public.solitaire_solitaireactivity_session_id_bee7d0d9;
+DROP INDEX IF EXISTS public.solitaire_s_user_id_351ba4_idx;
+DROP INDEX IF EXISTS public.solitaire_s_timesta_e183f9_idx;
+DROP INDEX IF EXISTS public.solitaire_s_session_e16dc2_idx;
+DROP INDEX IF EXISTS public.solitaire_s_session_b83e8d_idx;
+DROP INDEX IF EXISTS public.solitaire_s_session_8a1531_idx;
+DROP INDEX IF EXISTS public.solitaire_s_player__689a8a_idx;
+DROP INDEX IF EXISTS public.solitaire_s_last_se_b4b7c3_idx;
+DROP INDEX IF EXISTS public.solitaire_s_is_won_7286d0_idx;
+DROP INDEX IF EXISTS public.restopos_table_restaurant_id_52a099c2;
+DROP INDEX IF EXISTS public.restopos_table_qr_code_e325d74a_like;
+DROP INDEX IF EXISTS public.restopos_table_current_order_id_79154c94;
+DROP INDEX IF EXISTS public.restopos_staff_user_id_cee05f0c;
+DROP INDEX IF EXISTS public.restopos_staff_restaurant_id_7f6e383a;
+DROP INDEX IF EXISTS public.restopos_staff_employee_id_702a1c95_like;
+DROP INDEX IF EXISTS public.restopos_restaurant_slug_bd829953_like;
+DROP INDEX IF EXISTS public.restopos_restaurant_branch_code_f9ddcf6d_like;
+DROP INDEX IF EXISTS public.restopos_reservation_table_id_480c6163;
+DROP INDEX IF EXISTS public.restopos_reservation_restaurant_id_c25029db;
+DROP INDEX IF EXISTS public.restopos_reservation_confirmation_code_8efa5ad6_like;
+DROP INDEX IF EXISTS public.restopos_receipt_receipt_number_3b4e2960_like;
+DROP INDEX IF EXISTS public.restopos_re_table_i_f5f582_idx;
+DROP INDEX IF EXISTS public.restopos_re_slug_789061_idx;
+DROP INDEX IF EXISTS public.restopos_re_restaur_89d75b_idx;
+DROP INDEX IF EXISTS public.restopos_re_issued__858951_idx;
+DROP INDEX IF EXISTS public.restopos_re_branch__1d8b5d_idx;
+DROP INDEX IF EXISTS public.restopos_orderitem_order_id_128bf52e;
+DROP INDEX IF EXISTS public.restopos_orderitem_menu_item_id_8b8d6e00;
+DROP INDEX IF EXISTS public.restopos_order_waiter_id_c82466c4;
+DROP INDEX IF EXISTS public.restopos_order_table_id_6b81e243;
+DROP INDEX IF EXISTS public.restopos_order_restaurant_id_5edb146c;
+DROP INDEX IF EXISTS public.restopos_order_order_number_95f38663_like;
+DROP INDEX IF EXISTS public.restopos_order_chef_id_674779f8;
+DROP INDEX IF EXISTS public.restopos_or_table_i_bbe090_idx;
+DROP INDEX IF EXISTS public.restopos_or_status_a78e4a_idx;
+DROP INDEX IF EXISTS public.restopos_or_restaur_6a368f_idx;
+DROP INDEX IF EXISTS public.restopos_menuitem_slug_2bcd8aa1_like;
+DROP INDEX IF EXISTS public.restopos_menuitem_slug_2bcd8aa1;
+DROP INDEX IF EXISTS public.restopos_menuitem_restaurant_id_4874b174;
+DROP INDEX IF EXISTS public.restopos_menuitem_category_id_8ac7e03a;
+DROP INDEX IF EXISTS public.restopos_menucategory_slug_d1cde325_like;
+DROP INDEX IF EXISTS public.restopos_menucategory_slug_d1cde325;
+DROP INDEX IF EXISTS public.restopos_menucategory_restaurant_id_c037f93a;
+DROP INDEX IF EXISTS public.restopos_me_restaur_7a25d8_idx;
+DROP INDEX IF EXISTS public.restopos_me_categor_fcc97b_idx;
+DROP INDEX IF EXISTS public.products_category_id_a7a3a156;
+DROP INDEX IF EXISTS public.products_categor_9e60b3_idx;
+DROP INDEX IF EXISTS public.products_barcode_d008ac_idx;
+DROP INDEX IF EXISTS public.products_barcode_0ff99788_like;
+DROP INDEX IF EXISTS public.products_barcode_0ff99788;
+DROP INDEX IF EXISTS public.product_categories_parent_id_22d4dfe1;
+DROP INDEX IF EXISTS public.product_cat_parent__85b6f5_idx;
+DROP INDEX IF EXISTS public.price_records_user_id_3644d63e;
+DROP INDEX IF EXISTS public.price_records_store_id_b00c53ce;
+DROP INDEX IF EXISTS public.price_records_recorded_at_e64e69db;
+DROP INDEX IF EXISTS public.price_records_product_id_4dda0575;
+DROP INDEX IF EXISTS public.price_recor_user_id_24a800_idx;
+DROP INDEX IF EXISTS public.price_recor_store_i_967808_idx;
+DROP INDEX IF EXISTS public.price_recor_recorde_dc6528_idx;
+DROP INDEX IF EXISTS public.price_recor_product_6111ea_idx;
+DROP INDEX IF EXISTS public.price_alerts_user_id_75790b71;
+DROP INDEX IF EXISTS public.price_alerts_product_id_591045be;
+DROP INDEX IF EXISTS public.price_alert_user_id_600b95_idx;
+DROP INDEX IF EXISTS public.price_alert_product_621c32_idx;
+DROP INDEX IF EXISTS public.portfolios_user_id_f89dea_idx;
+DROP INDEX IF EXISTS public.portfolio_transactions_portfolio_id_dc4b9175;
+DROP INDEX IF EXISTS public.portfolio_transactions_external_id_b5d52586_like;
+DROP INDEX IF EXISTS public.portfolio_transactions_currency_id_a678c202_like;
+DROP INDEX IF EXISTS public.portfolio_transactions_currency_id_a678c202;
+DROP INDEX IF EXISTS public.portfolio_t_portfol_7cb77c_idx;
+DROP INDEX IF EXISTS public.portfolio_t_externa_3024d5_idx;
+DROP INDEX IF EXISTS public.portfolio_t_execute_3f2f1b_idx;
+DROP INDEX IF EXISTS public.portfolio_t_currenc_3b76d5_idx;
+DROP INDEX IF EXISTS public.portfolio_performance_snapshot_time_f1c0fea7;
+DROP INDEX IF EXISTS public.portfolio_performance_snapshot_date_26e66c89;
+DROP INDEX IF EXISTS public.portfolio_performance_portfolio_id_68c09684;
+DROP INDEX IF EXISTS public.portfolio_p_snapsho_51c476_idx;
+DROP INDEX IF EXISTS public.portfolio_p_portfol_9b5295_idx;
+DROP INDEX IF EXISTS public.portfolio_p_portfol_58d729_idx;
+DROP INDEX IF EXISTS public.portfolio_holdings_portfolio_id_b8feb880;
+DROP INDEX IF EXISTS public.portfolio_holdings_currency_id_45463006_like;
+DROP INDEX IF EXISTS public.portfolio_holdings_currency_id_45463006;
+DROP INDEX IF EXISTS public.portfolio_h_portfol_698636_idx;
+DROP INDEX IF EXISTS public.personal_baskets_user_id_2b8874cc;
+DROP INDEX IF EXISTS public.personal_ba_user_id_de515a_idx;
+DROP INDEX IF EXISTS public.music_usertrack_track_id_b562f750;
+DROP INDEX IF EXISTS public.music_usertrack_library_id_f4db77dd;
+DROP INDEX IF EXISTS public.music_userartist_library_id_4c8376bb;
+DROP INDEX IF EXISTS public.music_userartist_artist_id_b9d786fc;
+DROP INDEX IF EXISTS public.music_useralbum_library_id_415845ad;
+DROP INDEX IF EXISTS public.music_useralbum_album_id_95a00687;
+DROP INDEX IF EXISTS public.music_track_spotify_id_9e2a85a4_like;
+DROP INDEX IF EXISTS public.music_track_popular_375f1b_idx;
+DROP INDEX IF EXISTS public.music_track_name_8748ed_idx;
+DROP INDEX IF EXISTS public.music_track_name_5648f155_like;
+DROP INDEX IF EXISTS public.music_track_name_5648f155;
+DROP INDEX IF EXISTS public.music_track_isrc_937ded6c_like;
+DROP INDEX IF EXISTS public.music_track_isrc_937ded6c;
+DROP INDEX IF EXISTS public.music_track_featured_artists_track_id_1c206fbc;
+DROP INDEX IF EXISTS public.music_track_featured_artists_artist_id_eb00406e;
+DROP INDEX IF EXISTS public.music_track_artist_id_a65d07d5;
+DROP INDEX IF EXISTS public.music_track_album_id_f2264d26;
+DROP INDEX IF EXISTS public.music_track_album_i_7ec3a1_idx;
+DROP INDEX IF EXISTS public.music_playlisttrack_track_id_427b6391;
+DROP INDEX IF EXISTS public.music_playlisttrack_playlist_id_585a8ed4;
+DROP INDEX IF EXISTS public.music_playlisttrack_added_by_id_85ed5672;
+DROP INDEX IF EXISTS public.music_playlist_user_id_c54fe691;
+DROP INDEX IF EXISTS public.music_playlist_collaborators_user_id_f6d7bf77;
+DROP INDEX IF EXISTS public.music_playlist_collaborators_playlist_id_ffc1a710;
+DROP INDEX IF EXISTS public.music_playl_visibil_76eed7_idx;
+DROP INDEX IF EXISTS public.music_playl_user_id_ab4a82_idx;
+DROP INDEX IF EXISTS public.music_listeningstats_user_id_eb08efb9;
+DROP INDEX IF EXISTS public.music_listeninghistory_user_id_0cc18943;
+DROP INDEX IF EXISTS public.music_listeninghistory_track_id_03e4d01a;
+DROP INDEX IF EXISTS public.music_liste_user_id_a3211e_idx;
+DROP INDEX IF EXISTS public.music_liste_user_id_9e039b_idx;
+DROP INDEX IF EXISTS public.music_liste_user_id_6ead05_idx;
+DROP INDEX IF EXISTS public.music_liste_track_i_c99f29_idx;
+DROP INDEX IF EXISTS public.music_artist_spotify_id_4e3459a0_like;
+DROP INDEX IF EXISTS public.music_artist_slug_e4ee3940_like;
+DROP INDEX IF EXISTS public.music_artist_name_ddbd7346_like;
+DROP INDEX IF EXISTS public.music_artist_name_ddbd7346;
+DROP INDEX IF EXISTS public.music_artis_slug_38018e_idx;
+DROP INDEX IF EXISTS public.music_artis_popular_433f53_idx;
+DROP INDEX IF EXISTS public.music_artis_name_e97718_idx;
+DROP INDEX IF EXISTS public.music_album_spotify_id_dcb07258_like;
+DROP INDEX IF EXISTS public.music_album_release_date_9cdddbb9;
+DROP INDEX IF EXISTS public.music_album_release_31abd8_idx;
+DROP INDEX IF EXISTS public.music_album_popular_cb53d5_idx;
+DROP INDEX IF EXISTS public.music_album_name_1f80804d_like;
+DROP INDEX IF EXISTS public.music_album_name_1f80804d;
+DROP INDEX IF EXISTS public.music_album_name_1c7496_idx;
+DROP INDEX IF EXISTS public.music_album_featured_artists_artist_id_9fca8850;
+DROP INDEX IF EXISTS public.music_album_featured_artists_album_id_7ba9d9bf;
+DROP INDEX IF EXISTS public.music_album_artist_id_f633b817;
+DROP INDEX IF EXISTS public.movies_watchlist_user_id_b7cb1960;
+DROP INDEX IF EXISTS public.movies_watchlist_status_d2af83cf_like;
+DROP INDEX IF EXISTS public.movies_watchlist_status_d2af83cf;
+DROP INDEX IF EXISTS public.movies_watchlist_movie_id_8007e236;
+DROP INDEX IF EXISTS public.movies_watchhistory_user_id_94fbd0e2;
+DROP INDEX IF EXISTS public.movies_watchhistory_movie_id_7d3d0b4b;
+DROP INDEX IF EXISTS public.movies_watc_user_id_e9443e_idx;
+DROP INDEX IF EXISTS public.movies_watc_user_id_a2ae41_idx;
+DROP INDEX IF EXISTS public.movies_watc_user_id_691dd3_idx;
+DROP INDEX IF EXISTS public.movies_watc_movie_i_783876_idx;
+DROP INDEX IF EXISTS public.movies_userrating_user_id_632ec00f;
+DROP INDEX IF EXISTS public.movies_userrating_movie_id_68d8aa46;
+DROP INDEX IF EXISTS public.movies_user_user_id_ba5c70_idx;
+DROP INDEX IF EXISTS public.movies_user_movie_i_e0877b_idx;
+DROP INDEX IF EXISTS public.movies_user_is_publ_cca331_idx;
+DROP INDEX IF EXISTS public.movies_personalarchive_user_id_6b62c028;
+DROP INDEX IF EXISTS public.movies_personalarchive_movie_id_4887f522;
+DROP INDEX IF EXISTS public.movies_pers_user_id_45bdb9_idx;
+DROP INDEX IF EXISTS public.movies_pers_format_e9971c_idx;
+DROP INDEX IF EXISTS public.movies_movie_tmdb_id_a5a63d6d_like;
+DROP INDEX IF EXISTS public.movies_movie_title_940cc56f_like;
+DROP INDEX IF EXISTS public.movies_movie_title_940cc56f;
+DROP INDEX IF EXISTS public.movies_movie_release_date_3061342f;
+DROP INDEX IF EXISTS public.movies_movie_imdb_id_07ddfa3f_like;
+DROP INDEX IF EXISTS public.movies_movie_genres_movie_id_ff5e55a1;
+DROP INDEX IF EXISTS public.movies_movie_genres_genre_id_c3609db2;
+DROP INDEX IF EXISTS public.movies_movie_content_type_cb703dfc_like;
+DROP INDEX IF EXISTS public.movies_movie_content_type_cb703dfc;
+DROP INDEX IF EXISTS public.movies_movi_title_20a8c3_idx;
+DROP INDEX IF EXISTS public.movies_movi_created_2750ad_idx;
+DROP INDEX IF EXISTS public.movies_movi_content_8fc5bc_idx;
+DROP INDEX IF EXISTS public.movies_genre_slug_a6628294_like;
+DROP INDEX IF EXISTS public.movies_genr_slug_a56002_idx;
+DROP INDEX IF EXISTS public.movies_collectionitem_movie_id_a4023bce;
+DROP INDEX IF EXISTS public.movies_collectionitem_collection_id_07c53af7;
+DROP INDEX IF EXISTS public.movies_collection_user_id_e4d2c017;
+DROP INDEX IF EXISTS public.movies_coll_visibil_ac6500_idx;
+DROP INDEX IF EXISTS public.movies_coll_user_id_7f8850_idx;
+DROP INDEX IF EXISTS public.market_data_period_start_f0382331;
+DROP INDEX IF EXISTS public.market_data_period__481e79_idx;
+DROP INDEX IF EXISTS public.market_data_currency_pair_cafe1887_like;
+DROP INDEX IF EXISTS public.market_data_currency_pair_cafe1887;
+DROP INDEX IF EXISTS public.market_data_currenc_528538_idx;
+DROP INDEX IF EXISTS public.inflation_reports_user_id_ffcb4586;
+DROP INDEX IF EXISTS public.inflation_reports_basket_id_4062b4f4;
+DROP INDEX IF EXISTS public.inflation_r_user_id_4d957a_idx;
+DROP INDEX IF EXISTS public.inflation_r_basket__f82de0_idx;
+DROP INDEX IF EXISTS public.exchange_rates_timestamp_a2278406;
+DROP INDEX IF EXISTS public.exchange_rates_target_currency_id_f8fd1c7c_like;
+DROP INDEX IF EXISTS public.exchange_rates_target_currency_id_f8fd1c7c;
+DROP INDEX IF EXISTS public.exchange_rates_base_currency_id_45cfb739_like;
+DROP INDEX IF EXISTS public.exchange_rates_base_currency_id_45cfb739;
+DROP INDEX IF EXISTS public.exchange_ra_timesta_efcd56_idx;
+DROP INDEX IF EXISTS public.exchange_ra_source_66c8d9_idx;
+DROP INDEX IF EXISTS public.exchange_ra_base_cu_da11a0_idx;
+DROP INDEX IF EXISTS public.documents_validationfeedback_user_id_cf2c646f;
+DROP INDEX IF EXISTS public.documents_v_user_id_7e2231_idx;
+DROP INDEX IF EXISTS public.documents_v_documen_0adb64_idx;
+DROP INDEX IF EXISTS public.documents_userchallenge_user_id_37d5d621;
+DROP INDEX IF EXISTS public.documents_userchallenge_challenge_id_74c25aa6;
+DROP INDEX IF EXISTS public.documents_subscription_user_id_d154c76d;
+DROP INDEX IF EXISTS public.documents_subscription_payment_method_id_dbfc6a70;
+DROP INDEX IF EXISTS public.documents_receiptitem_receipt_id_684d6ad0;
+DROP INDEX IF EXISTS public.documents_pointtransaction_user_id_9cff8e9c;
+DROP INDEX IF EXISTS public.documents_ocrtemplate_store_name_069667d9_like;
+DROP INDEX IF EXISTS public.documents_leaderboard_user_id_92b55750;
+DROP INDEX IF EXISTS public.documents_l_store_n_e932a9_idx;
+DROP INDEX IF EXISTS public.documents_l_period__9d0dfa_idx;
+DROP INDEX IF EXISTS public.documents_l_period__091291_idx;
+DROP INDEX IF EXISTS public.documents_l_pattern_a47375_idx;
+DROP INDEX IF EXISTS public.documents_expensegroup_user_id_ebdf45c2;
+DROP INDEX IF EXISTS public.documents_expensecategory_user_id_e19ac3b6;
+DROP INDEX IF EXISTS public.documents_expensecategory_parent_id_5e980808;
+DROP INDEX IF EXISTS public.documents_documenttype_name_c2bc4c08_like;
+DROP INDEX IF EXISTS public.documents_documentshare_shared_with_id_cf66b884;
+DROP INDEX IF EXISTS public.documents_documentshare_shared_by_id_bb1db51d;
+DROP INDEX IF EXISTS public.documents_documentshare_share_link_387a2b1c_like;
+DROP INDEX IF EXISTS public.documents_documentshare_document_id_9be134c4;
+DROP INDEX IF EXISTS public.documents_documentbatch_user_id_b4b5232d;
+DROP INDEX IF EXISTS public.documents_document_user_id_e543d099;
+DROP INDEX IF EXISTS public.documents_document_deleted_by_id_d75ca342;
+DROP INDEX IF EXISTS public.documents_d_user_id_2d1909_idx;
+DROP INDEX IF EXISTS public.documents_d_documen_6ac182_idx;
+DROP INDEX IF EXISTS public.documents_creditcard_user_id_83a92ad6;
+DROP INDEX IF EXISTS public.documents_achievement_user_id_3a66684f;
+DROP INDEX IF EXISTS public.django_session_session_key_c0390e0f_like;
+DROP INDEX IF EXISTS public.django_session_expire_date_a5c62663;
+DROP INDEX IF EXISTS public.currency_alerts_user_id_08a95a16;
+DROP INDEX IF EXISTS public.currency_alerts_target_currency_id_1e184b84_like;
+DROP INDEX IF EXISTS public.currency_alerts_target_currency_id_1e184b84;
+DROP INDEX IF EXISTS public.currency_alerts_base_currency_id_dd720868_like;
+DROP INDEX IF EXISTS public.currency_alerts_base_currency_id_dd720868;
+DROP INDEX IF EXISTS public.currency_al_user_id_1a7cd6_idx;
+DROP INDEX IF EXISTS public.currency_al_base_cu_f383a1_idx;
+DROP INDEX IF EXISTS public.currencies_code_169576e8_like;
+DROP INDEX IF EXISTS public.crypto_exchange_rates_timestamp_98e12445;
+DROP INDEX IF EXISTS public.crypto_exchange_rates_symbol_5e2c485e_like;
+DROP INDEX IF EXISTS public.crypto_exchange_rates_symbol_5e2c485e;
+DROP INDEX IF EXISTS public.crypto_exchange_rates_exchange_a939b545_like;
+DROP INDEX IF EXISTS public.crypto_exchange_rates_exchange_a939b545;
+DROP INDEX IF EXISTS public.crypto_exch_timesta_be1984_idx;
+DROP INDEX IF EXISTS public.crypto_exch_symbol_1e02b0_idx;
+DROP INDEX IF EXISTS public.crypto_exch_exchang_a0b25f_idx;
+DROP INDEX IF EXISTS public.crypto_exch_base_as_8e0dec_idx;
+DROP INDEX IF EXISTS public.core_itemprice_item_id_7f2d3b2b;
+DROP INDEX IF EXISTS public.core_itempr_item_id_7c9d0d_idx;
+DROP INDEX IF EXISTS public.core_itemcategory_slug_3307a550_like;
+DROP INDEX IF EXISTS public.core_itemcategory_parent_id_f5858ebb;
+DROP INDEX IF EXISTS public.core_item_unit_id_436a7f13;
+DROP INDEX IF EXISTS public.core_item_name_de2dec_idx;
+DROP INDEX IF EXISTS public.core_item_name_60a78332_like;
+DROP INDEX IF EXISTS public.core_item_name_60a78332;
+DROP INDEX IF EXISTS public.core_item_code_be232fd9_like;
+DROP INDEX IF EXISTS public.core_item_code_2c57e9_idx;
+DROP INDEX IF EXISTS public.core_item_category_id_2fe5bbc8;
+DROP INDEX IF EXISTS public.core_item_categor_72af40_idx;
+DROP INDEX IF EXISTS public.core_account_user_id_8d2af6ae;
+DROP INDEX IF EXISTS public.cctv_storageconfiguration_name_c9ebf087_like;
+DROP INDEX IF EXISTS public.cctv_recordingsession_user_id_88333beb;
+DROP INDEX IF EXISTS public.cctv_recordingsession_camera_id_2d6be004;
+DROP INDEX IF EXISTS public.cctv_recordingschedule_user_id_15f7ada0;
+DROP INDEX IF EXISTS public.cctv_recordingschedule_camera_id_8ece72ad;
+DROP INDEX IF EXISTS public.cctv_record_status_fcffcb_idx;
+DROP INDEX IF EXISTS public.cctv_record_recordi_e8fd97_idx;
+DROP INDEX IF EXISTS public.cctv_record_camera__661a18_idx;
+DROP INDEX IF EXISTS public.cctv_camerastream_camera_id_6bb36e52;
+DROP INDEX IF EXISTS public.cctv_cameragroup_user_id_025ddb87;
+DROP INDEX IF EXISTS public.cctv_cameragroup_cameras_cameragroup_id_582d3745;
+DROP INDEX IF EXISTS public.cctv_cameragroup_cameras_camera_id_e731eb60;
+DROP INDEX IF EXISTS public.cctv_camera_user_id_92d5d2c7;
+DROP INDEX IF EXISTS public.cctv_camera_user_id_264f16_idx;
+DROP INDEX IF EXISTS public.cctv_camera_status_fa531e_idx;
+DROP INDEX IF EXISTS public.cctv_alert_user_id_08e5ac13;
+DROP INDEX IF EXISTS public.cctv_alert_resolved_by_id_6f4529dc;
+DROP INDEX IF EXISTS public.cctv_alert_priorit_e9ea02_idx;
+DROP INDEX IF EXISTS public.cctv_alert_camera_id_10892e98;
+DROP INDEX IF EXISTS public.cctv_alert_camera__d38201_idx;
+DROP INDEX IF EXISTS public.cctv_alert_alert_t_ed2bcf_idx;
+DROP INDEX IF EXISTS public.birlikteyiz_user_id_cb2997_idx;
+DROP INDEX IF EXISTS public.birlikteyiz_source_d30624_idx;
+DROP INDEX IF EXISTS public.birlikteyiz_snapsho_331857_idx;
+DROP INDEX IF EXISTS public.birlikteyiz_resourc_52ff32_idx;
+DROP INDEX IF EXISTS public.birlikteyiz_relay_n_bfdac6_idx;
+DROP INDEX IF EXISTS public.birlikteyiz_owner_i_2b9ecf_idx;
+DROP INDEX IF EXISTS public.birlikteyiz_occurre_9eb435_idx;
+DROP INDEX IF EXISTS public.birlikteyiz_message_relays_relay_node_id_348d3579;
+DROP INDEX IF EXISTS public.birlikteyiz_message_relays_previous_node_id_68c90350;
+DROP INDEX IF EXISTS public.birlikteyiz_message_relays_message_id_36c2c9b9;
+DROP INDEX IF EXISTS public.birlikteyiz_message_bef03f_idx;
+DROP INDEX IF EXISTS public.birlikteyiz_message_084888_idx;
+DROP INDEX IF EXISTS public.birlikteyiz_mesh_nodes_owner_id_cfad42ed;
+DROP INDEX IF EXISTS public.birlikteyiz_mesh_nodes_node_id_789528af_like;
+DROP INDEX IF EXISTS public.birlikteyiz_magnitu_94bd10_idx;
+DROP INDEX IF EXISTS public.birlikteyiz_is_onli_dd38a2_idx;
+DROP INDEX IF EXISTS public.birlikteyiz_is_acti_5fbe05_idx;
+DROP INDEX IF EXISTS public.birlikteyiz_expires_428e0c_idx;
+DROP INDEX IF EXISTS public.birlikteyiz_emergency_protocols_code_5c42a2f4_like;
+DROP INDEX IF EXISTS public.birlikteyiz_emergency_messages_sender_node_id_b9f148f6;
+DROP INDEX IF EXISTS public.birlikteyiz_emergency_messages_message_id_17a0112a_like;
+DROP INDEX IF EXISTS public.birlikteyiz_emergency_contacts_user_id_6c434a68;
+DROP INDEX IF EXISTS public.birlikteyiz_earthquakes_unique_id_33727fa0_like;
+DROP INDEX IF EXISTS public.birlikteyiz_earthquake_sources_name_b7e6b966_like;
+DROP INDEX IF EXISTS public.birlikteyiz_earthquake_comments_user_id_52ec2aa3;
+DROP INDEX IF EXISTS public.birlikteyiz_earthquake_comments_earthquake_id_11877c02;
+DROP INDEX IF EXISTS public.birlikteyiz_declare_1360ba_idx;
+DROP INDEX IF EXISTS public.birlikteyiz_city_05b7ee_idx;
+DROP INDEX IF EXISTS public.basket_items_product_id_82fb5bc4;
+DROP INDEX IF EXISTS public.basket_items_basket_id_2b854602;
+DROP INDEX IF EXISTS public.basket_item_basket__6a0e70_idx;
+DROP INDEX IF EXISTS public.bank_rate_i_status_0fdab7_idx;
+DROP INDEX IF EXISTS public.bank_rate_i_started_0fea88_idx;
+DROP INDEX IF EXISTS public.bank_exchange_rates_timestamp_905d8fd4;
+DROP INDEX IF EXISTS public.bank_exchange_rates_entry_id_7045fb8e_like;
+DROP INDEX IF EXISTS public.bank_exchange_rates_date_f16fd19c;
+DROP INDEX IF EXISTS public.bank_exchange_rates_currency_pair_9c993f03_like;
+DROP INDEX IF EXISTS public.bank_exchange_rates_currency_pair_9c993f03;
+DROP INDEX IF EXISTS public.bank_exchange_rates_bank_dd746510_like;
+DROP INDEX IF EXISTS public.bank_exchange_rates_bank_dd746510;
+DROP INDEX IF EXISTS public.bank_exchan_timesta_b011cd_idx;
+DROP INDEX IF EXISTS public.bank_exchan_entry_i_b07e38_idx;
+DROP INDEX IF EXISTS public.bank_exchan_date_cbda34_idx;
+DROP INDEX IF EXISTS public.bank_exchan_currenc_c2089e_idx;
+DROP INDEX IF EXISTS public.bank_exchan_bank_ce8a4f_idx;
+DROP INDEX IF EXISTS public.bank_exchan_bank_5f4dc1_idx;
+DROP INDEX IF EXISTS public.authtoken_token_key_10f0b77e_like;
+DROP INDEX IF EXISTS public.auth_user_username_6821ab7c_like;
+DROP INDEX IF EXISTS public.auth_user_user_permissions_user_id_a95ead1b;
+DROP INDEX IF EXISTS public.auth_user_user_permissions_permission_id_1fbb5f2c;
+DROP INDEX IF EXISTS public.auth_user_groups_user_id_6a12ed8b;
+DROP INDEX IF EXISTS public.auth_user_groups_group_id_97559544;
+DROP INDEX IF EXISTS public.auth_permission_content_type_id_2f476e4b;
+DROP INDEX IF EXISTS public.auth_group_permissions_permission_id_84c5c92e;
+DROP INDEX IF EXISTS public.auth_group_permissions_group_id_b120cbf9;
+DROP INDEX IF EXISTS public.auth_group_name_a6ea08ec_like;
+DROP INDEX IF EXISTS public.administration_userrole_user_id_a00acf22;
+DROP INDEX IF EXISTS public.administration_userrole_role_id_35e9c1a0;
+DROP INDEX IF EXISTS public.administration_userrole_assigned_by_id_eb7586d2;
+DROP INDEX IF EXISTS public.administration_systemsetting_key_1bcc81fb_like;
+DROP INDEX IF EXISTS public.administration_role_permissions_role_id_046d28df;
+DROP INDEX IF EXISTS public.administration_role_permissions_permission_id_d20390a8;
+DROP INDEX IF EXISTS public.administration_role_name_c9dd34c3_like;
+DROP INDEX IF EXISTS public.administration_role_groups_role_id_c12d78c2;
+DROP INDEX IF EXISTS public.administration_role_groups_group_id_981adaf0;
+DROP INDEX IF EXISTS public.administration_role_code_88934c06_like;
+DROP INDEX IF EXISTS public.administration_permissionrequest_user_id_078a5bea;
+DROP INDEX IF EXISTS public.administration_permissionrequest_role_id_223b9bae;
+DROP INDEX IF EXISTS public.administration_permissionrequest_reviewed_by_id_de931119;
+DROP INDEX IF EXISTS public.administration_permissionr_permissionrequest_id_4e70d19f;
+DROP INDEX IF EXISTS public.administration_permissionr_permission_id_38aef95b;
+DROP INDEX IF EXISTS public.administration_department_parent_id_f0b18996;
+DROP INDEX IF EXISTS public.administration_department_members_user_id_9dcf3c79;
+DROP INDEX IF EXISTS public.administration_department_members_department_id_beb695d0;
+DROP INDEX IF EXISTS public.administration_department_manager_id_8d4ed73f;
+DROP INDEX IF EXISTS public.administration_department_default_role_id_38ab3cdf;
+DROP INDEX IF EXISTS public.administration_department_code_fd101070_like;
+DROP INDEX IF EXISTS public.administration_auditlog_user_id_6876a212;
+DROP INDEX IF EXISTS public.administration_auditlog_target_user_id_7ac161da;
+DROP INDEX IF EXISTS public.administrat_user_id_0f8133_idx;
+DROP INDEX IF EXISTS public.administrat_timesta_aaeea4_idx;
+DROP INDEX IF EXISTS public.administrat_action_1b0365_idx;
+ALTER TABLE IF EXISTS ONLY public.wims_warehouse DROP CONSTRAINT IF EXISTS wims_warehouse_user_id_code_ea83685f_uniq;
+ALTER TABLE IF EXISTS ONLY public.wims_warehouse DROP CONSTRAINT IF EXISTS wims_warehouse_pkey;
+ALTER TABLE IF EXISTS ONLY public.wims_warehouse DROP CONSTRAINT IF EXISTS wims_warehouse_code_key;
+ALTER TABLE IF EXISTS ONLY public.wims_stockmovement DROP CONSTRAINT IF EXISTS wims_stockmovement_pkey;
+ALTER TABLE IF EXISTS ONLY public.wims_stocklocation DROP CONSTRAINT IF EXISTS wims_stocklocation_warehouse_id_code_a2971bd4_uniq;
+ALTER TABLE IF EXISTS ONLY public.wims_stocklocation DROP CONSTRAINT IF EXISTS wims_stocklocation_pkey;
+ALTER TABLE IF EXISTS ONLY public.wims_stockitem DROP CONSTRAINT IF EXISTS wims_stockitem_pkey;
+ALTER TABLE IF EXISTS ONLY public.wims_stockitem DROP CONSTRAINT IF EXISTS wims_stockitem_item_id_warehouse_id_bat_e7089b6a_uniq;
+ALTER TABLE IF EXISTS ONLY public.wims_stockcountitem DROP CONSTRAINT IF EXISTS wims_stockcountitem_stock_count_id_item_id_l_cdbb531d_uniq;
+ALTER TABLE IF EXISTS ONLY public.wims_stockcountitem DROP CONSTRAINT IF EXISTS wims_stockcountitem_pkey;
+ALTER TABLE IF EXISTS ONLY public.wims_stockcount DROP CONSTRAINT IF EXISTS wims_stockcount_pkey;
+ALTER TABLE IF EXISTS ONLY public.wims_itemsupplier DROP CONSTRAINT IF EXISTS wims_itemsupplier_pkey;
+ALTER TABLE IF EXISTS ONLY public.wims_itemsupplier DROP CONSTRAINT IF EXISTS wims_itemsupplier_item_id_supplier_name_8d9ee0a5_uniq;
+ALTER TABLE IF EXISTS ONLY public.wimm_transactioncategory DROP CONSTRAINT IF EXISTS wimm_transactioncategory_slug_key;
+ALTER TABLE IF EXISTS ONLY public.wimm_transactioncategory DROP CONSTRAINT IF EXISTS wimm_transactioncategory_pkey;
+ALTER TABLE IF EXISTS ONLY public.wimm_transaction DROP CONSTRAINT IF EXISTS wimm_transaction_pkey;
+ALTER TABLE IF EXISTS ONLY public.wimm_recurringtransaction DROP CONSTRAINT IF EXISTS wimm_recurringtransaction_pkey;
+ALTER TABLE IF EXISTS ONLY public.wimm_invoiceitem DROP CONSTRAINT IF EXISTS wimm_invoiceitem_pkey;
+ALTER TABLE IF EXISTS ONLY public.wimm_invoice DROP CONSTRAINT IF EXISTS wimm_invoice_pkey;
+ALTER TABLE IF EXISTS ONLY public.wimm_invoice DROP CONSTRAINT IF EXISTS wimm_invoice_invoice_number_key;
+ALTER TABLE IF EXISTS ONLY public.wimm_budget DROP CONSTRAINT IF EXISTS wimm_budget_user_id_name_start_date_eaa9f514_uniq;
+ALTER TABLE IF EXISTS ONLY public.wimm_budget DROP CONSTRAINT IF EXISTS wimm_budget_pkey;
+ALTER TABLE IF EXISTS ONLY public.web_ui_system_status DROP CONSTRAINT IF EXISTS web_ui_system_status_pkey;
+ALTER TABLE IF EXISTS ONLY public.web_ui_session_logs DROP CONSTRAINT IF EXISTS web_ui_session_logs_session_id_key;
+ALTER TABLE IF EXISTS ONLY public.web_ui_session_logs DROP CONSTRAINT IF EXISTS web_ui_session_logs_pkey;
+ALTER TABLE IF EXISTS ONLY public.web_ui_preferences DROP CONSTRAINT IF EXISTS web_ui_preferences_user_id_key;
+ALTER TABLE IF EXISTS ONLY public.web_ui_preferences DROP CONSTRAINT IF EXISTS web_ui_preferences_pkey;
+ALTER TABLE IF EXISTS ONLY public.web_ui_module_access DROP CONSTRAINT IF EXISTS web_ui_module_access_pkey;
+ALTER TABLE IF EXISTS ONLY public.web_ui_command_history DROP CONSTRAINT IF EXISTS web_ui_command_history_pkey;
+ALTER TABLE IF EXISTS ONLY public.version_manager_versionarchive DROP CONSTRAINT IF EXISTS version_manager_versionarchive_version_key;
+ALTER TABLE IF EXISTS ONLY public.version_manager_versionarchive DROP CONSTRAINT IF EXISTS version_manager_versionarchive_pkey;
+ALTER TABLE IF EXISTS ONLY public.version_manager_scansession DROP CONSTRAINT IF EXISTS version_manager_scansession_pkey;
+ALTER TABLE IF EXISTS ONLY public.version_manager_gitstatus DROP CONSTRAINT IF EXISTS version_manager_gitstatus_pkey;
+ALTER TABLE IF EXISTS ONLY public.transactions DROP CONSTRAINT IF EXISTS transactions_pkey;
+ALTER TABLE IF EXISTS ONLY public.stores DROP CONSTRAINT IF EXISTS stores_pkey;
+ALTER TABLE IF EXISTS ONLY public.store_synclog DROP CONSTRAINT IF EXISTS store_synclog_pkey;
+ALTER TABLE IF EXISTS ONLY public.store_product DROP CONSTRAINT IF EXISTS store_product_pkey;
+ALTER TABLE IF EXISTS ONLY public.store_product DROP CONSTRAINT IF EXISTS store_product_marketplace_id_platform_product_id_5dd622ba_uniq;
+ALTER TABLE IF EXISTS ONLY public.store_orderitem DROP CONSTRAINT IF EXISTS store_orderitem_pkey;
+ALTER TABLE IF EXISTS ONLY public.store_order DROP CONSTRAINT IF EXISTS store_order_platform_order_id_key;
+ALTER TABLE IF EXISTS ONLY public.store_order DROP CONSTRAINT IF EXISTS store_order_pkey;
+ALTER TABLE IF EXISTS ONLY public.store_marketplace DROP CONSTRAINT IF EXISTS store_marketplace_user_id_platform_shop_name_df6a1992_uniq;
+ALTER TABLE IF EXISTS ONLY public.store_marketplace DROP CONSTRAINT IF EXISTS store_marketplace_pkey;
+ALTER TABLE IF EXISTS ONLY public.solitaire_solitairestatistics DROP CONSTRAINT IF EXISTS solitaire_solitairestatistics_user_id_key;
+ALTER TABLE IF EXISTS ONLY public.solitaire_solitairestatistics DROP CONSTRAINT IF EXISTS solitaire_solitairestatistics_pkey;
+ALTER TABLE IF EXISTS ONLY public.solitaire_solitairesession DROP CONSTRAINT IF EXISTS solitaire_solitairesession_session_id_key;
+ALTER TABLE IF EXISTS ONLY public.solitaire_solitairesession DROP CONSTRAINT IF EXISTS solitaire_solitairesession_pkey;
+ALTER TABLE IF EXISTS ONLY public.solitaire_solitaireplayer DROP CONSTRAINT IF EXISTS solitaire_solitaireplayer_pkey;
+ALTER TABLE IF EXISTS ONLY public.solitaire_solitairemove DROP CONSTRAINT IF EXISTS solitaire_solitairemove_session_id_move_number_910d9604_uniq;
+ALTER TABLE IF EXISTS ONLY public.solitaire_solitairemove DROP CONSTRAINT IF EXISTS solitaire_solitairemove_pkey;
+ALTER TABLE IF EXISTS ONLY public.solitaire_solitairegamesession DROP CONSTRAINT IF EXISTS solitaire_solitairegamesession_session_id_key;
+ALTER TABLE IF EXISTS ONLY public.solitaire_solitairegamesession DROP CONSTRAINT IF EXISTS solitaire_solitairegamesession_pkey;
+ALTER TABLE IF EXISTS ONLY public.solitaire_solitaireactivity DROP CONSTRAINT IF EXISTS solitaire_solitaireactivity_pkey;
+ALTER TABLE IF EXISTS ONLY public.restopos_table DROP CONSTRAINT IF EXISTS restopos_table_restaurant_id_table_number_d413c5a6_uniq;
+ALTER TABLE IF EXISTS ONLY public.restopos_table DROP CONSTRAINT IF EXISTS restopos_table_qr_code_key;
+ALTER TABLE IF EXISTS ONLY public.restopos_table DROP CONSTRAINT IF EXISTS restopos_table_pkey;
+ALTER TABLE IF EXISTS ONLY public.restopos_staff DROP CONSTRAINT IF EXISTS restopos_staff_restaurant_id_user_id_42c816e5_uniq;
+ALTER TABLE IF EXISTS ONLY public.restopos_staff DROP CONSTRAINT IF EXISTS restopos_staff_pkey;
+ALTER TABLE IF EXISTS ONLY public.restopos_staff DROP CONSTRAINT IF EXISTS restopos_staff_employee_id_key;
+ALTER TABLE IF EXISTS ONLY public.restopos_restaurant DROP CONSTRAINT IF EXISTS restopos_restaurant_slug_key;
+ALTER TABLE IF EXISTS ONLY public.restopos_restaurant DROP CONSTRAINT IF EXISTS restopos_restaurant_pkey;
+ALTER TABLE IF EXISTS ONLY public.restopos_restaurant DROP CONSTRAINT IF EXISTS restopos_restaurant_branch_code_key;
+ALTER TABLE IF EXISTS ONLY public.restopos_reservation DROP CONSTRAINT IF EXISTS restopos_reservation_pkey;
+ALTER TABLE IF EXISTS ONLY public.restopos_reservation DROP CONSTRAINT IF EXISTS restopos_reservation_confirmation_code_key;
+ALTER TABLE IF EXISTS ONLY public.restopos_receipt DROP CONSTRAINT IF EXISTS restopos_receipt_receipt_number_key;
+ALTER TABLE IF EXISTS ONLY public.restopos_receipt DROP CONSTRAINT IF EXISTS restopos_receipt_pkey;
+ALTER TABLE IF EXISTS ONLY public.restopos_receipt DROP CONSTRAINT IF EXISTS restopos_receipt_order_id_key;
+ALTER TABLE IF EXISTS ONLY public.restopos_orderitem DROP CONSTRAINT IF EXISTS restopos_orderitem_pkey;
+ALTER TABLE IF EXISTS ONLY public.restopos_order DROP CONSTRAINT IF EXISTS restopos_order_pkey;
+ALTER TABLE IF EXISTS ONLY public.restopos_order DROP CONSTRAINT IF EXISTS restopos_order_order_number_key;
+ALTER TABLE IF EXISTS ONLY public.restopos_menuitem DROP CONSTRAINT IF EXISTS restopos_menuitem_restaurant_id_slug_3183f6d5_uniq;
+ALTER TABLE IF EXISTS ONLY public.restopos_menuitem DROP CONSTRAINT IF EXISTS restopos_menuitem_pkey;
+ALTER TABLE IF EXISTS ONLY public.restopos_menucategory DROP CONSTRAINT IF EXISTS restopos_menucategory_restaurant_id_slug_7f34e4d9_uniq;
+ALTER TABLE IF EXISTS ONLY public.restopos_menucategory DROP CONSTRAINT IF EXISTS restopos_menucategory_pkey;
+ALTER TABLE IF EXISTS ONLY public.products DROP CONSTRAINT IF EXISTS products_pkey;
+ALTER TABLE IF EXISTS ONLY public.product_categories DROP CONSTRAINT IF EXISTS product_categories_pkey;
+ALTER TABLE IF EXISTS ONLY public.price_records DROP CONSTRAINT IF EXISTS price_records_pkey;
+ALTER TABLE IF EXISTS ONLY public.price_alerts DROP CONSTRAINT IF EXISTS price_alerts_pkey;
+ALTER TABLE IF EXISTS ONLY public.portfolios DROP CONSTRAINT IF EXISTS portfolios_user_id_key;
+ALTER TABLE IF EXISTS ONLY public.portfolios DROP CONSTRAINT IF EXISTS portfolios_pkey;
+ALTER TABLE IF EXISTS ONLY public.portfolio_transactions DROP CONSTRAINT IF EXISTS portfolio_transactions_pkey;
+ALTER TABLE IF EXISTS ONLY public.portfolio_transactions DROP CONSTRAINT IF EXISTS portfolio_transactions_external_id_key;
+ALTER TABLE IF EXISTS ONLY public.portfolio_performance DROP CONSTRAINT IF EXISTS portfolio_performance_portfolio_id_snapshot_date_4a90d555_uniq;
+ALTER TABLE IF EXISTS ONLY public.portfolio_performance DROP CONSTRAINT IF EXISTS portfolio_performance_pkey;
+ALTER TABLE IF EXISTS ONLY public.portfolio_holdings DROP CONSTRAINT IF EXISTS portfolio_holdings_portfolio_id_currency_id_c4a4a76a_uniq;
+ALTER TABLE IF EXISTS ONLY public.portfolio_holdings DROP CONSTRAINT IF EXISTS portfolio_holdings_pkey;
+ALTER TABLE IF EXISTS ONLY public.personal_baskets DROP CONSTRAINT IF EXISTS personal_baskets_user_id_name_3ee3f47d_uniq;
+ALTER TABLE IF EXISTS ONLY public.personal_baskets DROP CONSTRAINT IF EXISTS personal_baskets_pkey;
+ALTER TABLE IF EXISTS ONLY public.music_usertrack DROP CONSTRAINT IF EXISTS music_usertrack_pkey;
+ALTER TABLE IF EXISTS ONLY public.music_usertrack DROP CONSTRAINT IF EXISTS music_usertrack_library_id_track_id_699a5a84_uniq;
+ALTER TABLE IF EXISTS ONLY public.music_userlibrary DROP CONSTRAINT IF EXISTS music_userlibrary_user_id_key;
+ALTER TABLE IF EXISTS ONLY public.music_userlibrary DROP CONSTRAINT IF EXISTS music_userlibrary_pkey;
+ALTER TABLE IF EXISTS ONLY public.music_userartist DROP CONSTRAINT IF EXISTS music_userartist_pkey;
+ALTER TABLE IF EXISTS ONLY public.music_userartist DROP CONSTRAINT IF EXISTS music_userartist_library_id_artist_id_e799357e_uniq;
+ALTER TABLE IF EXISTS ONLY public.music_useralbum DROP CONSTRAINT IF EXISTS music_useralbum_pkey;
+ALTER TABLE IF EXISTS ONLY public.music_useralbum DROP CONSTRAINT IF EXISTS music_useralbum_library_id_album_id_ce4bb358_uniq;
+ALTER TABLE IF EXISTS ONLY public.music_track DROP CONSTRAINT IF EXISTS music_track_spotify_id_key;
+ALTER TABLE IF EXISTS ONLY public.music_track DROP CONSTRAINT IF EXISTS music_track_pkey;
+ALTER TABLE IF EXISTS ONLY public.music_track_featured_artists DROP CONSTRAINT IF EXISTS music_track_featured_artists_track_id_artist_id_cb5fd3a6_uniq;
+ALTER TABLE IF EXISTS ONLY public.music_track_featured_artists DROP CONSTRAINT IF EXISTS music_track_featured_artists_pkey;
+ALTER TABLE IF EXISTS ONLY public.music_track DROP CONSTRAINT IF EXISTS music_track_album_id_disc_number_track_number_8076cff5_uniq;
+ALTER TABLE IF EXISTS ONLY public.music_playlisttrack DROP CONSTRAINT IF EXISTS music_playlisttrack_playlist_id_track_id_position_2e30f698_uniq;
+ALTER TABLE IF EXISTS ONLY public.music_playlisttrack DROP CONSTRAINT IF EXISTS music_playlisttrack_pkey;
+ALTER TABLE IF EXISTS ONLY public.music_playlist DROP CONSTRAINT IF EXISTS music_playlist_pkey;
+ALTER TABLE IF EXISTS ONLY public.music_playlist_collaborators DROP CONSTRAINT IF EXISTS music_playlist_collaborators_playlist_id_user_id_b9ec379d_uniq;
+ALTER TABLE IF EXISTS ONLY public.music_playlist_collaborators DROP CONSTRAINT IF EXISTS music_playlist_collaborators_pkey;
+ALTER TABLE IF EXISTS ONLY public.music_listeningstats DROP CONSTRAINT IF EXISTS music_listeningstats_user_id_period_period_date_d3d2a22b_uniq;
+ALTER TABLE IF EXISTS ONLY public.music_listeningstats DROP CONSTRAINT IF EXISTS music_listeningstats_pkey;
+ALTER TABLE IF EXISTS ONLY public.music_listeninghistory DROP CONSTRAINT IF EXISTS music_listeninghistory_pkey;
+ALTER TABLE IF EXISTS ONLY public.music_artist DROP CONSTRAINT IF EXISTS music_artist_spotify_id_key;
+ALTER TABLE IF EXISTS ONLY public.music_artist DROP CONSTRAINT IF EXISTS music_artist_slug_key;
+ALTER TABLE IF EXISTS ONLY public.music_artist DROP CONSTRAINT IF EXISTS music_artist_pkey;
+ALTER TABLE IF EXISTS ONLY public.music_album DROP CONSTRAINT IF EXISTS music_album_spotify_id_key;
+ALTER TABLE IF EXISTS ONLY public.music_album DROP CONSTRAINT IF EXISTS music_album_pkey;
+ALTER TABLE IF EXISTS ONLY public.music_album_featured_artists DROP CONSTRAINT IF EXISTS music_album_featured_artists_pkey;
+ALTER TABLE IF EXISTS ONLY public.music_album_featured_artists DROP CONSTRAINT IF EXISTS music_album_featured_artists_album_id_artist_id_86ccda42_uniq;
+ALTER TABLE IF EXISTS ONLY public.movies_watchlist DROP CONSTRAINT IF EXISTS movies_watchlist_user_id_movie_id_320579b7_uniq;
+ALTER TABLE IF EXISTS ONLY public.movies_watchlist DROP CONSTRAINT IF EXISTS movies_watchlist_pkey;
+ALTER TABLE IF EXISTS ONLY public.movies_watchhistory DROP CONSTRAINT IF EXISTS movies_watchhistory_pkey;
+ALTER TABLE IF EXISTS ONLY public.movies_userrating DROP CONSTRAINT IF EXISTS movies_userrating_user_id_movie_id_55785478_uniq;
+ALTER TABLE IF EXISTS ONLY public.movies_userrating DROP CONSTRAINT IF EXISTS movies_userrating_pkey;
+ALTER TABLE IF EXISTS ONLY public.movies_personalarchive DROP CONSTRAINT IF EXISTS movies_personalarchive_user_id_movie_id_format_69944c60_uniq;
+ALTER TABLE IF EXISTS ONLY public.movies_personalarchive DROP CONSTRAINT IF EXISTS movies_personalarchive_pkey;
+ALTER TABLE IF EXISTS ONLY public.movies_movie DROP CONSTRAINT IF EXISTS movies_movie_tmdb_id_key;
+ALTER TABLE IF EXISTS ONLY public.movies_movie DROP CONSTRAINT IF EXISTS movies_movie_pkey;
+ALTER TABLE IF EXISTS ONLY public.movies_movie DROP CONSTRAINT IF EXISTS movies_movie_imdb_id_key;
+ALTER TABLE IF EXISTS ONLY public.movies_movie_genres DROP CONSTRAINT IF EXISTS movies_movie_genres_pkey;
+ALTER TABLE IF EXISTS ONLY public.movies_movie_genres DROP CONSTRAINT IF EXISTS movies_movie_genres_movie_id_genre_id_5ff3c723_uniq;
+ALTER TABLE IF EXISTS ONLY public.movies_genre DROP CONSTRAINT IF EXISTS movies_genre_tmdb_id_key;
+ALTER TABLE IF EXISTS ONLY public.movies_genre DROP CONSTRAINT IF EXISTS movies_genre_slug_key;
+ALTER TABLE IF EXISTS ONLY public.movies_genre DROP CONSTRAINT IF EXISTS movies_genre_pkey;
+ALTER TABLE IF EXISTS ONLY public.movies_collectionitem DROP CONSTRAINT IF EXISTS movies_collectionitem_pkey;
+ALTER TABLE IF EXISTS ONLY public.movies_collectionitem DROP CONSTRAINT IF EXISTS movies_collectionitem_collection_id_movie_id_05f643ce_uniq;
+ALTER TABLE IF EXISTS ONLY public.movies_collection DROP CONSTRAINT IF EXISTS movies_collection_user_id_name_c1448944_uniq;
+ALTER TABLE IF EXISTS ONLY public.movies_collection DROP CONSTRAINT IF EXISTS movies_collection_pkey;
+ALTER TABLE IF EXISTS ONLY public.market_data DROP CONSTRAINT IF EXISTS market_data_pkey;
+ALTER TABLE IF EXISTS ONLY public.market_data DROP CONSTRAINT IF EXISTS market_data_currency_pair_period_sta_59fda87a_uniq;
+ALTER TABLE IF EXISTS ONLY public.inflation_reports DROP CONSTRAINT IF EXISTS inflation_reports_user_id_basket_id_period_d3445e25_uniq;
+ALTER TABLE IF EXISTS ONLY public.inflation_reports DROP CONSTRAINT IF EXISTS inflation_reports_pkey;
+ALTER TABLE IF EXISTS ONLY public.exchange_rates DROP CONSTRAINT IF EXISTS exchange_rates_pkey;
+ALTER TABLE IF EXISTS ONLY public.exchange_rates DROP CONSTRAINT IF EXISTS exchange_rates_base_currency_id_target__51515a9b_uniq;
+ALTER TABLE IF EXISTS ONLY public.documents_validationfeedback DROP CONSTRAINT IF EXISTS documents_validationfeedback_pkey;
+ALTER TABLE IF EXISTS ONLY public.documents_userprofile DROP CONSTRAINT IF EXISTS documents_userprofile_user_id_key;
+ALTER TABLE IF EXISTS ONLY public.documents_userprofile DROP CONSTRAINT IF EXISTS documents_userprofile_pkey;
+ALTER TABLE IF EXISTS ONLY public.documents_userchallenge DROP CONSTRAINT IF EXISTS documents_userchallenge_user_id_challenge_id_56705f21_uniq;
+ALTER TABLE IF EXISTS ONLY public.documents_userchallenge DROP CONSTRAINT IF EXISTS documents_userchallenge_pkey;
+ALTER TABLE IF EXISTS ONLY public.documents_subscription DROP CONSTRAINT IF EXISTS documents_subscription_pkey;
+ALTER TABLE IF EXISTS ONLY public.documents_receiptitem DROP CONSTRAINT IF EXISTS documents_receiptitem_pkey;
+ALTER TABLE IF EXISTS ONLY public.documents_pointtransaction DROP CONSTRAINT IF EXISTS documents_pointtransaction_pkey;
+ALTER TABLE IF EXISTS ONLY public.documents_parsedreceipt DROP CONSTRAINT IF EXISTS documents_parsedreceipt_pkey;
+ALTER TABLE IF EXISTS ONLY public.documents_parsedreceipt DROP CONSTRAINT IF EXISTS documents_parsedreceipt_document_id_key;
+ALTER TABLE IF EXISTS ONLY public.documents_ocrtemplate DROP CONSTRAINT IF EXISTS documents_ocrtemplate_store_name_key;
+ALTER TABLE IF EXISTS ONLY public.documents_ocrtemplate DROP CONSTRAINT IF EXISTS documents_ocrtemplate_pkey;
+ALTER TABLE IF EXISTS ONLY public.documents_learningmodel DROP CONSTRAINT IF EXISTS documents_learningmodel_pkey;
+ALTER TABLE IF EXISTS ONLY public.documents_leaderboard DROP CONSTRAINT IF EXISTS documents_leaderboard_user_id_period_type_peri_7df310c8_uniq;
+ALTER TABLE IF EXISTS ONLY public.documents_leaderboard DROP CONSTRAINT IF EXISTS documents_leaderboard_pkey;
+ALTER TABLE IF EXISTS ONLY public.documents_expensegroup DROP CONSTRAINT IF EXISTS documents_expensegroup_user_id_name_88dd3b6a_uniq;
+ALTER TABLE IF EXISTS ONLY public.documents_expensegroup DROP CONSTRAINT IF EXISTS documents_expensegroup_pkey;
+ALTER TABLE IF EXISTS ONLY public.documents_expensecategory DROP CONSTRAINT IF EXISTS documents_expensecategory_user_id_name_parent_id_3ca7520a_uniq;
+ALTER TABLE IF EXISTS ONLY public.documents_expensecategory DROP CONSTRAINT IF EXISTS documents_expensecategory_pkey;
+ALTER TABLE IF EXISTS ONLY public.documents_documenttype DROP CONSTRAINT IF EXISTS documents_documenttype_pkey;
+ALTER TABLE IF EXISTS ONLY public.documents_documenttype DROP CONSTRAINT IF EXISTS documents_documenttype_name_key;
+ALTER TABLE IF EXISTS ONLY public.documents_documentshare DROP CONSTRAINT IF EXISTS documents_documentshare_share_link_key;
+ALTER TABLE IF EXISTS ONLY public.documents_documentshare DROP CONSTRAINT IF EXISTS documents_documentshare_pkey;
+ALTER TABLE IF EXISTS ONLY public.documents_documentshare DROP CONSTRAINT IF EXISTS documents_documentshare_document_id_shared_with__5a3b0cf0_uniq;
+ALTER TABLE IF EXISTS ONLY public.documents_documentshare DROP CONSTRAINT IF EXISTS documents_documentshare_document_id_shared_with__1bab6530_uniq;
+ALTER TABLE IF EXISTS ONLY public.documents_documentbatch DROP CONSTRAINT IF EXISTS documents_documentbatch_pkey;
+ALTER TABLE IF EXISTS ONLY public.documents_document DROP CONSTRAINT IF EXISTS documents_document_pkey;
+ALTER TABLE IF EXISTS ONLY public.documents_creditcard DROP CONSTRAINT IF EXISTS documents_creditcard_user_id_last_four_digits_44a64c59_uniq;
+ALTER TABLE IF EXISTS ONLY public.documents_creditcard DROP CONSTRAINT IF EXISTS documents_creditcard_pkey;
+ALTER TABLE IF EXISTS ONLY public.documents_challenge DROP CONSTRAINT IF EXISTS documents_challenge_pkey;
+ALTER TABLE IF EXISTS ONLY public.documents_achievement DROP CONSTRAINT IF EXISTS documents_achievement_user_id_achievement_type_3e7c7f4b_uniq;
+ALTER TABLE IF EXISTS ONLY public.documents_achievement DROP CONSTRAINT IF EXISTS documents_achievement_pkey;
+ALTER TABLE IF EXISTS ONLY public.django_session DROP CONSTRAINT IF EXISTS django_session_pkey;
+ALTER TABLE IF EXISTS ONLY public.django_migrations DROP CONSTRAINT IF EXISTS django_migrations_pkey;
+ALTER TABLE IF EXISTS ONLY public.django_content_type DROP CONSTRAINT IF EXISTS django_content_type_pkey;
+ALTER TABLE IF EXISTS ONLY public.django_content_type DROP CONSTRAINT IF EXISTS django_content_type_app_label_model_76bd3d3b_uniq;
+ALTER TABLE IF EXISTS ONLY public.debug_toolbar_historyentry DROP CONSTRAINT IF EXISTS debug_toolbar_historyentry_pkey;
+ALTER TABLE IF EXISTS ONLY public.currency_alerts DROP CONSTRAINT IF EXISTS currency_alerts_pkey;
+ALTER TABLE IF EXISTS ONLY public.currencies DROP CONSTRAINT IF EXISTS currencies_pkey;
+ALTER TABLE IF EXISTS ONLY public.crypto_exchange_rates DROP CONSTRAINT IF EXISTS crypto_exchange_rates_pkey;
+ALTER TABLE IF EXISTS ONLY public.crypto_exchange_rates DROP CONSTRAINT IF EXISTS crypto_exchange_rates_exchange_symbol_timestamp_35aa76aa_uniq;
+ALTER TABLE IF EXISTS ONLY public.core_userprofile DROP CONSTRAINT IF EXISTS core_userprofile_user_id_key;
+ALTER TABLE IF EXISTS ONLY public.core_userprofile DROP CONSTRAINT IF EXISTS core_userprofile_pkey;
+ALTER TABLE IF EXISTS ONLY public.core_unit DROP CONSTRAINT IF EXISTS core_unit_pkey;
+ALTER TABLE IF EXISTS ONLY public.core_itemprice DROP CONSTRAINT IF EXISTS core_itemprice_pkey;
+ALTER TABLE IF EXISTS ONLY public.core_itemcategory DROP CONSTRAINT IF EXISTS core_itemcategory_slug_key;
+ALTER TABLE IF EXISTS ONLY public.core_itemcategory DROP CONSTRAINT IF EXISTS core_itemcategory_pkey;
+ALTER TABLE IF EXISTS ONLY public.core_item DROP CONSTRAINT IF EXISTS core_item_pkey;
+ALTER TABLE IF EXISTS ONLY public.core_item DROP CONSTRAINT IF EXISTS core_item_code_key;
+ALTER TABLE IF EXISTS ONLY public.core_account DROP CONSTRAINT IF EXISTS core_account_user_id_name_1d277b16_uniq;
+ALTER TABLE IF EXISTS ONLY public.core_account DROP CONSTRAINT IF EXISTS core_account_pkey;
+ALTER TABLE IF EXISTS ONLY public.cctv_storageconfiguration DROP CONSTRAINT IF EXISTS cctv_storageconfiguration_pkey;
+ALTER TABLE IF EXISTS ONLY public.cctv_storageconfiguration DROP CONSTRAINT IF EXISTS cctv_storageconfiguration_name_key;
+ALTER TABLE IF EXISTS ONLY public.cctv_recordingsession DROP CONSTRAINT IF EXISTS cctv_recordingsession_pkey;
+ALTER TABLE IF EXISTS ONLY public.cctv_recordingschedule DROP CONSTRAINT IF EXISTS cctv_recordingschedule_pkey;
+ALTER TABLE IF EXISTS ONLY public.cctv_camerastream DROP CONSTRAINT IF EXISTS cctv_camerastream_pkey;
+ALTER TABLE IF EXISTS ONLY public.cctv_camerastream DROP CONSTRAINT IF EXISTS cctv_camerastream_camera_id_quality_292c65c9_uniq;
+ALTER TABLE IF EXISTS ONLY public.cctv_cameragroup DROP CONSTRAINT IF EXISTS cctv_cameragroup_user_id_name_3105b504_uniq;
+ALTER TABLE IF EXISTS ONLY public.cctv_cameragroup DROP CONSTRAINT IF EXISTS cctv_cameragroup_pkey;
+ALTER TABLE IF EXISTS ONLY public.cctv_cameragroup_cameras DROP CONSTRAINT IF EXISTS cctv_cameragroup_cameras_pkey;
+ALTER TABLE IF EXISTS ONLY public.cctv_cameragroup_cameras DROP CONSTRAINT IF EXISTS cctv_cameragroup_cameras_cameragroup_id_camera_id_3c6d5524_uniq;
+ALTER TABLE IF EXISTS ONLY public.cctv_camera DROP CONSTRAINT IF EXISTS cctv_camera_pkey;
+ALTER TABLE IF EXISTS ONLY public.cctv_alert DROP CONSTRAINT IF EXISTS cctv_alert_pkey;
+ALTER TABLE IF EXISTS ONLY public.birlikteyiz_resource_points DROP CONSTRAINT IF EXISTS birlikteyiz_resource_points_pkey;
+ALTER TABLE IF EXISTS ONLY public.birlikteyiz_network_topology DROP CONSTRAINT IF EXISTS birlikteyiz_network_topology_pkey;
+ALTER TABLE IF EXISTS ONLY public.birlikteyiz_message_relays DROP CONSTRAINT IF EXISTS birlikteyiz_message_relays_pkey;
+ALTER TABLE IF EXISTS ONLY public.birlikteyiz_message_relays DROP CONSTRAINT IF EXISTS birlikteyiz_message_rela_message_id_relay_node_id_8fd45157_uniq;
+ALTER TABLE IF EXISTS ONLY public.birlikteyiz_mesh_nodes DROP CONSTRAINT IF EXISTS birlikteyiz_mesh_nodes_pkey;
+ALTER TABLE IF EXISTS ONLY public.birlikteyiz_mesh_nodes DROP CONSTRAINT IF EXISTS birlikteyiz_mesh_nodes_node_id_key;
+ALTER TABLE IF EXISTS ONLY public.birlikteyiz_emergency_protocols DROP CONSTRAINT IF EXISTS birlikteyiz_emergency_protocols_pkey;
+ALTER TABLE IF EXISTS ONLY public.birlikteyiz_emergency_protocols DROP CONSTRAINT IF EXISTS birlikteyiz_emergency_protocols_code_key;
+ALTER TABLE IF EXISTS ONLY public.birlikteyiz_emergency_messages DROP CONSTRAINT IF EXISTS birlikteyiz_emergency_messages_pkey;
+ALTER TABLE IF EXISTS ONLY public.birlikteyiz_emergency_messages DROP CONSTRAINT IF EXISTS birlikteyiz_emergency_messages_message_id_key;
+ALTER TABLE IF EXISTS ONLY public.birlikteyiz_emergency_contacts DROP CONSTRAINT IF EXISTS birlikteyiz_emergency_contacts_pkey;
+ALTER TABLE IF EXISTS ONLY public.birlikteyiz_earthquakes DROP CONSTRAINT IF EXISTS birlikteyiz_earthquakes_unique_id_key;
+ALTER TABLE IF EXISTS ONLY public.birlikteyiz_earthquakes DROP CONSTRAINT IF EXISTS birlikteyiz_earthquakes_pkey;
+ALTER TABLE IF EXISTS ONLY public.birlikteyiz_earthquake_sources DROP CONSTRAINT IF EXISTS birlikteyiz_earthquake_sources_pkey;
+ALTER TABLE IF EXISTS ONLY public.birlikteyiz_earthquake_sources DROP CONSTRAINT IF EXISTS birlikteyiz_earthquake_sources_name_key;
+ALTER TABLE IF EXISTS ONLY public.birlikteyiz_earthquake_comments DROP CONSTRAINT IF EXISTS birlikteyiz_earthquake_comments_pkey;
+ALTER TABLE IF EXISTS ONLY public.birlikteyiz_disaster_zones DROP CONSTRAINT IF EXISTS birlikteyiz_disaster_zones_pkey;
+ALTER TABLE IF EXISTS ONLY public.birlikteyiz_cronjobs DROP CONSTRAINT IF EXISTS birlikteyiz_cronjobs_pkey;
+ALTER TABLE IF EXISTS ONLY public.basket_items DROP CONSTRAINT IF EXISTS basket_items_pkey;
+ALTER TABLE IF EXISTS ONLY public.basket_items DROP CONSTRAINT IF EXISTS basket_items_basket_id_product_id_25c9d898_uniq;
+ALTER TABLE IF EXISTS ONLY public.bank_rate_import_logs DROP CONSTRAINT IF EXISTS bank_rate_import_logs_pkey;
+ALTER TABLE IF EXISTS ONLY public.bank_exchange_rates DROP CONSTRAINT IF EXISTS bank_exchange_rates_pkey;
+ALTER TABLE IF EXISTS ONLY public.bank_exchange_rates DROP CONSTRAINT IF EXISTS bank_exchange_rates_entry_id_key;
+ALTER TABLE IF EXISTS ONLY public.bank_exchange_rates DROP CONSTRAINT IF EXISTS bank_exchange_rates_bank_currency_pair_timestamp_b6b77269_uniq;
+ALTER TABLE IF EXISTS ONLY public.authtoken_token DROP CONSTRAINT IF EXISTS authtoken_token_user_id_key;
+ALTER TABLE IF EXISTS ONLY public.authtoken_token DROP CONSTRAINT IF EXISTS authtoken_token_pkey;
+ALTER TABLE IF EXISTS ONLY public.auth_user DROP CONSTRAINT IF EXISTS auth_user_username_key;
+ALTER TABLE IF EXISTS ONLY public.auth_user_user_permissions DROP CONSTRAINT IF EXISTS auth_user_user_permissions_user_id_permission_id_14a6b632_uniq;
+ALTER TABLE IF EXISTS ONLY public.auth_user_user_permissions DROP CONSTRAINT IF EXISTS auth_user_user_permissions_pkey;
+ALTER TABLE IF EXISTS ONLY public.auth_user DROP CONSTRAINT IF EXISTS auth_user_pkey;
+ALTER TABLE IF EXISTS ONLY public.auth_user_groups DROP CONSTRAINT IF EXISTS auth_user_groups_user_id_group_id_94350c0c_uniq;
+ALTER TABLE IF EXISTS ONLY public.auth_user_groups DROP CONSTRAINT IF EXISTS auth_user_groups_pkey;
+ALTER TABLE IF EXISTS ONLY public.auth_permission DROP CONSTRAINT IF EXISTS auth_permission_pkey;
+ALTER TABLE IF EXISTS ONLY public.auth_permission DROP CONSTRAINT IF EXISTS auth_permission_content_type_id_codename_01ab375a_uniq;
+ALTER TABLE IF EXISTS ONLY public.auth_group DROP CONSTRAINT IF EXISTS auth_group_pkey;
+ALTER TABLE IF EXISTS ONLY public.auth_group_permissions DROP CONSTRAINT IF EXISTS auth_group_permissions_pkey;
+ALTER TABLE IF EXISTS ONLY public.auth_group_permissions DROP CONSTRAINT IF EXISTS auth_group_permissions_group_id_permission_id_0cd325b0_uniq;
+ALTER TABLE IF EXISTS ONLY public.auth_group DROP CONSTRAINT IF EXISTS auth_group_name_key;
+ALTER TABLE IF EXISTS ONLY public.administration_userrole DROP CONSTRAINT IF EXISTS administration_userrole_user_id_role_id_d1b3ddb9_uniq;
+ALTER TABLE IF EXISTS ONLY public.administration_userrole DROP CONSTRAINT IF EXISTS administration_userrole_pkey;
+ALTER TABLE IF EXISTS ONLY public.administration_systemsetting DROP CONSTRAINT IF EXISTS administration_systemsetting_pkey;
+ALTER TABLE IF EXISTS ONLY public.administration_systemsetting DROP CONSTRAINT IF EXISTS administration_systemsetting_key_key;
+ALTER TABLE IF EXISTS ONLY public.administration_screenlock DROP CONSTRAINT IF EXISTS administration_screenlock_user_id_key;
+ALTER TABLE IF EXISTS ONLY public.administration_screenlock DROP CONSTRAINT IF EXISTS administration_screenlock_pkey;
+ALTER TABLE IF EXISTS ONLY public.administration_role DROP CONSTRAINT IF EXISTS administration_role_pkey;
+ALTER TABLE IF EXISTS ONLY public.administration_role_permissions DROP CONSTRAINT IF EXISTS administration_role_permissions_pkey;
+ALTER TABLE IF EXISTS ONLY public.administration_role_permissions DROP CONSTRAINT IF EXISTS administration_role_perm_role_id_permission_id_76b1340d_uniq;
+ALTER TABLE IF EXISTS ONLY public.administration_role DROP CONSTRAINT IF EXISTS administration_role_name_key;
+ALTER TABLE IF EXISTS ONLY public.administration_role_groups DROP CONSTRAINT IF EXISTS administration_role_groups_role_id_group_id_ce698d51_uniq;
+ALTER TABLE IF EXISTS ONLY public.administration_role_groups DROP CONSTRAINT IF EXISTS administration_role_groups_pkey;
+ALTER TABLE IF EXISTS ONLY public.administration_role DROP CONSTRAINT IF EXISTS administration_role_code_key;
+ALTER TABLE IF EXISTS ONLY public.administration_permissionrequest DROP CONSTRAINT IF EXISTS administration_permissionrequest_pkey;
+ALTER TABLE IF EXISTS ONLY public.administration_permissionrequest_permissions DROP CONSTRAINT IF EXISTS administration_permissionrequest_permissions_pkey;
+ALTER TABLE IF EXISTS ONLY public.administration_permissionrequest_permissions DROP CONSTRAINT IF EXISTS administration_permissio_permissionrequest_id_per_93ab60a8_uniq;
+ALTER TABLE IF EXISTS ONLY public.administration_department DROP CONSTRAINT IF EXISTS administration_department_pkey;
+ALTER TABLE IF EXISTS ONLY public.administration_department_members DROP CONSTRAINT IF EXISTS administration_department_members_pkey;
+ALTER TABLE IF EXISTS ONLY public.administration_department DROP CONSTRAINT IF EXISTS administration_department_code_key;
+ALTER TABLE IF EXISTS ONLY public.administration_department_members DROP CONSTRAINT IF EXISTS administration_departmen_department_id_user_id_4d850a7e_uniq;
+ALTER TABLE IF EXISTS ONLY public.administration_auditlog DROP CONSTRAINT IF EXISTS administration_auditlog_pkey;
+DROP TABLE IF EXISTS public.wims_warehouse;
+DROP TABLE IF EXISTS public.wims_stockmovement;
+DROP TABLE IF EXISTS public.wims_stocklocation;
+DROP TABLE IF EXISTS public.wims_stockitem;
+DROP TABLE IF EXISTS public.wims_stockcountitem;
+DROP TABLE IF EXISTS public.wims_stockcount;
+DROP TABLE IF EXISTS public.wims_itemsupplier;
+DROP TABLE IF EXISTS public.wimm_transactioncategory;
+DROP TABLE IF EXISTS public.wimm_transaction;
+DROP TABLE IF EXISTS public.wimm_recurringtransaction;
+DROP TABLE IF EXISTS public.wimm_invoiceitem;
+DROP TABLE IF EXISTS public.wimm_invoice;
+DROP TABLE IF EXISTS public.wimm_budget;
+DROP TABLE IF EXISTS public.web_ui_system_status;
+DROP TABLE IF EXISTS public.web_ui_session_logs;
+DROP TABLE IF EXISTS public.web_ui_preferences;
+DROP TABLE IF EXISTS public.web_ui_module_access;
+DROP TABLE IF EXISTS public.web_ui_command_history;
+DROP TABLE IF EXISTS public.version_manager_versionarchive;
+DROP TABLE IF EXISTS public.version_manager_scansession;
+DROP TABLE IF EXISTS public.version_manager_gitstatus;
+DROP TABLE IF EXISTS public.transactions;
+DROP TABLE IF EXISTS public.stores;
+DROP TABLE IF EXISTS public.store_synclog;
+DROP TABLE IF EXISTS public.store_product;
+DROP TABLE IF EXISTS public.store_orderitem;
+DROP TABLE IF EXISTS public.store_order;
+DROP TABLE IF EXISTS public.store_marketplace;
+DROP TABLE IF EXISTS public.solitaire_solitairestatistics;
+DROP TABLE IF EXISTS public.solitaire_solitairesession;
+DROP TABLE IF EXISTS public.solitaire_solitaireplayer;
+DROP TABLE IF EXISTS public.solitaire_solitairemove;
+DROP TABLE IF EXISTS public.solitaire_solitairegamesession;
+DROP TABLE IF EXISTS public.solitaire_solitaireactivity;
+DROP TABLE IF EXISTS public.restopos_table;
+DROP TABLE IF EXISTS public.restopos_staff;
+DROP TABLE IF EXISTS public.restopos_restaurant;
+DROP TABLE IF EXISTS public.restopos_reservation;
+DROP TABLE IF EXISTS public.restopos_receipt;
+DROP TABLE IF EXISTS public.restopos_orderitem;
+DROP TABLE IF EXISTS public.restopos_order;
+DROP TABLE IF EXISTS public.restopos_menuitem;
+DROP TABLE IF EXISTS public.restopos_menucategory;
+DROP TABLE IF EXISTS public.products;
+DROP TABLE IF EXISTS public.product_categories;
+DROP TABLE IF EXISTS public.price_records;
+DROP TABLE IF EXISTS public.price_alerts;
+DROP TABLE IF EXISTS public.portfolios;
+DROP TABLE IF EXISTS public.portfolio_transactions;
+DROP TABLE IF EXISTS public.portfolio_performance;
+DROP TABLE IF EXISTS public.portfolio_holdings;
+DROP TABLE IF EXISTS public.personal_baskets;
+DROP TABLE IF EXISTS public.music_usertrack;
+DROP TABLE IF EXISTS public.music_userlibrary;
+DROP TABLE IF EXISTS public.music_userartist;
+DROP TABLE IF EXISTS public.music_useralbum;
+DROP TABLE IF EXISTS public.music_track_featured_artists;
+DROP TABLE IF EXISTS public.music_track;
+DROP TABLE IF EXISTS public.music_playlisttrack;
+DROP TABLE IF EXISTS public.music_playlist_collaborators;
+DROP TABLE IF EXISTS public.music_playlist;
+DROP TABLE IF EXISTS public.music_listeningstats;
+DROP TABLE IF EXISTS public.music_listeninghistory;
+DROP TABLE IF EXISTS public.music_artist;
+DROP TABLE IF EXISTS public.music_album_featured_artists;
+DROP TABLE IF EXISTS public.music_album;
+DROP TABLE IF EXISTS public.movies_watchlist;
+DROP TABLE IF EXISTS public.movies_watchhistory;
+DROP TABLE IF EXISTS public.movies_userrating;
+DROP TABLE IF EXISTS public.movies_personalarchive;
+DROP TABLE IF EXISTS public.movies_movie_genres;
+DROP TABLE IF EXISTS public.movies_movie;
+DROP TABLE IF EXISTS public.movies_genre;
+DROP TABLE IF EXISTS public.movies_collectionitem;
+DROP TABLE IF EXISTS public.movies_collection;
+DROP TABLE IF EXISTS public.market_data;
+DROP TABLE IF EXISTS public.inflation_reports;
+DROP TABLE IF EXISTS public.exchange_rates;
+DROP TABLE IF EXISTS public.documents_validationfeedback;
+DROP TABLE IF EXISTS public.documents_userprofile;
+DROP TABLE IF EXISTS public.documents_userchallenge;
+DROP TABLE IF EXISTS public.documents_subscription;
+DROP TABLE IF EXISTS public.documents_receiptitem;
+DROP TABLE IF EXISTS public.documents_pointtransaction;
+DROP TABLE IF EXISTS public.documents_parsedreceipt;
+DROP TABLE IF EXISTS public.documents_ocrtemplate;
+DROP TABLE IF EXISTS public.documents_learningmodel;
+DROP TABLE IF EXISTS public.documents_leaderboard;
+DROP TABLE IF EXISTS public.documents_expensegroup;
+DROP TABLE IF EXISTS public.documents_expensecategory;
+DROP TABLE IF EXISTS public.documents_documenttype;
+DROP TABLE IF EXISTS public.documents_documentshare;
+DROP TABLE IF EXISTS public.documents_documentbatch;
+DROP TABLE IF EXISTS public.documents_document;
+DROP TABLE IF EXISTS public.documents_creditcard;
+DROP TABLE IF EXISTS public.documents_challenge;
+DROP TABLE IF EXISTS public.documents_achievement;
+DROP TABLE IF EXISTS public.django_session;
+DROP TABLE IF EXISTS public.django_migrations;
+DROP TABLE IF EXISTS public.django_content_type;
+DROP TABLE IF EXISTS public.debug_toolbar_historyentry;
+DROP TABLE IF EXISTS public.currency_alerts;
+DROP TABLE IF EXISTS public.currencies;
+DROP TABLE IF EXISTS public.crypto_exchange_rates;
+DROP TABLE IF EXISTS public.core_userprofile;
+DROP TABLE IF EXISTS public.core_unit;
+DROP TABLE IF EXISTS public.core_itemprice;
+DROP TABLE IF EXISTS public.core_itemcategory;
+DROP TABLE IF EXISTS public.core_item;
+DROP TABLE IF EXISTS public.core_account;
+DROP TABLE IF EXISTS public.cctv_storageconfiguration;
+DROP TABLE IF EXISTS public.cctv_recordingsession;
+DROP TABLE IF EXISTS public.cctv_recordingschedule;
+DROP TABLE IF EXISTS public.cctv_camerastream;
+DROP TABLE IF EXISTS public.cctv_cameragroup_cameras;
+DROP TABLE IF EXISTS public.cctv_cameragroup;
+DROP TABLE IF EXISTS public.cctv_camera;
+DROP TABLE IF EXISTS public.cctv_alert;
+DROP TABLE IF EXISTS public.birlikteyiz_resource_points;
+DROP TABLE IF EXISTS public.birlikteyiz_network_topology;
+DROP TABLE IF EXISTS public.birlikteyiz_message_relays;
+DROP TABLE IF EXISTS public.birlikteyiz_mesh_nodes;
+DROP TABLE IF EXISTS public.birlikteyiz_emergency_protocols;
+DROP TABLE IF EXISTS public.birlikteyiz_emergency_messages;
+DROP TABLE IF EXISTS public.birlikteyiz_emergency_contacts;
+DROP TABLE IF EXISTS public.birlikteyiz_earthquakes;
+DROP TABLE IF EXISTS public.birlikteyiz_earthquake_sources;
+DROP TABLE IF EXISTS public.birlikteyiz_earthquake_comments;
+DROP TABLE IF EXISTS public.birlikteyiz_disaster_zones;
+DROP TABLE IF EXISTS public.birlikteyiz_cronjobs;
+DROP TABLE IF EXISTS public.basket_items;
+DROP TABLE IF EXISTS public.bank_rate_import_logs;
+DROP TABLE IF EXISTS public.bank_exchange_rates;
+DROP TABLE IF EXISTS public.authtoken_token;
+DROP TABLE IF EXISTS public.auth_user_user_permissions;
+DROP TABLE IF EXISTS public.auth_user_groups;
+DROP TABLE IF EXISTS public.auth_user;
+DROP TABLE IF EXISTS public.auth_permission;
+DROP TABLE IF EXISTS public.auth_group_permissions;
+DROP TABLE IF EXISTS public.auth_group;
+DROP TABLE IF EXISTS public.administration_userrole;
+DROP TABLE IF EXISTS public.administration_systemsetting;
+DROP TABLE IF EXISTS public.administration_screenlock;
+DROP TABLE IF EXISTS public.administration_role_permissions;
+DROP TABLE IF EXISTS public.administration_role_groups;
+DROP TABLE IF EXISTS public.administration_role;
+DROP TABLE IF EXISTS public.administration_permissionrequest_permissions;
+DROP TABLE IF EXISTS public.administration_permissionrequest;
+DROP TABLE IF EXISTS public.administration_department_members;
+DROP TABLE IF EXISTS public.administration_department;
+DROP TABLE IF EXISTS public.administration_auditlog;
+SET default_tablespace = '';
+
+SET default_table_access_method = heap;
+
+--
+-- TOC entry 242 (class 1259 OID 16671)
+-- Name: administration_auditlog; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.administration_auditlog (
+    id bigint NOT NULL,
+    created_at timestamp with time zone NOT NULL,
+    updated_at timestamp with time zone NOT NULL,
+    is_active boolean NOT NULL,
+    action character varying(50) NOT NULL,
+    target_object character varying(200) NOT NULL,
+    details jsonb NOT NULL,
+    ip_address inet,
+    user_agent text NOT NULL,
+    "timestamp" timestamp with time zone NOT NULL,
+    target_user_id integer,
+    user_id integer
+);
+
+
+--
+-- TOC entry 241 (class 1259 OID 16670)
+-- Name: administration_auditlog_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+ALTER TABLE public.administration_auditlog ALTER COLUMN id ADD GENERATED BY DEFAULT AS IDENTITY (
+    SEQUENCE NAME public.administration_auditlog_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1
+);
+
+
+--
+-- TOC entry 238 (class 1259 OID 16657)
+-- Name: administration_department; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.administration_department (
+    id bigint NOT NULL,
+    created_at timestamp with time zone NOT NULL,
+    updated_at timestamp with time zone NOT NULL,
+    is_active boolean NOT NULL,
+    name character varying(100) NOT NULL,
+    code character varying(20) NOT NULL,
+    manager_id integer,
+    parent_id bigint,
+    default_role_id bigint
+);
+
+
+--
+-- TOC entry 237 (class 1259 OID 16656)
+-- Name: administration_department_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+ALTER TABLE public.administration_department ALTER COLUMN id ADD GENERATED BY DEFAULT AS IDENTITY (
+    SEQUENCE NAME public.administration_department_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1
+);
+
+
+--
+-- TOC entry 240 (class 1259 OID 16665)
+-- Name: administration_department_members; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.administration_department_members (
+    id bigint NOT NULL,
+    department_id bigint NOT NULL,
+    user_id integer NOT NULL
+);
+
+
+--
+-- TOC entry 239 (class 1259 OID 16664)
+-- Name: administration_department_members_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+ALTER TABLE public.administration_department_members ALTER COLUMN id ADD GENERATED BY DEFAULT AS IDENTITY (
+    SEQUENCE NAME public.administration_department_members_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1
+);
+
+
+--
+-- TOC entry 234 (class 1259 OID 16643)
+-- Name: administration_permissionrequest; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.administration_permissionrequest (
+    id bigint NOT NULL,
+    created_at timestamp with time zone NOT NULL,
+    updated_at timestamp with time zone NOT NULL,
+    is_active boolean NOT NULL,
+    reason text NOT NULL,
+    status character varying(20) NOT NULL,
+    requested_at timestamp with time zone NOT NULL,
+    reviewed_at timestamp with time zone,
+    review_notes text NOT NULL,
+    duration_days integer,
+    reviewed_by_id integer,
+    user_id integer NOT NULL,
+    role_id bigint
+);
+
+
+--
+-- TOC entry 233 (class 1259 OID 16642)
+-- Name: administration_permissionrequest_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+ALTER TABLE public.administration_permissionrequest ALTER COLUMN id ADD GENERATED BY DEFAULT AS IDENTITY (
+    SEQUENCE NAME public.administration_permissionrequest_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1
+);
+
+
+--
+-- TOC entry 236 (class 1259 OID 16651)
+-- Name: administration_permissionrequest_permissions; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.administration_permissionrequest_permissions (
+    id bigint NOT NULL,
+    permissionrequest_id bigint NOT NULL,
+    permission_id integer NOT NULL
+);
+
+
+--
+-- TOC entry 235 (class 1259 OID 16650)
+-- Name: administration_permissionrequest_permissions_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+ALTER TABLE public.administration_permissionrequest_permissions ALTER COLUMN id ADD GENERATED BY DEFAULT AS IDENTITY (
+    SEQUENCE NAME public.administration_permissionrequest_permissions_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1
+);
+
+
+--
+-- TOC entry 228 (class 1259 OID 16619)
+-- Name: administration_role; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.administration_role (
+    id bigint NOT NULL,
+    created_at timestamp with time zone NOT NULL,
+    updated_at timestamp with time zone NOT NULL,
+    is_active boolean NOT NULL,
+    name character varying(100) NOT NULL,
+    code character varying(50) NOT NULL,
+    description text NOT NULL,
+    is_system boolean NOT NULL,
+    priority integer NOT NULL,
+    can_manage_users boolean NOT NULL,
+    can_manage_roles boolean NOT NULL,
+    can_view_logs boolean NOT NULL,
+    can_access_admin boolean NOT NULL,
+    can_export_data boolean NOT NULL,
+    can_import_data boolean NOT NULL,
+    module_permissions jsonb NOT NULL
+);
+
+
+--
+-- TOC entry 230 (class 1259 OID 16631)
+-- Name: administration_role_groups; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.administration_role_groups (
+    id bigint NOT NULL,
+    role_id bigint NOT NULL,
+    group_id integer NOT NULL
+);
+
+
+--
+-- TOC entry 229 (class 1259 OID 16630)
+-- Name: administration_role_groups_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+ALTER TABLE public.administration_role_groups ALTER COLUMN id ADD GENERATED BY DEFAULT AS IDENTITY (
+    SEQUENCE NAME public.administration_role_groups_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1
+);
+
+
+--
+-- TOC entry 227 (class 1259 OID 16618)
+-- Name: administration_role_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+ALTER TABLE public.administration_role ALTER COLUMN id ADD GENERATED BY DEFAULT AS IDENTITY (
+    SEQUENCE NAME public.administration_role_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1
+);
+
+
+--
+-- TOC entry 232 (class 1259 OID 16637)
+-- Name: administration_role_permissions; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.administration_role_permissions (
+    id bigint NOT NULL,
+    role_id bigint NOT NULL,
+    permission_id integer NOT NULL
+);
+
+
+--
+-- TOC entry 231 (class 1259 OID 16636)
+-- Name: administration_role_permissions_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+ALTER TABLE public.administration_role_permissions ALTER COLUMN id ADD GENERATED BY DEFAULT AS IDENTITY (
+    SEQUENCE NAME public.administration_role_permissions_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1
+);
+
+
+--
+-- TOC entry 367 (class 1259 OID 18267)
+-- Name: administration_screenlock; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.administration_screenlock (
+    id bigint NOT NULL,
+    created_at timestamp with time zone NOT NULL,
+    updated_at timestamp with time zone NOT NULL,
+    is_active boolean NOT NULL,
+    is_enabled boolean NOT NULL,
+    password_hash character varying(255) NOT NULL,
+    lock_timeout integer NOT NULL,
+    auto_lock boolean NOT NULL,
+    require_on_startup boolean NOT NULL,
+    failed_attempts integer NOT NULL,
+    locked_until timestamp with time zone,
+    last_locked timestamp with time zone,
+    last_unlocked timestamp with time zone,
+    max_failed_attempts integer NOT NULL,
+    lockout_duration integer NOT NULL,
+    require_password_change boolean NOT NULL,
+    user_id integer NOT NULL
+);
+
+
+--
+-- TOC entry 366 (class 1259 OID 18266)
+-- Name: administration_screenlock_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+ALTER TABLE public.administration_screenlock ALTER COLUMN id ADD GENERATED BY DEFAULT AS IDENTITY (
+    SEQUENCE NAME public.administration_screenlock_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1
+);
+
+
+--
+-- TOC entry 226 (class 1259 OID 16609)
+-- Name: administration_systemsetting; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.administration_systemsetting (
+    id bigint NOT NULL,
+    created_at timestamp with time zone NOT NULL,
+    updated_at timestamp with time zone NOT NULL,
+    is_active boolean NOT NULL,
+    key character varying(100) NOT NULL,
+    value jsonb NOT NULL,
+    description text NOT NULL,
+    is_public boolean NOT NULL
+);
+
+
+--
+-- TOC entry 225 (class 1259 OID 16608)
+-- Name: administration_systemsetting_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+ALTER TABLE public.administration_systemsetting ALTER COLUMN id ADD GENERATED BY DEFAULT AS IDENTITY (
+    SEQUENCE NAME public.administration_systemsetting_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1
+);
+
+
+--
+-- TOC entry 244 (class 1259 OID 16679)
+-- Name: administration_userrole; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.administration_userrole (
+    id bigint NOT NULL,
+    created_at timestamp with time zone NOT NULL,
+    updated_at timestamp with time zone NOT NULL,
+    is_active boolean NOT NULL,
+    assigned_at timestamp with time zone NOT NULL,
+    expires_at timestamp with time zone,
+    is_temporary boolean NOT NULL,
+    notes text NOT NULL,
+    assigned_by_id integer,
+    role_id bigint NOT NULL,
+    user_id integer NOT NULL
+);
+
+
+--
+-- TOC entry 243 (class 1259 OID 16678)
+-- Name: administration_userrole_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+ALTER TABLE public.administration_userrole ALTER COLUMN id ADD GENERATED BY DEFAULT AS IDENTITY (
+    SEQUENCE NAME public.administration_userrole_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1
+);
+
+
+--
+-- TOC entry 216 (class 1259 OID 16515)
+-- Name: auth_group; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.auth_group (
+    id integer NOT NULL,
+    name character varying(150) NOT NULL
+);
+
+
+--
+-- TOC entry 215 (class 1259 OID 16514)
+-- Name: auth_group_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+ALTER TABLE public.auth_group ALTER COLUMN id ADD GENERATED BY DEFAULT AS IDENTITY (
+    SEQUENCE NAME public.auth_group_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1
+);
+
+
+--
+-- TOC entry 218 (class 1259 OID 16523)
+-- Name: auth_group_permissions; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.auth_group_permissions (
+    id bigint NOT NULL,
+    group_id integer NOT NULL,
+    permission_id integer NOT NULL
+);
+
+
+--
+-- TOC entry 217 (class 1259 OID 16522)
+-- Name: auth_group_permissions_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+ALTER TABLE public.auth_group_permissions ALTER COLUMN id ADD GENERATED BY DEFAULT AS IDENTITY (
+    SEQUENCE NAME public.auth_group_permissions_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1
+);
+
+
+--
+-- TOC entry 214 (class 1259 OID 16509)
+-- Name: auth_permission; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.auth_permission (
+    id integer NOT NULL,
+    name character varying(255) NOT NULL,
+    content_type_id integer NOT NULL,
+    codename character varying(100) NOT NULL
+);
+
+
+--
+-- TOC entry 213 (class 1259 OID 16508)
+-- Name: auth_permission_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+ALTER TABLE public.auth_permission ALTER COLUMN id ADD GENERATED BY DEFAULT AS IDENTITY (
+    SEQUENCE NAME public.auth_permission_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1
+);
+
+
+--
+-- TOC entry 220 (class 1259 OID 16529)
+-- Name: auth_user; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.auth_user (
+    id integer NOT NULL,
+    password character varying(128) NOT NULL,
+    last_login timestamp with time zone,
+    is_superuser boolean NOT NULL,
+    username character varying(150) NOT NULL,
+    first_name character varying(150) NOT NULL,
+    last_name character varying(150) NOT NULL,
+    email character varying(254) NOT NULL,
+    is_staff boolean NOT NULL,
+    is_active boolean NOT NULL,
+    date_joined timestamp with time zone NOT NULL
+);
+
+
+--
+-- TOC entry 222 (class 1259 OID 16537)
+-- Name: auth_user_groups; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.auth_user_groups (
+    id bigint NOT NULL,
+    user_id integer NOT NULL,
+    group_id integer NOT NULL
+);
+
+
+--
+-- TOC entry 221 (class 1259 OID 16536)
+-- Name: auth_user_groups_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+ALTER TABLE public.auth_user_groups ALTER COLUMN id ADD GENERATED BY DEFAULT AS IDENTITY (
+    SEQUENCE NAME public.auth_user_groups_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1
+);
+
+
+--
+-- TOC entry 219 (class 1259 OID 16528)
+-- Name: auth_user_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+ALTER TABLE public.auth_user ALTER COLUMN id ADD GENERATED BY DEFAULT AS IDENTITY (
+    SEQUENCE NAME public.auth_user_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1
+);
+
+
+--
+-- TOC entry 224 (class 1259 OID 16543)
+-- Name: auth_user_user_permissions; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.auth_user_user_permissions (
+    id bigint NOT NULL,
+    user_id integer NOT NULL,
+    permission_id integer NOT NULL
+);
+
+
+--
+-- TOC entry 223 (class 1259 OID 16542)
+-- Name: auth_user_user_permissions_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+ALTER TABLE public.auth_user_user_permissions ALTER COLUMN id ADD GENERATED BY DEFAULT AS IDENTITY (
+    SEQUENCE NAME public.auth_user_user_permissions_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1
+);
+
+
+--
+-- TOC entry 245 (class 1259 OID 16817)
+-- Name: authtoken_token; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.authtoken_token (
+    key character varying(40) NOT NULL,
+    created timestamp with time zone NOT NULL,
+    user_id integer NOT NULL
+);
+
+
+--
+-- TOC entry 364 (class 1259 OID 18055)
+-- Name: bank_exchange_rates; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.bank_exchange_rates (
+    id uuid NOT NULL,
+    entry_id character varying(100) NOT NULL,
+    bank character varying(20) NOT NULL,
+    currency_pair character varying(10) NOT NULL,
+    buy_rate numeric(20,6) NOT NULL,
+    sell_rate numeric(20,6) NOT NULL,
+    spread numeric(20,6),
+    spread_percentage numeric(10,4),
+    date date NOT NULL,
+    "timestamp" timestamp with time zone NOT NULL,
+    previous_buy_rate numeric(20,6),
+    previous_sell_rate numeric(20,6),
+    buy_change numeric(20,6),
+    sell_change numeric(20,6),
+    buy_change_percentage numeric(10,4),
+    sell_change_percentage numeric(10,4),
+    created_at timestamp with time zone NOT NULL,
+    updated_at timestamp with time zone NOT NULL
+);
+
+
+--
+-- TOC entry 365 (class 1259 OID 18062)
+-- Name: bank_rate_import_logs; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.bank_rate_import_logs (
+    id uuid NOT NULL,
+    import_type character varying(20) NOT NULL,
+    total_entries integer NOT NULL,
+    new_entries integer NOT NULL,
+    updated_entries integer NOT NULL,
+    failed_entries integer NOT NULL,
+    status character varying(20) NOT NULL,
+    error_message text NOT NULL,
+    error_details jsonb NOT NULL,
+    started_at timestamp with time zone NOT NULL,
+    completed_at timestamp with time zone,
+    duration_seconds integer,
+    source_url character varying(200) NOT NULL,
+    CONSTRAINT bank_rate_import_logs_duration_seconds_check CHECK ((duration_seconds >= 0)),
+    CONSTRAINT bank_rate_import_logs_failed_entries_check CHECK ((failed_entries >= 0)),
+    CONSTRAINT bank_rate_import_logs_new_entries_check CHECK ((new_entries >= 0)),
+    CONSTRAINT bank_rate_import_logs_total_entries_check CHECK ((total_entries >= 0)),
+    CONSTRAINT bank_rate_import_logs_updated_entries_check CHECK ((updated_entries >= 0))
+);
+
+
+--
+-- TOC entry 308 (class 1259 OID 17413)
+-- Name: basket_items; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.basket_items (
+    id uuid NOT NULL,
+    quantity numeric(10,3) NOT NULL,
+    frequency character varying(20) NOT NULL,
+    custom_weight numeric(5,2),
+    is_active boolean NOT NULL,
+    added_at timestamp with time zone NOT NULL,
+    updated_at timestamp with time zone NOT NULL,
+    basket_id uuid NOT NULL,
+    product_id uuid NOT NULL
+);
+
+
+--
+-- TOC entry 369 (class 1259 OID 18281)
+-- Name: birlikteyiz_cronjobs; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.birlikteyiz_cronjobs (
+    id bigint NOT NULL,
+    name character varying(100) NOT NULL,
+    command character varying(255) NOT NULL,
+    schedule character varying(100) NOT NULL,
+    is_active boolean NOT NULL,
+    last_run timestamp with time zone,
+    next_run timestamp with time zone,
+    status character varying(20) NOT NULL,
+    last_result text,
+    run_count integer NOT NULL,
+    success_count integer NOT NULL,
+    error_count integer NOT NULL,
+    created_at timestamp with time zone NOT NULL,
+    updated_at timestamp with time zone NOT NULL
+);
+
+
+--
+-- TOC entry 368 (class 1259 OID 18280)
+-- Name: birlikteyiz_cronjobs_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+ALTER TABLE public.birlikteyiz_cronjobs ALTER COLUMN id ADD GENERATED BY DEFAULT AS IDENTITY (
+    SEQUENCE NAME public.birlikteyiz_cronjobs_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1
+);
+
+
+--
+-- TOC entry 373 (class 1259 OID 18307)
+-- Name: birlikteyiz_disaster_zones; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.birlikteyiz_disaster_zones (
+    id uuid NOT NULL,
+    name character varying(200) NOT NULL,
+    zone_type character varying(20) NOT NULL,
+    boundary jsonb NOT NULL,
+    center_lat double precision NOT NULL,
+    center_lon double precision NOT NULL,
+    radius integer NOT NULL,
+    severity character varying(20) NOT NULL,
+    is_active boolean NOT NULL,
+    declared_at timestamp with time zone NOT NULL,
+    expires_at timestamp with time zone,
+    affected_population integer,
+    messages_sent integer NOT NULL,
+    nodes_active integer NOT NULL
+);
+
+
+--
+-- TOC entry 377 (class 1259 OID 18325)
+-- Name: birlikteyiz_earthquake_comments; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.birlikteyiz_earthquake_comments (
+    id bigint NOT NULL,
+    comment text NOT NULL,
+    felt_it boolean NOT NULL,
+    intensity_felt integer,
+    user_city character varying(100),
+    user_district character varying(100),
+    created_at timestamp with time zone NOT NULL,
+    earthquake_id bigint NOT NULL,
+    user_id integer
+);
+
+
+--
+-- TOC entry 376 (class 1259 OID 18324)
+-- Name: birlikteyiz_earthquake_comments_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+ALTER TABLE public.birlikteyiz_earthquake_comments ALTER COLUMN id ADD GENERATED BY DEFAULT AS IDENTITY (
+    SEQUENCE NAME public.birlikteyiz_earthquake_comments_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1
+);
+
+
+--
+-- TOC entry 371 (class 1259 OID 18289)
+-- Name: birlikteyiz_earthquake_sources; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.birlikteyiz_earthquake_sources (
+    id bigint NOT NULL,
+    name character varying(50) NOT NULL,
+    url character varying(200) NOT NULL,
+    is_active boolean NOT NULL,
+    last_fetch timestamp with time zone,
+    last_success timestamp with time zone,
+    last_error text,
+    fetch_count integer NOT NULL,
+    error_count integer NOT NULL
+);
+
+
+--
+-- TOC entry 370 (class 1259 OID 18288)
+-- Name: birlikteyiz_earthquake_sources_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+ALTER TABLE public.birlikteyiz_earthquake_sources ALTER COLUMN id ADD GENERATED BY DEFAULT AS IDENTITY (
+    SEQUENCE NAME public.birlikteyiz_earthquake_sources_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1
+);
+
+
+--
+-- TOC entry 375 (class 1259 OID 18315)
+-- Name: birlikteyiz_earthquakes; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.birlikteyiz_earthquakes (
+    id bigint NOT NULL,
+    unique_id character varying(100) NOT NULL,
+    source character varying(20) NOT NULL,
+    source_id character varying(50),
+    magnitude numeric(3,1) NOT NULL,
+    depth numeric(6,2) NOT NULL,
+    latitude numeric(9,6) NOT NULL,
+    longitude numeric(9,6) NOT NULL,
+    location character varying(255) NOT NULL,
+    city character varying(100),
+    district character varying(100),
+    occurred_at timestamp with time zone NOT NULL,
+    fetched_at timestamp with time zone NOT NULL,
+    intensity character varying(10),
+    solution_type character varying(50),
+    is_felt boolean NOT NULL,
+    felt_reports integer NOT NULL,
+    raw_data jsonb
+);
+
+
+--
+-- TOC entry 374 (class 1259 OID 18314)
+-- Name: birlikteyiz_earthquakes_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+ALTER TABLE public.birlikteyiz_earthquakes ALTER COLUMN id ADD GENERATED BY DEFAULT AS IDENTITY (
+    SEQUENCE NAME public.birlikteyiz_earthquakes_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1
+);
+
+
+--
+-- TOC entry 383 (class 1259 OID 18367)
+-- Name: birlikteyiz_emergency_contacts; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.birlikteyiz_emergency_contacts (
+    id uuid NOT NULL,
+    name character varying(100) NOT NULL,
+    relationship character varying(50) NOT NULL,
+    phone character varying(20) NOT NULL,
+    email character varying(254) NOT NULL,
+    notify_sms boolean NOT NULL,
+    notify_email boolean NOT NULL,
+    notify_mesh boolean NOT NULL,
+    priority integer NOT NULL,
+    created_at timestamp with time zone NOT NULL,
+    updated_at timestamp with time zone NOT NULL,
+    user_id integer NOT NULL
+);
+
+
+--
+-- TOC entry 379 (class 1259 OID 18339)
+-- Name: birlikteyiz_emergency_messages; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.birlikteyiz_emergency_messages (
+    id uuid NOT NULL,
+    message_id character varying(32) NOT NULL,
+    sender_name character varying(100) NOT NULL,
+    message_type character varying(20) NOT NULL,
+    content text NOT NULL,
+    priority integer NOT NULL,
+    location_lat double precision NOT NULL,
+    location_lon double precision NOT NULL,
+    location_accuracy double precision,
+    hop_count integer NOT NULL,
+    max_hops integer NOT NULL,
+    ttl integer NOT NULL,
+    created_at timestamp with time zone NOT NULL,
+    expires_at timestamp with time zone NOT NULL,
+    is_delivered boolean NOT NULL,
+    delivered_count integer NOT NULL,
+    sender_node_id uuid NOT NULL
+);
+
+
+--
+-- TOC entry 372 (class 1259 OID 18298)
+-- Name: birlikteyiz_emergency_protocols; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.birlikteyiz_emergency_protocols (
+    id uuid NOT NULL,
+    name character varying(100) NOT NULL,
+    code character varying(20) NOT NULL,
+    description text NOT NULL,
+    emergency_type character varying(20) NOT NULL,
+    steps jsonb NOT NULL,
+    required_resources jsonb NOT NULL,
+    estimated_duration integer NOT NULL,
+    is_active boolean NOT NULL,
+    auto_activate boolean NOT NULL,
+    activation_conditions jsonb NOT NULL,
+    created_at timestamp with time zone NOT NULL,
+    updated_at timestamp with time zone NOT NULL
+);
+
+
+--
+-- TOC entry 378 (class 1259 OID 18332)
+-- Name: birlikteyiz_mesh_nodes; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.birlikteyiz_mesh_nodes (
+    id uuid NOT NULL,
+    node_id character varying(16) NOT NULL,
+    name character varying(100) NOT NULL,
+    device_type character varying(20) NOT NULL,
+    firmware_version character varying(20) NOT NULL,
+    location_lat double precision,
+    location_lon double precision,
+    altitude integer,
+    location_accuracy double precision,
+    frequency double precision NOT NULL,
+    spreading_factor integer NOT NULL,
+    bandwidth integer NOT NULL,
+    tx_power integer NOT NULL,
+    is_active boolean NOT NULL,
+    is_online boolean NOT NULL,
+    last_seen timestamp with time zone,
+    battery_level integer,
+    messages_sent bigint NOT NULL,
+    messages_received bigint NOT NULL,
+    messages_relayed bigint NOT NULL,
+    created_at timestamp with time zone NOT NULL,
+    updated_at timestamp with time zone NOT NULL,
+    owner_id integer NOT NULL
+);
+
+
+--
+-- TOC entry 380 (class 1259 OID 18348)
+-- Name: birlikteyiz_message_relays; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.birlikteyiz_message_relays (
+    id uuid NOT NULL,
+    received_at timestamp with time zone NOT NULL,
+    signal_strength integer NOT NULL,
+    snr double precision NOT NULL,
+    message_id uuid NOT NULL,
+    previous_node_id uuid,
+    relay_node_id uuid NOT NULL
+);
+
+
+--
+-- TOC entry 381 (class 1259 OID 18353)
+-- Name: birlikteyiz_network_topology; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.birlikteyiz_network_topology (
+    id uuid NOT NULL,
+    snapshot_time timestamp with time zone NOT NULL,
+    total_nodes integer NOT NULL,
+    active_nodes integer NOT NULL,
+    average_signal_strength double precision NOT NULL,
+    network_coverage_area double precision NOT NULL,
+    max_hop_distance integer NOT NULL,
+    node_connections jsonb NOT NULL,
+    central_nodes jsonb NOT NULL,
+    isolated_nodes jsonb NOT NULL,
+    average_latency double precision NOT NULL,
+    packet_loss_rate double precision NOT NULL,
+    throughput double precision NOT NULL
+);
+
+
+--
+-- TOC entry 382 (class 1259 OID 18360)
+-- Name: birlikteyiz_resource_points; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.birlikteyiz_resource_points (
+    id uuid NOT NULL,
+    name character varying(200) NOT NULL,
+    location_lat double precision NOT NULL,
+    location_lon double precision NOT NULL,
+    address text NOT NULL,
+    resource_type character varying(20) NOT NULL,
+    capacity integer,
+    current_occupancy integer NOT NULL,
+    is_operational boolean NOT NULL,
+    last_updated timestamp with time zone NOT NULL,
+    contact_name character varying(100) NOT NULL,
+    contact_phone character varying(20) NOT NULL,
+    operating_hours jsonb NOT NULL
+);
+
+
+--
+-- TOC entry 248 (class 1259 OID 16846)
+-- Name: cctv_alert; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.cctv_alert (
+    id uuid NOT NULL,
+    alert_type character varying(30) NOT NULL,
+    priority character varying(20) NOT NULL,
+    "timestamp" timestamp with time zone NOT NULL,
+    description text NOT NULL,
+    image_path character varying(100) NOT NULL,
+    video_clip_path character varying(100) NOT NULL,
+    confidence_score double precision,
+    detection_data jsonb NOT NULL,
+    is_resolved boolean NOT NULL,
+    resolved_at timestamp with time zone,
+    resolution_notes text NOT NULL,
+    notification_sent boolean NOT NULL,
+    notification_sent_at timestamp with time zone,
+    created_at timestamp with time zone NOT NULL,
+    updated_at timestamp with time zone NOT NULL,
+    resolved_by_id integer,
+    user_id integer NOT NULL,
+    camera_id uuid NOT NULL
+);
+
+
+--
+-- TOC entry 247 (class 1259 OID 16839)
+-- Name: cctv_camera; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.cctv_camera (
+    id uuid NOT NULL,
+    name character varying(100) NOT NULL,
+    model character varying(50) NOT NULL,
+    location character varying(200) NOT NULL,
+    description text NOT NULL,
+    ip_address inet NOT NULL,
+    port integer NOT NULL,
+    protocol character varying(10) NOT NULL,
+    stream_path character varying(200) NOT NULL,
+    username character varying(100) NOT NULL,
+    password character varying(100) NOT NULL,
+    status character varying(20) NOT NULL,
+    is_active boolean NOT NULL,
+    recording_enabled boolean NOT NULL,
+    motion_detection boolean NOT NULL,
+    audio_enabled boolean NOT NULL,
+    resolution character varying(20) NOT NULL,
+    fps integer NOT NULL,
+    bitrate integer NOT NULL,
+    has_ptz boolean NOT NULL,
+    ptz_preset_positions jsonb NOT NULL,
+    kerberos_enabled boolean NOT NULL,
+    kerberos_url character varying(200) NOT NULL,
+    kerberos_key character varying(100) NOT NULL,
+    created_at timestamp with time zone NOT NULL,
+    updated_at timestamp with time zone NOT NULL,
+    last_seen timestamp with time zone,
+    user_id integer NOT NULL
+);
+
+
+--
+-- TOC entry 249 (class 1259 OID 16853)
+-- Name: cctv_cameragroup; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.cctv_cameragroup (
+    id uuid NOT NULL,
+    name character varying(100) NOT NULL,
+    description text NOT NULL,
+    grid_layout character varying(10) NOT NULL,
+    auto_cycle boolean NOT NULL,
+    cycle_interval integer NOT NULL,
+    created_at timestamp with time zone NOT NULL,
+    updated_at timestamp with time zone NOT NULL,
+    user_id integer NOT NULL
+);
+
+
+--
+-- TOC entry 251 (class 1259 OID 16861)
+-- Name: cctv_cameragroup_cameras; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.cctv_cameragroup_cameras (
+    id bigint NOT NULL,
+    cameragroup_id uuid NOT NULL,
+    camera_id uuid NOT NULL
+);
+
+
+--
+-- TOC entry 250 (class 1259 OID 16860)
+-- Name: cctv_cameragroup_cameras_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+ALTER TABLE public.cctv_cameragroup_cameras ALTER COLUMN id ADD GENERATED BY DEFAULT AS IDENTITY (
+    SEQUENCE NAME public.cctv_cameragroup_cameras_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1
+);
+
+
+--
+-- TOC entry 252 (class 1259 OID 16866)
+-- Name: cctv_camerastream; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.cctv_camerastream (
+    id uuid NOT NULL,
+    quality character varying(20) NOT NULL,
+    protocol character varying(20) NOT NULL,
+    stream_url text NOT NULL,
+    is_active boolean NOT NULL,
+    resolution character varying(20) NOT NULL,
+    fps integer NOT NULL,
+    bitrate integer NOT NULL,
+    created_at timestamp with time zone NOT NULL,
+    updated_at timestamp with time zone NOT NULL,
+    camera_id uuid NOT NULL
+);
+
+
+--
+-- TOC entry 253 (class 1259 OID 16873)
+-- Name: cctv_recordingschedule; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.cctv_recordingschedule (
+    id uuid NOT NULL,
+    name character varying(100) NOT NULL,
+    days_of_week jsonb NOT NULL,
+    start_time time without time zone NOT NULL,
+    end_time time without time zone NOT NULL,
+    is_active boolean NOT NULL,
+    recording_quality character varying(20) NOT NULL,
+    motion_only boolean NOT NULL,
+    retention_days integer NOT NULL,
+    created_at timestamp with time zone NOT NULL,
+    updated_at timestamp with time zone NOT NULL,
+    camera_id uuid NOT NULL,
+    user_id integer NOT NULL
+);
+
+
+--
+-- TOC entry 254 (class 1259 OID 16880)
+-- Name: cctv_recordingsession; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.cctv_recordingsession (
+    id uuid NOT NULL,
+    recording_type character varying(20) NOT NULL,
+    status character varying(20) NOT NULL,
+    start_time timestamp with time zone NOT NULL,
+    end_time timestamp with time zone,
+    duration integer,
+    file_path character varying(100) NOT NULL,
+    file_size bigint,
+    thumbnail_path character varying(100) NOT NULL,
+    video_codec character varying(50) NOT NULL,
+    audio_codec character varying(50) NOT NULL,
+    resolution character varying(20) NOT NULL,
+    fps integer,
+    motion_events integer NOT NULL,
+    notes text NOT NULL,
+    created_at timestamp with time zone NOT NULL,
+    updated_at timestamp with time zone NOT NULL,
+    camera_id uuid NOT NULL,
+    user_id integer NOT NULL
+);
+
+
+--
+-- TOC entry 246 (class 1259 OID 16830)
+-- Name: cctv_storageconfiguration; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.cctv_storageconfiguration (
+    id uuid NOT NULL,
+    name character varying(100) NOT NULL,
+    recording_path character varying(500) NOT NULL,
+    snapshot_path character varying(500) NOT NULL,
+    max_storage_gb integer NOT NULL,
+    warning_threshold_percent integer NOT NULL,
+    default_retention_days integer NOT NULL,
+    auto_delete_old boolean NOT NULL,
+    current_usage_gb double precision NOT NULL,
+    last_cleanup timestamp with time zone,
+    is_active boolean NOT NULL,
+    created_at timestamp with time zone NOT NULL,
+    updated_at timestamp with time zone NOT NULL
+);
+
+
+--
+-- TOC entry 262 (class 1259 OID 17001)
+-- Name: core_account; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.core_account (
+    id bigint NOT NULL,
+    created_at timestamp with time zone NOT NULL,
+    updated_at timestamp with time zone NOT NULL,
+    is_active boolean NOT NULL,
+    name character varying(100) NOT NULL,
+    account_type character varying(50) NOT NULL,
+    currency character varying(3) NOT NULL,
+    balance numeric(20,4) NOT NULL,
+    institution character varying(100) NOT NULL,
+    account_number character varying(50) NOT NULL,
+    iban character varying(34) NOT NULL,
+    metadata jsonb NOT NULL,
+    user_id integer NOT NULL
+);
+
+
+--
+-- TOC entry 261 (class 1259 OID 17000)
+-- Name: core_account_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+ALTER TABLE public.core_account ALTER COLUMN id ADD GENERATED BY DEFAULT AS IDENTITY (
+    SEQUENCE NAME public.core_account_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1
+);
+
+
+--
+-- TOC entry 260 (class 1259 OID 16991)
+-- Name: core_item; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.core_item (
+    id bigint NOT NULL,
+    created_at timestamp with time zone NOT NULL,
+    updated_at timestamp with time zone NOT NULL,
+    is_active boolean NOT NULL,
+    name character varying(200) NOT NULL,
+    code character varying(50) NOT NULL,
+    description text NOT NULL,
+    brand character varying(100) NOT NULL,
+    attributes jsonb NOT NULL,
+    is_tradeable boolean NOT NULL,
+    is_service boolean NOT NULL,
+    is_digital boolean NOT NULL,
+    tags jsonb NOT NULL,
+    category_id bigint,
+    unit_id bigint
+);
+
+
+--
+-- TOC entry 259 (class 1259 OID 16990)
+-- Name: core_item_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+ALTER TABLE public.core_item ALTER COLUMN id ADD GENERATED BY DEFAULT AS IDENTITY (
+    SEQUENCE NAME public.core_item_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1
+);
+
+
+--
+-- TOC entry 258 (class 1259 OID 16981)
+-- Name: core_itemcategory; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.core_itemcategory (
+    id bigint NOT NULL,
+    created_at timestamp with time zone NOT NULL,
+    updated_at timestamp with time zone NOT NULL,
+    is_active boolean NOT NULL,
+    name character varying(100) NOT NULL,
+    slug character varying(50) NOT NULL,
+    description text NOT NULL,
+    icon character varying(50) NOT NULL,
+    parent_id bigint
+);
+
+
+--
+-- TOC entry 257 (class 1259 OID 16980)
+-- Name: core_itemcategory_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+ALTER TABLE public.core_itemcategory ALTER COLUMN id ADD GENERATED BY DEFAULT AS IDENTITY (
+    SEQUENCE NAME public.core_itemcategory_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1
+);
+
+
+--
+-- TOC entry 264 (class 1259 OID 17009)
+-- Name: core_itemprice; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.core_itemprice (
+    id bigint NOT NULL,
+    created_at timestamp with time zone NOT NULL,
+    updated_at timestamp with time zone NOT NULL,
+    is_active boolean NOT NULL,
+    source character varying(100) NOT NULL,
+    price numeric(20,4) NOT NULL,
+    currency character varying(3) NOT NULL,
+    location character varying(200) NOT NULL,
+    valid_from timestamp with time zone NOT NULL,
+    valid_until timestamp with time zone,
+    metadata jsonb NOT NULL,
+    item_id bigint NOT NULL
+);
+
+
+--
+-- TOC entry 263 (class 1259 OID 17008)
+-- Name: core_itemprice_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+ALTER TABLE public.core_itemprice ALTER COLUMN id ADD GENERATED BY DEFAULT AS IDENTITY (
+    SEQUENCE NAME public.core_itemprice_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1
+);
+
+
+--
+-- TOC entry 256 (class 1259 OID 16975)
+-- Name: core_unit; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.core_unit (
+    id bigint NOT NULL,
+    created_at timestamp with time zone NOT NULL,
+    updated_at timestamp with time zone NOT NULL,
+    is_active boolean NOT NULL,
+    name character varying(50) NOT NULL,
+    symbol character varying(10) NOT NULL,
+    category character varying(50) NOT NULL
+);
+
+
+--
+-- TOC entry 255 (class 1259 OID 16974)
+-- Name: core_unit_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+ALTER TABLE public.core_unit ALTER COLUMN id ADD GENERATED BY DEFAULT AS IDENTITY (
+    SEQUENCE NAME public.core_unit_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1
+);
+
+
+--
+-- TOC entry 266 (class 1259 OID 17057)
+-- Name: core_userprofile; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.core_userprofile (
+    id bigint NOT NULL,
+    created_at timestamp with time zone NOT NULL,
+    updated_at timestamp with time zone NOT NULL,
+    is_active boolean NOT NULL,
+    phone_number character varying(20),
+    mail_verified boolean NOT NULL,
+    phone_verified boolean NOT NULL,
+    preferred_language character varying(5) NOT NULL,
+    avatar character varying(200),
+    bio text NOT NULL,
+    location character varying(100) NOT NULL,
+    company character varying(100) NOT NULL,
+    website character varying(200),
+    theme character varying(20) NOT NULL,
+    notifications_enabled boolean NOT NULL,
+    user_id integer NOT NULL
+);
+
+
+--
+-- TOC entry 265 (class 1259 OID 17056)
+-- Name: core_userprofile_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+ALTER TABLE public.core_userprofile ALTER COLUMN id ADD GENERATED BY DEFAULT AS IDENTITY (
+    SEQUENCE NAME public.core_userprofile_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1
+);
+
+
+--
+-- TOC entry 363 (class 1259 OID 18050)
+-- Name: crypto_exchange_rates; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.crypto_exchange_rates (
+    id uuid NOT NULL,
+    exchange character varying(50) NOT NULL,
+    symbol character varying(20) NOT NULL,
+    base_asset character varying(10) NOT NULL,
+    quote_asset character varying(10) NOT NULL,
+    last_price numeric(20,8) NOT NULL,
+    bid_price numeric(20,8),
+    ask_price numeric(20,8),
+    open_24h numeric(20,8),
+    high_24h numeric(20,8),
+    low_24h numeric(20,8),
+    volume_24h numeric(20,2),
+    volume_24h_quote numeric(20,2),
+    change_24h numeric(10,2),
+    change_percentage_24h numeric(10,2),
+    market_cap numeric(20,2),
+    circulating_supply numeric(20,2),
+    "timestamp" timestamp with time zone NOT NULL,
+    created_at timestamp with time zone NOT NULL,
+    updated_at timestamp with time zone NOT NULL
+);
+
+
+--
+-- TOC entry 354 (class 1259 OID 17989)
+-- Name: currencies; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.currencies (
+    code character varying(10) NOT NULL,
+    name character varying(100) NOT NULL,
+    symbol character varying(10) NOT NULL,
+    currency_type character varying(20) NOT NULL,
+    decimal_places smallint NOT NULL,
+    is_active boolean NOT NULL,
+    country_code character varying(2) NOT NULL,
+    icon_url character varying(200) NOT NULL,
+    created_at timestamp with time zone NOT NULL,
+    updated_at timestamp with time zone NOT NULL,
+    CONSTRAINT currencies_decimal_places_check CHECK ((decimal_places >= 0))
+);
+
+
+--
+-- TOC entry 356 (class 1259 OID 18000)
+-- Name: currency_alerts; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.currency_alerts (
+    id uuid NOT NULL,
+    user_id integer NOT NULL,
+    base_currency_id character varying(10) NOT NULL,
+    target_currency_id character varying(10) NOT NULL,
+    alert_type character varying(20) NOT NULL,
+    threshold_value numeric(20,10) NOT NULL,
+    is_active boolean NOT NULL,
+    last_triggered timestamp with time zone,
+    trigger_count integer NOT NULL,
+    notify_email boolean NOT NULL,
+    notify_push boolean NOT NULL,
+    notify_in_app boolean NOT NULL,
+    created_at timestamp with time zone NOT NULL,
+    updated_at timestamp with time zone NOT NULL,
+    CONSTRAINT currency_alerts_trigger_count_check CHECK ((trigger_count >= 0))
+);
+
+
+--
+-- TOC entry 267 (class 1259 OID 17071)
+-- Name: debug_toolbar_historyentry; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.debug_toolbar_historyentry (
+    request_id uuid NOT NULL,
+    data jsonb NOT NULL,
+    created_at timestamp with time zone NOT NULL
+);
+
+
+--
+-- TOC entry 212 (class 1259 OID 16501)
+-- Name: django_content_type; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.django_content_type (
+    id integer NOT NULL,
+    app_label character varying(100) NOT NULL,
+    model character varying(100) NOT NULL
+);
+
+
+--
+-- TOC entry 211 (class 1259 OID 16500)
+-- Name: django_content_type_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+ALTER TABLE public.django_content_type ALTER COLUMN id ADD GENERATED BY DEFAULT AS IDENTITY (
+    SEQUENCE NAME public.django_content_type_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1
+);
+
+
+--
+-- TOC entry 210 (class 1259 OID 16493)
+-- Name: django_migrations; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.django_migrations (
+    id bigint NOT NULL,
+    app character varying(255) NOT NULL,
+    name character varying(255) NOT NULL,
+    applied timestamp with time zone NOT NULL
+);
+
+
+--
+-- TOC entry 209 (class 1259 OID 16492)
+-- Name: django_migrations_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+ALTER TABLE public.django_migrations ALTER COLUMN id ADD GENERATED BY DEFAULT AS IDENTITY (
+    SEQUENCE NAME public.django_migrations_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1
+);
+
+
+--
+-- TOC entry 311 (class 1259 OID 17526)
+-- Name: django_session; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.django_session (
+    session_key character varying(40) NOT NULL,
+    session_data text NOT NULL,
+    expire_date timestamp with time zone NOT NULL
+);
+
+
+--
+-- TOC entry 294 (class 1259 OID 17257)
+-- Name: documents_achievement; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.documents_achievement (
+    id bigint NOT NULL,
+    achievement_type character varying(30) NOT NULL,
+    name character varying(100) NOT NULL,
+    description text NOT NULL,
+    icon character varying(50) NOT NULL,
+    color character varying(7) NOT NULL,
+    points_awarded integer NOT NULL,
+    rarity character varying(20) NOT NULL,
+    unlocked_at timestamp with time zone NOT NULL,
+    user_id integer NOT NULL
+);
+
+
+--
+-- TOC entry 293 (class 1259 OID 17256)
+-- Name: documents_achievement_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+ALTER TABLE public.documents_achievement ALTER COLUMN id ADD GENERATED BY DEFAULT AS IDENTITY (
+    SEQUENCE NAME public.documents_achievement_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1
+);
+
+
+--
+-- TOC entry 286 (class 1259 OID 17225)
+-- Name: documents_challenge; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.documents_challenge (
+    id bigint NOT NULL,
+    title character varying(200) NOT NULL,
+    description text NOT NULL,
+    challenge_type character varying(30) NOT NULL,
+    target_count integer NOT NULL,
+    target_type character varying(50) NOT NULL,
+    points_reward integer NOT NULL,
+    badge_reward character varying(100) NOT NULL,
+    start_date timestamp with time zone NOT NULL,
+    end_date timestamp with time zone NOT NULL,
+    is_active boolean NOT NULL,
+    created_at timestamp with time zone NOT NULL
+);
+
+
+--
+-- TOC entry 285 (class 1259 OID 17224)
+-- Name: documents_challenge_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+ALTER TABLE public.documents_challenge ALTER COLUMN id ADD GENERATED BY DEFAULT AS IDENTITY (
+    SEQUENCE NAME public.documents_challenge_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1
+);
+
+
+--
+-- TOC entry 271 (class 1259 OID 17089)
+-- Name: documents_creditcard; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.documents_creditcard (
+    id bigint NOT NULL,
+    bank_name character varying(100) NOT NULL,
+    card_name character varying(100) NOT NULL,
+    last_four_digits character varying(4) NOT NULL,
+    card_type character varying(20) NOT NULL,
+    credit_limit numeric(10,2) NOT NULL,
+    current_balance numeric(10,2) NOT NULL,
+    available_credit numeric(10,2) NOT NULL,
+    statement_day integer NOT NULL,
+    payment_due_day integer NOT NULL,
+    is_active boolean NOT NULL,
+    expiry_date date NOT NULL,
+    color character varying(7) NOT NULL,
+    notes text NOT NULL,
+    created_at timestamp with time zone NOT NULL,
+    updated_at timestamp with time zone NOT NULL,
+    user_id integer NOT NULL
+);
+
+
+--
+-- TOC entry 270 (class 1259 OID 17088)
+-- Name: documents_creditcard_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+ALTER TABLE public.documents_creditcard ALTER COLUMN id ADD GENERATED BY DEFAULT AS IDENTITY (
+    SEQUENCE NAME public.documents_creditcard_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1
+);
+
+
+--
+-- TOC entry 272 (class 1259 OID 17096)
+-- Name: documents_document; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.documents_document (
+    id uuid NOT NULL,
+    document_type character varying(20) NOT NULL,
+    original_filename character varying(255) NOT NULL,
+    file_path character varying(100) NOT NULL,
+    thumbnail_path character varying(100),
+    processing_status character varying(20) NOT NULL,
+    ocr_text text,
+    ocr_confidence double precision,
+    ocr_processed_at timestamp with time zone,
+    uploaded_at timestamp with time zone NOT NULL,
+    updated_at timestamp with time zone NOT NULL,
+    tags jsonb NOT NULL,
+    custom_metadata jsonb NOT NULL,
+    user_id integer NOT NULL,
+    deleted_at timestamp with time zone,
+    deleted_by_id integer,
+    is_deleted boolean NOT NULL,
+    ai_confidence double precision,
+    ai_parsed_data jsonb,
+    ai_processed boolean NOT NULL,
+    ai_processed_at timestamp with time zone,
+    ai_provider character varying(50) NOT NULL
+);
+
+
+--
+-- TOC entry 274 (class 1259 OID 17104)
+-- Name: documents_documentbatch; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.documents_documentbatch (
+    id bigint NOT NULL,
+    batch_name character varying(255) NOT NULL,
+    total_documents integer NOT NULL,
+    processed_documents integer NOT NULL,
+    failed_documents integer NOT NULL,
+    started_at timestamp with time zone NOT NULL,
+    completed_at timestamp with time zone,
+    status character varying(20) NOT NULL,
+    user_id integer NOT NULL
+);
+
+
+--
+-- TOC entry 273 (class 1259 OID 17103)
+-- Name: documents_documentbatch_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+ALTER TABLE public.documents_documentbatch ALTER COLUMN id ADD GENERATED BY DEFAULT AS IDENTITY (
+    SEQUENCE NAME public.documents_documentbatch_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1
+);
+
+
+--
+-- TOC entry 302 (class 1259 OID 17346)
+-- Name: documents_documentshare; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.documents_documentshare (
+    id uuid NOT NULL,
+    share_type character varying(20) NOT NULL,
+    shared_with_group character varying(100) NOT NULL,
+    permission character varying(20) NOT NULL,
+    can_reshare boolean NOT NULL,
+    expires_at timestamp with time zone,
+    share_link character varying(100) NOT NULL,
+    access_count integer NOT NULL,
+    last_accessed timestamp with time zone,
+    created_at timestamp with time zone NOT NULL,
+    revoked_at timestamp with time zone,
+    notes text NOT NULL,
+    document_id uuid NOT NULL,
+    shared_by_id integer NOT NULL,
+    shared_with_id integer
+);
+
+
+--
+-- TOC entry 301 (class 1259 OID 17337)
+-- Name: documents_documenttype; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.documents_documenttype (
+    id uuid NOT NULL,
+    name character varying(100) NOT NULL,
+    category character varying(50) NOT NULL,
+    description text NOT NULL,
+    keywords jsonb NOT NULL,
+    regex_patterns jsonb NOT NULL,
+    requires_ocr boolean NOT NULL,
+    requires_validation boolean NOT NULL,
+    privacy_level integer NOT NULL,
+    created_at timestamp with time zone NOT NULL,
+    updated_at timestamp with time zone NOT NULL,
+    is_active boolean NOT NULL
+);
+
+
+--
+-- TOC entry 276 (class 1259 OID 17110)
+-- Name: documents_expensecategory; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.documents_expensecategory (
+    id bigint NOT NULL,
+    name character varying(100) NOT NULL,
+    icon character varying(50) NOT NULL,
+    color character varying(7) NOT NULL,
+    monthly_budget numeric(10,2),
+    is_system boolean NOT NULL,
+    created_at timestamp with time zone NOT NULL,
+    parent_id bigint,
+    user_id integer NOT NULL
+);
+
+
+--
+-- TOC entry 275 (class 1259 OID 17109)
+-- Name: documents_expensecategory_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+ALTER TABLE public.documents_expensecategory ALTER COLUMN id ADD GENERATED BY DEFAULT AS IDENTITY (
+    SEQUENCE NAME public.documents_expensecategory_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1
+);
+
+
+--
+-- TOC entry 278 (class 1259 OID 17116)
+-- Name: documents_expensegroup; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.documents_expensegroup (
+    id bigint NOT NULL,
+    name character varying(100) NOT NULL,
+    description text NOT NULL,
+    budget numeric(10,2),
+    start_date date NOT NULL,
+    end_date date,
+    color character varying(7) NOT NULL,
+    is_active boolean NOT NULL,
+    created_at timestamp with time zone NOT NULL,
+    user_id integer NOT NULL
+);
+
+
+--
+-- TOC entry 277 (class 1259 OID 17115)
+-- Name: documents_expensegroup_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+ALTER TABLE public.documents_expensegroup ALTER COLUMN id ADD GENERATED BY DEFAULT AS IDENTITY (
+    SEQUENCE NAME public.documents_expensegroup_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1
+);
+
+
+--
+-- TOC entry 296 (class 1259 OID 17265)
+-- Name: documents_leaderboard; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.documents_leaderboard (
+    id bigint NOT NULL,
+    period_type character varying(20) NOT NULL,
+    period_start date NOT NULL,
+    period_end date,
+    points_earned integer NOT NULL,
+    receipts_processed integer NOT NULL,
+    accuracy_score double precision NOT NULL,
+    rank integer,
+    created_at timestamp with time zone NOT NULL,
+    updated_at timestamp with time zone NOT NULL,
+    user_id integer NOT NULL
+);
+
+
+--
+-- TOC entry 295 (class 1259 OID 17264)
+-- Name: documents_leaderboard_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+ALTER TABLE public.documents_leaderboard ALTER COLUMN id ADD GENERATED BY DEFAULT AS IDENTITY (
+    SEQUENCE NAME public.documents_leaderboard_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1
+);
+
+
+--
+-- TOC entry 288 (class 1259 OID 17233)
+-- Name: documents_learningmodel; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.documents_learningmodel (
+    id bigint NOT NULL,
+    pattern_type character varying(50) NOT NULL,
+    pattern_value text NOT NULL,
+    confidence_score double precision NOT NULL,
+    usage_count integer NOT NULL,
+    success_count integer NOT NULL,
+    store_name character varying(255) NOT NULL,
+    sample_text text NOT NULL,
+    metadata jsonb NOT NULL,
+    created_at timestamp with time zone NOT NULL,
+    updated_at timestamp with time zone NOT NULL
+);
+
+
+--
+-- TOC entry 287 (class 1259 OID 17232)
+-- Name: documents_learningmodel_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+ALTER TABLE public.documents_learningmodel ALTER COLUMN id ADD GENERATED BY DEFAULT AS IDENTITY (
+    SEQUENCE NAME public.documents_learningmodel_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1
+);
+
+
+--
+-- TOC entry 269 (class 1259 OID 17079)
+-- Name: documents_ocrtemplate; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.documents_ocrtemplate (
+    id bigint NOT NULL,
+    store_name character varying(255) NOT NULL,
+    store_aliases jsonb NOT NULL,
+    field_mappings jsonb NOT NULL,
+    regex_patterns jsonb NOT NULL,
+    layout_type character varying(50) NOT NULL,
+    has_header boolean NOT NULL,
+    has_footer boolean NOT NULL,
+    created_at timestamp with time zone NOT NULL,
+    updated_at timestamp with time zone NOT NULL
+);
+
+
+--
+-- TOC entry 268 (class 1259 OID 17078)
+-- Name: documents_ocrtemplate_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+ALTER TABLE public.documents_ocrtemplate ALTER COLUMN id ADD GENERATED BY DEFAULT AS IDENTITY (
+    SEQUENCE NAME public.documents_ocrtemplate_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1
+);
+
+
+--
+-- TOC entry 280 (class 1259 OID 17124)
+-- Name: documents_parsedreceipt; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.documents_parsedreceipt (
+    id bigint NOT NULL,
+    store_name character varying(255) NOT NULL,
+    store_address text NOT NULL,
+    store_phone character varying(50) NOT NULL,
+    store_tax_id character varying(50) NOT NULL,
+    transaction_date timestamp with time zone,
+    receipt_number character varying(100) NOT NULL,
+    cashier_id character varying(50) NOT NULL,
+    subtotal numeric(10,2),
+    tax_amount numeric(10,2),
+    discount_amount numeric(10,2),
+    total_amount numeric(10,2),
+    payment_method character varying(50) NOT NULL,
+    card_last_digits character varying(4) NOT NULL,
+    currency character varying(3) NOT NULL,
+    raw_ocr_data jsonb NOT NULL,
+    created_at timestamp with time zone NOT NULL,
+    updated_at timestamp with time zone NOT NULL,
+    document_id uuid NOT NULL
+);
+
+
+--
+-- TOC entry 279 (class 1259 OID 17123)
+-- Name: documents_parsedreceipt_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+ALTER TABLE public.documents_parsedreceipt ALTER COLUMN id ADD GENERATED BY DEFAULT AS IDENTITY (
+    SEQUENCE NAME public.documents_parsedreceipt_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1
+);
+
+
+--
+-- TOC entry 290 (class 1259 OID 17241)
+-- Name: documents_pointtransaction; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.documents_pointtransaction (
+    id bigint NOT NULL,
+    points integer NOT NULL,
+    reason character varying(255) NOT NULL,
+    transaction_type character varying(20) NOT NULL,
+    related_document_id uuid,
+    metadata jsonb NOT NULL,
+    created_at timestamp with time zone NOT NULL,
+    user_id integer NOT NULL
+);
+
+
+--
+-- TOC entry 289 (class 1259 OID 17240)
+-- Name: documents_pointtransaction_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+ALTER TABLE public.documents_pointtransaction ALTER COLUMN id ADD GENERATED BY DEFAULT AS IDENTITY (
+    SEQUENCE NAME public.documents_pointtransaction_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1
+);
+
+
+--
+-- TOC entry 282 (class 1259 OID 17134)
+-- Name: documents_receiptitem; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.documents_receiptitem (
+    id bigint NOT NULL,
+    name character varying(255) NOT NULL,
+    barcode character varying(50) NOT NULL,
+    category character varying(100) NOT NULL,
+    quantity numeric(10,3) NOT NULL,
+    unit character varying(20) NOT NULL,
+    unit_price numeric(10,2) NOT NULL,
+    total_price numeric(10,2) NOT NULL,
+    discount_amount numeric(10,2),
+    discount_percentage numeric(5,2),
+    tax_rate numeric(5,2),
+    linked_product_id integer,
+    linked_stock_item_id integer,
+    created_at timestamp with time zone NOT NULL,
+    receipt_id bigint NOT NULL
+);
+
+
+--
+-- TOC entry 281 (class 1259 OID 17133)
+-- Name: documents_receiptitem_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+ALTER TABLE public.documents_receiptitem ALTER COLUMN id ADD GENERATED BY DEFAULT AS IDENTITY (
+    SEQUENCE NAME public.documents_receiptitem_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1
+);
+
+
+--
+-- TOC entry 284 (class 1259 OID 17140)
+-- Name: documents_subscription; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.documents_subscription (
+    id bigint NOT NULL,
+    service_name character varying(100) NOT NULL,
+    category character varying(50) NOT NULL,
+    amount numeric(10,2) NOT NULL,
+    currency character varying(3) NOT NULL,
+    billing_cycle character varying(20) NOT NULL,
+    billing_day integer NOT NULL,
+    is_active boolean NOT NULL,
+    start_date date NOT NULL,
+    end_date date,
+    next_billing_date date NOT NULL,
+    notify_before_days integer NOT NULL,
+    auto_renew boolean NOT NULL,
+    icon character varying(50) NOT NULL,
+    color character varying(7) NOT NULL,
+    notes text NOT NULL,
+    created_at timestamp with time zone NOT NULL,
+    updated_at timestamp with time zone NOT NULL,
+    payment_method_id bigint,
+    user_id integer NOT NULL
+);
+
+
+--
+-- TOC entry 283 (class 1259 OID 17139)
+-- Name: documents_subscription_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+ALTER TABLE public.documents_subscription ALTER COLUMN id ADD GENERATED BY DEFAULT AS IDENTITY (
+    SEQUENCE NAME public.documents_subscription_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1
+);
+
+
+--
+-- TOC entry 298 (class 1259 OID 17271)
+-- Name: documents_userchallenge; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.documents_userchallenge (
+    id bigint NOT NULL,
+    current_progress integer NOT NULL,
+    completed boolean NOT NULL,
+    completed_at timestamp with time zone,
+    claimed_reward boolean NOT NULL,
+    started_at timestamp with time zone NOT NULL,
+    updated_at timestamp with time zone NOT NULL,
+    challenge_id bigint NOT NULL,
+    user_id integer NOT NULL
+);
+
+
+--
+-- TOC entry 297 (class 1259 OID 17270)
+-- Name: documents_userchallenge_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+ALTER TABLE public.documents_userchallenge ALTER COLUMN id ADD GENERATED BY DEFAULT AS IDENTITY (
+    SEQUENCE NAME public.documents_userchallenge_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1
+);
+
+
+--
+-- TOC entry 292 (class 1259 OID 17249)
+-- Name: documents_userprofile; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.documents_userprofile (
+    id bigint NOT NULL,
+    total_points integer NOT NULL,
+    current_level integer NOT NULL,
+    experience_points integer NOT NULL,
+    receipts_processed integer NOT NULL,
+    receipts_validated integer NOT NULL,
+    accuracy_score double precision NOT NULL,
+    streak_days integer NOT NULL,
+    last_activity_date date,
+    weekly_rank integer,
+    monthly_rank integer,
+    all_time_rank integer,
+    preferred_language character varying(10) NOT NULL,
+    notification_enabled boolean NOT NULL,
+    tutorial_completed boolean NOT NULL,
+    created_at timestamp with time zone NOT NULL,
+    updated_at timestamp with time zone NOT NULL,
+    user_id integer NOT NULL
+);
+
+
+--
+-- TOC entry 291 (class 1259 OID 17248)
+-- Name: documents_userprofile_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+ALTER TABLE public.documents_userprofile ALTER COLUMN id ADD GENERATED BY DEFAULT AS IDENTITY (
+    SEQUENCE NAME public.documents_userprofile_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1
+);
+
+
+--
+-- TOC entry 300 (class 1259 OID 17277)
+-- Name: documents_validationfeedback; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.documents_validationfeedback (
+    id bigint NOT NULL,
+    document_id uuid NOT NULL,
+    field_name character varying(50) NOT NULL,
+    original_value text NOT NULL,
+    corrected_value text NOT NULL,
+    confidence_score double precision NOT NULL,
+    is_correct boolean,
+    votes_up integer NOT NULL,
+    votes_down integer NOT NULL,
+    points_awarded integer NOT NULL,
+    created_at timestamp with time zone NOT NULL,
+    user_id integer NOT NULL
+);
+
+
+--
+-- TOC entry 299 (class 1259 OID 17276)
+-- Name: documents_validationfeedback_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+ALTER TABLE public.documents_validationfeedback ALTER COLUMN id ADD GENERATED BY DEFAULT AS IDENTITY (
+    SEQUENCE NAME public.documents_validationfeedback_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1
+);
+
+
+--
+-- TOC entry 355 (class 1259 OID 17995)
+-- Name: exchange_rates; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.exchange_rates (
+    id uuid NOT NULL,
+    base_currency_id character varying(10) NOT NULL,
+    target_currency_id character varying(10) NOT NULL,
+    rate numeric(20,10) NOT NULL,
+    bid numeric(20,10),
+    ask numeric(20,10),
+    volume_24h numeric(20,2),
+    change_24h numeric(10,4),
+    change_percentage_24h numeric(10,4),
+    source character varying(50) NOT NULL,
+    "timestamp" timestamp with time zone NOT NULL,
+    created_at timestamp with time zone NOT NULL
+);
+
+
+--
+-- TOC entry 306 (class 1259 OID 17400)
+-- Name: inflation_reports; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.inflation_reports (
+    id uuid NOT NULL,
+    period_start date NOT NULL,
+    period_end date NOT NULL,
+    report_type character varying(20) NOT NULL,
+    inflation_rate numeric(10,4) NOT NULL,
+    total_start_cost numeric(12,2) NOT NULL,
+    total_end_cost numeric(12,2) NOT NULL,
+    category_breakdown jsonb NOT NULL,
+    official_inflation_rate numeric(10,4),
+    detailed_data jsonb NOT NULL,
+    generated_at timestamp with time zone NOT NULL,
+    user_id integer NOT NULL,
+    basket_id uuid NOT NULL
+);
+
+
+--
+-- TOC entry 362 (class 1259 OID 18045)
+-- Name: market_data; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.market_data (
+    id uuid NOT NULL,
+    currency_pair character varying(20) NOT NULL,
+    open_price numeric(20,10) NOT NULL,
+    high_price numeric(20,10) NOT NULL,
+    low_price numeric(20,10) NOT NULL,
+    close_price numeric(20,10) NOT NULL,
+    volume numeric(20,2) NOT NULL,
+    period_start timestamp with time zone NOT NULL,
+    period_end timestamp with time zone NOT NULL,
+    "interval" character varying(10) NOT NULL,
+    source character varying(50) NOT NULL
+);
+
+
+--
+-- TOC entry 384 (class 1259 OID 18442)
+-- Name: movies_collection; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.movies_collection (
+    id uuid NOT NULL,
+    name character varying(200) NOT NULL,
+    description text NOT NULL,
+    visibility character varying(20) NOT NULL,
+    cover_image character varying(500) NOT NULL,
+    tags jsonb NOT NULL,
+    view_count integer NOT NULL,
+    like_count integer NOT NULL,
+    created_at timestamp with time zone NOT NULL,
+    updated_at timestamp with time zone NOT NULL,
+    user_id integer NOT NULL
+);
+
+
+--
+-- TOC entry 391 (class 1259 OID 18477)
+-- Name: movies_collectionitem; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.movies_collectionitem (
+    id bigint NOT NULL,
+    "position" integer NOT NULL,
+    notes text NOT NULL,
+    added_at timestamp with time zone NOT NULL,
+    collection_id uuid NOT NULL,
+    movie_id uuid NOT NULL
+);
+
+
+--
+-- TOC entry 390 (class 1259 OID 18476)
+-- Name: movies_collectionitem_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+ALTER TABLE public.movies_collectionitem ALTER COLUMN id ADD GENERATED BY DEFAULT AS IDENTITY (
+    SEQUENCE NAME public.movies_collectionitem_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1
+);
+
+
+--
+-- TOC entry 386 (class 1259 OID 18450)
+-- Name: movies_genre; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.movies_genre (
+    id bigint NOT NULL,
+    tmdb_id integer NOT NULL,
+    name character varying(100) NOT NULL,
+    slug character varying(50) NOT NULL
+);
+
+
+--
+-- TOC entry 385 (class 1259 OID 18449)
+-- Name: movies_genre_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+ALTER TABLE public.movies_genre ALTER COLUMN id ADD GENERATED BY DEFAULT AS IDENTITY (
+    SEQUENCE NAME public.movies_genre_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1
+);
+
+
+--
+-- TOC entry 387 (class 1259 OID 18459)
+-- Name: movies_movie; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.movies_movie (
+    id uuid NOT NULL,
+    tmdb_id character varying(50),
+    imdb_id character varying(20),
+    title character varying(500) NOT NULL,
+    original_title character varying(500) NOT NULL,
+    content_type character varying(20) NOT NULL,
+    overview text NOT NULL,
+    tagline character varying(500) NOT NULL,
+    release_date date,
+    runtime integer,
+    status character varying(20) NOT NULL,
+    poster_path character varying(500) NOT NULL,
+    backdrop_path character varying(500) NOT NULL,
+    trailer_url character varying(500) NOT NULL,
+    production_companies jsonb NOT NULL,
+    production_countries jsonb NOT NULL,
+    spoken_languages jsonb NOT NULL,
+    budget bigint,
+    revenue bigint,
+    tmdb_rating numeric(3,1),
+    tmdb_vote_count integer NOT NULL,
+    popularity numeric(7,3),
+    number_of_seasons integer,
+    number_of_episodes integer,
+    episode_runtime jsonb NOT NULL,
+    api_data jsonb NOT NULL,
+    created_at timestamp with time zone NOT NULL,
+    updated_at timestamp with time zone NOT NULL,
+    last_api_sync timestamp with time zone
+);
+
+
+--
+-- TOC entry 389 (class 1259 OID 18471)
+-- Name: movies_movie_genres; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.movies_movie_genres (
+    id bigint NOT NULL,
+    movie_id uuid NOT NULL,
+    genre_id bigint NOT NULL
+);
+
+
+--
+-- TOC entry 388 (class 1259 OID 18470)
+-- Name: movies_movie_genres_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+ALTER TABLE public.movies_movie_genres ALTER COLUMN id ADD GENERATED BY DEFAULT AS IDENTITY (
+    SEQUENCE NAME public.movies_movie_genres_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1
+);
+
+
+--
+-- TOC entry 392 (class 1259 OID 18484)
+-- Name: movies_personalarchive; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.movies_personalarchive (
+    id uuid NOT NULL,
+    format character varying(20) NOT NULL,
+    quality character varying(20),
+    location character varying(500) NOT NULL,
+    file_size_gb numeric(8,2),
+    subtitles jsonb NOT NULL,
+    audio_languages jsonb NOT NULL,
+    notes text NOT NULL,
+    tags jsonb NOT NULL,
+    acquired_date date NOT NULL,
+    added_at timestamp with time zone NOT NULL,
+    updated_at timestamp with time zone NOT NULL,
+    movie_id uuid NOT NULL,
+    user_id integer NOT NULL
+);
+
+
+--
+-- TOC entry 393 (class 1259 OID 18491)
+-- Name: movies_userrating; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.movies_userrating (
+    id uuid NOT NULL,
+    rating numeric(3,1) NOT NULL,
+    review_title character varying(200) NOT NULL,
+    review_text text NOT NULL,
+    contains_spoilers boolean NOT NULL,
+    is_public boolean NOT NULL,
+    helpful_count integer NOT NULL,
+    created_at timestamp with time zone NOT NULL,
+    updated_at timestamp with time zone NOT NULL,
+    movie_id uuid NOT NULL,
+    user_id integer NOT NULL
+);
+
+
+--
+-- TOC entry 394 (class 1259 OID 18498)
+-- Name: movies_watchhistory; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.movies_watchhistory (
+    id uuid NOT NULL,
+    started_at timestamp with time zone NOT NULL,
+    ended_at timestamp with time zone,
+    duration_minutes integer,
+    completed boolean NOT NULL,
+    progress_percentage integer NOT NULL,
+    season integer,
+    episode integer,
+    device_type character varying(50) NOT NULL,
+    ip_address inet,
+    movie_id uuid NOT NULL,
+    user_id integer NOT NULL
+);
+
+
+--
+-- TOC entry 395 (class 1259 OID 18505)
+-- Name: movies_watchlist; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.movies_watchlist (
+    id uuid NOT NULL,
+    status character varying(20) NOT NULL,
+    priority character varying(20) NOT NULL,
+    current_season integer,
+    current_episode integer,
+    notes text NOT NULL,
+    tags jsonb NOT NULL,
+    added_at timestamp with time zone NOT NULL,
+    updated_at timestamp with time zone NOT NULL,
+    watched_at timestamp with time zone,
+    movie_id uuid NOT NULL,
+    user_id integer NOT NULL
+);
+
+
+--
+-- TOC entry 397 (class 1259 OID 18690)
+-- Name: music_album; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.music_album (
+    id uuid NOT NULL,
+    spotify_id character varying(100),
+    name character varying(500) NOT NULL,
+    album_type character varying(20) NOT NULL,
+    release_date date,
+    total_tracks integer NOT NULL,
+    duration_ms integer NOT NULL,
+    cover_url character varying(500) NOT NULL,
+    thumbnail_url character varying(500) NOT NULL,
+    label character varying(200) NOT NULL,
+    genres jsonb NOT NULL,
+    popularity integer NOT NULL,
+    spotify_url character varying(500) NOT NULL,
+    spotify_data jsonb NOT NULL,
+    artwork_file character varying(100),
+    artwork_source character varying(200) NOT NULL,
+    artwork_license character varying(100) NOT NULL,
+    created_at timestamp with time zone NOT NULL,
+    updated_at timestamp with time zone NOT NULL,
+    last_spotify_sync timestamp with time zone,
+    artist_id uuid NOT NULL
+);
+
+
+--
+-- TOC entry 399 (class 1259 OID 18700)
+-- Name: music_album_featured_artists; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.music_album_featured_artists (
+    id bigint NOT NULL,
+    album_id uuid NOT NULL,
+    artist_id uuid NOT NULL
+);
+
+
+--
+-- TOC entry 398 (class 1259 OID 18699)
+-- Name: music_album_featured_artists_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+ALTER TABLE public.music_album_featured_artists ALTER COLUMN id ADD GENERATED BY DEFAULT AS IDENTITY (
+    SEQUENCE NAME public.music_album_featured_artists_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1
+);
+
+
+--
+-- TOC entry 396 (class 1259 OID 18679)
+-- Name: music_artist; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.music_artist (
+    id uuid NOT NULL,
+    spotify_id character varying(100),
+    name character varying(500) NOT NULL,
+    slug character varying(500) NOT NULL,
+    genres jsonb NOT NULL,
+    popularity integer NOT NULL,
+    followers integer NOT NULL,
+    image_url character varying(500) NOT NULL,
+    thumbnail_url character varying(500) NOT NULL,
+    bio text NOT NULL,
+    country character varying(100) NOT NULL,
+    formed_year integer,
+    spotify_url character varying(500) NOT NULL,
+    website_url character varying(500) NOT NULL,
+    spotify_data jsonb NOT NULL,
+    created_at timestamp with time zone NOT NULL,
+    updated_at timestamp with time zone NOT NULL,
+    last_spotify_sync timestamp with time zone
+);
+
+
+--
+-- TOC entry 409 (class 1259 OID 18746)
+-- Name: music_listeninghistory; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.music_listeninghistory (
+    id uuid NOT NULL,
+    played_at timestamp with time zone NOT NULL,
+    duration_played_ms integer NOT NULL,
+    completed boolean NOT NULL,
+    skipped boolean NOT NULL,
+    source character varying(50) NOT NULL,
+    source_id character varying(100) NOT NULL,
+    device_type character varying(50) NOT NULL,
+    ip_address inet,
+    user_id integer NOT NULL,
+    track_id uuid NOT NULL
+);
+
+
+--
+-- TOC entry 400 (class 1259 OID 18705)
+-- Name: music_listeningstats; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.music_listeningstats (
+    id uuid NOT NULL,
+    period character varying(20) NOT NULL,
+    period_date date NOT NULL,
+    total_tracks_played integer NOT NULL,
+    unique_tracks_played integer NOT NULL,
+    total_time_ms bigint NOT NULL,
+    top_tracks jsonb NOT NULL,
+    top_artists jsonb NOT NULL,
+    top_albums jsonb NOT NULL,
+    top_genres jsonb NOT NULL,
+    peak_hour integer,
+    device_breakdown jsonb NOT NULL,
+    created_at timestamp with time zone NOT NULL,
+    updated_at timestamp with time zone NOT NULL,
+    user_id integer NOT NULL
+);
+
+
+--
+-- TOC entry 401 (class 1259 OID 18712)
+-- Name: music_playlist; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.music_playlist (
+    id uuid NOT NULL,
+    name character varying(200) NOT NULL,
+    description text NOT NULL,
+    visibility character varying(20) NOT NULL,
+    cover_image character varying(100),
+    tags jsonb NOT NULL,
+    play_count integer NOT NULL,
+    like_count integer NOT NULL,
+    created_at timestamp with time zone NOT NULL,
+    updated_at timestamp with time zone NOT NULL,
+    user_id integer NOT NULL
+);
+
+
+--
+-- TOC entry 403 (class 1259 OID 18720)
+-- Name: music_playlist_collaborators; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.music_playlist_collaborators (
+    id bigint NOT NULL,
+    playlist_id uuid NOT NULL,
+    user_id integer NOT NULL
+);
+
+
+--
+-- TOC entry 402 (class 1259 OID 18719)
+-- Name: music_playlist_collaborators_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+ALTER TABLE public.music_playlist_collaborators ALTER COLUMN id ADD GENERATED BY DEFAULT AS IDENTITY (
+    SEQUENCE NAME public.music_playlist_collaborators_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1
+);
+
+
+--
+-- TOC entry 408 (class 1259 OID 18741)
+-- Name: music_playlisttrack; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.music_playlisttrack (
+    id bigint NOT NULL,
+    "position" integer NOT NULL,
+    added_at timestamp with time zone NOT NULL,
+    added_by_id integer,
+    playlist_id uuid NOT NULL,
+    track_id uuid NOT NULL
+);
+
+
+--
+-- TOC entry 407 (class 1259 OID 18740)
+-- Name: music_playlisttrack_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+ALTER TABLE public.music_playlisttrack ALTER COLUMN id ADD GENERATED BY DEFAULT AS IDENTITY (
+    SEQUENCE NAME public.music_playlisttrack_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1
+);
+
+
+--
+-- TOC entry 404 (class 1259 OID 18725)
+-- Name: music_track; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.music_track (
+    id uuid NOT NULL,
+    spotify_id character varying(100),
+    isrc character varying(20),
+    name character varying(500) NOT NULL,
+    track_number integer NOT NULL,
+    disc_number integer NOT NULL,
+    duration_ms integer NOT NULL,
+    explicit boolean NOT NULL,
+    popularity integer NOT NULL,
+    acousticness numeric(3,2),
+    danceability numeric(3,2),
+    energy numeric(3,2),
+    instrumentalness numeric(3,2),
+    key integer,
+    liveness numeric(3,2),
+    loudness numeric(5,2),
+    mode integer,
+    speechiness numeric(3,2),
+    tempo numeric(6,2),
+    time_signature integer,
+    valence numeric(3,2),
+    spotify_url character varying(500) NOT NULL,
+    preview_url character varying(500) NOT NULL,
+    spotify_data jsonb NOT NULL,
+    created_at timestamp with time zone NOT NULL,
+    updated_at timestamp with time zone NOT NULL,
+    album_id uuid NOT NULL,
+    artist_id uuid NOT NULL
+);
+
+
+--
+-- TOC entry 406 (class 1259 OID 18735)
+-- Name: music_track_featured_artists; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.music_track_featured_artists (
+    id bigint NOT NULL,
+    track_id uuid NOT NULL,
+    artist_id uuid NOT NULL
+);
+
+
+--
+-- TOC entry 405 (class 1259 OID 18734)
+-- Name: music_track_featured_artists_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+ALTER TABLE public.music_track_featured_artists ALTER COLUMN id ADD GENERATED BY DEFAULT AS IDENTITY (
+    SEQUENCE NAME public.music_track_featured_artists_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1
+);
+
+
+--
+-- TOC entry 411 (class 1259 OID 18754)
+-- Name: music_useralbum; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.music_useralbum (
+    id bigint NOT NULL,
+    is_favorite boolean NOT NULL,
+    play_count integer NOT NULL,
+    rating integer,
+    added_at timestamp with time zone NOT NULL,
+    last_played timestamp with time zone,
+    album_id uuid NOT NULL,
+    library_id uuid NOT NULL
+);
+
+
+--
+-- TOC entry 410 (class 1259 OID 18753)
+-- Name: music_useralbum_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+ALTER TABLE public.music_useralbum ALTER COLUMN id ADD GENERATED BY DEFAULT AS IDENTITY (
+    SEQUENCE NAME public.music_useralbum_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1
+);
+
+
+--
+-- TOC entry 413 (class 1259 OID 18760)
+-- Name: music_userartist; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.music_userartist (
+    id bigint NOT NULL,
+    is_favorite boolean NOT NULL,
+    play_count integer NOT NULL,
+    added_at timestamp with time zone NOT NULL,
+    last_played timestamp with time zone,
+    artist_id uuid NOT NULL,
+    library_id uuid NOT NULL
+);
+
+
+--
+-- TOC entry 412 (class 1259 OID 18759)
+-- Name: music_userartist_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+ALTER TABLE public.music_userartist ALTER COLUMN id ADD GENERATED BY DEFAULT AS IDENTITY (
+    SEQUENCE NAME public.music_userartist_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1
+);
+
+
+--
+-- TOC entry 414 (class 1259 OID 18765)
+-- Name: music_userlibrary; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.music_userlibrary (
+    id uuid NOT NULL,
+    spotify_connected boolean NOT NULL,
+    spotify_user_id character varying(100) NOT NULL,
+    auto_sync boolean NOT NULL,
+    total_play_time_ms bigint NOT NULL,
+    created_at timestamp with time zone NOT NULL,
+    updated_at timestamp with time zone NOT NULL,
+    last_sync timestamp with time zone,
+    user_id integer NOT NULL
+);
+
+
+--
+-- TOC entry 416 (class 1259 OID 18783)
+-- Name: music_usertrack; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.music_usertrack (
+    id bigint NOT NULL,
+    is_favorite boolean NOT NULL,
+    play_count integer NOT NULL,
+    skip_count integer NOT NULL,
+    added_at timestamp with time zone NOT NULL,
+    last_played timestamp with time zone,
+    library_id uuid NOT NULL,
+    track_id uuid NOT NULL
+);
+
+
+--
+-- TOC entry 415 (class 1259 OID 18782)
+-- Name: music_usertrack_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+ALTER TABLE public.music_usertrack ALTER COLUMN id ADD GENERATED BY DEFAULT AS IDENTITY (
+    SEQUENCE NAME public.music_usertrack_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1
+);
+
+
+--
+-- TOC entry 305 (class 1259 OID 17393)
+-- Name: personal_baskets; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.personal_baskets (
+    id uuid NOT NULL,
+    name character varying(100) NOT NULL,
+    is_active boolean NOT NULL,
+    is_default boolean NOT NULL,
+    calculation_period character varying(20) NOT NULL,
+    description text NOT NULL,
+    created_at timestamp with time zone NOT NULL,
+    updated_at timestamp with time zone NOT NULL,
+    user_id integer NOT NULL
+);
+
+
+--
+-- TOC entry 358 (class 1259 OID 18015)
+-- Name: portfolio_holdings; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.portfolio_holdings (
+    id uuid NOT NULL,
+    portfolio_id uuid NOT NULL,
+    currency_id character varying(10) NOT NULL,
+    asset_type character varying(20) NOT NULL,
+    amount numeric(20,10) NOT NULL,
+    average_buy_price numeric(20,10) NOT NULL,
+    total_invested numeric(20,10) NOT NULL,
+    realized_pnl numeric(20,10) NOT NULL,
+    unrealized_pnl numeric(20,10) NOT NULL,
+    notes text NOT NULL,
+    created_at timestamp with time zone NOT NULL,
+    updated_at timestamp with time zone NOT NULL
+);
+
+
+--
+-- TOC entry 360 (class 1259 OID 18031)
+-- Name: portfolio_performance; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.portfolio_performance (
+    id uuid NOT NULL,
+    portfolio_id uuid NOT NULL,
+    snapshot_date date NOT NULL,
+    snapshot_time timestamp with time zone NOT NULL,
+    total_value_usd numeric(20,2) NOT NULL,
+    total_value_try numeric(20,2) NOT NULL,
+    total_value_eur numeric(20,2),
+    total_invested_usd numeric(20,2) NOT NULL,
+    total_invested_try numeric(20,2) NOT NULL,
+    daily_pnl numeric(20,2) NOT NULL,
+    daily_pnl_percentage numeric(10,4) NOT NULL,
+    weekly_pnl numeric(20,2) NOT NULL,
+    weekly_pnl_percentage numeric(10,4) NOT NULL,
+    monthly_pnl numeric(20,2) NOT NULL,
+    monthly_pnl_percentage numeric(10,4) NOT NULL,
+    yearly_pnl numeric(20,2) NOT NULL,
+    yearly_pnl_percentage numeric(10,4) NOT NULL,
+    total_pnl numeric(20,2) NOT NULL,
+    total_pnl_percentage numeric(10,4) NOT NULL,
+    holdings_snapshot jsonb NOT NULL,
+    created_at timestamp with time zone NOT NULL
+);
+
+
+--
+-- TOC entry 359 (class 1259 OID 18022)
+-- Name: portfolio_transactions; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.portfolio_transactions (
+    id uuid NOT NULL,
+    portfolio_id uuid NOT NULL,
+    transaction_type character varying(10) NOT NULL,
+    currency_id character varying(10) NOT NULL,
+    amount numeric(20,10) NOT NULL,
+    price numeric(20,10) NOT NULL,
+    price_currency character varying(10) NOT NULL,
+    total_value numeric(20,10) NOT NULL,
+    fee_amount numeric(20,10) NOT NULL,
+    fee_currency character varying(10) NOT NULL,
+    exchange character varying(50) NOT NULL,
+    external_id character varying(100),
+    realized_pnl numeric(20,10),
+    cost_basis numeric(20,10),
+    notes text NOT NULL,
+    executed_at timestamp with time zone NOT NULL,
+    created_at timestamp with time zone NOT NULL
+);
+
+
+--
+-- TOC entry 357 (class 1259 OID 18006)
+-- Name: portfolios; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.portfolios (
+    id uuid NOT NULL,
+    user_id integer NOT NULL,
+    name character varying(100) NOT NULL,
+    description text NOT NULL,
+    is_default boolean NOT NULL,
+    is_public boolean NOT NULL,
+    total_value_usd numeric(20,2) NOT NULL,
+    total_value_try numeric(20,2) NOT NULL,
+    daily_pnl numeric(20,2) NOT NULL,
+    daily_pnl_percentage numeric(10,2) NOT NULL,
+    created_at timestamp with time zone NOT NULL,
+    updated_at timestamp with time zone NOT NULL,
+    last_calculated timestamp with time zone
+);
+
+
+--
+-- TOC entry 307 (class 1259 OID 17407)
+-- Name: price_alerts; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.price_alerts (
+    id uuid NOT NULL,
+    alert_type character varying(20) NOT NULL,
+    threshold_value numeric(10,2),
+    percentage_change numeric(5,2),
+    is_active boolean NOT NULL,
+    last_triggered timestamp with time zone,
+    trigger_count integer NOT NULL,
+    created_at timestamp with time zone NOT NULL,
+    updated_at timestamp with time zone NOT NULL,
+    user_id integer NOT NULL,
+    product_id uuid NOT NULL,
+    CONSTRAINT price_alerts_trigger_count_check CHECK ((trigger_count >= 0))
+);
+
+
+--
+-- TOC entry 310 (class 1259 OID 17429)
+-- Name: price_records; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.price_records (
+    id uuid NOT NULL,
+    price numeric(10,2) NOT NULL,
+    currency character varying(3) NOT NULL,
+    is_discounted boolean NOT NULL,
+    original_price numeric(10,2),
+    discount_percentage numeric(5,2),
+    source character varying(20) NOT NULL,
+    is_verified boolean NOT NULL,
+    verification_count integer NOT NULL,
+    notes text NOT NULL,
+    receipt_image character varying(100),
+    recorded_at timestamp with time zone NOT NULL,
+    created_at timestamp with time zone NOT NULL,
+    user_id integer,
+    product_id uuid NOT NULL,
+    store_id uuid,
+    CONSTRAINT price_records_verification_count_check CHECK ((verification_count >= 0))
+);
+
+
+--
+-- TOC entry 309 (class 1259 OID 17418)
+-- Name: product_categories; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.product_categories (
+    id uuid NOT NULL,
+    name character varying(100) NOT NULL,
+    icon character varying(50) NOT NULL,
+    color character varying(7) NOT NULL,
+    "order" integer NOT NULL,
+    official_weight numeric(5,2),
+    is_active boolean NOT NULL,
+    created_at timestamp with time zone NOT NULL,
+    updated_at timestamp with time zone NOT NULL,
+    parent_id uuid,
+    CONSTRAINT product_categories_order_check CHECK (("order" >= 0))
+);
+
+
+--
+-- TOC entry 303 (class 1259 OID 17379)
+-- Name: products; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.products (
+    id uuid NOT NULL,
+    name character varying(200) NOT NULL,
+    barcode character varying(50) NOT NULL,
+    brand character varying(100) NOT NULL,
+    unit character varying(20) NOT NULL,
+    description text NOT NULL,
+    image_url character varying(200) NOT NULL,
+    is_active boolean NOT NULL,
+    created_at timestamp with time zone NOT NULL,
+    updated_at timestamp with time zone NOT NULL,
+    search_vector jsonb NOT NULL,
+    category_id uuid NOT NULL
+);
+
+
+--
+-- TOC entry 418 (class 1259 OID 18962)
+-- Name: restopos_menucategory; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.restopos_menucategory (
+    id bigint NOT NULL,
+    name character varying(100) NOT NULL,
+    slug character varying(50) NOT NULL,
+    description text NOT NULL,
+    display_order integer NOT NULL,
+    is_active boolean NOT NULL,
+    icon character varying(50) NOT NULL,
+    color_code character varying(7) NOT NULL,
+    restaurant_id uuid NOT NULL
+);
+
+
+--
+-- TOC entry 417 (class 1259 OID 18961)
+-- Name: restopos_menucategory_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+ALTER TABLE public.restopos_menucategory ALTER COLUMN id ADD GENERATED BY DEFAULT AS IDENTITY (
+    SEQUENCE NAME public.restopos_menucategory_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1
+);
+
+
+--
+-- TOC entry 419 (class 1259 OID 18969)
+-- Name: restopos_menuitem; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.restopos_menuitem (
+    id uuid NOT NULL,
+    name character varying(200) NOT NULL,
+    slug character varying(50) NOT NULL,
+    description text NOT NULL,
+    item_type character varying(20) NOT NULL,
+    price numeric(10,2) NOT NULL,
+    cost numeric(10,2),
+    track_inventory boolean NOT NULL,
+    wims_product_id character varying(100) NOT NULL,
+    is_vegetarian boolean NOT NULL,
+    is_vegan boolean NOT NULL,
+    is_gluten_free boolean NOT NULL,
+    is_halal boolean NOT NULL,
+    allergens jsonb NOT NULL,
+    calories integer,
+    is_available boolean NOT NULL,
+    available_times jsonb NOT NULL,
+    preparation_time_minutes integer NOT NULL,
+    customization_options jsonb NOT NULL,
+    times_ordered integer NOT NULL,
+    rating numeric(3,2),
+    created_at timestamp with time zone NOT NULL,
+    updated_at timestamp with time zone NOT NULL,
+    category_id bigint NOT NULL,
+    restaurant_id uuid NOT NULL
+);
+
+
+--
+-- TOC entry 420 (class 1259 OID 18976)
+-- Name: restopos_order; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.restopos_order (
+    id uuid NOT NULL,
+    order_number character varying(20) NOT NULL,
+    order_type character varying(20) NOT NULL,
+    status character varying(20) NOT NULL,
+    customer_name character varying(100) NOT NULL,
+    customer_phone character varying(20) NOT NULL,
+    customer_email character varying(254) NOT NULL,
+    guest_count integer NOT NULL,
+    subtotal numeric(10,2) NOT NULL,
+    tax_amount numeric(10,2) NOT NULL,
+    service_charge numeric(10,2) NOT NULL,
+    discount_amount numeric(10,2) NOT NULL,
+    tip_amount numeric(10,2) NOT NULL,
+    total_amount numeric(10,2) NOT NULL,
+    notes text NOT NULL,
+    kitchen_notes text NOT NULL,
+    payment_method character varying(50) NOT NULL,
+    payment_status character varying(20) NOT NULL,
+    wimm_transaction_id character varying(100) NOT NULL,
+    created_at timestamp with time zone NOT NULL,
+    confirmed_at timestamp with time zone,
+    completed_at timestamp with time zone,
+    cancelled_at timestamp with time zone,
+    chef_id integer,
+    waiter_id integer,
+    restaurant_id uuid NOT NULL,
+    table_id uuid
+);
+
+
+--
+-- TOC entry 421 (class 1259 OID 18985)
+-- Name: restopos_orderitem; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.restopos_orderitem (
+    id uuid NOT NULL,
+    quantity integer NOT NULL,
+    unit_price numeric(10,2) NOT NULL,
+    total_price numeric(10,2) NOT NULL,
+    customizations jsonb NOT NULL,
+    special_instructions text NOT NULL,
+    status character varying(20) NOT NULL,
+    created_at timestamp with time zone NOT NULL,
+    prepared_at timestamp with time zone,
+    served_at timestamp with time zone,
+    menu_item_id uuid NOT NULL,
+    order_id uuid NOT NULL
+);
+
+
+--
+-- TOC entry 426 (class 1259 OID 19048)
+-- Name: restopos_receipt; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.restopos_receipt (
+    id uuid NOT NULL,
+    receipt_number character varying(50) NOT NULL,
+    payment_method character varying(50) NOT NULL,
+    payment_reference character varying(100) NOT NULL,
+    subtotal numeric(10,2) NOT NULL,
+    tax_amount numeric(10,2) NOT NULL,
+    service_charge numeric(10,2) NOT NULL,
+    discount_amount numeric(10,2) NOT NULL,
+    tip_amount numeric(10,2) NOT NULL,
+    total_amount numeric(10,2) NOT NULL,
+    amount_paid numeric(10,2),
+    change_amount numeric(10,2),
+    email_sent boolean NOT NULL,
+    email_sent_at timestamp with time zone,
+    issued_at timestamp with time zone NOT NULL,
+    order_id uuid NOT NULL
+);
+
+
+--
+-- TOC entry 425 (class 1259 OID 19034)
+-- Name: restopos_reservation; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.restopos_reservation (
+    id uuid NOT NULL,
+    customer_name character varying(100) NOT NULL,
+    customer_phone character varying(20) NOT NULL,
+    customer_email character varying(254) NOT NULL,
+    guest_count integer NOT NULL,
+    reservation_date date NOT NULL,
+    reservation_time time without time zone NOT NULL,
+    duration_minutes integer NOT NULL,
+    status character varying(20) NOT NULL,
+    special_requests text NOT NULL,
+    confirmation_code character varying(20) NOT NULL,
+    confirmed_at timestamp with time zone,
+    created_at timestamp with time zone NOT NULL,
+    updated_at timestamp with time zone NOT NULL,
+    restaurant_id uuid NOT NULL,
+    table_id uuid
+);
+
+
+--
+-- TOC entry 422 (class 1259 OID 18992)
+-- Name: restopos_restaurant; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.restopos_restaurant (
+    id uuid NOT NULL,
+    name character varying(200) NOT NULL,
+    slug character varying(50) NOT NULL,
+    branch_code character varying(20) NOT NULL,
+    address text NOT NULL,
+    city character varying(100) NOT NULL,
+    country character varying(100) NOT NULL,
+    postal_code character varying(20) NOT NULL,
+    phone character varying(20) NOT NULL,
+    email character varying(254) NOT NULL,
+    tax_number character varying(50) NOT NULL,
+    currency character varying(3) NOT NULL,
+    tax_rate numeric(5,2) NOT NULL,
+    service_charge_rate numeric(5,2) NOT NULL,
+    operating_hours jsonb NOT NULL,
+    auto_gratuity_enabled boolean NOT NULL,
+    auto_gratuity_percentage numeric(5,2) NOT NULL,
+    allow_split_bills boolean NOT NULL,
+    require_table_assignment boolean NOT NULL,
+    wimm_integration_enabled boolean NOT NULL,
+    wims_integration_enabled boolean NOT NULL,
+    created_at timestamp with time zone NOT NULL,
+    updated_at timestamp with time zone NOT NULL
+);
+
+
+--
+-- TOC entry 423 (class 1259 OID 19018)
+-- Name: restopos_staff; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.restopos_staff (
+    id uuid NOT NULL,
+    employee_id character varying(50) NOT NULL,
+    role character varying(20) NOT NULL,
+    can_manage_orders boolean NOT NULL,
+    can_manage_tables boolean NOT NULL,
+    can_manage_menu boolean NOT NULL,
+    can_process_payments boolean NOT NULL,
+    can_view_reports boolean NOT NULL,
+    shift_schedule jsonb NOT NULL,
+    hourly_rate numeric(10,2),
+    is_active boolean NOT NULL,
+    is_on_duty boolean NOT NULL,
+    hired_date date NOT NULL,
+    created_at timestamp with time zone NOT NULL,
+    updated_at timestamp with time zone NOT NULL,
+    restaurant_id uuid NOT NULL,
+    user_id integer NOT NULL
+);
+
+
+--
+-- TOC entry 424 (class 1259 OID 19027)
+-- Name: restopos_table; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.restopos_table (
+    id uuid NOT NULL,
+    table_number character varying(20) NOT NULL,
+    section character varying(50) NOT NULL,
+    capacity integer NOT NULL,
+    status character varying(20) NOT NULL,
+    qr_code character varying(100) NOT NULL,
+    position_x integer,
+    position_y integer,
+    last_occupied timestamp with time zone,
+    last_cleaned timestamp with time zone,
+    current_order_id uuid,
+    restaurant_id uuid NOT NULL
+);
+
+
+--
+-- TOC entry 438 (class 1259 OID 19228)
+-- Name: solitaire_solitaireactivity; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.solitaire_solitaireactivity (
+    id bigint NOT NULL,
+    action character varying(20) NOT NULL,
+    "timestamp" timestamp with time zone NOT NULL,
+    details jsonb NOT NULL,
+    session_id bigint NOT NULL
+);
+
+
+--
+-- TOC entry 437 (class 1259 OID 19227)
+-- Name: solitaire_solitaireactivity_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+ALTER TABLE public.solitaire_solitaireactivity ALTER COLUMN id ADD GENERATED BY DEFAULT AS IDENTITY (
+    SEQUENCE NAME public.solitaire_solitaireactivity_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1
+);
+
+
+--
+-- TOC entry 436 (class 1259 OID 19218)
+-- Name: solitaire_solitairegamesession; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.solitaire_solitairegamesession (
+    id bigint NOT NULL,
+    session_id character varying(100) NOT NULL,
+    started_at timestamp with time zone NOT NULL,
+    ended_at timestamp with time zone,
+    game_state jsonb NOT NULL,
+    moves_count integer NOT NULL,
+    score integer NOT NULL,
+    time_played integer NOT NULL,
+    is_completed boolean NOT NULL,
+    is_won boolean NOT NULL,
+    is_abandoned boolean NOT NULL,
+    browser_info jsonb NOT NULL,
+    player_id bigint NOT NULL
+);
+
+
+--
+-- TOC entry 435 (class 1259 OID 19217)
+-- Name: solitaire_solitairegamesession_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+ALTER TABLE public.solitaire_solitairegamesession ALTER COLUMN id ADD GENERATED BY DEFAULT AS IDENTITY (
+    SEQUENCE NAME public.solitaire_solitairegamesession_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1
+);
+
+
+--
+-- TOC entry 430 (class 1259 OID 19172)
+-- Name: solitaire_solitairemove; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.solitaire_solitairemove (
+    id bigint NOT NULL,
+    move_number integer NOT NULL,
+    from_pile character varying(20) NOT NULL,
+    to_pile character varying(20) NOT NULL,
+    cards_moved jsonb NOT NULL,
+    cards_revealed jsonb NOT NULL,
+    previous_state jsonb NOT NULL,
+    "timestamp" timestamp with time zone NOT NULL,
+    session_id bigint NOT NULL
+);
+
+
+--
+-- TOC entry 429 (class 1259 OID 19171)
+-- Name: solitaire_solitairemove_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+ALTER TABLE public.solitaire_solitairemove ALTER COLUMN id ADD GENERATED BY DEFAULT AS IDENTITY (
+    SEQUENCE NAME public.solitaire_solitairemove_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1
+);
+
+
+--
+-- TOC entry 434 (class 1259 OID 19210)
+-- Name: solitaire_solitaireplayer; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.solitaire_solitaireplayer (
+    id bigint NOT NULL,
+    session_key character varying(100) NOT NULL,
+    ip_address inet NOT NULL,
+    user_agent text NOT NULL,
+    display_name character varying(100) NOT NULL,
+    is_anonymous boolean NOT NULL,
+    first_seen timestamp with time zone NOT NULL,
+    last_seen timestamp with time zone NOT NULL,
+    total_sessions integer NOT NULL,
+    country character varying(100) NOT NULL,
+    city character varying(100) NOT NULL,
+    is_active boolean NOT NULL,
+    is_banned boolean NOT NULL,
+    ban_reason text NOT NULL,
+    user_id integer
+);
+
+
+--
+-- TOC entry 433 (class 1259 OID 19209)
+-- Name: solitaire_solitaireplayer_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+ALTER TABLE public.solitaire_solitaireplayer ALTER COLUMN id ADD GENERATED BY DEFAULT AS IDENTITY (
+    SEQUENCE NAME public.solitaire_solitaireplayer_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1
+);
+
+
+--
+-- TOC entry 428 (class 1259 OID 19162)
+-- Name: solitaire_solitairesession; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.solitaire_solitairesession (
+    id bigint NOT NULL,
+    session_id character varying(100) NOT NULL,
+    stock_pile jsonb NOT NULL,
+    waste_pile jsonb NOT NULL,
+    foundation_piles jsonb NOT NULL,
+    tableau_piles jsonb NOT NULL,
+    moves_count integer NOT NULL,
+    score integer NOT NULL,
+    game_time integer NOT NULL,
+    is_active boolean NOT NULL,
+    is_won boolean NOT NULL,
+    created_at timestamp with time zone NOT NULL,
+    last_played timestamp with time zone NOT NULL,
+    last_minimize timestamp with time zone,
+    lock_password character varying(128),
+    user_id integer NOT NULL
+);
+
+
+--
+-- TOC entry 427 (class 1259 OID 19161)
+-- Name: solitaire_solitairesession_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+ALTER TABLE public.solitaire_solitairesession ALTER COLUMN id ADD GENERATED BY DEFAULT AS IDENTITY (
+    SEQUENCE NAME public.solitaire_solitairesession_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1
+);
+
+
+--
+-- TOC entry 432 (class 1259 OID 19180)
+-- Name: solitaire_solitairestatistics; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.solitaire_solitairestatistics (
+    id bigint NOT NULL,
+    games_played integer NOT NULL,
+    games_won integer NOT NULL,
+    total_score integer NOT NULL,
+    highest_score integer NOT NULL,
+    total_time_played integer NOT NULL,
+    current_win_streak integer NOT NULL,
+    best_win_streak integer NOT NULL,
+    fastest_win integer,
+    fewest_moves_win integer,
+    last_updated timestamp with time zone NOT NULL,
+    user_id integer NOT NULL
+);
+
+
+--
+-- TOC entry 431 (class 1259 OID 19179)
+-- Name: solitaire_solitairestatistics_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+ALTER TABLE public.solitaire_solitairestatistics ALTER COLUMN id ADD GENERATED BY DEFAULT AS IDENTITY (
+    SEQUENCE NAME public.solitaire_solitairestatistics_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1
+);
+
+
+--
+-- TOC entry 440 (class 1259 OID 19263)
+-- Name: store_marketplace; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.store_marketplace (
+    id bigint NOT NULL,
+    platform character varying(50) NOT NULL,
+    shop_name character varying(200) NOT NULL,
+    api_key character varying(500) NOT NULL,
+    api_secret character varying(500) NOT NULL,
+    sentos_api_key character varying(500) NOT NULL,
+    sentos_shop_url character varying(200) NOT NULL,
+    status character varying(20) NOT NULL,
+    is_primary boolean NOT NULL,
+    total_orders integer NOT NULL,
+    total_products integer NOT NULL,
+    total_revenue numeric(12,2) NOT NULL,
+    last_sync timestamp with time zone,
+    sync_interval_minutes integer NOT NULL,
+    auto_sync boolean NOT NULL,
+    created_at timestamp with time zone NOT NULL,
+    updated_at timestamp with time zone NOT NULL,
+    user_id integer NOT NULL
+);
+
+
+--
+-- TOC entry 439 (class 1259 OID 19262)
+-- Name: store_marketplace_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+ALTER TABLE public.store_marketplace ALTER COLUMN id ADD GENERATED BY DEFAULT AS IDENTITY (
+    SEQUENCE NAME public.store_marketplace_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1
+);
+
+
+--
+-- TOC entry 442 (class 1259 OID 19271)
+-- Name: store_order; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.store_order (
+    id bigint NOT NULL,
+    platform_order_id character varying(200) NOT NULL,
+    order_number character varying(100) NOT NULL,
+    customer_name character varying(200) NOT NULL,
+    customer_email character varying(254) NOT NULL,
+    customer_phone character varying(50) NOT NULL,
+    shipping_address text NOT NULL,
+    shipping_city character varying(100) NOT NULL,
+    shipping_state character varying(100) NOT NULL,
+    shipping_country character varying(100) NOT NULL,
+    shipping_postal_code character varying(20) NOT NULL,
+    status character varying(20) NOT NULL,
+    payment_status character varying(20) NOT NULL,
+    payment_method character varying(100) NOT NULL,
+    currency character varying(3) NOT NULL,
+    subtotal numeric(10,2) NOT NULL,
+    shipping_cost numeric(10,2) NOT NULL,
+    tax_amount numeric(10,2) NOT NULL,
+    discount_amount numeric(10,2) NOT NULL,
+    total_amount numeric(10,2) NOT NULL,
+    tracking_number character varying(200) NOT NULL,
+    tracking_company character varying(100) NOT NULL,
+    customer_note text NOT NULL,
+    internal_note text NOT NULL,
+    order_date timestamp with time zone NOT NULL,
+    shipped_date timestamp with time zone,
+    delivered_date timestamp with time zone,
+    platform_data jsonb NOT NULL,
+    created_at timestamp with time zone NOT NULL,
+    updated_at timestamp with time zone NOT NULL,
+    marketplace_id bigint NOT NULL,
+    user_id integer NOT NULL
+);
+
+
+--
+-- TOC entry 441 (class 1259 OID 19270)
+-- Name: store_order_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+ALTER TABLE public.store_order ALTER COLUMN id ADD GENERATED BY DEFAULT AS IDENTITY (
+    SEQUENCE NAME public.store_order_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1
+);
+
+
+--
+-- TOC entry 444 (class 1259 OID 19281)
+-- Name: store_orderitem; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.store_orderitem (
+    id bigint NOT NULL,
+    product_id character varying(200) NOT NULL,
+    product_name character varying(500) NOT NULL,
+    product_sku character varying(100) NOT NULL,
+    product_barcode character varying(100) NOT NULL,
+    variant_id character varying(200) NOT NULL,
+    variant_title character varying(200) NOT NULL,
+    quantity integer NOT NULL,
+    unit_price numeric(10,2) NOT NULL,
+    discount_amount numeric(10,2) NOT NULL,
+    tax_amount numeric(10,2) NOT NULL,
+    total_price numeric(10,2) NOT NULL,
+    metadata jsonb NOT NULL,
+    order_id bigint NOT NULL
+);
+
+
+--
+-- TOC entry 443 (class 1259 OID 19280)
+-- Name: store_orderitem_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+ALTER TABLE public.store_orderitem ALTER COLUMN id ADD GENERATED BY DEFAULT AS IDENTITY (
+    SEQUENCE NAME public.store_orderitem_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1
+);
+
+
+--
+-- TOC entry 446 (class 1259 OID 19289)
+-- Name: store_product; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.store_product (
+    id bigint NOT NULL,
+    platform_product_id character varying(200) NOT NULL,
+    sku character varying(100) NOT NULL,
+    barcode character varying(100) NOT NULL,
+    title character varying(500) NOT NULL,
+    description text NOT NULL,
+    brand character varying(200) NOT NULL,
+    category character varying(200) NOT NULL,
+    price numeric(10,2) NOT NULL,
+    sale_price numeric(10,2),
+    currency character varying(3) NOT NULL,
+    stock_quantity integer NOT NULL,
+    low_stock_threshold integer NOT NULL,
+    main_image_url character varying(200) NOT NULL,
+    additional_images jsonb NOT NULL,
+    status character varying(20) NOT NULL,
+    total_sales integer NOT NULL,
+    total_revenue numeric(12,2) NOT NULL,
+    platform_data jsonb NOT NULL,
+    last_sync timestamp with time zone NOT NULL,
+    created_at timestamp with time zone NOT NULL,
+    updated_at timestamp with time zone NOT NULL,
+    marketplace_id bigint NOT NULL,
+    user_id integer NOT NULL
+);
+
+
+--
+-- TOC entry 445 (class 1259 OID 19288)
+-- Name: store_product_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+ALTER TABLE public.store_product ALTER COLUMN id ADD GENERATED BY DEFAULT AS IDENTITY (
+    SEQUENCE NAME public.store_product_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1
+);
+
+
+--
+-- TOC entry 448 (class 1259 OID 19297)
+-- Name: store_synclog; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.store_synclog (
+    id bigint NOT NULL,
+    sync_type character varying(50) NOT NULL,
+    status character varying(20) NOT NULL,
+    items_processed integer NOT NULL,
+    items_created integer NOT NULL,
+    items_updated integer NOT NULL,
+    items_failed integer NOT NULL,
+    started_at timestamp with time zone NOT NULL,
+    completed_at timestamp with time zone,
+    duration_seconds integer,
+    error_message text NOT NULL,
+    error_details jsonb NOT NULL,
+    marketplace_id bigint NOT NULL
+);
+
+
+--
+-- TOC entry 447 (class 1259 OID 19296)
+-- Name: store_synclog_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+ALTER TABLE public.store_synclog ALTER COLUMN id ADD GENERATED BY DEFAULT AS IDENTITY (
+    SEQUENCE NAME public.store_synclog_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1
+);
+
+
+--
+-- TOC entry 304 (class 1259 OID 17386)
+-- Name: stores; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.stores (
+    id uuid NOT NULL,
+    name character varying(100) NOT NULL,
+    store_type character varying(50) NOT NULL,
+    address text NOT NULL,
+    latitude numeric(10,8),
+    longitude numeric(11,8),
+    website character varying(200) NOT NULL,
+    phone character varying(20) NOT NULL,
+    created_at timestamp with time zone NOT NULL,
+    updated_at timestamp with time zone NOT NULL
+);
+
+
+--
+-- TOC entry 361 (class 1259 OID 18038)
+-- Name: transactions; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.transactions (
+    id uuid NOT NULL,
+    portfolio_id uuid NOT NULL,
+    transaction_type character varying(10) NOT NULL,
+    currency_id character varying(10) NOT NULL,
+    amount numeric(20,10) NOT NULL,
+    price numeric(20,10) NOT NULL,
+    total_value numeric(20,10) NOT NULL,
+    fee_amount numeric(20,10) NOT NULL,
+    fee_currency_id character varying(10),
+    notes text NOT NULL,
+    exchange character varying(50) NOT NULL,
+    external_id character varying(100) NOT NULL,
+    executed_at timestamp with time zone NOT NULL,
+    created_at timestamp with time zone NOT NULL
+);
+
+
+--
+-- TOC entry 313 (class 1259 OID 17536)
+-- Name: version_manager_gitstatus; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.version_manager_gitstatus (
+    id bigint NOT NULL,
+    checked_at timestamp with time zone NOT NULL,
+    branch character varying(100) NOT NULL,
+    commit_hash character varying(40) NOT NULL,
+    commit_message text NOT NULL,
+    author character varying(200) NOT NULL,
+    modified_files jsonb NOT NULL,
+    untracked_files jsonb NOT NULL,
+    staged_files jsonb NOT NULL,
+    has_changes boolean NOT NULL,
+    ahead_count integer NOT NULL,
+    behind_count integer NOT NULL
+);
+
+
+--
+-- TOC entry 312 (class 1259 OID 17535)
+-- Name: version_manager_gitstatus_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+ALTER TABLE public.version_manager_gitstatus ALTER COLUMN id ADD GENERATED BY DEFAULT AS IDENTITY (
+    SEQUENCE NAME public.version_manager_gitstatus_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1
+);
+
+
+--
+-- TOC entry 315 (class 1259 OID 17544)
+-- Name: version_manager_scansession; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.version_manager_scansession (
+    id bigint NOT NULL,
+    started_at timestamp with time zone NOT NULL,
+    completed_at timestamp with time zone,
+    total_archives integer NOT NULL,
+    total_size_bytes bigint NOT NULL,
+    total_size_gb double precision NOT NULL,
+    average_size_mb double precision NOT NULL,
+    anomaly_count integer NOT NULL,
+    progress_percent integer NOT NULL,
+    current_archive character varying(100) NOT NULL,
+    status_message character varying(200) NOT NULL,
+    is_complete boolean NOT NULL,
+    has_errors boolean NOT NULL,
+    error_message text NOT NULL,
+    started_by_id integer
+);
+
+
+--
+-- TOC entry 314 (class 1259 OID 17543)
+-- Name: version_manager_scansession_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+ALTER TABLE public.version_manager_scansession ALTER COLUMN id ADD GENERATED BY DEFAULT AS IDENTITY (
+    SEQUENCE NAME public.version_manager_scansession_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1
+);
+
+
+--
+-- TOC entry 317 (class 1259 OID 17552)
+-- Name: version_manager_versionarchive; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.version_manager_versionarchive (
+    id bigint NOT NULL,
+    version character varying(20) NOT NULL,
+    path character varying(500) NOT NULL,
+    size_bytes bigint NOT NULL,
+    size_mb double precision NOT NULL,
+    file_count integer NOT NULL,
+    directory_count integer NOT NULL,
+    z_score double precision,
+    is_anomaly boolean NOT NULL,
+    anomaly_reason character varying(100),
+    status character varying(20) NOT NULL,
+    created_at timestamp with time zone NOT NULL,
+    last_scanned timestamp with time zone NOT NULL,
+    git_commit character varying(40),
+    git_branch character varying(100),
+    git_tag character varying(50)
+);
+
+
+--
+-- TOC entry 316 (class 1259 OID 17551)
+-- Name: version_manager_versionarchive_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+ALTER TABLE public.version_manager_versionarchive ALTER COLUMN id ADD GENERATED BY DEFAULT AS IDENTITY (
+    SEQUENCE NAME public.version_manager_versionarchive_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1
+);
+
+
+--
+-- TOC entry 353 (class 1259 OID 17982)
+-- Name: web_ui_command_history; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.web_ui_command_history (
+    id bigint NOT NULL,
+    user_id integer NOT NULL,
+    command text NOT NULL,
+    module character varying(50),
+    executed_at timestamp with time zone NOT NULL,
+    success boolean NOT NULL,
+    output text,
+    error_message text,
+    execution_time double precision
+);
+
+
+--
+-- TOC entry 352 (class 1259 OID 17981)
+-- Name: web_ui_command_history_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+ALTER TABLE public.web_ui_command_history ALTER COLUMN id ADD GENERATED BY DEFAULT AS IDENTITY (
+    SEQUENCE NAME public.web_ui_command_history_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1
+);
+
+
+--
+-- TOC entry 347 (class 1259 OID 17958)
+-- Name: web_ui_module_access; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.web_ui_module_access (
+    id bigint NOT NULL,
+    user_id integer NOT NULL,
+    module character varying(50) NOT NULL,
+    accessed_at timestamp with time zone NOT NULL,
+    session_id bigint,
+    action character varying(100),
+    data jsonb
+);
+
+
+--
+-- TOC entry 346 (class 1259 OID 17957)
+-- Name: web_ui_module_access_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+ALTER TABLE public.web_ui_module_access ALTER COLUMN id ADD GENERATED BY DEFAULT AS IDENTITY (
+    SEQUENCE NAME public.web_ui_module_access_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1
+);
+
+
+--
+-- TOC entry 349 (class 1259 OID 17966)
+-- Name: web_ui_preferences; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.web_ui_preferences (
+    id bigint NOT NULL,
+    user_id integer NOT NULL,
+    theme character varying(20) NOT NULL,
+    font_size integer NOT NULL,
+    show_animations boolean NOT NULL,
+    enable_sound boolean NOT NULL,
+    keyboard_shortcuts boolean NOT NULL,
+    auto_refresh boolean NOT NULL,
+    refresh_interval integer NOT NULL,
+    sidebar_collapsed boolean NOT NULL,
+    language character varying(10) NOT NULL,
+    created_at timestamp with time zone NOT NULL,
+    updated_at timestamp with time zone NOT NULL
+);
+
+
+--
+-- TOC entry 348 (class 1259 OID 17965)
+-- Name: web_ui_preferences_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+ALTER TABLE public.web_ui_preferences ALTER COLUMN id ADD GENERATED BY DEFAULT AS IDENTITY (
+    SEQUENCE NAME public.web_ui_preferences_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1
+);
+
+
+--
+-- TOC entry 345 (class 1259 OID 17948)
+-- Name: web_ui_session_logs; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.web_ui_session_logs (
+    id bigint NOT NULL,
+    user_id integer,
+    session_id character varying(100) NOT NULL,
+    ip_address inet NOT NULL,
+    user_agent text NOT NULL,
+    started_at timestamp with time zone NOT NULL,
+    ended_at timestamp with time zone,
+    is_active boolean NOT NULL
+);
+
+
+--
+-- TOC entry 344 (class 1259 OID 17947)
+-- Name: web_ui_session_logs_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+ALTER TABLE public.web_ui_session_logs ALTER COLUMN id ADD GENERATED BY DEFAULT AS IDENTITY (
+    SEQUENCE NAME public.web_ui_session_logs_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1
+);
+
+
+--
+-- TOC entry 351 (class 1259 OID 17974)
+-- Name: web_ui_system_status; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.web_ui_system_status (
+    id bigint NOT NULL,
+    module character varying(50) NOT NULL,
+    status character varying(20) NOT NULL,
+    health_score integer NOT NULL,
+    last_checked timestamp with time zone NOT NULL,
+    error_count integer NOT NULL,
+    warning_count integer NOT NULL,
+    metadata jsonb
+);
+
+
+--
+-- TOC entry 350 (class 1259 OID 17973)
+-- Name: web_ui_system_status_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+ALTER TABLE public.web_ui_system_status ALTER COLUMN id ADD GENERATED BY DEFAULT AS IDENTITY (
+    SEQUENCE NAME public.web_ui_system_status_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1
+);
+
+
+--
+-- TOC entry 329 (class 1259 OID 17615)
+-- Name: wimm_budget; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.wimm_budget (
+    id bigint NOT NULL,
+    created_at timestamp with time zone NOT NULL,
+    updated_at timestamp with time zone NOT NULL,
+    is_active boolean NOT NULL,
+    name character varying(100) NOT NULL,
+    period_type character varying(20) NOT NULL,
+    start_date date NOT NULL,
+    end_date date NOT NULL,
+    amount numeric(20,4) NOT NULL,
+    currency character varying(3) NOT NULL,
+    alert_percentage integer NOT NULL,
+    user_id integer NOT NULL,
+    category_id bigint
+);
+
+
+--
+-- TOC entry 328 (class 1259 OID 17614)
+-- Name: wimm_budget_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+ALTER TABLE public.wimm_budget ALTER COLUMN id ADD GENERATED BY DEFAULT AS IDENTITY (
+    SEQUENCE NAME public.wimm_budget_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1
+);
+
+
+--
+-- TOC entry 319 (class 1259 OID 17573)
+-- Name: wimm_invoice; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.wimm_invoice (
+    id bigint NOT NULL,
+    created_at timestamp with time zone NOT NULL,
+    updated_at timestamp with time zone NOT NULL,
+    is_active boolean NOT NULL,
+    invoice_type character varying(20) NOT NULL,
+    invoice_number character varying(50) NOT NULL,
+    invoice_date date NOT NULL,
+    due_date date NOT NULL,
+    vendor_name character varying(200) NOT NULL,
+    vendor_tax_id character varying(50) NOT NULL,
+    vendor_address text NOT NULL,
+    customer_name character varying(200) NOT NULL,
+    customer_tax_id character varying(50) NOT NULL,
+    customer_address text NOT NULL,
+    subtotal numeric(20,4) NOT NULL,
+    tax_rate numeric(5,2) NOT NULL,
+    tax_amount numeric(20,4) NOT NULL,
+    discount_amount numeric(20,4) NOT NULL,
+    total_amount numeric(20,4) NOT NULL,
+    currency character varying(3) NOT NULL,
+    payment_status character varying(20) NOT NULL,
+    paid_amount numeric(20,4) NOT NULL,
+    notes text NOT NULL,
+    attachments jsonb NOT NULL,
+    user_id integer NOT NULL
+);
+
+
+--
+-- TOC entry 318 (class 1259 OID 17572)
+-- Name: wimm_invoice_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+ALTER TABLE public.wimm_invoice ALTER COLUMN id ADD GENERATED BY DEFAULT AS IDENTITY (
+    SEQUENCE NAME public.wimm_invoice_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1
+);
+
+
+--
+-- TOC entry 321 (class 1259 OID 17583)
+-- Name: wimm_invoiceitem; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.wimm_invoiceitem (
+    id bigint NOT NULL,
+    created_at timestamp with time zone NOT NULL,
+    updated_at timestamp with time zone NOT NULL,
+    is_active boolean NOT NULL,
+    description character varying(500) NOT NULL,
+    quantity numeric(20,4) NOT NULL,
+    unit_price numeric(20,4) NOT NULL,
+    discount_rate numeric(5,2) NOT NULL,
+    discount_amount numeric(20,4) NOT NULL,
+    tax_rate numeric(5,2) NOT NULL,
+    tax_amount numeric(20,4) NOT NULL,
+    total numeric(20,4) NOT NULL,
+    invoice_id bigint NOT NULL,
+    item_id bigint
+);
+
+
+--
+-- TOC entry 320 (class 1259 OID 17582)
+-- Name: wimm_invoiceitem_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+ALTER TABLE public.wimm_invoiceitem ALTER COLUMN id ADD GENERATED BY DEFAULT AS IDENTITY (
+    SEQUENCE NAME public.wimm_invoiceitem_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1
+);
+
+
+--
+-- TOC entry 327 (class 1259 OID 17607)
+-- Name: wimm_recurringtransaction; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.wimm_recurringtransaction (
+    id bigint NOT NULL,
+    created_at timestamp with time zone NOT NULL,
+    updated_at timestamp with time zone NOT NULL,
+    name character varying(100) NOT NULL,
+    transaction_type character varying(10) NOT NULL,
+    amount numeric(20,4) NOT NULL,
+    currency character varying(3) NOT NULL,
+    description text NOT NULL,
+    frequency character varying(20) NOT NULL,
+    start_date date NOT NULL,
+    end_date date,
+    next_date date NOT NULL,
+    is_active boolean NOT NULL,
+    last_created timestamp with time zone,
+    from_account_id bigint,
+    to_account_id bigint,
+    user_id integer NOT NULL,
+    category_id bigint
+);
+
+
+--
+-- TOC entry 326 (class 1259 OID 17606)
+-- Name: wimm_recurringtransaction_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+ALTER TABLE public.wimm_recurringtransaction ALTER COLUMN id ADD GENERATED BY DEFAULT AS IDENTITY (
+    SEQUENCE NAME public.wimm_recurringtransaction_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1
+);
+
+
+--
+-- TOC entry 325 (class 1259 OID 17599)
+-- Name: wimm_transaction; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.wimm_transaction (
+    id bigint NOT NULL,
+    created_at timestamp with time zone NOT NULL,
+    updated_at timestamp with time zone NOT NULL,
+    is_active boolean NOT NULL,
+    transaction_type character varying(10) NOT NULL,
+    amount numeric(20,4) NOT NULL,
+    currency character varying(3) NOT NULL,
+    exchange_rate numeric(20,6) NOT NULL,
+    description text NOT NULL,
+    transaction_date timestamp with time zone NOT NULL,
+    tags jsonb NOT NULL,
+    attachments jsonb NOT NULL,
+    metadata jsonb NOT NULL,
+    from_account_id bigint,
+    invoice_id bigint,
+    to_account_id bigint,
+    user_id integer NOT NULL,
+    category_id bigint,
+    credit_card_id bigint,
+    expense_category_id bigint,
+    expense_group_id bigint,
+    payment_method character varying(30) NOT NULL,
+    source_document_id uuid,
+    subscription_id bigint
+);
+
+
+--
+-- TOC entry 324 (class 1259 OID 17598)
+-- Name: wimm_transaction_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+ALTER TABLE public.wimm_transaction ALTER COLUMN id ADD GENERATED BY DEFAULT AS IDENTITY (
+    SEQUENCE NAME public.wimm_transaction_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1
+);
+
+
+--
+-- TOC entry 323 (class 1259 OID 17591)
+-- Name: wimm_transactioncategory; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.wimm_transactioncategory (
+    id bigint NOT NULL,
+    created_at timestamp with time zone NOT NULL,
+    updated_at timestamp with time zone NOT NULL,
+    is_active boolean NOT NULL,
+    name character varying(100) NOT NULL,
+    slug character varying(50) NOT NULL,
+    type character varying(10) NOT NULL,
+    icon character varying(50) NOT NULL,
+    color character varying(7) NOT NULL,
+    parent_id bigint
+);
+
+
+--
+-- TOC entry 322 (class 1259 OID 17590)
+-- Name: wimm_transactioncategory_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+ALTER TABLE public.wimm_transactioncategory ALTER COLUMN id ADD GENERATED BY DEFAULT AS IDENTITY (
+    SEQUENCE NAME public.wimm_transactioncategory_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1
+);
+
+
+--
+-- TOC entry 337 (class 1259 OID 17775)
+-- Name: wims_itemsupplier; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.wims_itemsupplier (
+    id bigint NOT NULL,
+    created_at timestamp with time zone NOT NULL,
+    updated_at timestamp with time zone NOT NULL,
+    is_active boolean NOT NULL,
+    supplier_name character varying(200) NOT NULL,
+    supplier_code character varying(50) NOT NULL,
+    supplier_item_code character varying(50) NOT NULL,
+    supplier_item_name character varying(200) NOT NULL,
+    unit_price numeric(20,4) NOT NULL,
+    currency character varying(3) NOT NULL,
+    lead_time_days integer NOT NULL,
+    min_order_quantity numeric(20,4) NOT NULL,
+    order_multiple numeric(20,4) NOT NULL,
+    is_preferred boolean NOT NULL,
+    priority integer NOT NULL,
+    item_id bigint NOT NULL
+);
+
+
+--
+-- TOC entry 336 (class 1259 OID 17774)
+-- Name: wims_itemsupplier_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+ALTER TABLE public.wims_itemsupplier ALTER COLUMN id ADD GENERATED BY DEFAULT AS IDENTITY (
+    SEQUENCE NAME public.wims_itemsupplier_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1
+);
+
+
+--
+-- TOC entry 335 (class 1259 OID 17767)
+-- Name: wims_stockcount; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.wims_stockcount (
+    id bigint NOT NULL,
+    created_at timestamp with time zone NOT NULL,
+    updated_at timestamp with time zone NOT NULL,
+    is_active boolean NOT NULL,
+    count_date timestamp with time zone NOT NULL,
+    count_type character varying(20) NOT NULL,
+    status character varying(20) NOT NULL,
+    notes text NOT NULL,
+    approved_date timestamp with time zone,
+    approved_by_id integer,
+    user_id integer NOT NULL,
+    warehouse_id bigint NOT NULL
+);
+
+
+--
+-- TOC entry 334 (class 1259 OID 17766)
+-- Name: wims_stockcount_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+ALTER TABLE public.wims_stockcount ALTER COLUMN id ADD GENERATED BY DEFAULT AS IDENTITY (
+    SEQUENCE NAME public.wims_stockcount_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1
+);
+
+
+--
+-- TOC entry 339 (class 1259 OID 17783)
+-- Name: wims_stockcountitem; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.wims_stockcountitem (
+    id bigint NOT NULL,
+    created_at timestamp with time zone NOT NULL,
+    updated_at timestamp with time zone NOT NULL,
+    is_active boolean NOT NULL,
+    system_quantity numeric(20,4) NOT NULL,
+    counted_quantity numeric(20,4) NOT NULL,
+    batch_number character varying(50) NOT NULL,
+    serial_number character varying(100) NOT NULL,
+    notes text NOT NULL,
+    item_id bigint NOT NULL,
+    stock_count_id bigint NOT NULL,
+    location_id bigint
+);
+
+
+--
+-- TOC entry 338 (class 1259 OID 17782)
+-- Name: wims_stockcountitem_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+ALTER TABLE public.wims_stockcountitem ALTER COLUMN id ADD GENERATED BY DEFAULT AS IDENTITY (
+    SEQUENCE NAME public.wims_stockcountitem_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1
+);
+
+
+--
+-- TOC entry 343 (class 1259 OID 17799)
+-- Name: wims_stockitem; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.wims_stockitem (
+    id bigint NOT NULL,
+    created_at timestamp with time zone NOT NULL,
+    updated_at timestamp with time zone NOT NULL,
+    is_active boolean NOT NULL,
+    quantity numeric(20,4) NOT NULL,
+    reserved_quantity numeric(20,4) NOT NULL,
+    batch_number character varying(50) NOT NULL,
+    serial_number character varying(100) NOT NULL,
+    manufacture_date date,
+    expiry_date date,
+    unit_cost numeric(20,4) NOT NULL,
+    currency character varying(3) NOT NULL,
+    min_stock_level numeric(20,4) NOT NULL,
+    max_stock_level numeric(20,4),
+    reorder_point numeric(20,4) NOT NULL,
+    reorder_quantity numeric(20,4) NOT NULL,
+    item_id bigint NOT NULL,
+    location_id bigint,
+    warehouse_id bigint NOT NULL
+);
+
+
+--
+-- TOC entry 342 (class 1259 OID 17798)
+-- Name: wims_stockitem_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+ALTER TABLE public.wims_stockitem ALTER COLUMN id ADD GENERATED BY DEFAULT AS IDENTITY (
+    SEQUENCE NAME public.wims_stockitem_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1
+);
+
+
+--
+-- TOC entry 333 (class 1259 OID 17761)
+-- Name: wims_stocklocation; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.wims_stocklocation (
+    id bigint NOT NULL,
+    created_at timestamp with time zone NOT NULL,
+    updated_at timestamp with time zone NOT NULL,
+    is_active boolean NOT NULL,
+    name character varying(100) NOT NULL,
+    code character varying(50) NOT NULL,
+    max_weight numeric(10,2),
+    max_volume numeric(10,2),
+    location_type character varying(20) NOT NULL,
+    parent_id bigint,
+    warehouse_id bigint NOT NULL
+);
+
+
+--
+-- TOC entry 332 (class 1259 OID 17760)
+-- Name: wims_stocklocation_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+ALTER TABLE public.wims_stocklocation ALTER COLUMN id ADD GENERATED BY DEFAULT AS IDENTITY (
+    SEQUENCE NAME public.wims_stocklocation_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1
+);
+
+
+--
+-- TOC entry 341 (class 1259 OID 17791)
+-- Name: wims_stockmovement; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.wims_stockmovement (
+    id bigint NOT NULL,
+    created_at timestamp with time zone NOT NULL,
+    updated_at timestamp with time zone NOT NULL,
+    is_active boolean NOT NULL,
+    movement_type character varying(20) NOT NULL,
+    quantity numeric(20,4) NOT NULL,
+    unit_cost numeric(20,4) NOT NULL,
+    currency character varying(3) NOT NULL,
+    batch_number character varying(50) NOT NULL,
+    serial_number character varying(100) NOT NULL,
+    reference_number character varying(50) NOT NULL,
+    notes text NOT NULL,
+    movement_date timestamp with time zone NOT NULL,
+    from_location_id bigint,
+    invoice_id bigint,
+    invoice_item_id bigint,
+    item_id bigint NOT NULL,
+    to_location_id bigint,
+    user_id integer NOT NULL,
+    from_warehouse_id bigint,
+    to_warehouse_id bigint
+);
+
+
+--
+-- TOC entry 340 (class 1259 OID 17790)
+-- Name: wims_stockmovement_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+ALTER TABLE public.wims_stockmovement ALTER COLUMN id ADD GENERATED BY DEFAULT AS IDENTITY (
+    SEQUENCE NAME public.wims_stockmovement_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1
+);
+
+
+--
+-- TOC entry 331 (class 1259 OID 17751)
+-- Name: wims_warehouse; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.wims_warehouse (
+    id bigint NOT NULL,
+    created_at timestamp with time zone NOT NULL,
+    updated_at timestamp with time zone NOT NULL,
+    is_active boolean NOT NULL,
+    name character varying(100) NOT NULL,
+    code character varying(20) NOT NULL,
+    address text NOT NULL,
+    city character varying(100) NOT NULL,
+    country character varying(2) NOT NULL,
+    warehouse_type character varying(20) NOT NULL,
+    manager character varying(100) NOT NULL,
+    phone character varying(20) NOT NULL,
+    email character varying(254) NOT NULL,
+    allow_negative_stock boolean NOT NULL,
+    user_id integer NOT NULL
+);
+
+
+--
+-- TOC entry 330 (class 1259 OID 17750)
+-- Name: wims_warehouse_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+ALTER TABLE public.wims_warehouse ALTER COLUMN id ADD GENERATED BY DEFAULT AS IDENTITY (
+    SEQUENCE NAME public.wims_warehouse_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1
+);
+
+
+--
+-- TOC entry 5705 (class 0 OID 16671)
+-- Dependencies: 242
+-- Data for Name: administration_auditlog; Type: TABLE DATA; Schema: public; Owner: -
+--
+
+COPY public.administration_auditlog (id, created_at, updated_at, is_active, action, target_object, details, ip_address, user_agent, "timestamp", target_user_id, user_id) FROM stdin;
+1	2025-08-09 09:57:26.038787+03	2025-08-09 09:57:26.038793+03	t	data_export	Administration Dashboard	{"page": "dashboard"}	127.0.0.1	Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.5 Safari/605.1.15	2025-08-09 09:57:26.038827+03	\N	1
+2	2025-08-09 10:18:46.683064+03	2025-08-09 10:18:46.683069+03	t	data_export	Administration Dashboard	{"page": "dashboard"}	127.0.0.1		2025-08-09 10:18:46.683099+03	\N	1
+\.
+
+
+--
+-- TOC entry 5701 (class 0 OID 16657)
+-- Dependencies: 238
+-- Data for Name: administration_department; Type: TABLE DATA; Schema: public; Owner: -
+--
+
+COPY public.administration_department (id, created_at, updated_at, is_active, name, code, manager_id, parent_id, default_role_id) FROM stdin;
+\.
+
+
+--
+-- TOC entry 5703 (class 0 OID 16665)
+-- Dependencies: 240
+-- Data for Name: administration_department_members; Type: TABLE DATA; Schema: public; Owner: -
+--
+
+COPY public.administration_department_members (id, department_id, user_id) FROM stdin;
+\.
+
+
+--
+-- TOC entry 5697 (class 0 OID 16643)
+-- Dependencies: 234
+-- Data for Name: administration_permissionrequest; Type: TABLE DATA; Schema: public; Owner: -
+--
+
+COPY public.administration_permissionrequest (id, created_at, updated_at, is_active, reason, status, requested_at, reviewed_at, review_notes, duration_days, reviewed_by_id, user_id, role_id) FROM stdin;
+\.
+
+
+--
+-- TOC entry 5699 (class 0 OID 16651)
+-- Dependencies: 236
+-- Data for Name: administration_permissionrequest_permissions; Type: TABLE DATA; Schema: public; Owner: -
+--
+
+COPY public.administration_permissionrequest_permissions (id, permissionrequest_id, permission_id) FROM stdin;
+\.
+
+
+--
+-- TOC entry 5691 (class 0 OID 16619)
+-- Dependencies: 228
+-- Data for Name: administration_role; Type: TABLE DATA; Schema: public; Owner: -
+--
+
+COPY public.administration_role (id, created_at, updated_at, is_active, name, code, description, is_system, priority, can_manage_users, can_manage_roles, can_view_logs, can_access_admin, can_export_data, can_import_data, module_permissions) FROM stdin;
+\.
+
+
+--
+-- TOC entry 5693 (class 0 OID 16631)
+-- Dependencies: 230
+-- Data for Name: administration_role_groups; Type: TABLE DATA; Schema: public; Owner: -
+--
+
+COPY public.administration_role_groups (id, role_id, group_id) FROM stdin;
+\.
+
+
+--
+-- TOC entry 5695 (class 0 OID 16637)
+-- Dependencies: 232
+-- Data for Name: administration_role_permissions; Type: TABLE DATA; Schema: public; Owner: -
+--
+
+COPY public.administration_role_permissions (id, role_id, permission_id) FROM stdin;
+\.
+
+
+--
+-- TOC entry 5830 (class 0 OID 18267)
+-- Dependencies: 367
+-- Data for Name: administration_screenlock; Type: TABLE DATA; Schema: public; Owner: -
+--
+
+COPY public.administration_screenlock (id, created_at, updated_at, is_active, is_enabled, password_hash, lock_timeout, auto_lock, require_on_startup, failed_attempts, locked_until, last_locked, last_unlocked, max_failed_attempts, lockout_duration, require_password_change, user_id) FROM stdin;
+\.
+
+
+--
+-- TOC entry 5689 (class 0 OID 16609)
+-- Dependencies: 226
+-- Data for Name: administration_systemsetting; Type: TABLE DATA; Schema: public; Owner: -
+--
+
+COPY public.administration_systemsetting (id, created_at, updated_at, is_active, key, value, description, is_public) FROM stdin;
+\.
+
+
+--
+-- TOC entry 5707 (class 0 OID 16679)
+-- Dependencies: 244
+-- Data for Name: administration_userrole; Type: TABLE DATA; Schema: public; Owner: -
+--
+
+COPY public.administration_userrole (id, created_at, updated_at, is_active, assigned_at, expires_at, is_temporary, notes, assigned_by_id, role_id, user_id) FROM stdin;
+\.
+
+
+--
+-- TOC entry 5679 (class 0 OID 16515)
+-- Dependencies: 216
+-- Data for Name: auth_group; Type: TABLE DATA; Schema: public; Owner: -
+--
+
+COPY public.auth_group (id, name) FROM stdin;
+\.
+
+
+--
+-- TOC entry 5681 (class 0 OID 16523)
+-- Dependencies: 218
+-- Data for Name: auth_group_permissions; Type: TABLE DATA; Schema: public; Owner: -
+--
+
+COPY public.auth_group_permissions (id, group_id, permission_id) FROM stdin;
+\.
+
+
+--
+-- TOC entry 5677 (class 0 OID 16509)
+-- Dependencies: 214
+-- Data for Name: auth_permission; Type: TABLE DATA; Schema: public; Owner: -
+--
+
+COPY public.auth_permission (id, name, content_type_id, codename) FROM stdin;
+1	Can add permission	1	add_permission
+2	Can change permission	1	change_permission
+3	Can delete permission	1	delete_permission
+4	Can view permission	1	view_permission
+5	Can add group	2	add_group
+6	Can change group	2	change_group
+7	Can delete group	2	delete_group
+8	Can view group	2	view_group
+9	Can add user	3	add_user
+10	Can change user	3	change_user
+11	Can delete user	3	delete_user
+12	Can view user	3	view_user
+13	Can add content type	4	add_contenttype
+14	Can change content type	4	change_contenttype
+15	Can delete content type	4	delete_contenttype
+16	Can view content type	4	view_contenttype
+17	Can add session	5	add_session
+18	Can change session	5	change_session
+19	Can delete session	5	delete_session
+20	Can view session	5	view_session
+21	Can add Token	6	add_token
+22	Can change Token	6	change_token
+23	Can delete Token	6	delete_token
+24	Can view Token	6	view_token
+25	Can add Token	7	add_tokenproxy
+26	Can change Token	7	change_tokenproxy
+27	Can delete Token	7	delete_tokenproxy
+28	Can view Token	7	view_tokenproxy
+29	Can add unit	8	add_unit
+30	Can change unit	8	change_unit
+31	Can delete unit	8	delete_unit
+32	Can view unit	8	view_unit
+33	Can add item category	9	add_itemcategory
+34	Can change item category	9	change_itemcategory
+35	Can delete item category	9	delete_itemcategory
+36	Can view item category	9	view_itemcategory
+37	Can add item	10	add_item
+38	Can change item	10	change_item
+39	Can delete item	10	delete_item
+40	Can view item	10	view_item
+41	Can add account	11	add_account
+42	Can change account	11	change_account
+43	Can delete account	11	delete_account
+44	Can view account	11	view_account
+45	Can add item price	12	add_itemprice
+46	Can change item price	12	change_itemprice
+47	Can delete item price	12	delete_itemprice
+48	Can view item price	12	view_itemprice
+49	Can add user profile	13	add_userprofile
+50	Can change user profile	13	change_userprofile
+51	Can delete user profile	13	delete_userprofile
+52	Can view user profile	13	view_userprofile
+53	Can add session log	14	add_sessionlog
+54	Can change session log	14	change_sessionlog
+55	Can delete session log	14	delete_sessionlog
+56	Can view session log	14	view_sessionlog
+57	Can add module access	15	add_moduleaccess
+58	Can change module access	15	change_moduleaccess
+59	Can delete module access	15	delete_moduleaccess
+60	Can view module access	15	view_moduleaccess
+61	Can add UI Preference	16	add_uipreferences
+62	Can change UI Preference	16	change_uipreferences
+63	Can delete UI Preference	16	delete_uipreferences
+64	Can view UI Preference	16	view_uipreferences
+65	Can add system status	17	add_systemstatus
+66	Can change system status	17	change_systemstatus
+67	Can delete system status	17	delete_systemstatus
+68	Can view system status	17	view_systemstatus
+69	Can add command history	18	add_commandhistory
+70	Can change command history	18	change_commandhistory
+71	Can delete command history	18	delete_commandhistory
+72	Can view command history	18	view_commandhistory
+73	Can add currency	19	add_currency
+74	Can change currency	19	change_currency
+75	Can delete currency	19	delete_currency
+76	Can view currency	19	view_currency
+77	Can add exchange rate	20	add_exchangerate
+78	Can change exchange rate	20	change_exchangerate
+79	Can delete exchange rate	20	delete_exchangerate
+80	Can view exchange rate	20	view_exchangerate
+81	Can add currency alert	21	add_currencyalert
+82	Can change currency alert	21	change_currencyalert
+83	Can delete currency alert	21	delete_currencyalert
+84	Can view currency alert	21	view_currencyalert
+85	Can add portfolio	22	add_portfolio
+86	Can change portfolio	22	change_portfolio
+87	Can delete portfolio	22	delete_portfolio
+88	Can view portfolio	22	view_portfolio
+89	Can add portfolio holding	23	add_portfolioholding
+90	Can change portfolio holding	23	change_portfolioholding
+91	Can delete portfolio holding	23	delete_portfolioholding
+92	Can view portfolio holding	23	view_portfolioholding
+93	Can add portfolio transaction	24	add_portfoliotransaction
+94	Can change portfolio transaction	24	change_portfoliotransaction
+95	Can delete portfolio transaction	24	delete_portfoliotransaction
+96	Can view portfolio transaction	24	view_portfoliotransaction
+97	Can add portfolio performance	25	add_portfolioperformance
+98	Can change portfolio performance	25	change_portfolioperformance
+99	Can delete portfolio performance	25	delete_portfolioperformance
+100	Can view portfolio performance	25	view_portfolioperformance
+101	Can add transaction	26	add_transaction
+102	Can change transaction	26	change_transaction
+103	Can delete transaction	26	delete_transaction
+104	Can view transaction	26	view_transaction
+105	Can add market data	27	add_marketdata
+106	Can change market data	27	change_marketdata
+107	Can delete market data	27	delete_marketdata
+108	Can view market data	27	view_marketdata
+109	Can add crypto exchange rate	28	add_cryptoexchangerate
+110	Can change crypto exchange rate	28	change_cryptoexchangerate
+111	Can delete crypto exchange rate	28	delete_cryptoexchangerate
+112	Can view crypto exchange rate	28	view_cryptoexchangerate
+113	Can add bank exchange rate	29	add_bankexchangerate
+114	Can change bank exchange rate	29	change_bankexchangerate
+115	Can delete bank exchange rate	29	delete_bankexchangerate
+116	Can view bank exchange rate	29	view_bankexchangerate
+117	Can add bank rate import log	30	add_bankrateimportlog
+118	Can change bank rate import log	30	change_bankrateimportlog
+119	Can delete bank rate import log	30	delete_bankrateimportlog
+120	Can view bank rate import log	30	view_bankrateimportlog
+121	Can add invoice	31	add_invoice
+122	Can change invoice	31	change_invoice
+123	Can delete invoice	31	delete_invoice
+124	Can view invoice	31	view_invoice
+125	Can add invoice item	32	add_invoiceitem
+126	Can change invoice item	32	change_invoiceitem
+127	Can delete invoice item	32	delete_invoiceitem
+128	Can view invoice item	32	view_invoiceitem
+129	Can add transaction category	33	add_transactioncategory
+130	Can change transaction category	33	change_transactioncategory
+131	Can delete transaction category	33	delete_transactioncategory
+132	Can view transaction category	33	view_transactioncategory
+133	Can add transaction	34	add_transaction
+134	Can change transaction	34	change_transaction
+135	Can delete transaction	34	delete_transaction
+136	Can view transaction	34	view_transaction
+137	Can add recurring transaction	35	add_recurringtransaction
+138	Can change recurring transaction	35	change_recurringtransaction
+139	Can delete recurring transaction	35	delete_recurringtransaction
+140	Can view recurring transaction	35	view_recurringtransaction
+141	Can add budget	36	add_budget
+142	Can change budget	36	change_budget
+143	Can delete budget	36	delete_budget
+144	Can view budget	36	view_budget
+145	Can add warehouse	37	add_warehouse
+146	Can change warehouse	37	change_warehouse
+147	Can delete warehouse	37	delete_warehouse
+148	Can view warehouse	37	view_warehouse
+149	Can add stock location	38	add_stocklocation
+150	Can change stock location	38	change_stocklocation
+151	Can delete stock location	38	delete_stocklocation
+152	Can view stock location	38	view_stocklocation
+153	Can add stock count	39	add_stockcount
+154	Can change stock count	39	change_stockcount
+155	Can delete stock count	39	delete_stockcount
+156	Can view stock count	39	view_stockcount
+157	Can add item supplier	40	add_itemsupplier
+158	Can change item supplier	40	change_itemsupplier
+159	Can delete item supplier	40	delete_itemsupplier
+160	Can view item supplier	40	view_itemsupplier
+161	Can add stock count item	41	add_stockcountitem
+162	Can change stock count item	41	change_stockcountitem
+163	Can delete stock count item	41	delete_stockcountitem
+164	Can view stock count item	41	view_stockcountitem
+165	Can add stock movement	42	add_stockmovement
+166	Can change stock movement	42	change_stockmovement
+167	Can delete stock movement	42	delete_stockmovement
+168	Can view stock movement	42	view_stockmovement
+169	Can add stock item	43	add_stockitem
+170	Can change stock item	43	change_stockitem
+171	Can delete stock item	43	delete_stockitem
+172	Can view stock item	43	view_stockitem
+173	Can add system setting	44	add_systemsetting
+174	Can change system setting	44	change_systemsetting
+175	Can delete system setting	44	delete_systemsetting
+176	Can view system setting	44	view_systemsetting
+177	Can add role	45	add_role
+178	Can change role	45	change_role
+179	Can delete role	45	delete_role
+180	Can view role	45	view_role
+181	Can add permission request	46	add_permissionrequest
+182	Can change permission request	46	change_permissionrequest
+183	Can delete permission request	46	delete_permissionrequest
+184	Can view permission request	46	view_permissionrequest
+185	Can add department	47	add_department
+186	Can change department	47	change_department
+187	Can delete department	47	delete_department
+188	Can view department	47	view_department
+189	Can add audit log	48	add_auditlog
+190	Can change audit log	48	change_auditlog
+191	Can delete audit log	48	delete_auditlog
+192	Can view audit log	48	view_auditlog
+193	Can add user role	49	add_userrole
+194	Can change user role	49	change_userrole
+195	Can delete user role	49	delete_userrole
+196	Can view user role	49	view_userrole
+197	Can add storage configuration	50	add_storageconfiguration
+198	Can change storage configuration	50	change_storageconfiguration
+199	Can delete storage configuration	50	delete_storageconfiguration
+200	Can view storage configuration	50	view_storageconfiguration
+201	Can add camera	51	add_camera
+202	Can change camera	51	change_camera
+203	Can delete camera	51	delete_camera
+204	Can view camera	51	view_camera
+205	Can add alert	52	add_alert
+206	Can change alert	52	change_alert
+207	Can delete alert	52	delete_alert
+208	Can view alert	52	view_alert
+209	Can add camera group	53	add_cameragroup
+210	Can change camera group	53	change_cameragroup
+211	Can delete camera group	53	delete_cameragroup
+212	Can view camera group	53	view_cameragroup
+213	Can add camera stream	54	add_camerastream
+214	Can change camera stream	54	change_camerastream
+215	Can delete camera stream	54	delete_camerastream
+216	Can view camera stream	54	view_camerastream
+217	Can add recording schedule	55	add_recordingschedule
+218	Can change recording schedule	55	change_recordingschedule
+219	Can delete recording schedule	55	delete_recordingschedule
+220	Can view recording schedule	55	view_recordingschedule
+221	Can add recording session	56	add_recordingsession
+222	Can change recording session	56	change_recordingsession
+223	Can delete recording session	56	delete_recordingsession
+224	Can view recording session	56	view_recordingsession
+225	Can add ocr template	57	add_ocrtemplate
+226	Can change ocr template	57	change_ocrtemplate
+227	Can delete ocr template	57	delete_ocrtemplate
+228	Can view ocr template	57	view_ocrtemplate
+229	Can add credit card	58	add_creditcard
+230	Can change credit card	58	change_creditcard
+231	Can delete credit card	58	delete_creditcard
+232	Can view credit card	58	view_creditcard
+233	Can add document	59	add_document
+234	Can change document	59	change_document
+235	Can delete document	59	delete_document
+236	Can view document	59	view_document
+237	Can add document batch	60	add_documentbatch
+238	Can change document batch	60	change_documentbatch
+239	Can delete document batch	60	delete_documentbatch
+240	Can view document batch	60	view_documentbatch
+241	Can add expense category	61	add_expensecategory
+242	Can change expense category	61	change_expensecategory
+243	Can delete expense category	61	delete_expensecategory
+244	Can view expense category	61	view_expensecategory
+245	Can add expense group	62	add_expensegroup
+246	Can change expense group	62	change_expensegroup
+247	Can delete expense group	62	delete_expensegroup
+248	Can view expense group	62	view_expensegroup
+249	Can add parsed receipt	63	add_parsedreceipt
+250	Can change parsed receipt	63	change_parsedreceipt
+251	Can delete parsed receipt	63	delete_parsedreceipt
+252	Can view parsed receipt	63	view_parsedreceipt
+253	Can add receipt item	64	add_receiptitem
+254	Can change receipt item	64	change_receiptitem
+255	Can delete receipt item	64	delete_receiptitem
+256	Can view receipt item	64	view_receiptitem
+257	Can add subscription	65	add_subscription
+258	Can change subscription	65	change_subscription
+259	Can delete subscription	65	delete_subscription
+260	Can view subscription	65	view_subscription
+261	Can add challenge	66	add_challenge
+262	Can change challenge	66	change_challenge
+263	Can delete challenge	66	delete_challenge
+264	Can view challenge	66	view_challenge
+265	Can add learning model	67	add_learningmodel
+266	Can change learning model	67	change_learningmodel
+267	Can delete learning model	67	delete_learningmodel
+268	Can view learning model	67	view_learningmodel
+269	Can add point transaction	68	add_pointtransaction
+270	Can change point transaction	68	change_pointtransaction
+271	Can delete point transaction	68	delete_pointtransaction
+272	Can view point transaction	68	view_pointtransaction
+273	Can add user profile	69	add_userprofile
+274	Can change user profile	69	change_userprofile
+275	Can delete user profile	69	delete_userprofile
+276	Can view user profile	69	view_userprofile
+277	Can add achievement	70	add_achievement
+278	Can change achievement	70	change_achievement
+279	Can delete achievement	70	delete_achievement
+280	Can view achievement	70	view_achievement
+281	Can add leaderboard	71	add_leaderboard
+282	Can change leaderboard	71	change_leaderboard
+283	Can delete leaderboard	71	delete_leaderboard
+284	Can view leaderboard	71	view_leaderboard
+285	Can add user challenge	72	add_userchallenge
+286	Can change user challenge	72	change_userchallenge
+287	Can delete user challenge	72	delete_userchallenge
+288	Can view user challenge	72	view_userchallenge
+289	Can add validation feedback	73	add_validationfeedback
+290	Can change validation feedback	73	change_validationfeedback
+291	Can delete validation feedback	73	delete_validationfeedback
+292	Can view validation feedback	73	view_validationfeedback
+293	Can add document type	74	add_documenttype
+294	Can change document type	74	change_documenttype
+295	Can delete document type	74	delete_documenttype
+296	Can view document type	74	view_documenttype
+297	Can add document share	75	add_documentshare
+298	Can change document share	75	change_documentshare
+299	Can delete document share	75	delete_documentshare
+300	Can view document share	75	view_documentshare
+301	Can add product	76	add_product
+302	Can change product	76	change_product
+303	Can delete product	76	delete_product
+304	Can view product	76	view_product
+305	Can add store	77	add_store
+306	Can change store	77	change_store
+307	Can delete store	77	delete_store
+308	Can view store	77	view_store
+309	Can add personal basket	78	add_personalbasket
+310	Can change personal basket	78	change_personalbasket
+311	Can delete personal basket	78	delete_personalbasket
+312	Can view personal basket	78	view_personalbasket
+313	Can add inflation report	79	add_inflationreport
+314	Can change inflation report	79	change_inflationreport
+315	Can delete inflation report	79	delete_inflationreport
+316	Can view inflation report	79	view_inflationreport
+317	Can add price alert	80	add_pricealert
+318	Can change price alert	80	change_pricealert
+319	Can delete price alert	80	delete_pricealert
+320	Can view price alert	80	view_pricealert
+321	Can add basket item	81	add_basketitem
+322	Can change basket item	81	change_basketitem
+323	Can delete basket item	81	delete_basketitem
+324	Can view basket item	81	view_basketitem
+325	Can add product category	82	add_productcategory
+326	Can change product category	82	change_productcategory
+327	Can delete product category	82	delete_productcategory
+328	Can view product category	82	view_productcategory
+329	Can add price record	83	add_pricerecord
+330	Can change price record	83	change_pricerecord
+331	Can delete price record	83	delete_pricerecord
+332	Can view price record	83	view_pricerecord
+333	Can add Git Status	84	add_gitstatus
+334	Can change Git Status	84	change_gitstatus
+335	Can delete Git Status	84	delete_gitstatus
+336	Can view Git Status	84	view_gitstatus
+337	Can add Scan Session	85	add_scansession
+338	Can change Scan Session	85	change_scansession
+339	Can delete Scan Session	85	delete_scansession
+340	Can view Scan Session	85	view_scansession
+341	Can add Version Archive	86	add_versionarchive
+342	Can change Version Archive	86	change_versionarchive
+343	Can delete Version Archive	86	delete_versionarchive
+344	Can view Version Archive	86	view_versionarchive
+345	Can add history entry	87	add_historyentry
+346	Can change history entry	87	change_historyentry
+347	Can delete history entry	87	delete_historyentry
+348	Can view history entry	87	view_historyentry
+349	Can add Screen Lock	88	add_screenlock
+350	Can change Screen Lock	88	change_screenlock
+351	Can delete Screen Lock	88	delete_screenlock
+352	Can view Screen Lock	88	view_screenlock
+353	Can add collection	89	add_collection
+354	Can change collection	89	change_collection
+355	Can delete collection	89	delete_collection
+356	Can view collection	89	view_collection
+357	Can add genre	90	add_genre
+358	Can change genre	90	change_genre
+359	Can delete genre	90	delete_genre
+360	Can view genre	90	view_genre
+361	Can add movie/series	91	add_movie
+362	Can change movie/series	91	change_movie
+363	Can delete movie/series	91	delete_movie
+364	Can view movie/series	91	view_movie
+365	Can add collection item	92	add_collectionitem
+366	Can change collection item	92	change_collectionitem
+367	Can delete collection item	92	delete_collectionitem
+368	Can view collection item	92	view_collectionitem
+369	Can add personal archive	93	add_personalarchive
+370	Can change personal archive	93	change_personalarchive
+371	Can delete personal archive	93	delete_personalarchive
+372	Can view personal archive	93	view_personalarchive
+373	Can add user rating	94	add_userrating
+374	Can change user rating	94	change_userrating
+375	Can delete user rating	94	delete_userrating
+376	Can view user rating	94	view_userrating
+377	Can add watch history	95	add_watchhistory
+378	Can change watch history	95	change_watchhistory
+379	Can delete watch history	95	delete_watchhistory
+380	Can view watch history	95	view_watchhistory
+381	Can add watch list	96	add_watchlist
+382	Can change watch list	96	change_watchlist
+383	Can delete watch list	96	delete_watchlist
+384	Can view watch list	96	view_watchlist
+385	Can add artist	97	add_artist
+386	Can change artist	97	change_artist
+387	Can delete artist	97	delete_artist
+388	Can view artist	97	view_artist
+389	Can add album	98	add_album
+390	Can change album	98	change_album
+391	Can delete album	98	delete_album
+392	Can view album	98	view_album
+393	Can add listening stats	99	add_listeningstats
+394	Can change listening stats	99	change_listeningstats
+395	Can delete listening stats	99	delete_listeningstats
+396	Can view listening stats	99	view_listeningstats
+397	Can add playlist	100	add_playlist
+398	Can change playlist	100	change_playlist
+399	Can delete playlist	100	delete_playlist
+400	Can view playlist	100	view_playlist
+401	Can add track	101	add_track
+402	Can change track	101	change_track
+403	Can delete track	101	delete_track
+404	Can view track	101	view_track
+405	Can add playlist track	102	add_playlisttrack
+406	Can change playlist track	102	change_playlisttrack
+407	Can delete playlist track	102	delete_playlisttrack
+408	Can view playlist track	102	view_playlisttrack
+409	Can add listening history	103	add_listeninghistory
+410	Can change listening history	103	change_listeninghistory
+411	Can delete listening history	103	delete_listeninghistory
+412	Can view listening history	103	view_listeninghistory
+413	Can add user album	104	add_useralbum
+414	Can change user album	104	change_useralbum
+415	Can delete user album	104	delete_useralbum
+416	Can view user album	104	view_useralbum
+417	Can add user artist	105	add_userartist
+418	Can change user artist	105	change_userartist
+419	Can delete user artist	105	delete_userartist
+420	Can view user artist	105	view_userartist
+421	Can add user library	106	add_userlibrary
+422	Can change user library	106	change_userlibrary
+423	Can delete user library	106	delete_userlibrary
+424	Can view user library	106	view_userlibrary
+425	Can add user track	107	add_usertrack
+426	Can change user track	107	change_usertrack
+427	Can delete user track	107	delete_usertrack
+428	Can view user track	107	view_usertrack
+429	Can add menu category	108	add_menucategory
+430	Can change menu category	108	change_menucategory
+431	Can delete menu category	108	delete_menucategory
+432	Can view menu category	108	view_menucategory
+433	Can add menu item	109	add_menuitem
+434	Can change menu item	109	change_menuitem
+435	Can delete menu item	109	delete_menuitem
+436	Can view menu item	109	view_menuitem
+437	Can add order	110	add_order
+438	Can change order	110	change_order
+439	Can delete order	110	delete_order
+440	Can view order	110	view_order
+441	Can add order item	111	add_orderitem
+442	Can change order item	111	change_orderitem
+443	Can delete order item	111	delete_orderitem
+444	Can view order item	111	view_orderitem
+445	Can add restaurant	112	add_restaurant
+446	Can change restaurant	112	change_restaurant
+447	Can delete restaurant	112	delete_restaurant
+448	Can view restaurant	112	view_restaurant
+449	Can add staff	113	add_staff
+450	Can change staff	113	change_staff
+451	Can delete staff	113	delete_staff
+452	Can view staff	113	view_staff
+453	Can add table	114	add_table
+454	Can change table	114	change_table
+455	Can delete table	114	delete_table
+456	Can view table	114	view_table
+457	Can add reservation	115	add_reservation
+458	Can change reservation	115	change_reservation
+459	Can delete reservation	115	delete_reservation
+460	Can view reservation	115	view_reservation
+461	Can add receipt	116	add_receipt
+462	Can change receipt	116	change_receipt
+463	Can delete receipt	116	delete_receipt
+464	Can view receipt	116	view_receipt
+465	Can add solitaire session	117	add_solitairesession
+466	Can change solitaire session	117	change_solitairesession
+467	Can delete solitaire session	117	delete_solitairesession
+468	Can view solitaire session	117	view_solitairesession
+469	Can add solitaire move	118	add_solitairemove
+470	Can change solitaire move	118	change_solitairemove
+471	Can delete solitaire move	118	delete_solitairemove
+472	Can view solitaire move	118	view_solitairemove
+473	Can add solitaire statistics	119	add_solitairestatistics
+474	Can change solitaire statistics	119	change_solitairestatistics
+475	Can delete solitaire statistics	119	delete_solitairestatistics
+476	Can view solitaire statistics	119	view_solitairestatistics
+477	Can add solitaire player	120	add_solitaireplayer
+478	Can change solitaire player	120	change_solitaireplayer
+479	Can delete solitaire player	120	delete_solitaireplayer
+480	Can view solitaire player	120	view_solitaireplayer
+481	Can add solitaire game session	121	add_solitairegamesession
+482	Can change solitaire game session	121	change_solitairegamesession
+483	Can delete solitaire game session	121	delete_solitairegamesession
+484	Can view solitaire game session	121	view_solitairegamesession
+485	Can add solitaire activity	122	add_solitaireactivity
+486	Can change solitaire activity	122	change_solitaireactivity
+487	Can delete solitaire activity	122	delete_solitaireactivity
+488	Can view solitaire activity	122	view_solitaireactivity
+489	Can add cron job	123	add_cronjob
+490	Can change cron job	123	change_cronjob
+491	Can delete cron job	123	delete_cronjob
+492	Can view cron job	123	view_cronjob
+493	Can add earthquake data source	124	add_earthquakedatasource
+494	Can change earthquake data source	124	change_earthquakedatasource
+495	Can delete earthquake data source	124	delete_earthquakedatasource
+496	Can view earthquake data source	124	view_earthquakedatasource
+497	Can add emergency protocol	125	add_emergencyprotocol
+498	Can change emergency protocol	125	change_emergencyprotocol
+499	Can delete emergency protocol	125	delete_emergencyprotocol
+500	Can view emergency protocol	125	view_emergencyprotocol
+501	Can add disaster zone	126	add_disasterzone
+502	Can change disaster zone	126	change_disasterzone
+503	Can delete disaster zone	126	delete_disasterzone
+504	Can view disaster zone	126	view_disasterzone
+505	Can add earthquake	127	add_earthquake
+506	Can change earthquake	127	change_earthquake
+507	Can delete earthquake	127	delete_earthquake
+508	Can view earthquake	127	view_earthquake
+509	Can add earthquake comment	128	add_earthquakecomment
+510	Can change earthquake comment	128	change_earthquakecomment
+511	Can delete earthquake comment	128	delete_earthquakecomment
+512	Can view earthquake comment	128	view_earthquakecomment
+513	Can add mesh node	129	add_meshnode
+514	Can change mesh node	129	change_meshnode
+515	Can delete mesh node	129	delete_meshnode
+516	Can view mesh node	129	view_meshnode
+517	Can add emergency message	130	add_emergencymessage
+518	Can change emergency message	130	change_emergencymessage
+519	Can delete emergency message	130	delete_emergencymessage
+520	Can view emergency message	130	view_emergencymessage
+521	Can add message relay	131	add_messagerelay
+522	Can change message relay	131	change_messagerelay
+523	Can delete message relay	131	delete_messagerelay
+524	Can view message relay	131	view_messagerelay
+525	Can add network topology	132	add_networktopology
+526	Can change network topology	132	change_networktopology
+527	Can delete network topology	132	delete_networktopology
+528	Can view network topology	132	view_networktopology
+529	Can add resource point	133	add_resourcepoint
+530	Can change resource point	133	change_resourcepoint
+531	Can delete resource point	133	delete_resourcepoint
+532	Can view resource point	133	view_resourcepoint
+533	Can add emergency contact	134	add_emergencycontact
+534	Can change emergency contact	134	change_emergencycontact
+535	Can delete emergency contact	134	delete_emergencycontact
+536	Can view emergency contact	134	view_emergencycontact
+537	Can add marketplace	135	add_marketplace
+538	Can change marketplace	135	change_marketplace
+539	Can delete marketplace	135	delete_marketplace
+540	Can view marketplace	135	view_marketplace
+541	Can add order	136	add_order
+542	Can change order	136	change_order
+543	Can delete order	136	delete_order
+544	Can view order	136	view_order
+545	Can add order item	137	add_orderitem
+546	Can change order item	137	change_orderitem
+547	Can delete order item	137	delete_orderitem
+548	Can view order item	137	view_orderitem
+549	Can add product	138	add_product
+550	Can change product	138	change_product
+551	Can delete product	138	delete_product
+552	Can view product	138	view_product
+553	Can add sync log	139	add_synclog
+554	Can change sync log	139	change_synclog
+555	Can delete sync log	139	delete_synclog
+556	Can view sync log	139	view_synclog
+\.
+
+
+--
+-- TOC entry 5683 (class 0 OID 16529)
+-- Dependencies: 220
+-- Data for Name: auth_user; Type: TABLE DATA; Schema: public; Owner: -
+--
+
+COPY public.auth_user (id, password, last_login, is_superuser, username, first_name, last_name, email, is_staff, is_active, date_joined) FROM stdin;
+2	pbkdf2_sha256$720000$GAeKTx6kvEZM4MgKHUNXYN$cuDqNYPs2BUI8CYNzbBZ4xRhuvdOw2J/nTQGAazhlpY=	\N	t	admin			admin@unibos.com	t	t	2025-08-19 09:40:56.232978+03
+1	pbkdf2_sha256$720000$U1vwwPEeoZiV2SZCz6zjmM$Qz9OwozgN9HRSVgyE22XKjbrbiE47n57Nb3DY7bViEw=	2025-08-09 10:18:46.430709+03	t	berkhatirli	Berk	Hatırlı	berk@unibos.com	t	t	2025-08-09 08:56:20.712157+03
+5	pbkdf2_sha256$870000$zd8M3zOY8VNSj5wlZzvtaM$QJH1htiP21B+2TUxZNLHLbqklZuM2egNEm4lDPGnA3s=	2024-10-27 16:52:57.644951+03	f	beyhan			beyhangndz@gmail.com	f	t	2024-10-11 11:47:20.595756+03
+6	pbkdf2_sha256$870000$2XPO0jHRVY8nOEK9AofPKt$RFE/6UElRYk/Xzrq7jNvB3uYLpJhS60fXhR0jMt0P2U=	2024-10-18 20:16:45.102813+03	f	ersan			ersankolay@gmail.com	f	t	2024-10-12 19:57:00.0557+03
+7	pbkdf2_sha256$870000$H8pVA9F5rFGOXa01Kjr608$KceCF7pj/tEpGbuqLy/ofHFploXzjOlvXmj3t0tT5Tw=	2024-12-16 19:56:00.191357+03	f	Leventhatirli			leventhatirli@gmail.com	f	t	2024-10-19 20:52:08.21266+03
+8	pbkdf2_sha256$870000$jFZ8ofsTPpso8yd3gXbA8r$9ohNnXwH53BNhSdSaS8eS1H8uyMSR+Q05rAiWS53exQ=	2024-12-16 17:35:52.423195+03	f	Armutdaldaasilsin			muratcanb@hotmail.co.uk	f	t	2024-12-14 20:28:54.577691+03
+9	pbkdf2_sha256$870000$JZuDLs2psUnfPy3KAiWVfT$KPRj52x3lVqE9uAjqyTB3BIz+HKSCoL33Vr7mxWqMUg=	2025-05-22 15:31:50.7702+03	f	gulcinhatirli			ghatirli@gmail.com	f	t	2024-12-15 09:59:48+03
+10	pbkdf2_sha256$870000$ndRgKnyz8dwZcR28U54BMZ$4SO3qGqm/yHcAbmYPuiBbKlEsED3TdMYxOs/7pCStAg=	\N	f	euccan			euccan@hotmail.com	f	t	2024-12-15 19:20:18.80283+03
+11	pbkdf2_sha256$870000$DReNaEIrqGtaSwh9mnYFAT$QN5hBo0MsGhdJVvu2mpUcEvmja3VHV9w7yXKigtTiow=	2024-12-17 07:43:21.913175+03	f	Aslinda			asli@vamosbodrum.com	f	t	2024-12-17 07:40:56.346319+03
+12	pbkdf2_sha256$870000$GVMEFL21Lp5GqPqORgpizx$Sgz68nIvXFRnyB0oRMtUmxMn3tvw1gvpnNwNO1Ljh/o=	2024-12-24 06:53:43.767643+03	f	berk2			bhatirli@gmail.com	f	t	2024-12-24 06:48:02.793003+03
+13	pbkdf2_sha256$870000$9zmyJ4yYd0JuiiQ6U2JhH0$4eTmJUbz1OTlezJ9jhLB/z9zZ5is9s/ZtMRVG/nWCQg=	\N	f	MyName			kwbireley@gmail.com	f	t	2025-05-19 09:16:05.227932+03
+14	pbkdf2_sha256$870000$BdzpHhDhZugZm9oqlficBs$YOok9N3IARiIvpekZjw2o8Cjl3cFXLrMOVAsyWTQpOY=	\N	f	John			cyndy22222@aol.com	f	t	2025-05-19 10:39:37.238648+03
+15	pbkdf2_sha256$870000$13tat9gN816VRaWIQquiot$DtazaOavTVNQ3AKXno7jJX9fAf+upaJKXertecdviZs=	\N	f	Alice			scollofelice@gmail.com	f	t	2025-05-19 11:29:43.887505+03
+16	pbkdf2_sha256$870000$2GDetgf350ocJIRde83BUP$7D4i14s4HqTCw3C3OBkp+KQtHnpN18Pu3u+dUI3gSpw=	\N	f	Hello			nprcsc@gmail.com	f	t	2025-05-19 12:45:49.864399+03
+17	pbkdf2_sha256$870000$ATaqqkGWWmpDDYCxNLFLi6$UXxRSLo2rkZMFHBEvvCF4Mej4Pkt2YsQyKkO7FwIwxo=	\N	f	TestUser			gayeglass@gmail.com	f	t	2025-05-19 13:14:26.297426+03
+\.
+
+
+--
+-- TOC entry 5685 (class 0 OID 16537)
+-- Dependencies: 222
+-- Data for Name: auth_user_groups; Type: TABLE DATA; Schema: public; Owner: -
+--
+
+COPY public.auth_user_groups (id, user_id, group_id) FROM stdin;
+\.
+
+
+--
+-- TOC entry 5687 (class 0 OID 16543)
+-- Dependencies: 224
+-- Data for Name: auth_user_user_permissions; Type: TABLE DATA; Schema: public; Owner: -
+--
+
+COPY public.auth_user_user_permissions (id, user_id, permission_id) FROM stdin;
+\.
+
+
+--
+-- TOC entry 5708 (class 0 OID 16817)
+-- Dependencies: 245
+-- Data for Name: authtoken_token; Type: TABLE DATA; Schema: public; Owner: -
+--
+
+COPY public.authtoken_token (key, created, user_id) FROM stdin;
+\.
+
+
+--
+-- TOC entry 5827 (class 0 OID 18055)
+-- Dependencies: 364
+-- Data for Name: bank_exchange_rates; Type: TABLE DATA; Schema: public; Owner: -
+--
+
+COPY public.bank_exchange_rates (id, entry_id, bank, currency_pair, buy_rate, sell_rate, spread, spread_percentage, date, "timestamp", previous_buy_rate, previous_sell_rate, buy_change, sell_change, buy_change_percentage, sell_change_percentage, created_at, updated_at) FROM stdin;
+\.
+
+
+--
+-- TOC entry 5828 (class 0 OID 18062)
+-- Dependencies: 365
+-- Data for Name: bank_rate_import_logs; Type: TABLE DATA; Schema: public; Owner: -
+--
+
+COPY public.bank_rate_import_logs (id, import_type, total_entries, new_entries, updated_entries, failed_entries, status, error_message, error_details, started_at, completed_at, duration_seconds, source_url) FROM stdin;
+\.
+
+
+--
+-- TOC entry 5771 (class 0 OID 17413)
+-- Dependencies: 308
+-- Data for Name: basket_items; Type: TABLE DATA; Schema: public; Owner: -
+--
+
+COPY public.basket_items (id, quantity, frequency, custom_weight, is_active, added_at, updated_at, basket_id, product_id) FROM stdin;
+\.
+
+
+--
+-- TOC entry 5832 (class 0 OID 18281)
+-- Dependencies: 369
+-- Data for Name: birlikteyiz_cronjobs; Type: TABLE DATA; Schema: public; Owner: -
+--
+
+COPY public.birlikteyiz_cronjobs (id, name, command, schedule, is_active, last_run, next_run, status, last_result, run_count, success_count, error_count, created_at, updated_at) FROM stdin;
+\.
+
+
+--
+-- TOC entry 5836 (class 0 OID 18307)
+-- Dependencies: 373
+-- Data for Name: birlikteyiz_disaster_zones; Type: TABLE DATA; Schema: public; Owner: -
+--
+
+COPY public.birlikteyiz_disaster_zones (id, name, zone_type, boundary, center_lat, center_lon, radius, severity, is_active, declared_at, expires_at, affected_population, messages_sent, nodes_active) FROM stdin;
+\.
+
+
+--
+-- TOC entry 5840 (class 0 OID 18325)
+-- Dependencies: 377
+-- Data for Name: birlikteyiz_earthquake_comments; Type: TABLE DATA; Schema: public; Owner: -
+--
+
+COPY public.birlikteyiz_earthquake_comments (id, comment, felt_it, intensity_felt, user_city, user_district, created_at, earthquake_id, user_id) FROM stdin;
+\.
+
+
+--
+-- TOC entry 5834 (class 0 OID 18289)
+-- Dependencies: 371
+-- Data for Name: birlikteyiz_earthquake_sources; Type: TABLE DATA; Schema: public; Owner: -
+--
+
+COPY public.birlikteyiz_earthquake_sources (id, name, url, is_active, last_fetch, last_success, last_error, fetch_count, error_count) FROM stdin;
+\.
+
+
+--
+-- TOC entry 5838 (class 0 OID 18315)
+-- Dependencies: 375
+-- Data for Name: birlikteyiz_earthquakes; Type: TABLE DATA; Schema: public; Owner: -
+--
+
+COPY public.birlikteyiz_earthquakes (id, unique_id, source, source_id, magnitude, depth, latitude, longitude, location, city, district, occurred_at, fetched_at, intensity, solution_type, is_felt, felt_reports, raw_data) FROM stdin;
+\.
+
+
+--
+-- TOC entry 5846 (class 0 OID 18367)
+-- Dependencies: 383
+-- Data for Name: birlikteyiz_emergency_contacts; Type: TABLE DATA; Schema: public; Owner: -
+--
+
+COPY public.birlikteyiz_emergency_contacts (id, name, relationship, phone, email, notify_sms, notify_email, notify_mesh, priority, created_at, updated_at, user_id) FROM stdin;
+\.
+
+
+--
+-- TOC entry 5842 (class 0 OID 18339)
+-- Dependencies: 379
+-- Data for Name: birlikteyiz_emergency_messages; Type: TABLE DATA; Schema: public; Owner: -
+--
+
+COPY public.birlikteyiz_emergency_messages (id, message_id, sender_name, message_type, content, priority, location_lat, location_lon, location_accuracy, hop_count, max_hops, ttl, created_at, expires_at, is_delivered, delivered_count, sender_node_id) FROM stdin;
+\.
+
+
+--
+-- TOC entry 5835 (class 0 OID 18298)
+-- Dependencies: 372
+-- Data for Name: birlikteyiz_emergency_protocols; Type: TABLE DATA; Schema: public; Owner: -
+--
+
+COPY public.birlikteyiz_emergency_protocols (id, name, code, description, emergency_type, steps, required_resources, estimated_duration, is_active, auto_activate, activation_conditions, created_at, updated_at) FROM stdin;
+\.
+
+
+--
+-- TOC entry 5841 (class 0 OID 18332)
+-- Dependencies: 378
+-- Data for Name: birlikteyiz_mesh_nodes; Type: TABLE DATA; Schema: public; Owner: -
+--
+
+COPY public.birlikteyiz_mesh_nodes (id, node_id, name, device_type, firmware_version, location_lat, location_lon, altitude, location_accuracy, frequency, spreading_factor, bandwidth, tx_power, is_active, is_online, last_seen, battery_level, messages_sent, messages_received, messages_relayed, created_at, updated_at, owner_id) FROM stdin;
+\.
+
+
+--
+-- TOC entry 5843 (class 0 OID 18348)
+-- Dependencies: 380
+-- Data for Name: birlikteyiz_message_relays; Type: TABLE DATA; Schema: public; Owner: -
+--
+
+COPY public.birlikteyiz_message_relays (id, received_at, signal_strength, snr, message_id, previous_node_id, relay_node_id) FROM stdin;
+\.
+
+
+--
+-- TOC entry 5844 (class 0 OID 18353)
+-- Dependencies: 381
+-- Data for Name: birlikteyiz_network_topology; Type: TABLE DATA; Schema: public; Owner: -
+--
+
+COPY public.birlikteyiz_network_topology (id, snapshot_time, total_nodes, active_nodes, average_signal_strength, network_coverage_area, max_hop_distance, node_connections, central_nodes, isolated_nodes, average_latency, packet_loss_rate, throughput) FROM stdin;
+\.
+
+
+--
+-- TOC entry 5845 (class 0 OID 18360)
+-- Dependencies: 382
+-- Data for Name: birlikteyiz_resource_points; Type: TABLE DATA; Schema: public; Owner: -
+--
+
+COPY public.birlikteyiz_resource_points (id, name, location_lat, location_lon, address, resource_type, capacity, current_occupancy, is_operational, last_updated, contact_name, contact_phone, operating_hours) FROM stdin;
+\.
+
+
+--
+-- TOC entry 5711 (class 0 OID 16846)
+-- Dependencies: 248
+-- Data for Name: cctv_alert; Type: TABLE DATA; Schema: public; Owner: -
+--
+
+COPY public.cctv_alert (id, alert_type, priority, "timestamp", description, image_path, video_clip_path, confidence_score, detection_data, is_resolved, resolved_at, resolution_notes, notification_sent, notification_sent_at, created_at, updated_at, resolved_by_id, user_id, camera_id) FROM stdin;
+\.
+
+
+--
+-- TOC entry 5710 (class 0 OID 16839)
+-- Dependencies: 247
+-- Data for Name: cctv_camera; Type: TABLE DATA; Schema: public; Owner: -
+--
+
+COPY public.cctv_camera (id, name, model, location, description, ip_address, port, protocol, stream_path, username, password, status, is_active, recording_enabled, motion_detection, audio_enabled, resolution, fps, bitrate, has_ptz, ptz_preset_positions, kerberos_enabled, kerberos_url, kerberos_key, created_at, updated_at, last_seen, user_id) FROM stdin;
+\.
+
+
+--
+-- TOC entry 5712 (class 0 OID 16853)
+-- Dependencies: 249
+-- Data for Name: cctv_cameragroup; Type: TABLE DATA; Schema: public; Owner: -
+--
+
+COPY public.cctv_cameragroup (id, name, description, grid_layout, auto_cycle, cycle_interval, created_at, updated_at, user_id) FROM stdin;
+\.
+
+
+--
+-- TOC entry 5714 (class 0 OID 16861)
+-- Dependencies: 251
+-- Data for Name: cctv_cameragroup_cameras; Type: TABLE DATA; Schema: public; Owner: -
+--
+
+COPY public.cctv_cameragroup_cameras (id, cameragroup_id, camera_id) FROM stdin;
+\.
+
+
+--
+-- TOC entry 5715 (class 0 OID 16866)
+-- Dependencies: 252
+-- Data for Name: cctv_camerastream; Type: TABLE DATA; Schema: public; Owner: -
+--
+
+COPY public.cctv_camerastream (id, quality, protocol, stream_url, is_active, resolution, fps, bitrate, created_at, updated_at, camera_id) FROM stdin;
+\.
+
+
+--
+-- TOC entry 5716 (class 0 OID 16873)
+-- Dependencies: 253
+-- Data for Name: cctv_recordingschedule; Type: TABLE DATA; Schema: public; Owner: -
+--
+
+COPY public.cctv_recordingschedule (id, name, days_of_week, start_time, end_time, is_active, recording_quality, motion_only, retention_days, created_at, updated_at, camera_id, user_id) FROM stdin;
+\.
+
+
+--
+-- TOC entry 5717 (class 0 OID 16880)
+-- Dependencies: 254
+-- Data for Name: cctv_recordingsession; Type: TABLE DATA; Schema: public; Owner: -
+--
+
+COPY public.cctv_recordingsession (id, recording_type, status, start_time, end_time, duration, file_path, file_size, thumbnail_path, video_codec, audio_codec, resolution, fps, motion_events, notes, created_at, updated_at, camera_id, user_id) FROM stdin;
+\.
+
+
+--
+-- TOC entry 5709 (class 0 OID 16830)
+-- Dependencies: 246
+-- Data for Name: cctv_storageconfiguration; Type: TABLE DATA; Schema: public; Owner: -
+--
+
+COPY public.cctv_storageconfiguration (id, name, recording_path, snapshot_path, max_storage_gb, warning_threshold_percent, default_retention_days, auto_delete_old, current_usage_gb, last_cleanup, is_active, created_at, updated_at) FROM stdin;
+\.
+
+
+--
+-- TOC entry 5725 (class 0 OID 17001)
+-- Dependencies: 262
+-- Data for Name: core_account; Type: TABLE DATA; Schema: public; Owner: -
+--
+
+COPY public.core_account (id, created_at, updated_at, is_active, name, account_type, currency, balance, institution, account_number, iban, metadata, user_id) FROM stdin;
+\.
+
+
+--
+-- TOC entry 5723 (class 0 OID 16991)
+-- Dependencies: 260
+-- Data for Name: core_item; Type: TABLE DATA; Schema: public; Owner: -
+--
+
+COPY public.core_item (id, created_at, updated_at, is_active, name, code, description, brand, attributes, is_tradeable, is_service, is_digital, tags, category_id, unit_id) FROM stdin;
+\.
+
+
+--
+-- TOC entry 5721 (class 0 OID 16981)
+-- Dependencies: 258
+-- Data for Name: core_itemcategory; Type: TABLE DATA; Schema: public; Owner: -
+--
+
+COPY public.core_itemcategory (id, created_at, updated_at, is_active, name, slug, description, icon, parent_id) FROM stdin;
+\.
+
+
+--
+-- TOC entry 5727 (class 0 OID 17009)
+-- Dependencies: 264
+-- Data for Name: core_itemprice; Type: TABLE DATA; Schema: public; Owner: -
+--
+
+COPY public.core_itemprice (id, created_at, updated_at, is_active, source, price, currency, location, valid_from, valid_until, metadata, item_id) FROM stdin;
+\.
+
+
+--
+-- TOC entry 5719 (class 0 OID 16975)
+-- Dependencies: 256
+-- Data for Name: core_unit; Type: TABLE DATA; Schema: public; Owner: -
+--
+
+COPY public.core_unit (id, created_at, updated_at, is_active, name, symbol, category) FROM stdin;
+\.
+
+
+--
+-- TOC entry 5729 (class 0 OID 17057)
+-- Dependencies: 266
+-- Data for Name: core_userprofile; Type: TABLE DATA; Schema: public; Owner: -
+--
+
+COPY public.core_userprofile (id, created_at, updated_at, is_active, phone_number, mail_verified, phone_verified, preferred_language, avatar, bio, location, company, website, theme, notifications_enabled, user_id) FROM stdin;
+\.
+
+
+--
+-- TOC entry 5826 (class 0 OID 18050)
+-- Dependencies: 363
+-- Data for Name: crypto_exchange_rates; Type: TABLE DATA; Schema: public; Owner: -
+--
+
+COPY public.crypto_exchange_rates (id, exchange, symbol, base_asset, quote_asset, last_price, bid_price, ask_price, open_24h, high_24h, low_24h, volume_24h, volume_24h_quote, change_24h, change_percentage_24h, market_cap, circulating_supply, "timestamp", created_at, updated_at) FROM stdin;
+\.
+
+
+--
+-- TOC entry 5817 (class 0 OID 17989)
+-- Dependencies: 354
+-- Data for Name: currencies; Type: TABLE DATA; Schema: public; Owner: -
+--
+
+COPY public.currencies (code, name, symbol, currency_type, decimal_places, is_active, country_code, icon_url, created_at, updated_at) FROM stdin;
+\.
+
+
+--
+-- TOC entry 5819 (class 0 OID 18000)
+-- Dependencies: 356
+-- Data for Name: currency_alerts; Type: TABLE DATA; Schema: public; Owner: -
+--
+
+COPY public.currency_alerts (id, user_id, base_currency_id, target_currency_id, alert_type, threshold_value, is_active, last_triggered, trigger_count, notify_email, notify_push, notify_in_app, created_at, updated_at) FROM stdin;
+\.
+
+
+--
+-- TOC entry 5730 (class 0 OID 17071)
+-- Dependencies: 267
+-- Data for Name: debug_toolbar_historyentry; Type: TABLE DATA; Schema: public; Owner: -
+--
+
+COPY public.debug_toolbar_historyentry (request_id, data, created_at) FROM stdin;
+\.
+
+
+--
+-- TOC entry 5675 (class 0 OID 16501)
+-- Dependencies: 212
+-- Data for Name: django_content_type; Type: TABLE DATA; Schema: public; Owner: -
+--
+
+COPY public.django_content_type (id, app_label, model) FROM stdin;
+1	auth	permission
+2	auth	group
+3	auth	user
+4	contenttypes	contenttype
+5	sessions	session
+6	authtoken	token
+7	authtoken	tokenproxy
+8	core	unit
+9	core	itemcategory
+10	core	item
+11	core	account
+12	core	itemprice
+13	core	userprofile
+14	web_ui	sessionlog
+15	web_ui	moduleaccess
+16	web_ui	uipreferences
+17	web_ui	systemstatus
+18	web_ui	commandhistory
+19	currencies	currency
+20	currencies	exchangerate
+21	currencies	currencyalert
+22	currencies	portfolio
+23	currencies	portfolioholding
+24	currencies	portfoliotransaction
+25	currencies	portfolioperformance
+26	currencies	transaction
+27	currencies	marketdata
+28	currencies	cryptoexchangerate
+29	currencies	bankexchangerate
+30	currencies	bankrateimportlog
+31	wimm	invoice
+32	wimm	invoiceitem
+33	wimm	transactioncategory
+34	wimm	transaction
+35	wimm	recurringtransaction
+36	wimm	budget
+37	wims	warehouse
+38	wims	stocklocation
+39	wims	stockcount
+40	wims	itemsupplier
+41	wims	stockcountitem
+42	wims	stockmovement
+43	wims	stockitem
+44	administration	systemsetting
+45	administration	role
+46	administration	permissionrequest
+47	administration	department
+48	administration	auditlog
+49	administration	userrole
+50	cctv	storageconfiguration
+51	cctv	camera
+52	cctv	alert
+53	cctv	cameragroup
+54	cctv	camerastream
+55	cctv	recordingschedule
+56	cctv	recordingsession
+57	documents	ocrtemplate
+58	documents	creditcard
+59	documents	document
+60	documents	documentbatch
+61	documents	expensecategory
+62	documents	expensegroup
+63	documents	parsedreceipt
+64	documents	receiptitem
+65	documents	subscription
+66	documents	challenge
+67	documents	learningmodel
+68	documents	pointtransaction
+69	documents	userprofile
+70	documents	achievement
+71	documents	leaderboard
+72	documents	userchallenge
+73	documents	validationfeedback
+74	documents	documenttype
+75	documents	documentshare
+76	personal_inflation	product
+77	personal_inflation	store
+78	personal_inflation	personalbasket
+79	personal_inflation	inflationreport
+80	personal_inflation	pricealert
+81	personal_inflation	basketitem
+82	personal_inflation	productcategory
+83	personal_inflation	pricerecord
+84	version_manager	gitstatus
+85	version_manager	scansession
+86	version_manager	versionarchive
+87	debug_toolbar	historyentry
+88	administration	screenlock
+89	movies	collection
+90	movies	genre
+91	movies	movie
+92	movies	collectionitem
+93	movies	personalarchive
+94	movies	userrating
+95	movies	watchhistory
+96	movies	watchlist
+97	music	artist
+98	music	album
+99	music	listeningstats
+100	music	playlist
+101	music	track
+102	music	playlisttrack
+103	music	listeninghistory
+104	music	useralbum
+105	music	userartist
+106	music	userlibrary
+107	music	usertrack
+108	restopos	menucategory
+109	restopos	menuitem
+110	restopos	order
+111	restopos	orderitem
+112	restopos	restaurant
+113	restopos	staff
+114	restopos	table
+115	restopos	reservation
+116	restopos	receipt
+117	solitaire	solitairesession
+118	solitaire	solitairemove
+119	solitaire	solitairestatistics
+120	solitaire	solitaireplayer
+121	solitaire	solitairegamesession
+122	solitaire	solitaireactivity
+123	birlikteyiz	cronjob
+124	birlikteyiz	earthquakedatasource
+125	birlikteyiz	emergencyprotocol
+126	birlikteyiz	disasterzone
+127	birlikteyiz	earthquake
+128	birlikteyiz	earthquakecomment
+129	birlikteyiz	meshnode
+130	birlikteyiz	emergencymessage
+131	birlikteyiz	messagerelay
+132	birlikteyiz	networktopology
+133	birlikteyiz	resourcepoint
+134	birlikteyiz	emergencycontact
+135	store	marketplace
+136	store	order
+137	store	orderitem
+138	store	product
+139	store	synclog
+\.
+
+
+--
+-- TOC entry 5673 (class 0 OID 16493)
+-- Dependencies: 210
+-- Data for Name: django_migrations; Type: TABLE DATA; Schema: public; Owner: -
+--
+
+COPY public.django_migrations (id, app, name, applied) FROM stdin;
+1	contenttypes	0001_initial	2025-08-09 08:56:00.867209+03
+2	contenttypes	0002_remove_content_type_name	2025-08-09 08:56:00.87831+03
+3	auth	0001_initial	2025-08-09 08:56:00.919572+03
+4	auth	0002_alter_permission_name_max_length	2025-08-09 08:56:00.925329+03
+5	auth	0003_alter_user_email_max_length	2025-08-09 08:56:00.927744+03
+6	auth	0004_alter_user_username_opts	2025-08-09 08:56:00.929958+03
+7	auth	0005_alter_user_last_login_null	2025-08-09 08:56:00.932624+03
+8	auth	0006_require_contenttypes_0002	2025-08-09 08:56:00.933113+03
+9	auth	0007_alter_validators_add_error_messages	2025-08-09 08:56:00.935173+03
+10	auth	0008_alter_user_username_max_length	2025-08-09 08:56:00.940759+03
+11	auth	0009_alter_user_last_name_max_length	2025-08-09 08:56:00.943222+03
+12	auth	0010_alter_group_name_max_length	2025-08-09 08:56:00.94668+03
+13	auth	0011_update_proxy_permissions	2025-08-09 08:56:00.954663+03
+14	auth	0012_alter_user_first_name_max_length	2025-08-09 08:56:00.956964+03
+15	administration	0001_initial	2025-08-09 08:56:01.039425+03
+16	authtoken	0001_initial	2025-08-09 08:56:01.048933+03
+17	authtoken	0002_auto_20160226_1747	2025-08-09 08:56:01.062694+03
+18	authtoken	0003_tokenproxy	2025-08-09 08:56:01.063795+03
+19	authtoken	0004_alter_tokenproxy_options	2025-08-09 08:56:01.06528+03
+20	cctv	0001_initial	2025-08-09 08:56:01.23636+03
+21	core	0001_initial	2025-08-09 08:56:01.291848+03
+22	core	0002_userprofile	2025-08-09 08:56:01.373455+03
+23	core	0003_alter_userprofile_user	2025-08-09 08:56:01.381579+03
+24	debug_toolbar	0001_initial	2025-08-09 08:56:01.402159+03
+25	documents	0001_initial	2025-08-09 08:56:01.648547+03
+26	documents	0002_document_deleted_at_document_deleted_by_and_more	2025-08-09 08:56:01.725145+03
+27	documents	0003_document_ai_confidence_document_ai_parsed_data_and_more	2025-08-09 08:56:01.773524+03
+28	documents	0004_challenge_learningmodel_pointtransaction_userprofile_and_more	2025-08-09 08:56:01.892693+03
+29	documents	0005_documenttype_documentshare	2025-08-09 08:56:01.924108+03
+30	personal_inflation	0001_initial	2025-08-09 08:56:02.38918+03
+31	sessions	0001_initial	2025-08-09 08:56:02.394109+03
+32	version_manager	0001_initial	2025-08-09 08:56:02.424923+03
+33	wimm	0001_initial	2025-08-09 08:56:02.662936+03
+34	wimm	0002_transaction_credit_card_transaction_expense_category_and_more	2025-08-09 08:56:02.788793+03
+35	wims	0001_initial	2025-08-09 08:56:03.074639+03
+36	administration	0002_screenlock	2025-08-19 09:40:52.472349+03
+37	administration	0003_screenlock_is_currently_locked	2025-08-19 09:40:52.489681+03
+38	administration	0004_remove_screenlock_is_currently_locked	2025-08-19 09:40:52.504209+03
+39	birlikteyiz	0001_initial	2025-08-19 09:40:52.749517+03
+40	movies	0001_initial	2025-08-19 09:40:53.357597+03
+41	movies	0002_apikeymanager_omdbcache_apiusagelog_movieimportqueue	2025-08-19 09:40:53.438432+03
+42	movies	0003_delete_apikeymanager_remove_apiusagelog_user_and_more	2025-08-19 09:40:53.521757+03
+43	music	0001_initial	2025-08-19 09:40:54.279308+03
+44	restopos	0001_initial	2025-08-19 09:40:54.8865+03
+45	restopos	0002_alter_menuitem_allergens	2025-08-19 09:40:54.891735+03
+46	solitaire	0001_initial	2025-08-19 09:40:55.062274+03
+47	solitaire	0002_solitaireplayer_solitairegamesession_solitaireactivity	2025-08-19 09:40:55.319932+03
+48	solitaire	0003_rename_solitaire_s_session_f0e3e1_idx_solitaire_s_session_b83e8d_idx_and_more	2025-08-19 09:40:55.372124+03
+49	store	0001_initial	2025-08-19 09:40:55.770313+03
+50	version_manager	0002_alter_versionarchive_status	2025-08-19 09:40:55.774496+03
+\.
+
+
+--
+-- TOC entry 5774 (class 0 OID 17526)
+-- Dependencies: 311
+-- Data for Name: django_session; Type: TABLE DATA; Schema: public; Owner: -
+--
+
+COPY public.django_session (session_key, session_data, expire_date) FROM stdin;
+vlrkcq07w0nyv9ip41q129ysrl8fhr9c	.eJxVjDsOwjAQBe_iGlmss2s7lPQ5g7X-4QCypTipEHeHSCmgfTPzXsLxtha39bS4OYqLAHH63TyHR6o7iHeutyZDq-sye7kr8qBdTi2m5_Vw_w4K9_KtySbUyBa19yZEEw1DQlTEIwQMFAY6Z8oWjM4qw0hDVgksaQJGRhLvD9oGN0w:1ukdW6:r07XhPXa2yBcxeePmwTEU6lhYfG8dXmaUlXQ_XktkPA	2025-08-23 09:57:22.997697+03
+0b8jj17r57yio56upxfj2pk9wy55vuya	.eJxVjDsOwjAQBe_iGlmss2s7lPQ5g7X-4QCypTipEHeHSCmgfTPzXsLxtha39bS4OYqLAHH63TyHR6o7iHeutyZDq-sye7kr8qBdTi2m5_Vw_w4K9_KtySbUyBa19yZEEw1DQlTEIwQMFAY6Z8oWjM4qw0hDVgksaQJGRhLvD9oGN0w:1ukddV:jGi7fFd7NSpRSUjiYnQkL8Hvp_0vMqKqYzp6x7RZ360	2025-08-23 10:05:01.151683+03
+22fkixko7d88osolkwkhp6gkcgn6w77a	.eJxVjDsOwjAQBe_iGlmss2s7lPQ5g7X-4QCypTipEHeHSCmgfTPzXsLxtha39bS4OYqLAHH63TyHR6o7iHeutyZDq-sye7kr8qBdTi2m5_Vw_w4K9_KtySbUyBa19yZEEw1DQlTEIwQMFAY6Z8oWjM4qw0hDVgksaQJGRhLvD9oGN0w:1ukdqo:CLe_re_iTpKb7YQuy5u3l9fhJ-B2OlCUzPLvEFFh1tI	2025-08-23 10:18:46.431503+03
+\.
+
+
+--
+-- TOC entry 5757 (class 0 OID 17257)
+-- Dependencies: 294
+-- Data for Name: documents_achievement; Type: TABLE DATA; Schema: public; Owner: -
+--
+
+COPY public.documents_achievement (id, achievement_type, name, description, icon, color, points_awarded, rarity, unlocked_at, user_id) FROM stdin;
+\.
+
+
+--
+-- TOC entry 5749 (class 0 OID 17225)
+-- Dependencies: 286
+-- Data for Name: documents_challenge; Type: TABLE DATA; Schema: public; Owner: -
+--
+
+COPY public.documents_challenge (id, title, description, challenge_type, target_count, target_type, points_reward, badge_reward, start_date, end_date, is_active, created_at) FROM stdin;
+\.
+
+
+--
+-- TOC entry 5734 (class 0 OID 17089)
+-- Dependencies: 271
+-- Data for Name: documents_creditcard; Type: TABLE DATA; Schema: public; Owner: -
+--
+
+COPY public.documents_creditcard (id, bank_name, card_name, last_four_digits, card_type, credit_limit, current_balance, available_credit, statement_day, payment_due_day, is_active, expiry_date, color, notes, created_at, updated_at, user_id) FROM stdin;
+\.
+
+
+--
+-- TOC entry 5735 (class 0 OID 17096)
+-- Dependencies: 272
+-- Data for Name: documents_document; Type: TABLE DATA; Schema: public; Owner: -
+--
+
+COPY public.documents_document (id, document_type, original_filename, file_path, thumbnail_path, processing_status, ocr_text, ocr_confidence, ocr_processed_at, uploaded_at, updated_at, tags, custom_metadata, user_id, deleted_at, deleted_by_id, is_deleted, ai_confidence, ai_parsed_data, ai_processed, ai_processed_at, ai_provider) FROM stdin;
+\.
+
+
+--
+-- TOC entry 5737 (class 0 OID 17104)
+-- Dependencies: 274
+-- Data for Name: documents_documentbatch; Type: TABLE DATA; Schema: public; Owner: -
+--
+
+COPY public.documents_documentbatch (id, batch_name, total_documents, processed_documents, failed_documents, started_at, completed_at, status, user_id) FROM stdin;
+\.
+
+
+--
+-- TOC entry 5765 (class 0 OID 17346)
+-- Dependencies: 302
+-- Data for Name: documents_documentshare; Type: TABLE DATA; Schema: public; Owner: -
+--
+
+COPY public.documents_documentshare (id, share_type, shared_with_group, permission, can_reshare, expires_at, share_link, access_count, last_accessed, created_at, revoked_at, notes, document_id, shared_by_id, shared_with_id) FROM stdin;
+\.
+
+
+--
+-- TOC entry 5764 (class 0 OID 17337)
+-- Dependencies: 301
+-- Data for Name: documents_documenttype; Type: TABLE DATA; Schema: public; Owner: -
+--
+
+COPY public.documents_documenttype (id, name, category, description, keywords, regex_patterns, requires_ocr, requires_validation, privacy_level, created_at, updated_at, is_active) FROM stdin;
+\.
+
+
+--
+-- TOC entry 5739 (class 0 OID 17110)
+-- Dependencies: 276
+-- Data for Name: documents_expensecategory; Type: TABLE DATA; Schema: public; Owner: -
+--
+
+COPY public.documents_expensecategory (id, name, icon, color, monthly_budget, is_system, created_at, parent_id, user_id) FROM stdin;
+\.
+
+
+--
+-- TOC entry 5741 (class 0 OID 17116)
+-- Dependencies: 278
+-- Data for Name: documents_expensegroup; Type: TABLE DATA; Schema: public; Owner: -
+--
+
+COPY public.documents_expensegroup (id, name, description, budget, start_date, end_date, color, is_active, created_at, user_id) FROM stdin;
+\.
+
+
+--
+-- TOC entry 5759 (class 0 OID 17265)
+-- Dependencies: 296
+-- Data for Name: documents_leaderboard; Type: TABLE DATA; Schema: public; Owner: -
+--
+
+COPY public.documents_leaderboard (id, period_type, period_start, period_end, points_earned, receipts_processed, accuracy_score, rank, created_at, updated_at, user_id) FROM stdin;
+\.
+
+
+--
+-- TOC entry 5751 (class 0 OID 17233)
+-- Dependencies: 288
+-- Data for Name: documents_learningmodel; Type: TABLE DATA; Schema: public; Owner: -
+--
+
+COPY public.documents_learningmodel (id, pattern_type, pattern_value, confidence_score, usage_count, success_count, store_name, sample_text, metadata, created_at, updated_at) FROM stdin;
+\.
+
+
+--
+-- TOC entry 5732 (class 0 OID 17079)
+-- Dependencies: 269
+-- Data for Name: documents_ocrtemplate; Type: TABLE DATA; Schema: public; Owner: -
+--
+
+COPY public.documents_ocrtemplate (id, store_name, store_aliases, field_mappings, regex_patterns, layout_type, has_header, has_footer, created_at, updated_at) FROM stdin;
+\.
+
+
+--
+-- TOC entry 5743 (class 0 OID 17124)
+-- Dependencies: 280
+-- Data for Name: documents_parsedreceipt; Type: TABLE DATA; Schema: public; Owner: -
+--
+
+COPY public.documents_parsedreceipt (id, store_name, store_address, store_phone, store_tax_id, transaction_date, receipt_number, cashier_id, subtotal, tax_amount, discount_amount, total_amount, payment_method, card_last_digits, currency, raw_ocr_data, created_at, updated_at, document_id) FROM stdin;
+\.
+
+
+--
+-- TOC entry 5753 (class 0 OID 17241)
+-- Dependencies: 290
+-- Data for Name: documents_pointtransaction; Type: TABLE DATA; Schema: public; Owner: -
+--
+
+COPY public.documents_pointtransaction (id, points, reason, transaction_type, related_document_id, metadata, created_at, user_id) FROM stdin;
+\.
+
+
+--
+-- TOC entry 5745 (class 0 OID 17134)
+-- Dependencies: 282
+-- Data for Name: documents_receiptitem; Type: TABLE DATA; Schema: public; Owner: -
+--
+
+COPY public.documents_receiptitem (id, name, barcode, category, quantity, unit, unit_price, total_price, discount_amount, discount_percentage, tax_rate, linked_product_id, linked_stock_item_id, created_at, receipt_id) FROM stdin;
+\.
+
+
+--
+-- TOC entry 5747 (class 0 OID 17140)
+-- Dependencies: 284
+-- Data for Name: documents_subscription; Type: TABLE DATA; Schema: public; Owner: -
+--
+
+COPY public.documents_subscription (id, service_name, category, amount, currency, billing_cycle, billing_day, is_active, start_date, end_date, next_billing_date, notify_before_days, auto_renew, icon, color, notes, created_at, updated_at, payment_method_id, user_id) FROM stdin;
+\.
+
+
+--
+-- TOC entry 5761 (class 0 OID 17271)
+-- Dependencies: 298
+-- Data for Name: documents_userchallenge; Type: TABLE DATA; Schema: public; Owner: -
+--
+
+COPY public.documents_userchallenge (id, current_progress, completed, completed_at, claimed_reward, started_at, updated_at, challenge_id, user_id) FROM stdin;
+\.
+
+
+--
+-- TOC entry 5755 (class 0 OID 17249)
+-- Dependencies: 292
+-- Data for Name: documents_userprofile; Type: TABLE DATA; Schema: public; Owner: -
+--
+
+COPY public.documents_userprofile (id, total_points, current_level, experience_points, receipts_processed, receipts_validated, accuracy_score, streak_days, last_activity_date, weekly_rank, monthly_rank, all_time_rank, preferred_language, notification_enabled, tutorial_completed, created_at, updated_at, user_id) FROM stdin;
+\.
+
+
+--
+-- TOC entry 5763 (class 0 OID 17277)
+-- Dependencies: 300
+-- Data for Name: documents_validationfeedback; Type: TABLE DATA; Schema: public; Owner: -
+--
+
+COPY public.documents_validationfeedback (id, document_id, field_name, original_value, corrected_value, confidence_score, is_correct, votes_up, votes_down, points_awarded, created_at, user_id) FROM stdin;
+\.
+
+
+--
+-- TOC entry 5818 (class 0 OID 17995)
+-- Dependencies: 355
+-- Data for Name: exchange_rates; Type: TABLE DATA; Schema: public; Owner: -
+--
+
+COPY public.exchange_rates (id, base_currency_id, target_currency_id, rate, bid, ask, volume_24h, change_24h, change_percentage_24h, source, "timestamp", created_at) FROM stdin;
+\.
+
+
+--
+-- TOC entry 5769 (class 0 OID 17400)
+-- Dependencies: 306
+-- Data for Name: inflation_reports; Type: TABLE DATA; Schema: public; Owner: -
+--
+
+COPY public.inflation_reports (id, period_start, period_end, report_type, inflation_rate, total_start_cost, total_end_cost, category_breakdown, official_inflation_rate, detailed_data, generated_at, user_id, basket_id) FROM stdin;
+\.
+
+
+--
+-- TOC entry 5825 (class 0 OID 18045)
+-- Dependencies: 362
+-- Data for Name: market_data; Type: TABLE DATA; Schema: public; Owner: -
+--
+
+COPY public.market_data (id, currency_pair, open_price, high_price, low_price, close_price, volume, period_start, period_end, "interval", source) FROM stdin;
+\.
+
+
+--
+-- TOC entry 5847 (class 0 OID 18442)
+-- Dependencies: 384
+-- Data for Name: movies_collection; Type: TABLE DATA; Schema: public; Owner: -
+--
+
+COPY public.movies_collection (id, name, description, visibility, cover_image, tags, view_count, like_count, created_at, updated_at, user_id) FROM stdin;
+\.
+
+
+--
+-- TOC entry 5854 (class 0 OID 18477)
+-- Dependencies: 391
+-- Data for Name: movies_collectionitem; Type: TABLE DATA; Schema: public; Owner: -
+--
+
+COPY public.movies_collectionitem (id, "position", notes, added_at, collection_id, movie_id) FROM stdin;
+\.
+
+
+--
+-- TOC entry 5849 (class 0 OID 18450)
+-- Dependencies: 386
+-- Data for Name: movies_genre; Type: TABLE DATA; Schema: public; Owner: -
+--
+
+COPY public.movies_genre (id, tmdb_id, name, slug) FROM stdin;
+\.
+
+
+--
+-- TOC entry 5850 (class 0 OID 18459)
+-- Dependencies: 387
+-- Data for Name: movies_movie; Type: TABLE DATA; Schema: public; Owner: -
+--
+
+COPY public.movies_movie (id, tmdb_id, imdb_id, title, original_title, content_type, overview, tagline, release_date, runtime, status, poster_path, backdrop_path, trailer_url, production_companies, production_countries, spoken_languages, budget, revenue, tmdb_rating, tmdb_vote_count, popularity, number_of_seasons, number_of_episodes, episode_runtime, api_data, created_at, updated_at, last_api_sync) FROM stdin;
+\.
+
+
+--
+-- TOC entry 5852 (class 0 OID 18471)
+-- Dependencies: 389
+-- Data for Name: movies_movie_genres; Type: TABLE DATA; Schema: public; Owner: -
+--
+
+COPY public.movies_movie_genres (id, movie_id, genre_id) FROM stdin;
+\.
+
+
+--
+-- TOC entry 5855 (class 0 OID 18484)
+-- Dependencies: 392
+-- Data for Name: movies_personalarchive; Type: TABLE DATA; Schema: public; Owner: -
+--
+
+COPY public.movies_personalarchive (id, format, quality, location, file_size_gb, subtitles, audio_languages, notes, tags, acquired_date, added_at, updated_at, movie_id, user_id) FROM stdin;
+\.
+
+
+--
+-- TOC entry 5856 (class 0 OID 18491)
+-- Dependencies: 393
+-- Data for Name: movies_userrating; Type: TABLE DATA; Schema: public; Owner: -
+--
+
+COPY public.movies_userrating (id, rating, review_title, review_text, contains_spoilers, is_public, helpful_count, created_at, updated_at, movie_id, user_id) FROM stdin;
+\.
+
+
+--
+-- TOC entry 5857 (class 0 OID 18498)
+-- Dependencies: 394
+-- Data for Name: movies_watchhistory; Type: TABLE DATA; Schema: public; Owner: -
+--
+
+COPY public.movies_watchhistory (id, started_at, ended_at, duration_minutes, completed, progress_percentage, season, episode, device_type, ip_address, movie_id, user_id) FROM stdin;
+\.
+
+
+--
+-- TOC entry 5858 (class 0 OID 18505)
+-- Dependencies: 395
+-- Data for Name: movies_watchlist; Type: TABLE DATA; Schema: public; Owner: -
+--
+
+COPY public.movies_watchlist (id, status, priority, current_season, current_episode, notes, tags, added_at, updated_at, watched_at, movie_id, user_id) FROM stdin;
+\.
+
+
+--
+-- TOC entry 5860 (class 0 OID 18690)
+-- Dependencies: 397
+-- Data for Name: music_album; Type: TABLE DATA; Schema: public; Owner: -
+--
+
+COPY public.music_album (id, spotify_id, name, album_type, release_date, total_tracks, duration_ms, cover_url, thumbnail_url, label, genres, popularity, spotify_url, spotify_data, artwork_file, artwork_source, artwork_license, created_at, updated_at, last_spotify_sync, artist_id) FROM stdin;
+\.
+
+
+--
+-- TOC entry 5862 (class 0 OID 18700)
+-- Dependencies: 399
+-- Data for Name: music_album_featured_artists; Type: TABLE DATA; Schema: public; Owner: -
+--
+
+COPY public.music_album_featured_artists (id, album_id, artist_id) FROM stdin;
+\.
+
+
+--
+-- TOC entry 5859 (class 0 OID 18679)
+-- Dependencies: 396
+-- Data for Name: music_artist; Type: TABLE DATA; Schema: public; Owner: -
+--
+
+COPY public.music_artist (id, spotify_id, name, slug, genres, popularity, followers, image_url, thumbnail_url, bio, country, formed_year, spotify_url, website_url, spotify_data, created_at, updated_at, last_spotify_sync) FROM stdin;
+\.
+
+
+--
+-- TOC entry 5872 (class 0 OID 18746)
+-- Dependencies: 409
+-- Data for Name: music_listeninghistory; Type: TABLE DATA; Schema: public; Owner: -
+--
+
+COPY public.music_listeninghistory (id, played_at, duration_played_ms, completed, skipped, source, source_id, device_type, ip_address, user_id, track_id) FROM stdin;
+\.
+
+
+--
+-- TOC entry 5863 (class 0 OID 18705)
+-- Dependencies: 400
+-- Data for Name: music_listeningstats; Type: TABLE DATA; Schema: public; Owner: -
+--
+
+COPY public.music_listeningstats (id, period, period_date, total_tracks_played, unique_tracks_played, total_time_ms, top_tracks, top_artists, top_albums, top_genres, peak_hour, device_breakdown, created_at, updated_at, user_id) FROM stdin;
+\.
+
+
+--
+-- TOC entry 5864 (class 0 OID 18712)
+-- Dependencies: 401
+-- Data for Name: music_playlist; Type: TABLE DATA; Schema: public; Owner: -
+--
+
+COPY public.music_playlist (id, name, description, visibility, cover_image, tags, play_count, like_count, created_at, updated_at, user_id) FROM stdin;
+\.
+
+
+--
+-- TOC entry 5866 (class 0 OID 18720)
+-- Dependencies: 403
+-- Data for Name: music_playlist_collaborators; Type: TABLE DATA; Schema: public; Owner: -
+--
+
+COPY public.music_playlist_collaborators (id, playlist_id, user_id) FROM stdin;
+\.
+
+
+--
+-- TOC entry 5871 (class 0 OID 18741)
+-- Dependencies: 408
+-- Data for Name: music_playlisttrack; Type: TABLE DATA; Schema: public; Owner: -
+--
+
+COPY public.music_playlisttrack (id, "position", added_at, added_by_id, playlist_id, track_id) FROM stdin;
+\.
+
+
+--
+-- TOC entry 5867 (class 0 OID 18725)
+-- Dependencies: 404
+-- Data for Name: music_track; Type: TABLE DATA; Schema: public; Owner: -
+--
+
+COPY public.music_track (id, spotify_id, isrc, name, track_number, disc_number, duration_ms, explicit, popularity, acousticness, danceability, energy, instrumentalness, key, liveness, loudness, mode, speechiness, tempo, time_signature, valence, spotify_url, preview_url, spotify_data, created_at, updated_at, album_id, artist_id) FROM stdin;
+\.
+
+
+--
+-- TOC entry 5869 (class 0 OID 18735)
+-- Dependencies: 406
+-- Data for Name: music_track_featured_artists; Type: TABLE DATA; Schema: public; Owner: -
+--
+
+COPY public.music_track_featured_artists (id, track_id, artist_id) FROM stdin;
+\.
+
+
+--
+-- TOC entry 5874 (class 0 OID 18754)
+-- Dependencies: 411
+-- Data for Name: music_useralbum; Type: TABLE DATA; Schema: public; Owner: -
+--
+
+COPY public.music_useralbum (id, is_favorite, play_count, rating, added_at, last_played, album_id, library_id) FROM stdin;
+\.
+
+
+--
+-- TOC entry 5876 (class 0 OID 18760)
+-- Dependencies: 413
+-- Data for Name: music_userartist; Type: TABLE DATA; Schema: public; Owner: -
+--
+
+COPY public.music_userartist (id, is_favorite, play_count, added_at, last_played, artist_id, library_id) FROM stdin;
+\.
+
+
+--
+-- TOC entry 5877 (class 0 OID 18765)
+-- Dependencies: 414
+-- Data for Name: music_userlibrary; Type: TABLE DATA; Schema: public; Owner: -
+--
+
+COPY public.music_userlibrary (id, spotify_connected, spotify_user_id, auto_sync, total_play_time_ms, created_at, updated_at, last_sync, user_id) FROM stdin;
+\.
+
+
+--
+-- TOC entry 5879 (class 0 OID 18783)
+-- Dependencies: 416
+-- Data for Name: music_usertrack; Type: TABLE DATA; Schema: public; Owner: -
+--
+
+COPY public.music_usertrack (id, is_favorite, play_count, skip_count, added_at, last_played, library_id, track_id) FROM stdin;
+\.
+
+
+--
+-- TOC entry 5768 (class 0 OID 17393)
+-- Dependencies: 305
+-- Data for Name: personal_baskets; Type: TABLE DATA; Schema: public; Owner: -
+--
+
+COPY public.personal_baskets (id, name, is_active, is_default, calculation_period, description, created_at, updated_at, user_id) FROM stdin;
+\.
+
+
+--
+-- TOC entry 5821 (class 0 OID 18015)
+-- Dependencies: 358
+-- Data for Name: portfolio_holdings; Type: TABLE DATA; Schema: public; Owner: -
+--
+
+COPY public.portfolio_holdings (id, portfolio_id, currency_id, asset_type, amount, average_buy_price, total_invested, realized_pnl, unrealized_pnl, notes, created_at, updated_at) FROM stdin;
+\.
+
+
+--
+-- TOC entry 5823 (class 0 OID 18031)
+-- Dependencies: 360
+-- Data for Name: portfolio_performance; Type: TABLE DATA; Schema: public; Owner: -
+--
+
+COPY public.portfolio_performance (id, portfolio_id, snapshot_date, snapshot_time, total_value_usd, total_value_try, total_value_eur, total_invested_usd, total_invested_try, daily_pnl, daily_pnl_percentage, weekly_pnl, weekly_pnl_percentage, monthly_pnl, monthly_pnl_percentage, yearly_pnl, yearly_pnl_percentage, total_pnl, total_pnl_percentage, holdings_snapshot, created_at) FROM stdin;
+\.
+
+
+--
+-- TOC entry 5822 (class 0 OID 18022)
+-- Dependencies: 359
+-- Data for Name: portfolio_transactions; Type: TABLE DATA; Schema: public; Owner: -
+--
+
+COPY public.portfolio_transactions (id, portfolio_id, transaction_type, currency_id, amount, price, price_currency, total_value, fee_amount, fee_currency, exchange, external_id, realized_pnl, cost_basis, notes, executed_at, created_at) FROM stdin;
+\.
+
+
+--
+-- TOC entry 5820 (class 0 OID 18006)
+-- Dependencies: 357
+-- Data for Name: portfolios; Type: TABLE DATA; Schema: public; Owner: -
+--
+
+COPY public.portfolios (id, user_id, name, description, is_default, is_public, total_value_usd, total_value_try, daily_pnl, daily_pnl_percentage, created_at, updated_at, last_calculated) FROM stdin;
+\.
+
+
+--
+-- TOC entry 5770 (class 0 OID 17407)
+-- Dependencies: 307
+-- Data for Name: price_alerts; Type: TABLE DATA; Schema: public; Owner: -
+--
+
+COPY public.price_alerts (id, alert_type, threshold_value, percentage_change, is_active, last_triggered, trigger_count, created_at, updated_at, user_id, product_id) FROM stdin;
+\.
+
+
+--
+-- TOC entry 5773 (class 0 OID 17429)
+-- Dependencies: 310
+-- Data for Name: price_records; Type: TABLE DATA; Schema: public; Owner: -
+--
+
+COPY public.price_records (id, price, currency, is_discounted, original_price, discount_percentage, source, is_verified, verification_count, notes, receipt_image, recorded_at, created_at, user_id, product_id, store_id) FROM stdin;
+\.
+
+
+--
+-- TOC entry 5772 (class 0 OID 17418)
+-- Dependencies: 309
+-- Data for Name: product_categories; Type: TABLE DATA; Schema: public; Owner: -
+--
+
+COPY public.product_categories (id, name, icon, color, "order", official_weight, is_active, created_at, updated_at, parent_id) FROM stdin;
+\.
+
+
+--
+-- TOC entry 5766 (class 0 OID 17379)
+-- Dependencies: 303
+-- Data for Name: products; Type: TABLE DATA; Schema: public; Owner: -
+--
+
+COPY public.products (id, name, barcode, brand, unit, description, image_url, is_active, created_at, updated_at, search_vector, category_id) FROM stdin;
+\.
+
+
+--
+-- TOC entry 5881 (class 0 OID 18962)
+-- Dependencies: 418
+-- Data for Name: restopos_menucategory; Type: TABLE DATA; Schema: public; Owner: -
+--
+
+COPY public.restopos_menucategory (id, name, slug, description, display_order, is_active, icon, color_code, restaurant_id) FROM stdin;
+\.
+
+
+--
+-- TOC entry 5882 (class 0 OID 18969)
+-- Dependencies: 419
+-- Data for Name: restopos_menuitem; Type: TABLE DATA; Schema: public; Owner: -
+--
+
+COPY public.restopos_menuitem (id, name, slug, description, item_type, price, cost, track_inventory, wims_product_id, is_vegetarian, is_vegan, is_gluten_free, is_halal, allergens, calories, is_available, available_times, preparation_time_minutes, customization_options, times_ordered, rating, created_at, updated_at, category_id, restaurant_id) FROM stdin;
+\.
+
+
+--
+-- TOC entry 5883 (class 0 OID 18976)
+-- Dependencies: 420
+-- Data for Name: restopos_order; Type: TABLE DATA; Schema: public; Owner: -
+--
+
+COPY public.restopos_order (id, order_number, order_type, status, customer_name, customer_phone, customer_email, guest_count, subtotal, tax_amount, service_charge, discount_amount, tip_amount, total_amount, notes, kitchen_notes, payment_method, payment_status, wimm_transaction_id, created_at, confirmed_at, completed_at, cancelled_at, chef_id, waiter_id, restaurant_id, table_id) FROM stdin;
+\.
+
+
+--
+-- TOC entry 5884 (class 0 OID 18985)
+-- Dependencies: 421
+-- Data for Name: restopos_orderitem; Type: TABLE DATA; Schema: public; Owner: -
+--
+
+COPY public.restopos_orderitem (id, quantity, unit_price, total_price, customizations, special_instructions, status, created_at, prepared_at, served_at, menu_item_id, order_id) FROM stdin;
+\.
+
+
+--
+-- TOC entry 5889 (class 0 OID 19048)
+-- Dependencies: 426
+-- Data for Name: restopos_receipt; Type: TABLE DATA; Schema: public; Owner: -
+--
+
+COPY public.restopos_receipt (id, receipt_number, payment_method, payment_reference, subtotal, tax_amount, service_charge, discount_amount, tip_amount, total_amount, amount_paid, change_amount, email_sent, email_sent_at, issued_at, order_id) FROM stdin;
+\.
+
+
+--
+-- TOC entry 5888 (class 0 OID 19034)
+-- Dependencies: 425
+-- Data for Name: restopos_reservation; Type: TABLE DATA; Schema: public; Owner: -
+--
+
+COPY public.restopos_reservation (id, customer_name, customer_phone, customer_email, guest_count, reservation_date, reservation_time, duration_minutes, status, special_requests, confirmation_code, confirmed_at, created_at, updated_at, restaurant_id, table_id) FROM stdin;
+\.
+
+
+--
+-- TOC entry 5885 (class 0 OID 18992)
+-- Dependencies: 422
+-- Data for Name: restopos_restaurant; Type: TABLE DATA; Schema: public; Owner: -
+--
+
+COPY public.restopos_restaurant (id, name, slug, branch_code, address, city, country, postal_code, phone, email, tax_number, currency, tax_rate, service_charge_rate, operating_hours, auto_gratuity_enabled, auto_gratuity_percentage, allow_split_bills, require_table_assignment, wimm_integration_enabled, wims_integration_enabled, created_at, updated_at) FROM stdin;
+\.
+
+
+--
+-- TOC entry 5886 (class 0 OID 19018)
+-- Dependencies: 423
+-- Data for Name: restopos_staff; Type: TABLE DATA; Schema: public; Owner: -
+--
+
+COPY public.restopos_staff (id, employee_id, role, can_manage_orders, can_manage_tables, can_manage_menu, can_process_payments, can_view_reports, shift_schedule, hourly_rate, is_active, is_on_duty, hired_date, created_at, updated_at, restaurant_id, user_id) FROM stdin;
+\.
+
+
+--
+-- TOC entry 5887 (class 0 OID 19027)
+-- Dependencies: 424
+-- Data for Name: restopos_table; Type: TABLE DATA; Schema: public; Owner: -
+--
+
+COPY public.restopos_table (id, table_number, section, capacity, status, qr_code, position_x, position_y, last_occupied, last_cleaned, current_order_id, restaurant_id) FROM stdin;
+\.
+
+
+--
+-- TOC entry 5901 (class 0 OID 19228)
+-- Dependencies: 438
+-- Data for Name: solitaire_solitaireactivity; Type: TABLE DATA; Schema: public; Owner: -
+--
+
+COPY public.solitaire_solitaireactivity (id, action, "timestamp", details, session_id) FROM stdin;
+\.
+
+
+--
+-- TOC entry 5899 (class 0 OID 19218)
+-- Dependencies: 436
+-- Data for Name: solitaire_solitairegamesession; Type: TABLE DATA; Schema: public; Owner: -
+--
+
+COPY public.solitaire_solitairegamesession (id, session_id, started_at, ended_at, game_state, moves_count, score, time_played, is_completed, is_won, is_abandoned, browser_info, player_id) FROM stdin;
+\.
+
+
+--
+-- TOC entry 5893 (class 0 OID 19172)
+-- Dependencies: 430
+-- Data for Name: solitaire_solitairemove; Type: TABLE DATA; Schema: public; Owner: -
+--
+
+COPY public.solitaire_solitairemove (id, move_number, from_pile, to_pile, cards_moved, cards_revealed, previous_state, "timestamp", session_id) FROM stdin;
+\.
+
+
+--
+-- TOC entry 5897 (class 0 OID 19210)
+-- Dependencies: 434
+-- Data for Name: solitaire_solitaireplayer; Type: TABLE DATA; Schema: public; Owner: -
+--
+
+COPY public.solitaire_solitaireplayer (id, session_key, ip_address, user_agent, display_name, is_anonymous, first_seen, last_seen, total_sessions, country, city, is_active, is_banned, ban_reason, user_id) FROM stdin;
+\.
+
+
+--
+-- TOC entry 5891 (class 0 OID 19162)
+-- Dependencies: 428
+-- Data for Name: solitaire_solitairesession; Type: TABLE DATA; Schema: public; Owner: -
+--
+
+COPY public.solitaire_solitairesession (id, session_id, stock_pile, waste_pile, foundation_piles, tableau_piles, moves_count, score, game_time, is_active, is_won, created_at, last_played, last_minimize, lock_password, user_id) FROM stdin;
+\.
+
+
+--
+-- TOC entry 5895 (class 0 OID 19180)
+-- Dependencies: 432
+-- Data for Name: solitaire_solitairestatistics; Type: TABLE DATA; Schema: public; Owner: -
+--
+
+COPY public.solitaire_solitairestatistics (id, games_played, games_won, total_score, highest_score, total_time_played, current_win_streak, best_win_streak, fastest_win, fewest_moves_win, last_updated, user_id) FROM stdin;
+\.
+
+
+--
+-- TOC entry 5903 (class 0 OID 19263)
+-- Dependencies: 440
+-- Data for Name: store_marketplace; Type: TABLE DATA; Schema: public; Owner: -
+--
+
+COPY public.store_marketplace (id, platform, shop_name, api_key, api_secret, sentos_api_key, sentos_shop_url, status, is_primary, total_orders, total_products, total_revenue, last_sync, sync_interval_minutes, auto_sync, created_at, updated_at, user_id) FROM stdin;
+\.
+
+
+--
+-- TOC entry 5905 (class 0 OID 19271)
+-- Dependencies: 442
+-- Data for Name: store_order; Type: TABLE DATA; Schema: public; Owner: -
+--
+
+COPY public.store_order (id, platform_order_id, order_number, customer_name, customer_email, customer_phone, shipping_address, shipping_city, shipping_state, shipping_country, shipping_postal_code, status, payment_status, payment_method, currency, subtotal, shipping_cost, tax_amount, discount_amount, total_amount, tracking_number, tracking_company, customer_note, internal_note, order_date, shipped_date, delivered_date, platform_data, created_at, updated_at, marketplace_id, user_id) FROM stdin;
+\.
+
+
+--
+-- TOC entry 5907 (class 0 OID 19281)
+-- Dependencies: 444
+-- Data for Name: store_orderitem; Type: TABLE DATA; Schema: public; Owner: -
+--
+
+COPY public.store_orderitem (id, product_id, product_name, product_sku, product_barcode, variant_id, variant_title, quantity, unit_price, discount_amount, tax_amount, total_price, metadata, order_id) FROM stdin;
+\.
+
+
+--
+-- TOC entry 5909 (class 0 OID 19289)
+-- Dependencies: 446
+-- Data for Name: store_product; Type: TABLE DATA; Schema: public; Owner: -
+--
+
+COPY public.store_product (id, platform_product_id, sku, barcode, title, description, brand, category, price, sale_price, currency, stock_quantity, low_stock_threshold, main_image_url, additional_images, status, total_sales, total_revenue, platform_data, last_sync, created_at, updated_at, marketplace_id, user_id) FROM stdin;
+\.
+
+
+--
+-- TOC entry 5911 (class 0 OID 19297)
+-- Dependencies: 448
+-- Data for Name: store_synclog; Type: TABLE DATA; Schema: public; Owner: -
+--
+
+COPY public.store_synclog (id, sync_type, status, items_processed, items_created, items_updated, items_failed, started_at, completed_at, duration_seconds, error_message, error_details, marketplace_id) FROM stdin;
+\.
+
+
+--
+-- TOC entry 5767 (class 0 OID 17386)
+-- Dependencies: 304
+-- Data for Name: stores; Type: TABLE DATA; Schema: public; Owner: -
+--
+
+COPY public.stores (id, name, store_type, address, latitude, longitude, website, phone, created_at, updated_at) FROM stdin;
+\.
+
+
+--
+-- TOC entry 5824 (class 0 OID 18038)
+-- Dependencies: 361
+-- Data for Name: transactions; Type: TABLE DATA; Schema: public; Owner: -
+--
+
+COPY public.transactions (id, portfolio_id, transaction_type, currency_id, amount, price, total_value, fee_amount, fee_currency_id, notes, exchange, external_id, executed_at, created_at) FROM stdin;
+\.
+
+
+--
+-- TOC entry 5776 (class 0 OID 17536)
+-- Dependencies: 313
+-- Data for Name: version_manager_gitstatus; Type: TABLE DATA; Schema: public; Owner: -
+--
+
+COPY public.version_manager_gitstatus (id, checked_at, branch, commit_hash, commit_message, author, modified_files, untracked_files, staged_files, has_changes, ahead_count, behind_count) FROM stdin;
+\.
+
+
+--
+-- TOC entry 5778 (class 0 OID 17544)
+-- Dependencies: 315
+-- Data for Name: version_manager_scansession; Type: TABLE DATA; Schema: public; Owner: -
+--
+
+COPY public.version_manager_scansession (id, started_at, completed_at, total_archives, total_size_bytes, total_size_gb, average_size_mb, anomaly_count, progress_percent, current_archive, status_message, is_complete, has_errors, error_message, started_by_id) FROM stdin;
+\.
+
+
+--
+-- TOC entry 5780 (class 0 OID 17552)
+-- Dependencies: 317
+-- Data for Name: version_manager_versionarchive; Type: TABLE DATA; Schema: public; Owner: -
+--
+
+COPY public.version_manager_versionarchive (id, version, path, size_bytes, size_mb, file_count, directory_count, z_score, is_anomaly, anomaly_reason, status, created_at, last_scanned, git_commit, git_branch, git_tag) FROM stdin;
+\.
+
+
+--
+-- TOC entry 5816 (class 0 OID 17982)
+-- Dependencies: 353
+-- Data for Name: web_ui_command_history; Type: TABLE DATA; Schema: public; Owner: -
+--
+
+COPY public.web_ui_command_history (id, user_id, command, module, executed_at, success, output, error_message, execution_time) FROM stdin;
+\.
+
+
+--
+-- TOC entry 5810 (class 0 OID 17958)
+-- Dependencies: 347
+-- Data for Name: web_ui_module_access; Type: TABLE DATA; Schema: public; Owner: -
+--
+
+COPY public.web_ui_module_access (id, user_id, module, accessed_at, session_id, action, data) FROM stdin;
+\.
+
+
+--
+-- TOC entry 5812 (class 0 OID 17966)
+-- Dependencies: 349
+-- Data for Name: web_ui_preferences; Type: TABLE DATA; Schema: public; Owner: -
+--
+
+COPY public.web_ui_preferences (id, user_id, theme, font_size, show_animations, enable_sound, keyboard_shortcuts, auto_refresh, refresh_interval, sidebar_collapsed, language, created_at, updated_at) FROM stdin;
+\.
+
+
+--
+-- TOC entry 5808 (class 0 OID 17948)
+-- Dependencies: 345
+-- Data for Name: web_ui_session_logs; Type: TABLE DATA; Schema: public; Owner: -
+--
+
+COPY public.web_ui_session_logs (id, user_id, session_id, ip_address, user_agent, started_at, ended_at, is_active) FROM stdin;
+\.
+
+
+--
+-- TOC entry 5814 (class 0 OID 17974)
+-- Dependencies: 351
+-- Data for Name: web_ui_system_status; Type: TABLE DATA; Schema: public; Owner: -
+--
+
+COPY public.web_ui_system_status (id, module, status, health_score, last_checked, error_count, warning_count, metadata) FROM stdin;
+\.
+
+
+--
+-- TOC entry 5792 (class 0 OID 17615)
+-- Dependencies: 329
+-- Data for Name: wimm_budget; Type: TABLE DATA; Schema: public; Owner: -
+--
+
+COPY public.wimm_budget (id, created_at, updated_at, is_active, name, period_type, start_date, end_date, amount, currency, alert_percentage, user_id, category_id) FROM stdin;
+\.
+
+
+--
+-- TOC entry 5782 (class 0 OID 17573)
+-- Dependencies: 319
+-- Data for Name: wimm_invoice; Type: TABLE DATA; Schema: public; Owner: -
+--
+
+COPY public.wimm_invoice (id, created_at, updated_at, is_active, invoice_type, invoice_number, invoice_date, due_date, vendor_name, vendor_tax_id, vendor_address, customer_name, customer_tax_id, customer_address, subtotal, tax_rate, tax_amount, discount_amount, total_amount, currency, payment_status, paid_amount, notes, attachments, user_id) FROM stdin;
+\.
+
+
+--
+-- TOC entry 5784 (class 0 OID 17583)
+-- Dependencies: 321
+-- Data for Name: wimm_invoiceitem; Type: TABLE DATA; Schema: public; Owner: -
+--
+
+COPY public.wimm_invoiceitem (id, created_at, updated_at, is_active, description, quantity, unit_price, discount_rate, discount_amount, tax_rate, tax_amount, total, invoice_id, item_id) FROM stdin;
+\.
+
+
+--
+-- TOC entry 5790 (class 0 OID 17607)
+-- Dependencies: 327
+-- Data for Name: wimm_recurringtransaction; Type: TABLE DATA; Schema: public; Owner: -
+--
+
+COPY public.wimm_recurringtransaction (id, created_at, updated_at, name, transaction_type, amount, currency, description, frequency, start_date, end_date, next_date, is_active, last_created, from_account_id, to_account_id, user_id, category_id) FROM stdin;
+\.
+
+
+--
+-- TOC entry 5788 (class 0 OID 17599)
+-- Dependencies: 325
+-- Data for Name: wimm_transaction; Type: TABLE DATA; Schema: public; Owner: -
+--
+
+COPY public.wimm_transaction (id, created_at, updated_at, is_active, transaction_type, amount, currency, exchange_rate, description, transaction_date, tags, attachments, metadata, from_account_id, invoice_id, to_account_id, user_id, category_id, credit_card_id, expense_category_id, expense_group_id, payment_method, source_document_id, subscription_id) FROM stdin;
+\.
+
+
+--
+-- TOC entry 5786 (class 0 OID 17591)
+-- Dependencies: 323
+-- Data for Name: wimm_transactioncategory; Type: TABLE DATA; Schema: public; Owner: -
+--
+
+COPY public.wimm_transactioncategory (id, created_at, updated_at, is_active, name, slug, type, icon, color, parent_id) FROM stdin;
+\.
+
+
+--
+-- TOC entry 5800 (class 0 OID 17775)
+-- Dependencies: 337
+-- Data for Name: wims_itemsupplier; Type: TABLE DATA; Schema: public; Owner: -
+--
+
+COPY public.wims_itemsupplier (id, created_at, updated_at, is_active, supplier_name, supplier_code, supplier_item_code, supplier_item_name, unit_price, currency, lead_time_days, min_order_quantity, order_multiple, is_preferred, priority, item_id) FROM stdin;
+\.
+
+
+--
+-- TOC entry 5798 (class 0 OID 17767)
+-- Dependencies: 335
+-- Data for Name: wims_stockcount; Type: TABLE DATA; Schema: public; Owner: -
+--
+
+COPY public.wims_stockcount (id, created_at, updated_at, is_active, count_date, count_type, status, notes, approved_date, approved_by_id, user_id, warehouse_id) FROM stdin;
+\.
+
+
+--
+-- TOC entry 5802 (class 0 OID 17783)
+-- Dependencies: 339
+-- Data for Name: wims_stockcountitem; Type: TABLE DATA; Schema: public; Owner: -
+--
+
+COPY public.wims_stockcountitem (id, created_at, updated_at, is_active, system_quantity, counted_quantity, batch_number, serial_number, notes, item_id, stock_count_id, location_id) FROM stdin;
+\.
+
+
+--
+-- TOC entry 5806 (class 0 OID 17799)
+-- Dependencies: 343
+-- Data for Name: wims_stockitem; Type: TABLE DATA; Schema: public; Owner: -
+--
+
+COPY public.wims_stockitem (id, created_at, updated_at, is_active, quantity, reserved_quantity, batch_number, serial_number, manufacture_date, expiry_date, unit_cost, currency, min_stock_level, max_stock_level, reorder_point, reorder_quantity, item_id, location_id, warehouse_id) FROM stdin;
+\.
+
+
+--
+-- TOC entry 5796 (class 0 OID 17761)
+-- Dependencies: 333
+-- Data for Name: wims_stocklocation; Type: TABLE DATA; Schema: public; Owner: -
+--
+
+COPY public.wims_stocklocation (id, created_at, updated_at, is_active, name, code, max_weight, max_volume, location_type, parent_id, warehouse_id) FROM stdin;
+\.
+
+
+--
+-- TOC entry 5804 (class 0 OID 17791)
+-- Dependencies: 341
+-- Data for Name: wims_stockmovement; Type: TABLE DATA; Schema: public; Owner: -
+--
+
+COPY public.wims_stockmovement (id, created_at, updated_at, is_active, movement_type, quantity, unit_cost, currency, batch_number, serial_number, reference_number, notes, movement_date, from_location_id, invoice_id, invoice_item_id, item_id, to_location_id, user_id, from_warehouse_id, to_warehouse_id) FROM stdin;
+\.
+
+
+--
+-- TOC entry 5794 (class 0 OID 17751)
+-- Dependencies: 331
+-- Data for Name: wims_warehouse; Type: TABLE DATA; Schema: public; Owner: -
+--
+
+COPY public.wims_warehouse (id, created_at, updated_at, is_active, name, code, address, city, country, warehouse_type, manager, phone, email, allow_negative_stock, user_id) FROM stdin;
+\.
+
+
+--
+-- TOC entry 5917 (class 0 OID 0)
+-- Dependencies: 241
+-- Name: administration_auditlog_id_seq; Type: SEQUENCE SET; Schema: public; Owner: -
+--
+
+SELECT pg_catalog.setval('public.administration_auditlog_id_seq', 2, true);
+
+
+--
+-- TOC entry 5918 (class 0 OID 0)
+-- Dependencies: 237
+-- Name: administration_department_id_seq; Type: SEQUENCE SET; Schema: public; Owner: -
+--
+
+SELECT pg_catalog.setval('public.administration_department_id_seq', 1, false);
+
+
+--
+-- TOC entry 5919 (class 0 OID 0)
+-- Dependencies: 239
+-- Name: administration_department_members_id_seq; Type: SEQUENCE SET; Schema: public; Owner: -
+--
+
+SELECT pg_catalog.setval('public.administration_department_members_id_seq', 1, false);
+
+
+--
+-- TOC entry 5920 (class 0 OID 0)
+-- Dependencies: 233
+-- Name: administration_permissionrequest_id_seq; Type: SEQUENCE SET; Schema: public; Owner: -
+--
+
+SELECT pg_catalog.setval('public.administration_permissionrequest_id_seq', 1, false);
+
+
+--
+-- TOC entry 5921 (class 0 OID 0)
+-- Dependencies: 235
+-- Name: administration_permissionrequest_permissions_id_seq; Type: SEQUENCE SET; Schema: public; Owner: -
+--
+
+SELECT pg_catalog.setval('public.administration_permissionrequest_permissions_id_seq', 1, false);
+
+
+--
+-- TOC entry 5922 (class 0 OID 0)
+-- Dependencies: 229
+-- Name: administration_role_groups_id_seq; Type: SEQUENCE SET; Schema: public; Owner: -
+--
+
+SELECT pg_catalog.setval('public.administration_role_groups_id_seq', 1, false);
+
+
+--
+-- TOC entry 5923 (class 0 OID 0)
+-- Dependencies: 227
+-- Name: administration_role_id_seq; Type: SEQUENCE SET; Schema: public; Owner: -
+--
+
+SELECT pg_catalog.setval('public.administration_role_id_seq', 1, false);
+
+
+--
+-- TOC entry 5924 (class 0 OID 0)
+-- Dependencies: 231
+-- Name: administration_role_permissions_id_seq; Type: SEQUENCE SET; Schema: public; Owner: -
+--
+
+SELECT pg_catalog.setval('public.administration_role_permissions_id_seq', 1, false);
+
+
+--
+-- TOC entry 5925 (class 0 OID 0)
+-- Dependencies: 366
+-- Name: administration_screenlock_id_seq; Type: SEQUENCE SET; Schema: public; Owner: -
+--
+
+SELECT pg_catalog.setval('public.administration_screenlock_id_seq', 1, false);
+
+
+--
+-- TOC entry 5926 (class 0 OID 0)
+-- Dependencies: 225
+-- Name: administration_systemsetting_id_seq; Type: SEQUENCE SET; Schema: public; Owner: -
+--
+
+SELECT pg_catalog.setval('public.administration_systemsetting_id_seq', 1, false);
+
+
+--
+-- TOC entry 5927 (class 0 OID 0)
+-- Dependencies: 243
+-- Name: administration_userrole_id_seq; Type: SEQUENCE SET; Schema: public; Owner: -
+--
+
+SELECT pg_catalog.setval('public.administration_userrole_id_seq', 1, false);
+
+
+--
+-- TOC entry 5928 (class 0 OID 0)
+-- Dependencies: 215
+-- Name: auth_group_id_seq; Type: SEQUENCE SET; Schema: public; Owner: -
+--
+
+SELECT pg_catalog.setval('public.auth_group_id_seq', 1, false);
+
+
+--
+-- TOC entry 5929 (class 0 OID 0)
+-- Dependencies: 217
+-- Name: auth_group_permissions_id_seq; Type: SEQUENCE SET; Schema: public; Owner: -
+--
+
+SELECT pg_catalog.setval('public.auth_group_permissions_id_seq', 1, false);
+
+
+--
+-- TOC entry 5930 (class 0 OID 0)
+-- Dependencies: 213
+-- Name: auth_permission_id_seq; Type: SEQUENCE SET; Schema: public; Owner: -
+--
+
+SELECT pg_catalog.setval('public.auth_permission_id_seq', 556, true);
+
+
+--
+-- TOC entry 5931 (class 0 OID 0)
+-- Dependencies: 221
+-- Name: auth_user_groups_id_seq; Type: SEQUENCE SET; Schema: public; Owner: -
+--
+
+SELECT pg_catalog.setval('public.auth_user_groups_id_seq', 1, false);
+
+
+--
+-- TOC entry 5932 (class 0 OID 0)
+-- Dependencies: 219
+-- Name: auth_user_id_seq; Type: SEQUENCE SET; Schema: public; Owner: -
+--
+
+SELECT pg_catalog.setval('public.auth_user_id_seq', 17, true);
+
+
+--
+-- TOC entry 5933 (class 0 OID 0)
+-- Dependencies: 223
+-- Name: auth_user_user_permissions_id_seq; Type: SEQUENCE SET; Schema: public; Owner: -
+--
+
+SELECT pg_catalog.setval('public.auth_user_user_permissions_id_seq', 1, false);
+
+
+--
+-- TOC entry 5934 (class 0 OID 0)
+-- Dependencies: 368
+-- Name: birlikteyiz_cronjobs_id_seq; Type: SEQUENCE SET; Schema: public; Owner: -
+--
+
+SELECT pg_catalog.setval('public.birlikteyiz_cronjobs_id_seq', 1, false);
+
+
+--
+-- TOC entry 5935 (class 0 OID 0)
+-- Dependencies: 376
+-- Name: birlikteyiz_earthquake_comments_id_seq; Type: SEQUENCE SET; Schema: public; Owner: -
+--
+
+SELECT pg_catalog.setval('public.birlikteyiz_earthquake_comments_id_seq', 1, false);
+
+
+--
+-- TOC entry 5936 (class 0 OID 0)
+-- Dependencies: 370
+-- Name: birlikteyiz_earthquake_sources_id_seq; Type: SEQUENCE SET; Schema: public; Owner: -
+--
+
+SELECT pg_catalog.setval('public.birlikteyiz_earthquake_sources_id_seq', 1, false);
+
+
+--
+-- TOC entry 5937 (class 0 OID 0)
+-- Dependencies: 374
+-- Name: birlikteyiz_earthquakes_id_seq; Type: SEQUENCE SET; Schema: public; Owner: -
+--
+
+SELECT pg_catalog.setval('public.birlikteyiz_earthquakes_id_seq', 1, false);
+
+
+--
+-- TOC entry 5938 (class 0 OID 0)
+-- Dependencies: 250
+-- Name: cctv_cameragroup_cameras_id_seq; Type: SEQUENCE SET; Schema: public; Owner: -
+--
+
+SELECT pg_catalog.setval('public.cctv_cameragroup_cameras_id_seq', 1, false);
+
+
+--
+-- TOC entry 5939 (class 0 OID 0)
+-- Dependencies: 261
+-- Name: core_account_id_seq; Type: SEQUENCE SET; Schema: public; Owner: -
+--
+
+SELECT pg_catalog.setval('public.core_account_id_seq', 1, false);
+
+
+--
+-- TOC entry 5940 (class 0 OID 0)
+-- Dependencies: 259
+-- Name: core_item_id_seq; Type: SEQUENCE SET; Schema: public; Owner: -
+--
+
+SELECT pg_catalog.setval('public.core_item_id_seq', 1, false);
+
+
+--
+-- TOC entry 5941 (class 0 OID 0)
+-- Dependencies: 257
+-- Name: core_itemcategory_id_seq; Type: SEQUENCE SET; Schema: public; Owner: -
+--
+
+SELECT pg_catalog.setval('public.core_itemcategory_id_seq', 1, false);
+
+
+--
+-- TOC entry 5942 (class 0 OID 0)
+-- Dependencies: 263
+-- Name: core_itemprice_id_seq; Type: SEQUENCE SET; Schema: public; Owner: -
+--
+
+SELECT pg_catalog.setval('public.core_itemprice_id_seq', 1, false);
+
+
+--
+-- TOC entry 5943 (class 0 OID 0)
+-- Dependencies: 255
+-- Name: core_unit_id_seq; Type: SEQUENCE SET; Schema: public; Owner: -
+--
+
+SELECT pg_catalog.setval('public.core_unit_id_seq', 1, false);
+
+
+--
+-- TOC entry 5944 (class 0 OID 0)
+-- Dependencies: 265
+-- Name: core_userprofile_id_seq; Type: SEQUENCE SET; Schema: public; Owner: -
+--
+
+SELECT pg_catalog.setval('public.core_userprofile_id_seq', 1, false);
+
+
+--
+-- TOC entry 5945 (class 0 OID 0)
+-- Dependencies: 211
+-- Name: django_content_type_id_seq; Type: SEQUENCE SET; Schema: public; Owner: -
+--
+
+SELECT pg_catalog.setval('public.django_content_type_id_seq', 139, true);
+
+
+--
+-- TOC entry 5946 (class 0 OID 0)
+-- Dependencies: 209
+-- Name: django_migrations_id_seq; Type: SEQUENCE SET; Schema: public; Owner: -
+--
+
+SELECT pg_catalog.setval('public.django_migrations_id_seq', 50, true);
+
+
+--
+-- TOC entry 5947 (class 0 OID 0)
+-- Dependencies: 293
+-- Name: documents_achievement_id_seq; Type: SEQUENCE SET; Schema: public; Owner: -
+--
+
+SELECT pg_catalog.setval('public.documents_achievement_id_seq', 1, false);
+
+
+--
+-- TOC entry 5948 (class 0 OID 0)
+-- Dependencies: 285
+-- Name: documents_challenge_id_seq; Type: SEQUENCE SET; Schema: public; Owner: -
+--
+
+SELECT pg_catalog.setval('public.documents_challenge_id_seq', 1, false);
+
+
+--
+-- TOC entry 5949 (class 0 OID 0)
+-- Dependencies: 270
+-- Name: documents_creditcard_id_seq; Type: SEQUENCE SET; Schema: public; Owner: -
+--
+
+SELECT pg_catalog.setval('public.documents_creditcard_id_seq', 1, false);
+
+
+--
+-- TOC entry 5950 (class 0 OID 0)
+-- Dependencies: 273
+-- Name: documents_documentbatch_id_seq; Type: SEQUENCE SET; Schema: public; Owner: -
+--
+
+SELECT pg_catalog.setval('public.documents_documentbatch_id_seq', 1, false);
+
+
+--
+-- TOC entry 5951 (class 0 OID 0)
+-- Dependencies: 275
+-- Name: documents_expensecategory_id_seq; Type: SEQUENCE SET; Schema: public; Owner: -
+--
+
+SELECT pg_catalog.setval('public.documents_expensecategory_id_seq', 1, false);
+
+
+--
+-- TOC entry 5952 (class 0 OID 0)
+-- Dependencies: 277
+-- Name: documents_expensegroup_id_seq; Type: SEQUENCE SET; Schema: public; Owner: -
+--
+
+SELECT pg_catalog.setval('public.documents_expensegroup_id_seq', 1, false);
+
+
+--
+-- TOC entry 5953 (class 0 OID 0)
+-- Dependencies: 295
+-- Name: documents_leaderboard_id_seq; Type: SEQUENCE SET; Schema: public; Owner: -
+--
+
+SELECT pg_catalog.setval('public.documents_leaderboard_id_seq', 1, false);
+
+
+--
+-- TOC entry 5954 (class 0 OID 0)
+-- Dependencies: 287
+-- Name: documents_learningmodel_id_seq; Type: SEQUENCE SET; Schema: public; Owner: -
+--
+
+SELECT pg_catalog.setval('public.documents_learningmodel_id_seq', 1, false);
+
+
+--
+-- TOC entry 5955 (class 0 OID 0)
+-- Dependencies: 268
+-- Name: documents_ocrtemplate_id_seq; Type: SEQUENCE SET; Schema: public; Owner: -
+--
+
+SELECT pg_catalog.setval('public.documents_ocrtemplate_id_seq', 1, false);
+
+
+--
+-- TOC entry 5956 (class 0 OID 0)
+-- Dependencies: 279
+-- Name: documents_parsedreceipt_id_seq; Type: SEQUENCE SET; Schema: public; Owner: -
+--
+
+SELECT pg_catalog.setval('public.documents_parsedreceipt_id_seq', 1, false);
+
+
+--
+-- TOC entry 5957 (class 0 OID 0)
+-- Dependencies: 289
+-- Name: documents_pointtransaction_id_seq; Type: SEQUENCE SET; Schema: public; Owner: -
+--
+
+SELECT pg_catalog.setval('public.documents_pointtransaction_id_seq', 1, false);
+
+
+--
+-- TOC entry 5958 (class 0 OID 0)
+-- Dependencies: 281
+-- Name: documents_receiptitem_id_seq; Type: SEQUENCE SET; Schema: public; Owner: -
+--
+
+SELECT pg_catalog.setval('public.documents_receiptitem_id_seq', 1, false);
+
+
+--
+-- TOC entry 5959 (class 0 OID 0)
+-- Dependencies: 283
+-- Name: documents_subscription_id_seq; Type: SEQUENCE SET; Schema: public; Owner: -
+--
+
+SELECT pg_catalog.setval('public.documents_subscription_id_seq', 1, false);
+
+
+--
+-- TOC entry 5960 (class 0 OID 0)
+-- Dependencies: 297
+-- Name: documents_userchallenge_id_seq; Type: SEQUENCE SET; Schema: public; Owner: -
+--
+
+SELECT pg_catalog.setval('public.documents_userchallenge_id_seq', 1, false);
+
+
+--
+-- TOC entry 5961 (class 0 OID 0)
+-- Dependencies: 291
+-- Name: documents_userprofile_id_seq; Type: SEQUENCE SET; Schema: public; Owner: -
+--
+
+SELECT pg_catalog.setval('public.documents_userprofile_id_seq', 1, false);
+
+
+--
+-- TOC entry 5962 (class 0 OID 0)
+-- Dependencies: 299
+-- Name: documents_validationfeedback_id_seq; Type: SEQUENCE SET; Schema: public; Owner: -
+--
+
+SELECT pg_catalog.setval('public.documents_validationfeedback_id_seq', 1, false);
+
+
+--
+-- TOC entry 5963 (class 0 OID 0)
+-- Dependencies: 390
+-- Name: movies_collectionitem_id_seq; Type: SEQUENCE SET; Schema: public; Owner: -
+--
+
+SELECT pg_catalog.setval('public.movies_collectionitem_id_seq', 1, false);
+
+
+--
+-- TOC entry 5964 (class 0 OID 0)
+-- Dependencies: 385
+-- Name: movies_genre_id_seq; Type: SEQUENCE SET; Schema: public; Owner: -
+--
+
+SELECT pg_catalog.setval('public.movies_genre_id_seq', 1, false);
+
+
+--
+-- TOC entry 5965 (class 0 OID 0)
+-- Dependencies: 388
+-- Name: movies_movie_genres_id_seq; Type: SEQUENCE SET; Schema: public; Owner: -
+--
+
+SELECT pg_catalog.setval('public.movies_movie_genres_id_seq', 1, false);
+
+
+--
+-- TOC entry 5966 (class 0 OID 0)
+-- Dependencies: 398
+-- Name: music_album_featured_artists_id_seq; Type: SEQUENCE SET; Schema: public; Owner: -
+--
+
+SELECT pg_catalog.setval('public.music_album_featured_artists_id_seq', 1, false);
+
+
+--
+-- TOC entry 5967 (class 0 OID 0)
+-- Dependencies: 402
+-- Name: music_playlist_collaborators_id_seq; Type: SEQUENCE SET; Schema: public; Owner: -
+--
+
+SELECT pg_catalog.setval('public.music_playlist_collaborators_id_seq', 1, false);
+
+
+--
+-- TOC entry 5968 (class 0 OID 0)
+-- Dependencies: 407
+-- Name: music_playlisttrack_id_seq; Type: SEQUENCE SET; Schema: public; Owner: -
+--
+
+SELECT pg_catalog.setval('public.music_playlisttrack_id_seq', 1, false);
+
+
+--
+-- TOC entry 5969 (class 0 OID 0)
+-- Dependencies: 405
+-- Name: music_track_featured_artists_id_seq; Type: SEQUENCE SET; Schema: public; Owner: -
+--
+
+SELECT pg_catalog.setval('public.music_track_featured_artists_id_seq', 1, false);
+
+
+--
+-- TOC entry 5970 (class 0 OID 0)
+-- Dependencies: 410
+-- Name: music_useralbum_id_seq; Type: SEQUENCE SET; Schema: public; Owner: -
+--
+
+SELECT pg_catalog.setval('public.music_useralbum_id_seq', 1, false);
+
+
+--
+-- TOC entry 5971 (class 0 OID 0)
+-- Dependencies: 412
+-- Name: music_userartist_id_seq; Type: SEQUENCE SET; Schema: public; Owner: -
+--
+
+SELECT pg_catalog.setval('public.music_userartist_id_seq', 1, false);
+
+
+--
+-- TOC entry 5972 (class 0 OID 0)
+-- Dependencies: 415
+-- Name: music_usertrack_id_seq; Type: SEQUENCE SET; Schema: public; Owner: -
+--
+
+SELECT pg_catalog.setval('public.music_usertrack_id_seq', 1, false);
+
+
+--
+-- TOC entry 5973 (class 0 OID 0)
+-- Dependencies: 417
+-- Name: restopos_menucategory_id_seq; Type: SEQUENCE SET; Schema: public; Owner: -
+--
+
+SELECT pg_catalog.setval('public.restopos_menucategory_id_seq', 1, false);
+
+
+--
+-- TOC entry 5974 (class 0 OID 0)
+-- Dependencies: 437
+-- Name: solitaire_solitaireactivity_id_seq; Type: SEQUENCE SET; Schema: public; Owner: -
+--
+
+SELECT pg_catalog.setval('public.solitaire_solitaireactivity_id_seq', 1, false);
+
+
+--
+-- TOC entry 5975 (class 0 OID 0)
+-- Dependencies: 435
+-- Name: solitaire_solitairegamesession_id_seq; Type: SEQUENCE SET; Schema: public; Owner: -
+--
+
+SELECT pg_catalog.setval('public.solitaire_solitairegamesession_id_seq', 1, false);
+
+
+--
+-- TOC entry 5976 (class 0 OID 0)
+-- Dependencies: 429
+-- Name: solitaire_solitairemove_id_seq; Type: SEQUENCE SET; Schema: public; Owner: -
+--
+
+SELECT pg_catalog.setval('public.solitaire_solitairemove_id_seq', 1, false);
+
+
+--
+-- TOC entry 5977 (class 0 OID 0)
+-- Dependencies: 433
+-- Name: solitaire_solitaireplayer_id_seq; Type: SEQUENCE SET; Schema: public; Owner: -
+--
+
+SELECT pg_catalog.setval('public.solitaire_solitaireplayer_id_seq', 1, false);
+
+
+--
+-- TOC entry 5978 (class 0 OID 0)
+-- Dependencies: 427
+-- Name: solitaire_solitairesession_id_seq; Type: SEQUENCE SET; Schema: public; Owner: -
+--
+
+SELECT pg_catalog.setval('public.solitaire_solitairesession_id_seq', 1, false);
+
+
+--
+-- TOC entry 5979 (class 0 OID 0)
+-- Dependencies: 431
+-- Name: solitaire_solitairestatistics_id_seq; Type: SEQUENCE SET; Schema: public; Owner: -
+--
+
+SELECT pg_catalog.setval('public.solitaire_solitairestatistics_id_seq', 1, false);
+
+
+--
+-- TOC entry 5980 (class 0 OID 0)
+-- Dependencies: 439
+-- Name: store_marketplace_id_seq; Type: SEQUENCE SET; Schema: public; Owner: -
+--
+
+SELECT pg_catalog.setval('public.store_marketplace_id_seq', 1, false);
+
+
+--
+-- TOC entry 5981 (class 0 OID 0)
+-- Dependencies: 441
+-- Name: store_order_id_seq; Type: SEQUENCE SET; Schema: public; Owner: -
+--
+
+SELECT pg_catalog.setval('public.store_order_id_seq', 1, false);
+
+
+--
+-- TOC entry 5982 (class 0 OID 0)
+-- Dependencies: 443
+-- Name: store_orderitem_id_seq; Type: SEQUENCE SET; Schema: public; Owner: -
+--
+
+SELECT pg_catalog.setval('public.store_orderitem_id_seq', 1, false);
+
+
+--
+-- TOC entry 5983 (class 0 OID 0)
+-- Dependencies: 445
+-- Name: store_product_id_seq; Type: SEQUENCE SET; Schema: public; Owner: -
+--
+
+SELECT pg_catalog.setval('public.store_product_id_seq', 1, false);
+
+
+--
+-- TOC entry 5984 (class 0 OID 0)
+-- Dependencies: 447
+-- Name: store_synclog_id_seq; Type: SEQUENCE SET; Schema: public; Owner: -
+--
+
+SELECT pg_catalog.setval('public.store_synclog_id_seq', 1, false);
+
+
+--
+-- TOC entry 5985 (class 0 OID 0)
+-- Dependencies: 312
+-- Name: version_manager_gitstatus_id_seq; Type: SEQUENCE SET; Schema: public; Owner: -
+--
+
+SELECT pg_catalog.setval('public.version_manager_gitstatus_id_seq', 1, false);
+
+
+--
+-- TOC entry 5986 (class 0 OID 0)
+-- Dependencies: 314
+-- Name: version_manager_scansession_id_seq; Type: SEQUENCE SET; Schema: public; Owner: -
+--
+
+SELECT pg_catalog.setval('public.version_manager_scansession_id_seq', 1, false);
+
+
+--
+-- TOC entry 5987 (class 0 OID 0)
+-- Dependencies: 316
+-- Name: version_manager_versionarchive_id_seq; Type: SEQUENCE SET; Schema: public; Owner: -
+--
+
+SELECT pg_catalog.setval('public.version_manager_versionarchive_id_seq', 1, false);
+
+
+--
+-- TOC entry 5988 (class 0 OID 0)
+-- Dependencies: 352
+-- Name: web_ui_command_history_id_seq; Type: SEQUENCE SET; Schema: public; Owner: -
+--
+
+SELECT pg_catalog.setval('public.web_ui_command_history_id_seq', 1, false);
+
+
+--
+-- TOC entry 5989 (class 0 OID 0)
+-- Dependencies: 346
+-- Name: web_ui_module_access_id_seq; Type: SEQUENCE SET; Schema: public; Owner: -
+--
+
+SELECT pg_catalog.setval('public.web_ui_module_access_id_seq', 1, false);
+
+
+--
+-- TOC entry 5990 (class 0 OID 0)
+-- Dependencies: 348
+-- Name: web_ui_preferences_id_seq; Type: SEQUENCE SET; Schema: public; Owner: -
+--
+
+SELECT pg_catalog.setval('public.web_ui_preferences_id_seq', 1, false);
+
+
+--
+-- TOC entry 5991 (class 0 OID 0)
+-- Dependencies: 344
+-- Name: web_ui_session_logs_id_seq; Type: SEQUENCE SET; Schema: public; Owner: -
+--
+
+SELECT pg_catalog.setval('public.web_ui_session_logs_id_seq', 1, false);
+
+
+--
+-- TOC entry 5992 (class 0 OID 0)
+-- Dependencies: 350
+-- Name: web_ui_system_status_id_seq; Type: SEQUENCE SET; Schema: public; Owner: -
+--
+
+SELECT pg_catalog.setval('public.web_ui_system_status_id_seq', 1, false);
+
+
+--
+-- TOC entry 5993 (class 0 OID 0)
+-- Dependencies: 328
+-- Name: wimm_budget_id_seq; Type: SEQUENCE SET; Schema: public; Owner: -
+--
+
+SELECT pg_catalog.setval('public.wimm_budget_id_seq', 1, false);
+
+
+--
+-- TOC entry 5994 (class 0 OID 0)
+-- Dependencies: 318
+-- Name: wimm_invoice_id_seq; Type: SEQUENCE SET; Schema: public; Owner: -
+--
+
+SELECT pg_catalog.setval('public.wimm_invoice_id_seq', 1, false);
+
+
+--
+-- TOC entry 5995 (class 0 OID 0)
+-- Dependencies: 320
+-- Name: wimm_invoiceitem_id_seq; Type: SEQUENCE SET; Schema: public; Owner: -
+--
+
+SELECT pg_catalog.setval('public.wimm_invoiceitem_id_seq', 1, false);
+
+
+--
+-- TOC entry 5996 (class 0 OID 0)
+-- Dependencies: 326
+-- Name: wimm_recurringtransaction_id_seq; Type: SEQUENCE SET; Schema: public; Owner: -
+--
+
+SELECT pg_catalog.setval('public.wimm_recurringtransaction_id_seq', 1, false);
+
+
+--
+-- TOC entry 5997 (class 0 OID 0)
+-- Dependencies: 324
+-- Name: wimm_transaction_id_seq; Type: SEQUENCE SET; Schema: public; Owner: -
+--
+
+SELECT pg_catalog.setval('public.wimm_transaction_id_seq', 1, false);
+
+
+--
+-- TOC entry 5998 (class 0 OID 0)
+-- Dependencies: 322
+-- Name: wimm_transactioncategory_id_seq; Type: SEQUENCE SET; Schema: public; Owner: -
+--
+
+SELECT pg_catalog.setval('public.wimm_transactioncategory_id_seq', 1, false);
+
+
+--
+-- TOC entry 5999 (class 0 OID 0)
+-- Dependencies: 336
+-- Name: wims_itemsupplier_id_seq; Type: SEQUENCE SET; Schema: public; Owner: -
+--
+
+SELECT pg_catalog.setval('public.wims_itemsupplier_id_seq', 1, false);
+
+
+--
+-- TOC entry 6000 (class 0 OID 0)
+-- Dependencies: 334
+-- Name: wims_stockcount_id_seq; Type: SEQUENCE SET; Schema: public; Owner: -
+--
+
+SELECT pg_catalog.setval('public.wims_stockcount_id_seq', 1, false);
+
+
+--
+-- TOC entry 6001 (class 0 OID 0)
+-- Dependencies: 338
+-- Name: wims_stockcountitem_id_seq; Type: SEQUENCE SET; Schema: public; Owner: -
+--
+
+SELECT pg_catalog.setval('public.wims_stockcountitem_id_seq', 1, false);
+
+
+--
+-- TOC entry 6002 (class 0 OID 0)
+-- Dependencies: 342
+-- Name: wims_stockitem_id_seq; Type: SEQUENCE SET; Schema: public; Owner: -
+--
+
+SELECT pg_catalog.setval('public.wims_stockitem_id_seq', 1, false);
+
+
+--
+-- TOC entry 6003 (class 0 OID 0)
+-- Dependencies: 332
+-- Name: wims_stocklocation_id_seq; Type: SEQUENCE SET; Schema: public; Owner: -
+--
+
+SELECT pg_catalog.setval('public.wims_stocklocation_id_seq', 1, false);
+
+
+--
+-- TOC entry 6004 (class 0 OID 0)
+-- Dependencies: 340
+-- Name: wims_stockmovement_id_seq; Type: SEQUENCE SET; Schema: public; Owner: -
+--
+
+SELECT pg_catalog.setval('public.wims_stockmovement_id_seq', 1, false);
+
+
+--
+-- TOC entry 6005 (class 0 OID 0)
+-- Dependencies: 330
+-- Name: wims_warehouse_id_seq; Type: SEQUENCE SET; Schema: public; Owner: -
+--
+
+SELECT pg_catalog.setval('public.wims_warehouse_id_seq', 1, false);
+
+
+--
+-- TOC entry 4426 (class 2606 OID 16677)
+-- Name: administration_auditlog administration_auditlog_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.administration_auditlog
+    ADD CONSTRAINT administration_auditlog_pkey PRIMARY KEY (id);
+
+
+--
+-- TOC entry 4417 (class 2606 OID 16769)
+-- Name: administration_department_members administration_departmen_department_id_user_id_4d850a7e_uniq; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.administration_department_members
+    ADD CONSTRAINT administration_departmen_department_id_user_id_4d850a7e_uniq UNIQUE (department_id, user_id);
+
+
+--
+-- TOC entry 4410 (class 2606 OID 16663)
+-- Name: administration_department administration_department_code_key; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.administration_department
+    ADD CONSTRAINT administration_department_code_key UNIQUE (code);
+
+
+--
+-- TOC entry 4420 (class 2606 OID 16669)
+-- Name: administration_department_members administration_department_members_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.administration_department_members
+    ADD CONSTRAINT administration_department_members_pkey PRIMARY KEY (id);
+
+
+--
+-- TOC entry 4415 (class 2606 OID 16661)
+-- Name: administration_department administration_department_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.administration_department
+    ADD CONSTRAINT administration_department_pkey PRIMARY KEY (id);
+
+
+--
+-- TOC entry 4403 (class 2606 OID 16736)
+-- Name: administration_permissionrequest_permissions administration_permissio_permissionrequest_id_per_93ab60a8_uniq; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.administration_permissionrequest_permissions
+    ADD CONSTRAINT administration_permissio_permissionrequest_id_per_93ab60a8_uniq UNIQUE (permissionrequest_id, permission_id);
+
+
+--
+-- TOC entry 4407 (class 2606 OID 16655)
+-- Name: administration_permissionrequest_permissions administration_permissionrequest_permissions_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.administration_permissionrequest_permissions
+    ADD CONSTRAINT administration_permissionrequest_permissions_pkey PRIMARY KEY (id);
+
+
+--
+-- TOC entry 4398 (class 2606 OID 16649)
+-- Name: administration_permissionrequest administration_permissionrequest_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.administration_permissionrequest
+    ADD CONSTRAINT administration_permissionrequest_pkey PRIMARY KEY (id);
+
+
+--
+-- TOC entry 4379 (class 2606 OID 16629)
+-- Name: administration_role administration_role_code_key; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.administration_role
+    ADD CONSTRAINT administration_role_code_key UNIQUE (code);
+
+
+--
+-- TOC entry 4387 (class 2606 OID 16635)
+-- Name: administration_role_groups administration_role_groups_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.administration_role_groups
+    ADD CONSTRAINT administration_role_groups_pkey PRIMARY KEY (id);
+
+
+--
+-- TOC entry 4390 (class 2606 OID 16690)
+-- Name: administration_role_groups administration_role_groups_role_id_group_id_ce698d51_uniq; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.administration_role_groups
+    ADD CONSTRAINT administration_role_groups_role_id_group_id_ce698d51_uniq UNIQUE (role_id, group_id);
+
+
+--
+-- TOC entry 4382 (class 2606 OID 16627)
+-- Name: administration_role administration_role_name_key; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.administration_role
+    ADD CONSTRAINT administration_role_name_key UNIQUE (name);
+
+
+--
+-- TOC entry 4392 (class 2606 OID 16704)
+-- Name: administration_role_permissions administration_role_perm_role_id_permission_id_76b1340d_uniq; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.administration_role_permissions
+    ADD CONSTRAINT administration_role_perm_role_id_permission_id_76b1340d_uniq UNIQUE (role_id, permission_id);
+
+
+--
+-- TOC entry 4395 (class 2606 OID 16641)
+-- Name: administration_role_permissions administration_role_permissions_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.administration_role_permissions
+    ADD CONSTRAINT administration_role_permissions_pkey PRIMARY KEY (id);
+
+
+--
+-- TOC entry 4384 (class 2606 OID 16625)
+-- Name: administration_role administration_role_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.administration_role
+    ADD CONSTRAINT administration_role_pkey PRIMARY KEY (id);
+
+
+--
+-- TOC entry 4922 (class 2606 OID 18271)
+-- Name: administration_screenlock administration_screenlock_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.administration_screenlock
+    ADD CONSTRAINT administration_screenlock_pkey PRIMARY KEY (id);
+
+
+--
+-- TOC entry 4924 (class 2606 OID 18273)
+-- Name: administration_screenlock administration_screenlock_user_id_key; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.administration_screenlock
+    ADD CONSTRAINT administration_screenlock_user_id_key UNIQUE (user_id);
+
+
+--
+-- TOC entry 4374 (class 2606 OID 16617)
+-- Name: administration_systemsetting administration_systemsetting_key_key; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.administration_systemsetting
+    ADD CONSTRAINT administration_systemsetting_key_key UNIQUE (key);
+
+
+--
+-- TOC entry 4376 (class 2606 OID 16615)
+-- Name: administration_systemsetting administration_systemsetting_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.administration_systemsetting
+    ADD CONSTRAINT administration_systemsetting_pkey PRIMARY KEY (id);
+
+
+--
+-- TOC entry 4431 (class 2606 OID 16685)
+-- Name: administration_userrole administration_userrole_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.administration_userrole
+    ADD CONSTRAINT administration_userrole_pkey PRIMARY KEY (id);
+
+
+--
+-- TOC entry 4435 (class 2606 OID 16798)
+-- Name: administration_userrole administration_userrole_user_id_role_id_d1b3ddb9_uniq; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.administration_userrole
+    ADD CONSTRAINT administration_userrole_user_id_role_id_d1b3ddb9_uniq UNIQUE (user_id, role_id);
+
+
+--
+-- TOC entry 4346 (class 2606 OID 16606)
+-- Name: auth_group auth_group_name_key; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.auth_group
+    ADD CONSTRAINT auth_group_name_key UNIQUE (name);
+
+
+--
+-- TOC entry 4351 (class 2606 OID 16558)
+-- Name: auth_group_permissions auth_group_permissions_group_id_permission_id_0cd325b0_uniq; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.auth_group_permissions
+    ADD CONSTRAINT auth_group_permissions_group_id_permission_id_0cd325b0_uniq UNIQUE (group_id, permission_id);
+
+
+--
+-- TOC entry 4354 (class 2606 OID 16527)
+-- Name: auth_group_permissions auth_group_permissions_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.auth_group_permissions
+    ADD CONSTRAINT auth_group_permissions_pkey PRIMARY KEY (id);
+
+
+--
+-- TOC entry 4348 (class 2606 OID 16519)
+-- Name: auth_group auth_group_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.auth_group
+    ADD CONSTRAINT auth_group_pkey PRIMARY KEY (id);
+
+
+--
+-- TOC entry 4341 (class 2606 OID 16549)
+-- Name: auth_permission auth_permission_content_type_id_codename_01ab375a_uniq; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.auth_permission
+    ADD CONSTRAINT auth_permission_content_type_id_codename_01ab375a_uniq UNIQUE (content_type_id, codename);
+
+
+--
+-- TOC entry 4343 (class 2606 OID 16513)
+-- Name: auth_permission auth_permission_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.auth_permission
+    ADD CONSTRAINT auth_permission_pkey PRIMARY KEY (id);
+
+
+--
+-- TOC entry 4362 (class 2606 OID 16541)
+-- Name: auth_user_groups auth_user_groups_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.auth_user_groups
+    ADD CONSTRAINT auth_user_groups_pkey PRIMARY KEY (id);
+
+
+--
+-- TOC entry 4365 (class 2606 OID 16573)
+-- Name: auth_user_groups auth_user_groups_user_id_group_id_94350c0c_uniq; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.auth_user_groups
+    ADD CONSTRAINT auth_user_groups_user_id_group_id_94350c0c_uniq UNIQUE (user_id, group_id);
+
+
+--
+-- TOC entry 4356 (class 2606 OID 16533)
+-- Name: auth_user auth_user_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.auth_user
+    ADD CONSTRAINT auth_user_pkey PRIMARY KEY (id);
+
+
+--
+-- TOC entry 4368 (class 2606 OID 16547)
+-- Name: auth_user_user_permissions auth_user_user_permissions_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.auth_user_user_permissions
+    ADD CONSTRAINT auth_user_user_permissions_pkey PRIMARY KEY (id);
+
+
+--
+-- TOC entry 4371 (class 2606 OID 16587)
+-- Name: auth_user_user_permissions auth_user_user_permissions_user_id_permission_id_14a6b632_uniq; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.auth_user_user_permissions
+    ADD CONSTRAINT auth_user_user_permissions_user_id_permission_id_14a6b632_uniq UNIQUE (user_id, permission_id);
+
+
+--
+-- TOC entry 4359 (class 2606 OID 16601)
+-- Name: auth_user auth_user_username_key; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.auth_user
+    ADD CONSTRAINT auth_user_username_key UNIQUE (username);
+
+
+--
+-- TOC entry 4438 (class 2606 OID 16821)
+-- Name: authtoken_token authtoken_token_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.authtoken_token
+    ADD CONSTRAINT authtoken_token_pkey PRIMARY KEY (key);
+
+
+--
+-- TOC entry 4440 (class 2606 OID 16823)
+-- Name: authtoken_token authtoken_token_user_id_key; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.authtoken_token
+    ADD CONSTRAINT authtoken_token_user_id_key UNIQUE (user_id);
+
+
+--
+-- TOC entry 4905 (class 2606 OID 18250)
+-- Name: bank_exchange_rates bank_exchange_rates_bank_currency_pair_timestamp_b6b77269_uniq; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.bank_exchange_rates
+    ADD CONSTRAINT bank_exchange_rates_bank_currency_pair_timestamp_b6b77269_uniq UNIQUE (bank, currency_pair, "timestamp");
+
+
+--
+-- TOC entry 4913 (class 2606 OID 18061)
+-- Name: bank_exchange_rates bank_exchange_rates_entry_id_key; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.bank_exchange_rates
+    ADD CONSTRAINT bank_exchange_rates_entry_id_key UNIQUE (entry_id);
+
+
+--
+-- TOC entry 4915 (class 2606 OID 18059)
+-- Name: bank_exchange_rates bank_exchange_rates_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.bank_exchange_rates
+    ADD CONSTRAINT bank_exchange_rates_pkey PRIMARY KEY (id);
+
+
+--
+-- TOC entry 4920 (class 2606 OID 18073)
+-- Name: bank_rate_import_logs bank_rate_import_logs_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.bank_rate_import_logs
+    ADD CONSTRAINT bank_rate_import_logs_pkey PRIMARY KEY (id);
+
+
+--
+-- TOC entry 4647 (class 2606 OID 17448)
+-- Name: basket_items basket_items_basket_id_product_id_25c9d898_uniq; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.basket_items
+    ADD CONSTRAINT basket_items_basket_id_product_id_25c9d898_uniq UNIQUE (basket_id, product_id);
+
+
+--
+-- TOC entry 4649 (class 2606 OID 17417)
+-- Name: basket_items basket_items_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.basket_items
+    ADD CONSTRAINT basket_items_pkey PRIMARY KEY (id);
+
+
+--
+-- TOC entry 4926 (class 2606 OID 18287)
+-- Name: birlikteyiz_cronjobs birlikteyiz_cronjobs_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.birlikteyiz_cronjobs
+    ADD CONSTRAINT birlikteyiz_cronjobs_pkey PRIMARY KEY (id);
+
+
+--
+-- TOC entry 4939 (class 2606 OID 18313)
+-- Name: birlikteyiz_disaster_zones birlikteyiz_disaster_zones_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.birlikteyiz_disaster_zones
+    ADD CONSTRAINT birlikteyiz_disaster_zones_pkey PRIMARY KEY (id);
+
+
+--
+-- TOC entry 4952 (class 2606 OID 18331)
+-- Name: birlikteyiz_earthquake_comments birlikteyiz_earthquake_comments_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.birlikteyiz_earthquake_comments
+    ADD CONSTRAINT birlikteyiz_earthquake_comments_pkey PRIMARY KEY (id);
+
+
+--
+-- TOC entry 4929 (class 2606 OID 18297)
+-- Name: birlikteyiz_earthquake_sources birlikteyiz_earthquake_sources_name_key; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.birlikteyiz_earthquake_sources
+    ADD CONSTRAINT birlikteyiz_earthquake_sources_name_key UNIQUE (name);
+
+
+--
+-- TOC entry 4931 (class 2606 OID 18295)
+-- Name: birlikteyiz_earthquake_sources birlikteyiz_earthquake_sources_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.birlikteyiz_earthquake_sources
+    ADD CONSTRAINT birlikteyiz_earthquake_sources_pkey PRIMARY KEY (id);
+
+
+--
+-- TOC entry 4943 (class 2606 OID 18321)
+-- Name: birlikteyiz_earthquakes birlikteyiz_earthquakes_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.birlikteyiz_earthquakes
+    ADD CONSTRAINT birlikteyiz_earthquakes_pkey PRIMARY KEY (id);
+
+
+--
+-- TOC entry 4946 (class 2606 OID 18323)
+-- Name: birlikteyiz_earthquakes birlikteyiz_earthquakes_unique_id_key; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.birlikteyiz_earthquakes
+    ADD CONSTRAINT birlikteyiz_earthquakes_unique_id_key UNIQUE (unique_id);
+
+
+--
+-- TOC entry 4986 (class 2606 OID 18371)
+-- Name: birlikteyiz_emergency_contacts birlikteyiz_emergency_contacts_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.birlikteyiz_emergency_contacts
+    ADD CONSTRAINT birlikteyiz_emergency_contacts_pkey PRIMARY KEY (id);
+
+
+--
+-- TOC entry 4964 (class 2606 OID 18347)
+-- Name: birlikteyiz_emergency_messages birlikteyiz_emergency_messages_message_id_key; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.birlikteyiz_emergency_messages
+    ADD CONSTRAINT birlikteyiz_emergency_messages_message_id_key UNIQUE (message_id);
+
+
+--
+-- TOC entry 4966 (class 2606 OID 18345)
+-- Name: birlikteyiz_emergency_messages birlikteyiz_emergency_messages_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.birlikteyiz_emergency_messages
+    ADD CONSTRAINT birlikteyiz_emergency_messages_pkey PRIMARY KEY (id);
+
+
+--
+-- TOC entry 4934 (class 2606 OID 18306)
+-- Name: birlikteyiz_emergency_protocols birlikteyiz_emergency_protocols_code_key; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.birlikteyiz_emergency_protocols
+    ADD CONSTRAINT birlikteyiz_emergency_protocols_code_key UNIQUE (code);
+
+
+--
+-- TOC entry 4936 (class 2606 OID 18304)
+-- Name: birlikteyiz_emergency_protocols birlikteyiz_emergency_protocols_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.birlikteyiz_emergency_protocols
+    ADD CONSTRAINT birlikteyiz_emergency_protocols_pkey PRIMARY KEY (id);
+
+
+--
+-- TOC entry 4957 (class 2606 OID 18338)
+-- Name: birlikteyiz_mesh_nodes birlikteyiz_mesh_nodes_node_id_key; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.birlikteyiz_mesh_nodes
+    ADD CONSTRAINT birlikteyiz_mesh_nodes_node_id_key UNIQUE (node_id);
+
+
+--
+-- TOC entry 4960 (class 2606 OID 18336)
+-- Name: birlikteyiz_mesh_nodes birlikteyiz_mesh_nodes_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.birlikteyiz_mesh_nodes
+    ADD CONSTRAINT birlikteyiz_mesh_nodes_pkey PRIMARY KEY (id);
+
+
+--
+-- TOC entry 4972 (class 2606 OID 18379)
+-- Name: birlikteyiz_message_relays birlikteyiz_message_rela_message_id_relay_node_id_8fd45157_uniq; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.birlikteyiz_message_relays
+    ADD CONSTRAINT birlikteyiz_message_rela_message_id_relay_node_id_8fd45157_uniq UNIQUE (message_id, relay_node_id);
+
+
+--
+-- TOC entry 4975 (class 2606 OID 18352)
+-- Name: birlikteyiz_message_relays birlikteyiz_message_relays_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.birlikteyiz_message_relays
+    ADD CONSTRAINT birlikteyiz_message_relays_pkey PRIMARY KEY (id);
+
+
+--
+-- TOC entry 4980 (class 2606 OID 18359)
+-- Name: birlikteyiz_network_topology birlikteyiz_network_topology_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.birlikteyiz_network_topology
+    ADD CONSTRAINT birlikteyiz_network_topology_pkey PRIMARY KEY (id);
+
+
+--
+-- TOC entry 4984 (class 2606 OID 18366)
+-- Name: birlikteyiz_resource_points birlikteyiz_resource_points_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.birlikteyiz_resource_points
+    ADD CONSTRAINT birlikteyiz_resource_points_pkey PRIMARY KEY (id);
+
+
+--
+-- TOC entry 4455 (class 2606 OID 16852)
+-- Name: cctv_alert cctv_alert_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.cctv_alert
+    ADD CONSTRAINT cctv_alert_pkey PRIMARY KEY (id);
+
+
+--
+-- TOC entry 4447 (class 2606 OID 16845)
+-- Name: cctv_camera cctv_camera_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.cctv_camera
+    ADD CONSTRAINT cctv_camera_pkey PRIMARY KEY (id);
+
+
+--
+-- TOC entry 4467 (class 2606 OID 16931)
+-- Name: cctv_cameragroup_cameras cctv_cameragroup_cameras_cameragroup_id_camera_id_3c6d5524_uniq; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.cctv_cameragroup_cameras
+    ADD CONSTRAINT cctv_cameragroup_cameras_cameragroup_id_camera_id_3c6d5524_uniq UNIQUE (cameragroup_id, camera_id);
+
+
+--
+-- TOC entry 4469 (class 2606 OID 16865)
+-- Name: cctv_cameragroup_cameras cctv_cameragroup_cameras_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.cctv_cameragroup_cameras
+    ADD CONSTRAINT cctv_cameragroup_cameras_pkey PRIMARY KEY (id);
+
+
+--
+-- TOC entry 4460 (class 2606 OID 16859)
+-- Name: cctv_cameragroup cctv_cameragroup_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.cctv_cameragroup
+    ADD CONSTRAINT cctv_cameragroup_pkey PRIMARY KEY (id);
+
+
+--
+-- TOC entry 4463 (class 2606 OID 16893)
+-- Name: cctv_cameragroup cctv_cameragroup_user_id_name_3105b504_uniq; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.cctv_cameragroup
+    ADD CONSTRAINT cctv_cameragroup_user_id_name_3105b504_uniq UNIQUE (user_id, name);
+
+
+--
+-- TOC entry 4472 (class 2606 OID 16895)
+-- Name: cctv_camerastream cctv_camerastream_camera_id_quality_292c65c9_uniq; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.cctv_camerastream
+    ADD CONSTRAINT cctv_camerastream_camera_id_quality_292c65c9_uniq UNIQUE (camera_id, quality);
+
+
+--
+-- TOC entry 4474 (class 2606 OID 16872)
+-- Name: cctv_camerastream cctv_camerastream_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.cctv_camerastream
+    ADD CONSTRAINT cctv_camerastream_pkey PRIMARY KEY (id);
+
+
+--
+-- TOC entry 4477 (class 2606 OID 16879)
+-- Name: cctv_recordingschedule cctv_recordingschedule_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.cctv_recordingschedule
+    ADD CONSTRAINT cctv_recordingschedule_pkey PRIMARY KEY (id);
+
+
+--
+-- TOC entry 4484 (class 2606 OID 16886)
+-- Name: cctv_recordingsession cctv_recordingsession_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.cctv_recordingsession
+    ADD CONSTRAINT cctv_recordingsession_pkey PRIMARY KEY (id);
+
+
+--
+-- TOC entry 4443 (class 2606 OID 16838)
+-- Name: cctv_storageconfiguration cctv_storageconfiguration_name_key; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.cctv_storageconfiguration
+    ADD CONSTRAINT cctv_storageconfiguration_name_key UNIQUE (name);
+
+
+--
+-- TOC entry 4445 (class 2606 OID 16836)
+-- Name: cctv_storageconfiguration cctv_storageconfiguration_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.cctv_storageconfiguration
+    ADD CONSTRAINT cctv_storageconfiguration_pkey PRIMARY KEY (id);
+
+
+--
+-- TOC entry 4507 (class 2606 OID 17007)
+-- Name: core_account core_account_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.core_account
+    ADD CONSTRAINT core_account_pkey PRIMARY KEY (id);
+
+
+--
+-- TOC entry 4510 (class 2606 OID 17042)
+-- Name: core_account core_account_user_id_name_1d277b16_uniq; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.core_account
+    ADD CONSTRAINT core_account_user_id_name_1d277b16_uniq UNIQUE (user_id, name);
+
+
+--
+-- TOC entry 4499 (class 2606 OID 16999)
+-- Name: core_item core_item_code_key; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.core_item
+    ADD CONSTRAINT core_item_code_key UNIQUE (code);
+
+
+--
+-- TOC entry 4504 (class 2606 OID 16997)
+-- Name: core_item core_item_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.core_item
+    ADD CONSTRAINT core_item_pkey PRIMARY KEY (id);
+
+
+--
+-- TOC entry 4490 (class 2606 OID 16987)
+-- Name: core_itemcategory core_itemcategory_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.core_itemcategory
+    ADD CONSTRAINT core_itemcategory_pkey PRIMARY KEY (id);
+
+
+--
+-- TOC entry 4493 (class 2606 OID 16989)
+-- Name: core_itemcategory core_itemcategory_slug_key; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.core_itemcategory
+    ADD CONSTRAINT core_itemcategory_slug_key UNIQUE (slug);
+
+
+--
+-- TOC entry 4514 (class 2606 OID 17015)
+-- Name: core_itemprice core_itemprice_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.core_itemprice
+    ADD CONSTRAINT core_itemprice_pkey PRIMARY KEY (id);
+
+
+--
+-- TOC entry 4487 (class 2606 OID 16979)
+-- Name: core_unit core_unit_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.core_unit
+    ADD CONSTRAINT core_unit_pkey PRIMARY KEY (id);
+
+
+--
+-- TOC entry 4516 (class 2606 OID 17063)
+-- Name: core_userprofile core_userprofile_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.core_userprofile
+    ADD CONSTRAINT core_userprofile_pkey PRIMARY KEY (id);
+
+
+--
+-- TOC entry 4518 (class 2606 OID 17065)
+-- Name: core_userprofile core_userprofile_user_id_key; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.core_userprofile
+    ADD CONSTRAINT core_userprofile_user_id_key UNIQUE (user_id);
+
+
+--
+-- TOC entry 4892 (class 2606 OID 18239)
+-- Name: crypto_exchange_rates crypto_exchange_rates_exchange_symbol_timestamp_35aa76aa_uniq; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.crypto_exchange_rates
+    ADD CONSTRAINT crypto_exchange_rates_exchange_symbol_timestamp_35aa76aa_uniq UNIQUE (exchange, symbol, "timestamp");
+
+
+--
+-- TOC entry 4894 (class 2606 OID 18054)
+-- Name: crypto_exchange_rates crypto_exchange_rates_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.crypto_exchange_rates
+    ADD CONSTRAINT crypto_exchange_rates_pkey PRIMARY KEY (id);
+
+
+--
+-- TOC entry 4809 (class 2606 OID 17994)
+-- Name: currencies currencies_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.currencies
+    ADD CONSTRAINT currencies_pkey PRIMARY KEY (code);
+
+
+--
+-- TOC entry 4827 (class 2606 OID 18005)
+-- Name: currency_alerts currency_alerts_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.currency_alerts
+    ADD CONSTRAINT currency_alerts_pkey PRIMARY KEY (id);
+
+
+--
+-- TOC entry 4520 (class 2606 OID 17077)
+-- Name: debug_toolbar_historyentry debug_toolbar_historyentry_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.debug_toolbar_historyentry
+    ADD CONSTRAINT debug_toolbar_historyentry_pkey PRIMARY KEY (request_id);
+
+
+--
+-- TOC entry 4336 (class 2606 OID 16507)
+-- Name: django_content_type django_content_type_app_label_model_76bd3d3b_uniq; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.django_content_type
+    ADD CONSTRAINT django_content_type_app_label_model_76bd3d3b_uniq UNIQUE (app_label, model);
+
+
+--
+-- TOC entry 4338 (class 2606 OID 16505)
+-- Name: django_content_type django_content_type_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.django_content_type
+    ADD CONSTRAINT django_content_type_pkey PRIMARY KEY (id);
+
+
+--
+-- TOC entry 4334 (class 2606 OID 16499)
+-- Name: django_migrations django_migrations_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.django_migrations
+    ADD CONSTRAINT django_migrations_pkey PRIMARY KEY (id);
+
+
+--
+-- TOC entry 4667 (class 2606 OID 17532)
+-- Name: django_session django_session_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.django_session
+    ADD CONSTRAINT django_session_pkey PRIMARY KEY (session_key);
+
+
+--
+-- TOC entry 4576 (class 2606 OID 17263)
+-- Name: documents_achievement documents_achievement_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.documents_achievement
+    ADD CONSTRAINT documents_achievement_pkey PRIMARY KEY (id);
+
+
+--
+-- TOC entry 4579 (class 2606 OID 17298)
+-- Name: documents_achievement documents_achievement_user_id_achievement_type_3e7c7f4b_uniq; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.documents_achievement
+    ADD CONSTRAINT documents_achievement_user_id_achievement_type_3e7c7f4b_uniq UNIQUE (user_id, achievement_type, name);
+
+
+--
+-- TOC entry 4563 (class 2606 OID 17231)
+-- Name: documents_challenge documents_challenge_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.documents_challenge
+    ADD CONSTRAINT documents_challenge_pkey PRIMARY KEY (id);
+
+
+--
+-- TOC entry 4527 (class 2606 OID 17095)
+-- Name: documents_creditcard documents_creditcard_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.documents_creditcard
+    ADD CONSTRAINT documents_creditcard_pkey PRIMARY KEY (id);
+
+
+--
+-- TOC entry 4530 (class 2606 OID 17155)
+-- Name: documents_creditcard documents_creditcard_user_id_last_four_digits_44a64c59_uniq; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.documents_creditcard
+    ADD CONSTRAINT documents_creditcard_user_id_last_four_digits_44a64c59_uniq UNIQUE (user_id, last_four_digits, bank_name);
+
+
+--
+-- TOC entry 4535 (class 2606 OID 17102)
+-- Name: documents_document documents_document_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.documents_document
+    ADD CONSTRAINT documents_document_pkey PRIMARY KEY (id);
+
+
+--
+-- TOC entry 4538 (class 2606 OID 17108)
+-- Name: documents_documentbatch documents_documentbatch_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.documents_documentbatch
+    ADD CONSTRAINT documents_documentbatch_pkey PRIMARY KEY (id);
+
+
+--
+-- TOC entry 4605 (class 2606 OID 17359)
+-- Name: documents_documentshare documents_documentshare_document_id_shared_with__1bab6530_uniq; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.documents_documentshare
+    ADD CONSTRAINT documents_documentshare_document_id_shared_with__1bab6530_uniq UNIQUE (document_id, shared_with_id);
+
+
+--
+-- TOC entry 4607 (class 2606 OID 17357)
+-- Name: documents_documentshare documents_documentshare_document_id_shared_with__5a3b0cf0_uniq; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.documents_documentshare
+    ADD CONSTRAINT documents_documentshare_document_id_shared_with__5a3b0cf0_uniq UNIQUE (document_id, shared_with_group);
+
+
+--
+-- TOC entry 4609 (class 2606 OID 17352)
+-- Name: documents_documentshare documents_documentshare_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.documents_documentshare
+    ADD CONSTRAINT documents_documentshare_pkey PRIMARY KEY (id);
+
+
+--
+-- TOC entry 4612 (class 2606 OID 17354)
+-- Name: documents_documentshare documents_documentshare_share_link_key; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.documents_documentshare
+    ADD CONSTRAINT documents_documentshare_share_link_key UNIQUE (share_link);
+
+
+--
+-- TOC entry 4600 (class 2606 OID 17345)
+-- Name: documents_documenttype documents_documenttype_name_key; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.documents_documenttype
+    ADD CONSTRAINT documents_documenttype_name_key UNIQUE (name);
+
+
+--
+-- TOC entry 4602 (class 2606 OID 17343)
+-- Name: documents_documenttype documents_documenttype_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.documents_documenttype
+    ADD CONSTRAINT documents_documenttype_pkey PRIMARY KEY (id);
+
+
+--
+-- TOC entry 4542 (class 2606 OID 17114)
+-- Name: documents_expensecategory documents_expensecategory_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.documents_expensecategory
+    ADD CONSTRAINT documents_expensecategory_pkey PRIMARY KEY (id);
+
+
+--
+-- TOC entry 4545 (class 2606 OID 17150)
+-- Name: documents_expensecategory documents_expensecategory_user_id_name_parent_id_3ca7520a_uniq; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.documents_expensecategory
+    ADD CONSTRAINT documents_expensecategory_user_id_name_parent_id_3ca7520a_uniq UNIQUE (user_id, name, parent_id);
+
+
+--
+-- TOC entry 4547 (class 2606 OID 17122)
+-- Name: documents_expensegroup documents_expensegroup_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.documents_expensegroup
+    ADD CONSTRAINT documents_expensegroup_pkey PRIMARY KEY (id);
+
+
+--
+-- TOC entry 4550 (class 2606 OID 17152)
+-- Name: documents_expensegroup documents_expensegroup_user_id_name_88dd3b6a_uniq; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.documents_expensegroup
+    ADD CONSTRAINT documents_expensegroup_user_id_name_88dd3b6a_uniq UNIQUE (user_id, name);
+
+
+--
+-- TOC entry 4583 (class 2606 OID 17269)
+-- Name: documents_leaderboard documents_leaderboard_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.documents_leaderboard
+    ADD CONSTRAINT documents_leaderboard_pkey PRIMARY KEY (id);
+
+
+--
+-- TOC entry 4586 (class 2606 OID 17306)
+-- Name: documents_leaderboard documents_leaderboard_user_id_period_type_peri_7df310c8_uniq; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.documents_leaderboard
+    ADD CONSTRAINT documents_leaderboard_user_id_period_type_peri_7df310c8_uniq UNIQUE (user_id, period_type, period_start);
+
+
+--
+-- TOC entry 4567 (class 2606 OID 17239)
+-- Name: documents_learningmodel documents_learningmodel_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.documents_learningmodel
+    ADD CONSTRAINT documents_learningmodel_pkey PRIMARY KEY (id);
+
+
+--
+-- TOC entry 4522 (class 2606 OID 17085)
+-- Name: documents_ocrtemplate documents_ocrtemplate_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.documents_ocrtemplate
+    ADD CONSTRAINT documents_ocrtemplate_pkey PRIMARY KEY (id);
+
+
+--
+-- TOC entry 4525 (class 2606 OID 17087)
+-- Name: documents_ocrtemplate documents_ocrtemplate_store_name_key; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.documents_ocrtemplate
+    ADD CONSTRAINT documents_ocrtemplate_store_name_key UNIQUE (store_name);
+
+
+--
+-- TOC entry 4552 (class 2606 OID 17132)
+-- Name: documents_parsedreceipt documents_parsedreceipt_document_id_key; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.documents_parsedreceipt
+    ADD CONSTRAINT documents_parsedreceipt_document_id_key UNIQUE (document_id);
+
+
+--
+-- TOC entry 4554 (class 2606 OID 17130)
+-- Name: documents_parsedreceipt documents_parsedreceipt_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.documents_parsedreceipt
+    ADD CONSTRAINT documents_parsedreceipt_pkey PRIMARY KEY (id);
+
+
+--
+-- TOC entry 4569 (class 2606 OID 17247)
+-- Name: documents_pointtransaction documents_pointtransaction_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.documents_pointtransaction
+    ADD CONSTRAINT documents_pointtransaction_pkey PRIMARY KEY (id);
+
+
+--
+-- TOC entry 4556 (class 2606 OID 17138)
+-- Name: documents_receiptitem documents_receiptitem_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.documents_receiptitem
+    ADD CONSTRAINT documents_receiptitem_pkey PRIMARY KEY (id);
+
+
+--
+-- TOC entry 4560 (class 2606 OID 17146)
+-- Name: documents_subscription documents_subscription_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.documents_subscription
+    ADD CONSTRAINT documents_subscription_pkey PRIMARY KEY (id);
+
+
+--
+-- TOC entry 4589 (class 2606 OID 17275)
+-- Name: documents_userchallenge documents_userchallenge_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.documents_userchallenge
+    ADD CONSTRAINT documents_userchallenge_pkey PRIMARY KEY (id);
+
+
+--
+-- TOC entry 4592 (class 2606 OID 17316)
+-- Name: documents_userchallenge documents_userchallenge_user_id_challenge_id_56705f21_uniq; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.documents_userchallenge
+    ADD CONSTRAINT documents_userchallenge_user_id_challenge_id_56705f21_uniq UNIQUE (user_id, challenge_id);
+
+
+--
+-- TOC entry 4572 (class 2606 OID 17253)
+-- Name: documents_userprofile documents_userprofile_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.documents_userprofile
+    ADD CONSTRAINT documents_userprofile_pkey PRIMARY KEY (id);
+
+
+--
+-- TOC entry 4574 (class 2606 OID 17255)
+-- Name: documents_userprofile documents_userprofile_user_id_key; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.documents_userprofile
+    ADD CONSTRAINT documents_userprofile_user_id_key UNIQUE (user_id);
+
+
+--
+-- TOC entry 4596 (class 2606 OID 17283)
+-- Name: documents_validationfeedback documents_validationfeedback_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.documents_validationfeedback
+    ADD CONSTRAINT documents_validationfeedback_pkey PRIMARY KEY (id);
+
+
+--
+-- TOC entry 4816 (class 2606 OID 18114)
+-- Name: exchange_rates exchange_rates_base_currency_id_target__51515a9b_uniq; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.exchange_rates
+    ADD CONSTRAINT exchange_rates_base_currency_id_target__51515a9b_uniq UNIQUE (base_currency_id, target_currency_id, "timestamp", source);
+
+
+--
+-- TOC entry 4818 (class 2606 OID 17999)
+-- Name: exchange_rates exchange_rates_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.exchange_rates
+    ADD CONSTRAINT exchange_rates_pkey PRIMARY KEY (id);
+
+
+--
+-- TOC entry 4634 (class 2606 OID 17406)
+-- Name: inflation_reports inflation_reports_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.inflation_reports
+    ADD CONSTRAINT inflation_reports_pkey PRIMARY KEY (id);
+
+
+--
+-- TOC entry 4636 (class 2606 OID 17443)
+-- Name: inflation_reports inflation_reports_user_id_basket_id_period_d3445e25_uniq; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.inflation_reports
+    ADD CONSTRAINT inflation_reports_user_id_basket_id_period_d3445e25_uniq UNIQUE (user_id, basket_id, period_start, period_end);
+
+
+--
+-- TOC entry 4880 (class 2606 OID 18232)
+-- Name: market_data market_data_currency_pair_period_sta_59fda87a_uniq; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.market_data
+    ADD CONSTRAINT market_data_currency_pair_period_sta_59fda87a_uniq UNIQUE (currency_pair, period_start, "interval", source);
+
+
+--
+-- TOC entry 4884 (class 2606 OID 18049)
+-- Name: market_data market_data_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.market_data
+    ADD CONSTRAINT market_data_pkey PRIMARY KEY (id);
+
+
+--
+-- TOC entry 4992 (class 2606 OID 18448)
+-- Name: movies_collection movies_collection_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.movies_collection
+    ADD CONSTRAINT movies_collection_pkey PRIMARY KEY (id);
+
+
+--
+-- TOC entry 4995 (class 2606 OID 18520)
+-- Name: movies_collection movies_collection_user_id_name_c1448944_uniq; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.movies_collection
+    ADD CONSTRAINT movies_collection_user_id_name_c1448944_uniq UNIQUE (user_id, name);
+
+
+--
+-- TOC entry 5028 (class 2606 OID 18516)
+-- Name: movies_collectionitem movies_collectionitem_collection_id_movie_id_05f643ce_uniq; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.movies_collectionitem
+    ADD CONSTRAINT movies_collectionitem_collection_id_movie_id_05f643ce_uniq UNIQUE (collection_id, movie_id);
+
+
+--
+-- TOC entry 5031 (class 2606 OID 18483)
+-- Name: movies_collectionitem movies_collectionitem_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.movies_collectionitem
+    ADD CONSTRAINT movies_collectionitem_pkey PRIMARY KEY (id);
+
+
+--
+-- TOC entry 4998 (class 2606 OID 18454)
+-- Name: movies_genre movies_genre_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.movies_genre
+    ADD CONSTRAINT movies_genre_pkey PRIMARY KEY (id);
+
+
+--
+-- TOC entry 5001 (class 2606 OID 18458)
+-- Name: movies_genre movies_genre_slug_key; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.movies_genre
+    ADD CONSTRAINT movies_genre_slug_key UNIQUE (slug);
+
+
+--
+-- TOC entry 5003 (class 2606 OID 18456)
+-- Name: movies_genre movies_genre_tmdb_id_key; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.movies_genre
+    ADD CONSTRAINT movies_genre_tmdb_id_key UNIQUE (tmdb_id);
+
+
+--
+-- TOC entry 5023 (class 2606 OID 18552)
+-- Name: movies_movie_genres movies_movie_genres_movie_id_genre_id_5ff3c723_uniq; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.movies_movie_genres
+    ADD CONSTRAINT movies_movie_genres_movie_id_genre_id_5ff3c723_uniq UNIQUE (movie_id, genre_id);
+
+
+--
+-- TOC entry 5025 (class 2606 OID 18475)
+-- Name: movies_movie_genres movies_movie_genres_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.movies_movie_genres
+    ADD CONSTRAINT movies_movie_genres_pkey PRIMARY KEY (id);
+
+
+--
+-- TOC entry 5011 (class 2606 OID 18469)
+-- Name: movies_movie movies_movie_imdb_id_key; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.movies_movie
+    ADD CONSTRAINT movies_movie_imdb_id_key UNIQUE (imdb_id);
+
+
+--
+-- TOC entry 5013 (class 2606 OID 18465)
+-- Name: movies_movie movies_movie_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.movies_movie
+    ADD CONSTRAINT movies_movie_pkey PRIMARY KEY (id);
+
+
+--
+-- TOC entry 5019 (class 2606 OID 18467)
+-- Name: movies_movie movies_movie_tmdb_id_key; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.movies_movie
+    ADD CONSTRAINT movies_movie_tmdb_id_key UNIQUE (tmdb_id);
+
+
+--
+-- TOC entry 5036 (class 2606 OID 18490)
+-- Name: movies_personalarchive movies_personalarchive_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.movies_personalarchive
+    ADD CONSTRAINT movies_personalarchive_pkey PRIMARY KEY (id);
+
+
+--
+-- TOC entry 5039 (class 2606 OID 18524)
+-- Name: movies_personalarchive movies_personalarchive_user_id_movie_id_format_69944c60_uniq; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.movies_personalarchive
+    ADD CONSTRAINT movies_personalarchive_user_id_movie_id_format_69944c60_uniq UNIQUE (user_id, movie_id, format);
+
+
+--
+-- TOC entry 5045 (class 2606 OID 18497)
+-- Name: movies_userrating movies_userrating_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.movies_userrating
+    ADD CONSTRAINT movies_userrating_pkey PRIMARY KEY (id);
+
+
+--
+-- TOC entry 5048 (class 2606 OID 18529)
+-- Name: movies_userrating movies_userrating_user_id_movie_id_55785478_uniq; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.movies_userrating
+    ADD CONSTRAINT movies_userrating_user_id_movie_id_55785478_uniq UNIQUE (user_id, movie_id);
+
+
+--
+-- TOC entry 5053 (class 2606 OID 18504)
+-- Name: movies_watchhistory movies_watchhistory_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.movies_watchhistory
+    ADD CONSTRAINT movies_watchhistory_pkey PRIMARY KEY (id);
+
+
+--
+-- TOC entry 5059 (class 2606 OID 18511)
+-- Name: movies_watchlist movies_watchlist_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.movies_watchlist
+    ADD CONSTRAINT movies_watchlist_pkey PRIMARY KEY (id);
+
+
+--
+-- TOC entry 5064 (class 2606 OID 18535)
+-- Name: movies_watchlist movies_watchlist_user_id_movie_id_320579b7_uniq; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.movies_watchlist
+    ADD CONSTRAINT movies_watchlist_user_id_movie_id_320579b7_uniq UNIQUE (user_id, movie_id);
+
+
+--
+-- TOC entry 5092 (class 2606 OID 18830)
+-- Name: music_album_featured_artists music_album_featured_artists_album_id_artist_id_86ccda42_uniq; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.music_album_featured_artists
+    ADD CONSTRAINT music_album_featured_artists_album_id_artist_id_86ccda42_uniq UNIQUE (album_id, artist_id);
+
+
+--
+-- TOC entry 5095 (class 2606 OID 18704)
+-- Name: music_album_featured_artists music_album_featured_artists_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.music_album_featured_artists
+    ADD CONSTRAINT music_album_featured_artists_pkey PRIMARY KEY (id);
+
+
+--
+-- TOC entry 5083 (class 2606 OID 18696)
+-- Name: music_album music_album_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.music_album
+    ADD CONSTRAINT music_album_pkey PRIMARY KEY (id);
+
+
+--
+-- TOC entry 5089 (class 2606 OID 18698)
+-- Name: music_album music_album_spotify_id_key; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.music_album
+    ADD CONSTRAINT music_album_spotify_id_key UNIQUE (spotify_id);
+
+
+--
+-- TOC entry 5071 (class 2606 OID 18685)
+-- Name: music_artist music_artist_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.music_artist
+    ADD CONSTRAINT music_artist_pkey PRIMARY KEY (id);
+
+
+--
+-- TOC entry 5074 (class 2606 OID 18689)
+-- Name: music_artist music_artist_slug_key; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.music_artist
+    ADD CONSTRAINT music_artist_slug_key UNIQUE (slug);
+
+
+--
+-- TOC entry 5077 (class 2606 OID 18687)
+-- Name: music_artist music_artist_spotify_id_key; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.music_artist
+    ADD CONSTRAINT music_artist_spotify_id_key UNIQUE (spotify_id);
+
+
+--
+-- TOC entry 5146 (class 2606 OID 18752)
+-- Name: music_listeninghistory music_listeninghistory_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.music_listeninghistory
+    ADD CONSTRAINT music_listeninghistory_pkey PRIMARY KEY (id);
+
+
+--
+-- TOC entry 5098 (class 2606 OID 18711)
+-- Name: music_listeningstats music_listeningstats_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.music_listeningstats
+    ADD CONSTRAINT music_listeningstats_pkey PRIMARY KEY (id);
+
+
+--
+-- TOC entry 5101 (class 2606 OID 18793)
+-- Name: music_listeningstats music_listeningstats_user_id_period_period_date_d3d2a22b_uniq; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.music_listeningstats
+    ADD CONSTRAINT music_listeningstats_user_id_period_period_date_d3d2a22b_uniq UNIQUE (user_id, period, period_date);
+
+
+--
+-- TOC entry 5108 (class 2606 OID 18724)
+-- Name: music_playlist_collaborators music_playlist_collaborators_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.music_playlist_collaborators
+    ADD CONSTRAINT music_playlist_collaborators_pkey PRIMARY KEY (id);
+
+
+--
+-- TOC entry 5111 (class 2606 OID 18856)
+-- Name: music_playlist_collaborators music_playlist_collaborators_playlist_id_user_id_b9ec379d_uniq; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.music_playlist_collaborators
+    ADD CONSTRAINT music_playlist_collaborators_playlist_id_user_id_b9ec379d_uniq UNIQUE (playlist_id, user_id);
+
+
+--
+-- TOC entry 5105 (class 2606 OID 18718)
+-- Name: music_playlist music_playlist_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.music_playlist
+    ADD CONSTRAINT music_playlist_pkey PRIMARY KEY (id);
+
+
+--
+-- TOC entry 5137 (class 2606 OID 18745)
+-- Name: music_playlisttrack music_playlisttrack_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.music_playlisttrack
+    ADD CONSTRAINT music_playlisttrack_pkey PRIMARY KEY (id);
+
+
+--
+-- TOC entry 5140 (class 2606 OID 18800)
+-- Name: music_playlisttrack music_playlisttrack_playlist_id_track_id_position_2e30f698_uniq; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.music_playlisttrack
+    ADD CONSTRAINT music_playlisttrack_playlist_id_track_id_position_2e30f698_uniq UNIQUE (playlist_id, track_id, "position");
+
+
+--
+-- TOC entry 5115 (class 2606 OID 18798)
+-- Name: music_track music_track_album_id_disc_number_track_number_8076cff5_uniq; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.music_track
+    ADD CONSTRAINT music_track_album_id_disc_number_track_number_8076cff5_uniq UNIQUE (album_id, disc_number, track_number);
+
+
+--
+-- TOC entry 5131 (class 2606 OID 18739)
+-- Name: music_track_featured_artists music_track_featured_artists_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.music_track_featured_artists
+    ADD CONSTRAINT music_track_featured_artists_pkey PRIMARY KEY (id);
+
+
+--
+-- TOC entry 5134 (class 2606 OID 18887)
+-- Name: music_track_featured_artists music_track_featured_artists_track_id_artist_id_cb5fd3a6_uniq; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.music_track_featured_artists
+    ADD CONSTRAINT music_track_featured_artists_track_id_artist_id_cb5fd3a6_uniq UNIQUE (track_id, artist_id);
+
+
+--
+-- TOC entry 5124 (class 2606 OID 18731)
+-- Name: music_track music_track_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.music_track
+    ADD CONSTRAINT music_track_pkey PRIMARY KEY (id);
+
+
+--
+-- TOC entry 5128 (class 2606 OID 18733)
+-- Name: music_track music_track_spotify_id_key; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.music_track
+    ADD CONSTRAINT music_track_spotify_id_key UNIQUE (spotify_id);
+
+
+--
+-- TOC entry 5152 (class 2606 OID 18809)
+-- Name: music_useralbum music_useralbum_library_id_album_id_ce4bb358_uniq; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.music_useralbum
+    ADD CONSTRAINT music_useralbum_library_id_album_id_ce4bb358_uniq UNIQUE (library_id, album_id);
+
+
+--
+-- TOC entry 5154 (class 2606 OID 18758)
+-- Name: music_useralbum music_useralbum_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.music_useralbum
+    ADD CONSTRAINT music_useralbum_pkey PRIMARY KEY (id);
+
+
+--
+-- TOC entry 5158 (class 2606 OID 18807)
+-- Name: music_userartist music_userartist_library_id_artist_id_e799357e_uniq; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.music_userartist
+    ADD CONSTRAINT music_userartist_library_id_artist_id_e799357e_uniq UNIQUE (library_id, artist_id);
+
+
+--
+-- TOC entry 5160 (class 2606 OID 18764)
+-- Name: music_userartist music_userartist_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.music_userartist
+    ADD CONSTRAINT music_userartist_pkey PRIMARY KEY (id);
+
+
+--
+-- TOC entry 5162 (class 2606 OID 18769)
+-- Name: music_userlibrary music_userlibrary_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.music_userlibrary
+    ADD CONSTRAINT music_userlibrary_pkey PRIMARY KEY (id);
+
+
+--
+-- TOC entry 5164 (class 2606 OID 18771)
+-- Name: music_userlibrary music_userlibrary_user_id_key; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.music_userlibrary
+    ADD CONSTRAINT music_userlibrary_user_id_key UNIQUE (user_id);
+
+
+--
+-- TOC entry 5167 (class 2606 OID 18811)
+-- Name: music_usertrack music_usertrack_library_id_track_id_699a5a84_uniq; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.music_usertrack
+    ADD CONSTRAINT music_usertrack_library_id_track_id_699a5a84_uniq UNIQUE (library_id, track_id);
+
+
+--
+-- TOC entry 5169 (class 2606 OID 18787)
+-- Name: music_usertrack music_usertrack_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.music_usertrack
+    ADD CONSTRAINT music_usertrack_pkey PRIMARY KEY (id);
+
+
+--
+-- TOC entry 4626 (class 2606 OID 17399)
+-- Name: personal_baskets personal_baskets_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.personal_baskets
+    ADD CONSTRAINT personal_baskets_pkey PRIMARY KEY (id);
+
+
+--
+-- TOC entry 4629 (class 2606 OID 17439)
+-- Name: personal_baskets personal_baskets_user_id_name_3ee3f47d_uniq; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.personal_baskets
+    ADD CONSTRAINT personal_baskets_user_id_name_3ee3f47d_uniq UNIQUE (user_id, name);
+
+
+--
+-- TOC entry 4840 (class 2606 OID 18021)
+-- Name: portfolio_holdings portfolio_holdings_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.portfolio_holdings
+    ADD CONSTRAINT portfolio_holdings_pkey PRIMARY KEY (id);
+
+
+--
+-- TOC entry 4843 (class 2606 OID 18162)
+-- Name: portfolio_holdings portfolio_holdings_portfolio_id_currency_id_c4a4a76a_uniq; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.portfolio_holdings
+    ADD CONSTRAINT portfolio_holdings_portfolio_id_currency_id_c4a4a76a_uniq UNIQUE (portfolio_id, currency_id);
+
+
+--
+-- TOC entry 4860 (class 2606 OID 18037)
+-- Name: portfolio_performance portfolio_performance_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.portfolio_performance
+    ADD CONSTRAINT portfolio_performance_pkey PRIMARY KEY (id);
+
+
+--
+-- TOC entry 4863 (class 2606 OID 18196)
+-- Name: portfolio_performance portfolio_performance_portfolio_id_snapshot_date_4a90d555_uniq; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.portfolio_performance
+    ADD CONSTRAINT portfolio_performance_portfolio_id_snapshot_date_4a90d555_uniq UNIQUE (portfolio_id, snapshot_date);
+
+
+--
+-- TOC entry 4852 (class 2606 OID 18030)
+-- Name: portfolio_transactions portfolio_transactions_external_id_key; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.portfolio_transactions
+    ADD CONSTRAINT portfolio_transactions_external_id_key UNIQUE (external_id);
+
+
+--
+-- TOC entry 4854 (class 2606 OID 18028)
+-- Name: portfolio_transactions portfolio_transactions_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.portfolio_transactions
+    ADD CONSTRAINT portfolio_transactions_pkey PRIMARY KEY (id);
+
+
+--
+-- TOC entry 4832 (class 2606 OID 18012)
+-- Name: portfolios portfolios_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.portfolios
+    ADD CONSTRAINT portfolios_pkey PRIMARY KEY (id);
+
+
+--
+-- TOC entry 4835 (class 2606 OID 18014)
+-- Name: portfolios portfolios_user_id_key; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.portfolios
+    ADD CONSTRAINT portfolios_user_id_key UNIQUE (user_id);
+
+
+--
+-- TOC entry 4641 (class 2606 OID 17412)
+-- Name: price_alerts price_alerts_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.price_alerts
+    ADD CONSTRAINT price_alerts_pkey PRIMARY KEY (id);
+
+
+--
+-- TOC entry 4660 (class 2606 OID 17436)
+-- Name: price_records price_records_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.price_records
+    ADD CONSTRAINT price_records_pkey PRIMARY KEY (id);
+
+
+--
+-- TOC entry 4654 (class 2606 OID 17423)
+-- Name: product_categories product_categories_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.product_categories
+    ADD CONSTRAINT product_categories_pkey PRIMARY KEY (id);
+
+
+--
+-- TOC entry 4621 (class 2606 OID 17385)
+-- Name: products products_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.products
+    ADD CONSTRAINT products_pkey PRIMARY KEY (id);
+
+
+--
+-- TOC entry 5172 (class 2606 OID 18968)
+-- Name: restopos_menucategory restopos_menucategory_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.restopos_menucategory
+    ADD CONSTRAINT restopos_menucategory_pkey PRIMARY KEY (id);
+
+
+--
+-- TOC entry 5175 (class 2606 OID 19062)
+-- Name: restopos_menucategory restopos_menucategory_restaurant_id_slug_7f34e4d9_uniq; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.restopos_menucategory
+    ADD CONSTRAINT restopos_menucategory_restaurant_id_slug_7f34e4d9_uniq UNIQUE (restaurant_id, slug);
+
+
+--
+-- TOC entry 5182 (class 2606 OID 18975)
+-- Name: restopos_menuitem restopos_menuitem_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.restopos_menuitem
+    ADD CONSTRAINT restopos_menuitem_pkey PRIMARY KEY (id);
+
+
+--
+-- TOC entry 5185 (class 2606 OID 19060)
+-- Name: restopos_menuitem restopos_menuitem_restaurant_id_slug_3183f6d5_uniq; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.restopos_menuitem
+    ADD CONSTRAINT restopos_menuitem_restaurant_id_slug_3183f6d5_uniq UNIQUE (restaurant_id, slug);
+
+
+--
+-- TOC entry 5194 (class 2606 OID 18984)
+-- Name: restopos_order restopos_order_order_number_key; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.restopos_order
+    ADD CONSTRAINT restopos_order_order_number_key UNIQUE (order_number);
+
+
+--
+-- TOC entry 5196 (class 2606 OID 18982)
+-- Name: restopos_order restopos_order_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.restopos_order
+    ADD CONSTRAINT restopos_order_pkey PRIMARY KEY (id);
+
+
+--
+-- TOC entry 5203 (class 2606 OID 18991)
+-- Name: restopos_orderitem restopos_orderitem_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.restopos_orderitem
+    ADD CONSTRAINT restopos_orderitem_pkey PRIMARY KEY (id);
+
+
+--
+-- TOC entry 5243 (class 2606 OID 19056)
+-- Name: restopos_receipt restopos_receipt_order_id_key; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.restopos_receipt
+    ADD CONSTRAINT restopos_receipt_order_id_key UNIQUE (order_id);
+
+
+--
+-- TOC entry 5245 (class 2606 OID 19052)
+-- Name: restopos_receipt restopos_receipt_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.restopos_receipt
+    ADD CONSTRAINT restopos_receipt_pkey PRIMARY KEY (id);
+
+
+--
+-- TOC entry 5248 (class 2606 OID 19054)
+-- Name: restopos_receipt restopos_receipt_receipt_number_key; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.restopos_receipt
+    ADD CONSTRAINT restopos_receipt_receipt_number_key UNIQUE (receipt_number);
+
+
+--
+-- TOC entry 5236 (class 2606 OID 19042)
+-- Name: restopos_reservation restopos_reservation_confirmation_code_key; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.restopos_reservation
+    ADD CONSTRAINT restopos_reservation_confirmation_code_key UNIQUE (confirmation_code);
+
+
+--
+-- TOC entry 5238 (class 2606 OID 19040)
+-- Name: restopos_reservation restopos_reservation_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.restopos_reservation
+    ADD CONSTRAINT restopos_reservation_pkey PRIMARY KEY (id);
+
+
+--
+-- TOC entry 5208 (class 2606 OID 19002)
+-- Name: restopos_restaurant restopos_restaurant_branch_code_key; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.restopos_restaurant
+    ADD CONSTRAINT restopos_restaurant_branch_code_key UNIQUE (branch_code);
+
+
+--
+-- TOC entry 5210 (class 2606 OID 18998)
+-- Name: restopos_restaurant restopos_restaurant_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.restopos_restaurant
+    ADD CONSTRAINT restopos_restaurant_pkey PRIMARY KEY (id);
+
+
+--
+-- TOC entry 5213 (class 2606 OID 19000)
+-- Name: restopos_restaurant restopos_restaurant_slug_key; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.restopos_restaurant
+    ADD CONSTRAINT restopos_restaurant_slug_key UNIQUE (slug);
+
+
+--
+-- TOC entry 5216 (class 2606 OID 19026)
+-- Name: restopos_staff restopos_staff_employee_id_key; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.restopos_staff
+    ADD CONSTRAINT restopos_staff_employee_id_key UNIQUE (employee_id);
+
+
+--
+-- TOC entry 5218 (class 2606 OID 19024)
+-- Name: restopos_staff restopos_staff_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.restopos_staff
+    ADD CONSTRAINT restopos_staff_pkey PRIMARY KEY (id);
+
+
+--
+-- TOC entry 5221 (class 2606 OID 19064)
+-- Name: restopos_staff restopos_staff_restaurant_id_user_id_42c816e5_uniq; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.restopos_staff
+    ADD CONSTRAINT restopos_staff_restaurant_id_user_id_42c816e5_uniq UNIQUE (restaurant_id, user_id);
+
+
+--
+-- TOC entry 5225 (class 2606 OID 19031)
+-- Name: restopos_table restopos_table_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.restopos_table
+    ADD CONSTRAINT restopos_table_pkey PRIMARY KEY (id);
+
+
+--
+-- TOC entry 5228 (class 2606 OID 19033)
+-- Name: restopos_table restopos_table_qr_code_key; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.restopos_table
+    ADD CONSTRAINT restopos_table_qr_code_key UNIQUE (qr_code);
+
+
+--
+-- TOC entry 5231 (class 2606 OID 19066)
+-- Name: restopos_table restopos_table_restaurant_id_table_number_d413c5a6_uniq; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.restopos_table
+    ADD CONSTRAINT restopos_table_restaurant_id_table_number_d413c5a6_uniq UNIQUE (restaurant_id, table_number);
+
+
+--
+-- TOC entry 5284 (class 2606 OID 19234)
+-- Name: solitaire_solitaireactivity solitaire_solitaireactivity_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.solitaire_solitaireactivity
+    ADD CONSTRAINT solitaire_solitaireactivity_pkey PRIMARY KEY (id);
+
+
+--
+-- TOC entry 5276 (class 2606 OID 19224)
+-- Name: solitaire_solitairegamesession solitaire_solitairegamesession_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.solitaire_solitairegamesession
+    ADD CONSTRAINT solitaire_solitairegamesession_pkey PRIMARY KEY (id);
+
+
+--
+-- TOC entry 5280 (class 2606 OID 19226)
+-- Name: solitaire_solitairegamesession solitaire_solitairegamesession_session_id_key; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.solitaire_solitairegamesession
+    ADD CONSTRAINT solitaire_solitairegamesession_session_id_key UNIQUE (session_id);
+
+
+--
+-- TOC entry 5258 (class 2606 OID 19178)
+-- Name: solitaire_solitairemove solitaire_solitairemove_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.solitaire_solitairemove
+    ADD CONSTRAINT solitaire_solitairemove_pkey PRIMARY KEY (id);
+
+
+--
+-- TOC entry 5261 (class 2606 OID 19190)
+-- Name: solitaire_solitairemove solitaire_solitairemove_session_id_move_number_910d9604_uniq; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.solitaire_solitairemove
+    ADD CONSTRAINT solitaire_solitairemove_session_id_move_number_910d9604_uniq UNIQUE (session_id, move_number);
+
+
+--
+-- TOC entry 5269 (class 2606 OID 19216)
+-- Name: solitaire_solitaireplayer solitaire_solitaireplayer_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.solitaire_solitaireplayer
+    ADD CONSTRAINT solitaire_solitaireplayer_pkey PRIMARY KEY (id);
+
+
+--
+-- TOC entry 5252 (class 2606 OID 19168)
+-- Name: solitaire_solitairesession solitaire_solitairesession_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.solitaire_solitairesession
+    ADD CONSTRAINT solitaire_solitairesession_pkey PRIMARY KEY (id);
+
+
+--
+-- TOC entry 5255 (class 2606 OID 19170)
+-- Name: solitaire_solitairesession solitaire_solitairesession_session_id_key; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.solitaire_solitairesession
+    ADD CONSTRAINT solitaire_solitairesession_session_id_key UNIQUE (session_id);
+
+
+--
+-- TOC entry 5263 (class 2606 OID 19184)
+-- Name: solitaire_solitairestatistics solitaire_solitairestatistics_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.solitaire_solitairestatistics
+    ADD CONSTRAINT solitaire_solitairestatistics_pkey PRIMARY KEY (id);
+
+
+--
+-- TOC entry 5265 (class 2606 OID 19186)
+-- Name: solitaire_solitairestatistics solitaire_solitairestatistics_user_id_key; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.solitaire_solitairestatistics
+    ADD CONSTRAINT solitaire_solitairestatistics_user_id_key UNIQUE (user_id);
+
+
+--
+-- TOC entry 5287 (class 2606 OID 19269)
+-- Name: store_marketplace store_marketplace_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.store_marketplace
+    ADD CONSTRAINT store_marketplace_pkey PRIMARY KEY (id);
+
+
+--
+-- TOC entry 5290 (class 2606 OID 19313)
+-- Name: store_marketplace store_marketplace_user_id_platform_shop_name_df6a1992_uniq; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.store_marketplace
+    ADD CONSTRAINT store_marketplace_user_id_platform_shop_name_df6a1992_uniq UNIQUE (user_id, platform, shop_name);
+
+
+--
+-- TOC entry 5295 (class 2606 OID 19277)
+-- Name: store_order store_order_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.store_order
+    ADD CONSTRAINT store_order_pkey PRIMARY KEY (id);
+
+
+--
+-- TOC entry 5298 (class 2606 OID 19279)
+-- Name: store_order store_order_platform_order_id_key; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.store_order
+    ADD CONSTRAINT store_order_platform_order_id_key UNIQUE (platform_order_id);
+
+
+--
+-- TOC entry 5303 (class 2606 OID 19287)
+-- Name: store_orderitem store_orderitem_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.store_orderitem
+    ADD CONSTRAINT store_orderitem_pkey PRIMARY KEY (id);
+
+
+--
+-- TOC entry 5311 (class 2606 OID 19311)
+-- Name: store_product store_product_marketplace_id_platform_product_id_5dd622ba_uniq; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.store_product
+    ADD CONSTRAINT store_product_marketplace_id_platform_product_id_5dd622ba_uniq UNIQUE (marketplace_id, platform_product_id);
+
+
+--
+-- TOC entry 5313 (class 2606 OID 19295)
+-- Name: store_product store_product_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.store_product
+    ADD CONSTRAINT store_product_pkey PRIMARY KEY (id);
+
+
+--
+-- TOC entry 5319 (class 2606 OID 19303)
+-- Name: store_synclog store_synclog_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.store_synclog
+    ADD CONSTRAINT store_synclog_pkey PRIMARY KEY (id);
+
+
+--
+-- TOC entry 4623 (class 2606 OID 17392)
+-- Name: stores stores_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.stores
+    ADD CONSTRAINT stores_pkey PRIMARY KEY (id);
+
+
+--
+-- TOC entry 4874 (class 2606 OID 18044)
+-- Name: transactions transactions_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.transactions
+    ADD CONSTRAINT transactions_pkey PRIMARY KEY (id);
+
+
+--
+-- TOC entry 4670 (class 2606 OID 17542)
+-- Name: version_manager_gitstatus version_manager_gitstatus_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.version_manager_gitstatus
+    ADD CONSTRAINT version_manager_gitstatus_pkey PRIMARY KEY (id);
+
+
+--
+-- TOC entry 4672 (class 2606 OID 17550)
+-- Name: version_manager_scansession version_manager_scansession_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.version_manager_scansession
+    ADD CONSTRAINT version_manager_scansession_pkey PRIMARY KEY (id);
+
+
+--
+-- TOC entry 4679 (class 2606 OID 17558)
+-- Name: version_manager_versionarchive version_manager_versionarchive_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.version_manager_versionarchive
+    ADD CONSTRAINT version_manager_versionarchive_pkey PRIMARY KEY (id);
+
+
+--
+-- TOC entry 4682 (class 2606 OID 17560)
+-- Name: version_manager_versionarchive version_manager_versionarchive_version_key; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.version_manager_versionarchive
+    ADD CONSTRAINT version_manager_versionarchive_version_key UNIQUE (version);
+
+
+--
+-- TOC entry 4805 (class 2606 OID 17988)
+-- Name: web_ui_command_history web_ui_command_history_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.web_ui_command_history
+    ADD CONSTRAINT web_ui_command_history_pkey PRIMARY KEY (id);
+
+
+--
+-- TOC entry 4791 (class 2606 OID 17964)
+-- Name: web_ui_module_access web_ui_module_access_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.web_ui_module_access
+    ADD CONSTRAINT web_ui_module_access_pkey PRIMARY KEY (id);
+
+
+--
+-- TOC entry 4795 (class 2606 OID 17970)
+-- Name: web_ui_preferences web_ui_preferences_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.web_ui_preferences
+    ADD CONSTRAINT web_ui_preferences_pkey PRIMARY KEY (id);
+
+
+--
+-- TOC entry 4797 (class 2606 OID 17972)
+-- Name: web_ui_preferences web_ui_preferences_user_id_key; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.web_ui_preferences
+    ADD CONSTRAINT web_ui_preferences_user_id_key UNIQUE (user_id);
+
+
+--
+-- TOC entry 4783 (class 2606 OID 17954)
+-- Name: web_ui_session_logs web_ui_session_logs_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.web_ui_session_logs
+    ADD CONSTRAINT web_ui_session_logs_pkey PRIMARY KEY (id);
+
+
+--
+-- TOC entry 4786 (class 2606 OID 17956)
+-- Name: web_ui_session_logs web_ui_session_logs_session_id_key; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.web_ui_session_logs
+    ADD CONSTRAINT web_ui_session_logs_session_id_key UNIQUE (session_id);
+
+
+--
+-- TOC entry 4801 (class 2606 OID 17980)
+-- Name: web_ui_system_status web_ui_system_status_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.web_ui_system_status
+    ADD CONSTRAINT web_ui_system_status_pkey PRIMARY KEY (id);
+
+
+--
+-- TOC entry 4724 (class 2606 OID 17619)
+-- Name: wimm_budget wimm_budget_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.wimm_budget
+    ADD CONSTRAINT wimm_budget_pkey PRIMARY KEY (id);
+
+
+--
+-- TOC entry 4727 (class 2606 OID 17626)
+-- Name: wimm_budget wimm_budget_user_id_name_start_date_eaa9f514_uniq; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.wimm_budget
+    ADD CONSTRAINT wimm_budget_user_id_name_start_date_eaa9f514_uniq UNIQUE (user_id, name, start_date);
+
+
+--
+-- TOC entry 4688 (class 2606 OID 17581)
+-- Name: wimm_invoice wimm_invoice_invoice_number_key; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.wimm_invoice
+    ADD CONSTRAINT wimm_invoice_invoice_number_key UNIQUE (invoice_number);
+
+
+--
+-- TOC entry 4690 (class 2606 OID 17579)
+-- Name: wimm_invoice wimm_invoice_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.wimm_invoice
+    ADD CONSTRAINT wimm_invoice_pkey PRIMARY KEY (id);
+
+
+--
+-- TOC entry 4695 (class 2606 OID 17589)
+-- Name: wimm_invoiceitem wimm_invoiceitem_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.wimm_invoiceitem
+    ADD CONSTRAINT wimm_invoiceitem_pkey PRIMARY KEY (id);
+
+
+--
+-- TOC entry 4719 (class 2606 OID 17613)
+-- Name: wimm_recurringtransaction wimm_recurringtransaction_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.wimm_recurringtransaction
+    ADD CONSTRAINT wimm_recurringtransaction_pkey PRIMARY KEY (id);
+
+
+--
+-- TOC entry 4711 (class 2606 OID 17605)
+-- Name: wimm_transaction wimm_transaction_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.wimm_transaction
+    ADD CONSTRAINT wimm_transaction_pkey PRIMARY KEY (id);
+
+
+--
+-- TOC entry 4698 (class 2606 OID 17595)
+-- Name: wimm_transactioncategory wimm_transactioncategory_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.wimm_transactioncategory
+    ADD CONSTRAINT wimm_transactioncategory_pkey PRIMARY KEY (id);
+
+
+--
+-- TOC entry 4701 (class 2606 OID 17597)
+-- Name: wimm_transactioncategory wimm_transactioncategory_slug_key; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.wimm_transactioncategory
+    ADD CONSTRAINT wimm_transactioncategory_slug_key UNIQUE (slug);
+
+
+--
+-- TOC entry 4749 (class 2606 OID 17846)
+-- Name: wims_itemsupplier wims_itemsupplier_item_id_supplier_name_8d9ee0a5_uniq; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.wims_itemsupplier
+    ADD CONSTRAINT wims_itemsupplier_item_id_supplier_name_8d9ee0a5_uniq UNIQUE (item_id, supplier_name);
+
+
+--
+-- TOC entry 4751 (class 2606 OID 17781)
+-- Name: wims_itemsupplier wims_itemsupplier_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.wims_itemsupplier
+    ADD CONSTRAINT wims_itemsupplier_pkey PRIMARY KEY (id);
+
+
+--
+-- TOC entry 4744 (class 2606 OID 17773)
+-- Name: wims_stockcount wims_stockcount_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.wims_stockcount
+    ADD CONSTRAINT wims_stockcount_pkey PRIMARY KEY (id);
+
+
+--
+-- TOC entry 4755 (class 2606 OID 17789)
+-- Name: wims_stockcountitem wims_stockcountitem_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.wims_stockcountitem
+    ADD CONSTRAINT wims_stockcountitem_pkey PRIMARY KEY (id);
+
+
+--
+-- TOC entry 4758 (class 2606 OID 17854)
+-- Name: wims_stockcountitem wims_stockcountitem_stock_count_id_item_id_l_cdbb531d_uniq; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.wims_stockcountitem
+    ADD CONSTRAINT wims_stockcountitem_stock_count_id_item_id_l_cdbb531d_uniq UNIQUE (stock_count_id, item_id, location_id, batch_number, serial_number);
+
+
+--
+-- TOC entry 4775 (class 2606 OID 17924)
+-- Name: wims_stockitem wims_stockitem_item_id_warehouse_id_bat_e7089b6a_uniq; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.wims_stockitem
+    ADD CONSTRAINT wims_stockitem_item_id_warehouse_id_bat_e7089b6a_uniq UNIQUE (item_id, warehouse_id, batch_number, serial_number);
+
+
+--
+-- TOC entry 4778 (class 2606 OID 17803)
+-- Name: wims_stockitem wims_stockitem_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.wims_stockitem
+    ADD CONSTRAINT wims_stockitem_pkey PRIMARY KEY (id);
+
+
+--
+-- TOC entry 4738 (class 2606 OID 17765)
+-- Name: wims_stocklocation wims_stocklocation_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.wims_stocklocation
+    ADD CONSTRAINT wims_stocklocation_pkey PRIMARY KEY (id);
+
+
+--
+-- TOC entry 4741 (class 2606 OID 17814)
+-- Name: wims_stocklocation wims_stocklocation_warehouse_id_code_a2971bd4_uniq; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.wims_stocklocation
+    ADD CONSTRAINT wims_stocklocation_warehouse_id_code_a2971bd4_uniq UNIQUE (warehouse_id, code);
+
+
+--
+-- TOC entry 4767 (class 2606 OID 17797)
+-- Name: wims_stockmovement wims_stockmovement_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.wims_stockmovement
+    ADD CONSTRAINT wims_stockmovement_pkey PRIMARY KEY (id);
+
+
+--
+-- TOC entry 4730 (class 2606 OID 17759)
+-- Name: wims_warehouse wims_warehouse_code_key; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.wims_warehouse
+    ADD CONSTRAINT wims_warehouse_code_key UNIQUE (code);
+
+
+--
+-- TOC entry 4732 (class 2606 OID 17757)
+-- Name: wims_warehouse wims_warehouse_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.wims_warehouse
+    ADD CONSTRAINT wims_warehouse_pkey PRIMARY KEY (id);
+
+
+--
+-- TOC entry 4734 (class 2606 OID 17805)
+-- Name: wims_warehouse wims_warehouse_user_id_code_ea83685f_uniq; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.wims_warehouse
+    ADD CONSTRAINT wims_warehouse_user_id_code_ea83685f_uniq UNIQUE (user_id, code);
+
+
+--
+-- TOC entry 4422 (class 1259 OID 16796)
+-- Name: administrat_action_1b0365_idx; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX administrat_action_1b0365_idx ON public.administration_auditlog USING btree (action, "timestamp" DESC);
+
+
+--
+-- TOC entry 4423 (class 1259 OID 16794)
+-- Name: administrat_timesta_aaeea4_idx; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX administrat_timesta_aaeea4_idx ON public.administration_auditlog USING btree ("timestamp" DESC);
+
+
+--
+-- TOC entry 4424 (class 1259 OID 16795)
+-- Name: administrat_user_id_0f8133_idx; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX administrat_user_id_0f8133_idx ON public.administration_auditlog USING btree (user_id, "timestamp" DESC);
+
+
+--
+-- TOC entry 4427 (class 1259 OID 16792)
+-- Name: administration_auditlog_target_user_id_7ac161da; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX administration_auditlog_target_user_id_7ac161da ON public.administration_auditlog USING btree (target_user_id);
+
+
+--
+-- TOC entry 4428 (class 1259 OID 16793)
+-- Name: administration_auditlog_user_id_6876a212; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX administration_auditlog_user_id_6876a212 ON public.administration_auditlog USING btree (user_id);
+
+
+--
+-- TOC entry 4408 (class 1259 OID 16764)
+-- Name: administration_department_code_fd101070_like; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX administration_department_code_fd101070_like ON public.administration_department USING btree (code varchar_pattern_ops);
+
+
+--
+-- TOC entry 4411 (class 1259 OID 16767)
+-- Name: administration_department_default_role_id_38ab3cdf; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX administration_department_default_role_id_38ab3cdf ON public.administration_department USING btree (default_role_id);
+
+
+--
+-- TOC entry 4412 (class 1259 OID 16765)
+-- Name: administration_department_manager_id_8d4ed73f; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX administration_department_manager_id_8d4ed73f ON public.administration_department USING btree (manager_id);
+
+
+--
+-- TOC entry 4418 (class 1259 OID 16780)
+-- Name: administration_department_members_department_id_beb695d0; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX administration_department_members_department_id_beb695d0 ON public.administration_department_members USING btree (department_id);
+
+
+--
+-- TOC entry 4421 (class 1259 OID 16781)
+-- Name: administration_department_members_user_id_9dcf3c79; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX administration_department_members_user_id_9dcf3c79 ON public.administration_department_members USING btree (user_id);
+
+
+--
+-- TOC entry 4413 (class 1259 OID 16766)
+-- Name: administration_department_parent_id_f0b18996; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX administration_department_parent_id_f0b18996 ON public.administration_department USING btree (parent_id);
+
+
+--
+-- TOC entry 4404 (class 1259 OID 16748)
+-- Name: administration_permissionr_permission_id_38aef95b; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX administration_permissionr_permission_id_38aef95b ON public.administration_permissionrequest_permissions USING btree (permission_id);
+
+
+--
+-- TOC entry 4405 (class 1259 OID 16747)
+-- Name: administration_permissionr_permissionrequest_id_4e70d19f; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX administration_permissionr_permissionrequest_id_4e70d19f ON public.administration_permissionrequest_permissions USING btree (permissionrequest_id);
+
+
+--
+-- TOC entry 4399 (class 1259 OID 16732)
+-- Name: administration_permissionrequest_reviewed_by_id_de931119; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX administration_permissionrequest_reviewed_by_id_de931119 ON public.administration_permissionrequest USING btree (reviewed_by_id);
+
+
+--
+-- TOC entry 4400 (class 1259 OID 16734)
+-- Name: administration_permissionrequest_role_id_223b9bae; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX administration_permissionrequest_role_id_223b9bae ON public.administration_permissionrequest USING btree (role_id);
+
+
+--
+-- TOC entry 4401 (class 1259 OID 16733)
+-- Name: administration_permissionrequest_user_id_078a5bea; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX administration_permissionrequest_user_id_078a5bea ON public.administration_permissionrequest USING btree (user_id);
+
+
+--
+-- TOC entry 4377 (class 1259 OID 16688)
+-- Name: administration_role_code_88934c06_like; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX administration_role_code_88934c06_like ON public.administration_role USING btree (code varchar_pattern_ops);
+
+
+--
+-- TOC entry 4385 (class 1259 OID 16702)
+-- Name: administration_role_groups_group_id_981adaf0; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX administration_role_groups_group_id_981adaf0 ON public.administration_role_groups USING btree (group_id);
+
+
+--
+-- TOC entry 4388 (class 1259 OID 16701)
+-- Name: administration_role_groups_role_id_c12d78c2; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX administration_role_groups_role_id_c12d78c2 ON public.administration_role_groups USING btree (role_id);
+
+
+--
+-- TOC entry 4380 (class 1259 OID 16687)
+-- Name: administration_role_name_c9dd34c3_like; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX administration_role_name_c9dd34c3_like ON public.administration_role USING btree (name varchar_pattern_ops);
+
+
+--
+-- TOC entry 4393 (class 1259 OID 16716)
+-- Name: administration_role_permissions_permission_id_d20390a8; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX administration_role_permissions_permission_id_d20390a8 ON public.administration_role_permissions USING btree (permission_id);
+
+
+--
+-- TOC entry 4396 (class 1259 OID 16715)
+-- Name: administration_role_permissions_role_id_046d28df; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX administration_role_permissions_role_id_046d28df ON public.administration_role_permissions USING btree (role_id);
+
+
+--
+-- TOC entry 4372 (class 1259 OID 16686)
+-- Name: administration_systemsetting_key_1bcc81fb_like; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX administration_systemsetting_key_1bcc81fb_like ON public.administration_systemsetting USING btree (key varchar_pattern_ops);
+
+
+--
+-- TOC entry 4429 (class 1259 OID 16814)
+-- Name: administration_userrole_assigned_by_id_eb7586d2; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX administration_userrole_assigned_by_id_eb7586d2 ON public.administration_userrole USING btree (assigned_by_id);
+
+
+--
+-- TOC entry 4432 (class 1259 OID 16815)
+-- Name: administration_userrole_role_id_35e9c1a0; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX administration_userrole_role_id_35e9c1a0 ON public.administration_userrole USING btree (role_id);
+
+
+--
+-- TOC entry 4433 (class 1259 OID 16816)
+-- Name: administration_userrole_user_id_a00acf22; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX administration_userrole_user_id_a00acf22 ON public.administration_userrole USING btree (user_id);
+
+
+--
+-- TOC entry 4344 (class 1259 OID 16607)
+-- Name: auth_group_name_a6ea08ec_like; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX auth_group_name_a6ea08ec_like ON public.auth_group USING btree (name varchar_pattern_ops);
+
+
+--
+-- TOC entry 4349 (class 1259 OID 16569)
+-- Name: auth_group_permissions_group_id_b120cbf9; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX auth_group_permissions_group_id_b120cbf9 ON public.auth_group_permissions USING btree (group_id);
+
+
+--
+-- TOC entry 4352 (class 1259 OID 16570)
+-- Name: auth_group_permissions_permission_id_84c5c92e; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX auth_group_permissions_permission_id_84c5c92e ON public.auth_group_permissions USING btree (permission_id);
+
+
+--
+-- TOC entry 4339 (class 1259 OID 16555)
+-- Name: auth_permission_content_type_id_2f476e4b; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX auth_permission_content_type_id_2f476e4b ON public.auth_permission USING btree (content_type_id);
+
+
+--
+-- TOC entry 4360 (class 1259 OID 16585)
+-- Name: auth_user_groups_group_id_97559544; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX auth_user_groups_group_id_97559544 ON public.auth_user_groups USING btree (group_id);
+
+
+--
+-- TOC entry 4363 (class 1259 OID 16584)
+-- Name: auth_user_groups_user_id_6a12ed8b; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX auth_user_groups_user_id_6a12ed8b ON public.auth_user_groups USING btree (user_id);
+
+
+--
+-- TOC entry 4366 (class 1259 OID 16599)
+-- Name: auth_user_user_permissions_permission_id_1fbb5f2c; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX auth_user_user_permissions_permission_id_1fbb5f2c ON public.auth_user_user_permissions USING btree (permission_id);
+
+
+--
+-- TOC entry 4369 (class 1259 OID 16598)
+-- Name: auth_user_user_permissions_user_id_a95ead1b; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX auth_user_user_permissions_user_id_a95ead1b ON public.auth_user_user_permissions USING btree (user_id);
+
+
+--
+-- TOC entry 4357 (class 1259 OID 16602)
+-- Name: auth_user_username_6821ab7c_like; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX auth_user_username_6821ab7c_like ON public.auth_user USING btree (username varchar_pattern_ops);
+
+
+--
+-- TOC entry 4436 (class 1259 OID 16829)
+-- Name: authtoken_token_key_10f0b77e_like; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX authtoken_token_key_10f0b77e_like ON public.authtoken_token USING btree (key varchar_pattern_ops);
+
+
+--
+-- TOC entry 4898 (class 1259 OID 18258)
+-- Name: bank_exchan_bank_5f4dc1_idx; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX bank_exchan_bank_5f4dc1_idx ON public.bank_exchange_rates USING btree (bank, currency_pair, date);
+
+
+--
+-- TOC entry 4899 (class 1259 OID 18262)
+-- Name: bank_exchan_bank_ce8a4f_idx; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX bank_exchan_bank_ce8a4f_idx ON public.bank_exchange_rates USING btree (bank, currency_pair, "timestamp" DESC);
+
+
+--
+-- TOC entry 4900 (class 1259 OID 18259)
+-- Name: bank_exchan_currenc_c2089e_idx; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX bank_exchan_currenc_c2089e_idx ON public.bank_exchange_rates USING btree (currency_pair, date);
+
+
+--
+-- TOC entry 4901 (class 1259 OID 18260)
+-- Name: bank_exchan_date_cbda34_idx; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX bank_exchan_date_cbda34_idx ON public.bank_exchange_rates USING btree (date, bank);
+
+
+--
+-- TOC entry 4902 (class 1259 OID 18263)
+-- Name: bank_exchan_entry_i_b07e38_idx; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX bank_exchan_entry_i_b07e38_idx ON public.bank_exchange_rates USING btree (entry_id);
+
+
+--
+-- TOC entry 4903 (class 1259 OID 18261)
+-- Name: bank_exchan_timesta_b011cd_idx; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX bank_exchan_timesta_b011cd_idx ON public.bank_exchange_rates USING btree ("timestamp");
+
+
+--
+-- TOC entry 4906 (class 1259 OID 18252)
+-- Name: bank_exchange_rates_bank_dd746510; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX bank_exchange_rates_bank_dd746510 ON public.bank_exchange_rates USING btree (bank);
+
+
+--
+-- TOC entry 4907 (class 1259 OID 18253)
+-- Name: bank_exchange_rates_bank_dd746510_like; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX bank_exchange_rates_bank_dd746510_like ON public.bank_exchange_rates USING btree (bank varchar_pattern_ops);
+
+
+--
+-- TOC entry 4908 (class 1259 OID 18254)
+-- Name: bank_exchange_rates_currency_pair_9c993f03; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX bank_exchange_rates_currency_pair_9c993f03 ON public.bank_exchange_rates USING btree (currency_pair);
+
+
+--
+-- TOC entry 4909 (class 1259 OID 18255)
+-- Name: bank_exchange_rates_currency_pair_9c993f03_like; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX bank_exchange_rates_currency_pair_9c993f03_like ON public.bank_exchange_rates USING btree (currency_pair varchar_pattern_ops);
+
+
+--
+-- TOC entry 4910 (class 1259 OID 18256)
+-- Name: bank_exchange_rates_date_f16fd19c; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX bank_exchange_rates_date_f16fd19c ON public.bank_exchange_rates USING btree (date);
+
+
+--
+-- TOC entry 4911 (class 1259 OID 18251)
+-- Name: bank_exchange_rates_entry_id_7045fb8e_like; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX bank_exchange_rates_entry_id_7045fb8e_like ON public.bank_exchange_rates USING btree (entry_id varchar_pattern_ops);
+
+
+--
+-- TOC entry 4916 (class 1259 OID 18257)
+-- Name: bank_exchange_rates_timestamp_905d8fd4; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX bank_exchange_rates_timestamp_905d8fd4 ON public.bank_exchange_rates USING btree ("timestamp");
+
+
+--
+-- TOC entry 4917 (class 1259 OID 18264)
+-- Name: bank_rate_i_started_0fea88_idx; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX bank_rate_i_started_0fea88_idx ON public.bank_rate_import_logs USING btree (started_at DESC);
+
+
+--
+-- TOC entry 4918 (class 1259 OID 18265)
+-- Name: bank_rate_i_status_0fdab7_idx; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX bank_rate_i_status_0fdab7_idx ON public.bank_rate_import_logs USING btree (status, started_at DESC);
+
+
+--
+-- TOC entry 4644 (class 1259 OID 17446)
+-- Name: basket_item_basket__6a0e70_idx; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX basket_item_basket__6a0e70_idx ON public.basket_items USING btree (basket_id, is_active);
+
+
+--
+-- TOC entry 4645 (class 1259 OID 17498)
+-- Name: basket_items_basket_id_2b854602; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX basket_items_basket_id_2b854602 ON public.basket_items USING btree (basket_id);
+
+
+--
+-- TOC entry 4650 (class 1259 OID 17499)
+-- Name: basket_items_product_id_82fb5bc4; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX basket_items_product_id_82fb5bc4 ON public.basket_items USING btree (product_id);
+
+
+--
+-- TOC entry 4941 (class 1259 OID 18388)
+-- Name: birlikteyiz_city_05b7ee_idx; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX birlikteyiz_city_05b7ee_idx ON public.birlikteyiz_earthquakes USING btree (city);
+
+
+--
+-- TOC entry 4937 (class 1259 OID 18383)
+-- Name: birlikteyiz_declare_1360ba_idx; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX birlikteyiz_declare_1360ba_idx ON public.birlikteyiz_disaster_zones USING btree (declared_at);
+
+
+--
+-- TOC entry 4950 (class 1259 OID 18399)
+-- Name: birlikteyiz_earthquake_comments_earthquake_id_11877c02; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX birlikteyiz_earthquake_comments_earthquake_id_11877c02 ON public.birlikteyiz_earthquake_comments USING btree (earthquake_id);
+
+
+--
+-- TOC entry 4953 (class 1259 OID 18400)
+-- Name: birlikteyiz_earthquake_comments_user_id_52ec2aa3; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX birlikteyiz_earthquake_comments_user_id_52ec2aa3 ON public.birlikteyiz_earthquake_comments USING btree (user_id);
+
+
+--
+-- TOC entry 4927 (class 1259 OID 18380)
+-- Name: birlikteyiz_earthquake_sources_name_b7e6b966_like; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX birlikteyiz_earthquake_sources_name_b7e6b966_like ON public.birlikteyiz_earthquake_sources USING btree (name varchar_pattern_ops);
+
+
+--
+-- TOC entry 4944 (class 1259 OID 18384)
+-- Name: birlikteyiz_earthquakes_unique_id_33727fa0_like; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX birlikteyiz_earthquakes_unique_id_33727fa0_like ON public.birlikteyiz_earthquakes USING btree (unique_id varchar_pattern_ops);
+
+
+--
+-- TOC entry 4987 (class 1259 OID 18440)
+-- Name: birlikteyiz_emergency_contacts_user_id_6c434a68; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX birlikteyiz_emergency_contacts_user_id_6c434a68 ON public.birlikteyiz_emergency_contacts USING btree (user_id);
+
+
+--
+-- TOC entry 4962 (class 1259 OID 18413)
+-- Name: birlikteyiz_emergency_messages_message_id_17a0112a_like; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX birlikteyiz_emergency_messages_message_id_17a0112a_like ON public.birlikteyiz_emergency_messages USING btree (message_id varchar_pattern_ops);
+
+
+--
+-- TOC entry 4967 (class 1259 OID 18414)
+-- Name: birlikteyiz_emergency_messages_sender_node_id_b9f148f6; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX birlikteyiz_emergency_messages_sender_node_id_b9f148f6 ON public.birlikteyiz_emergency_messages USING btree (sender_node_id);
+
+
+--
+-- TOC entry 4932 (class 1259 OID 18381)
+-- Name: birlikteyiz_emergency_protocols_code_5c42a2f4_like; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX birlikteyiz_emergency_protocols_code_5c42a2f4_like ON public.birlikteyiz_emergency_protocols USING btree (code varchar_pattern_ops);
+
+
+--
+-- TOC entry 4968 (class 1259 OID 18375)
+-- Name: birlikteyiz_expires_428e0c_idx; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX birlikteyiz_expires_428e0c_idx ON public.birlikteyiz_emergency_messages USING btree (expires_at);
+
+
+--
+-- TOC entry 4940 (class 1259 OID 18382)
+-- Name: birlikteyiz_is_acti_5fbe05_idx; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX birlikteyiz_is_acti_5fbe05_idx ON public.birlikteyiz_disaster_zones USING btree (is_active, severity);
+
+
+--
+-- TOC entry 4954 (class 1259 OID 18373)
+-- Name: birlikteyiz_is_onli_dd38a2_idx; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX birlikteyiz_is_onli_dd38a2_idx ON public.birlikteyiz_mesh_nodes USING btree (is_online, last_seen);
+
+
+--
+-- TOC entry 4947 (class 1259 OID 18386)
+-- Name: birlikteyiz_magnitu_94bd10_idx; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX birlikteyiz_magnitu_94bd10_idx ON public.birlikteyiz_earthquakes USING btree (magnitude);
+
+
+--
+-- TOC entry 4955 (class 1259 OID 18406)
+-- Name: birlikteyiz_mesh_nodes_node_id_789528af_like; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX birlikteyiz_mesh_nodes_node_id_789528af_like ON public.birlikteyiz_mesh_nodes USING btree (node_id varchar_pattern_ops);
+
+
+--
+-- TOC entry 4958 (class 1259 OID 18407)
+-- Name: birlikteyiz_mesh_nodes_owner_id_cfad42ed; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX birlikteyiz_mesh_nodes_owner_id_cfad42ed ON public.birlikteyiz_mesh_nodes USING btree (owner_id);
+
+
+--
+-- TOC entry 4969 (class 1259 OID 18374)
+-- Name: birlikteyiz_message_084888_idx; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX birlikteyiz_message_084888_idx ON public.birlikteyiz_emergency_messages USING btree (message_type, created_at);
+
+
+--
+-- TOC entry 4970 (class 1259 OID 18376)
+-- Name: birlikteyiz_message_bef03f_idx; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX birlikteyiz_message_bef03f_idx ON public.birlikteyiz_message_relays USING btree (message_id, received_at);
+
+
+--
+-- TOC entry 4973 (class 1259 OID 18430)
+-- Name: birlikteyiz_message_relays_message_id_36c2c9b9; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX birlikteyiz_message_relays_message_id_36c2c9b9 ON public.birlikteyiz_message_relays USING btree (message_id);
+
+
+--
+-- TOC entry 4976 (class 1259 OID 18431)
+-- Name: birlikteyiz_message_relays_previous_node_id_68c90350; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX birlikteyiz_message_relays_previous_node_id_68c90350 ON public.birlikteyiz_message_relays USING btree (previous_node_id);
+
+
+--
+-- TOC entry 4977 (class 1259 OID 18432)
+-- Name: birlikteyiz_message_relays_relay_node_id_348d3579; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX birlikteyiz_message_relays_relay_node_id_348d3579 ON public.birlikteyiz_message_relays USING btree (relay_node_id);
+
+
+--
+-- TOC entry 4948 (class 1259 OID 18385)
+-- Name: birlikteyiz_occurre_9eb435_idx; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX birlikteyiz_occurre_9eb435_idx ON public.birlikteyiz_earthquakes USING btree (occurred_at DESC);
+
+
+--
+-- TOC entry 4961 (class 1259 OID 18372)
+-- Name: birlikteyiz_owner_i_2b9ecf_idx; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX birlikteyiz_owner_i_2b9ecf_idx ON public.birlikteyiz_mesh_nodes USING btree (owner_id, is_active);
+
+
+--
+-- TOC entry 4978 (class 1259 OID 18377)
+-- Name: birlikteyiz_relay_n_bfdac6_idx; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX birlikteyiz_relay_n_bfdac6_idx ON public.birlikteyiz_message_relays USING btree (relay_node_id, received_at);
+
+
+--
+-- TOC entry 4982 (class 1259 OID 18434)
+-- Name: birlikteyiz_resourc_52ff32_idx; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX birlikteyiz_resourc_52ff32_idx ON public.birlikteyiz_resource_points USING btree (resource_type, is_operational);
+
+
+--
+-- TOC entry 4981 (class 1259 OID 18433)
+-- Name: birlikteyiz_snapsho_331857_idx; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX birlikteyiz_snapsho_331857_idx ON public.birlikteyiz_network_topology USING btree (snapshot_time);
+
+
+--
+-- TOC entry 4949 (class 1259 OID 18387)
+-- Name: birlikteyiz_source_d30624_idx; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX birlikteyiz_source_d30624_idx ON public.birlikteyiz_earthquakes USING btree (source);
+
+
+--
+-- TOC entry 4988 (class 1259 OID 18441)
+-- Name: birlikteyiz_user_id_cb2997_idx; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX birlikteyiz_user_id_cb2997_idx ON public.birlikteyiz_emergency_contacts USING btree (user_id, priority);
+
+
+--
+-- TOC entry 4451 (class 1259 OID 16890)
+-- Name: cctv_alert_alert_t_ed2bcf_idx; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX cctv_alert_alert_t_ed2bcf_idx ON public.cctv_alert USING btree (alert_type, is_resolved);
+
+
+--
+-- TOC entry 4452 (class 1259 OID 16889)
+-- Name: cctv_alert_camera__d38201_idx; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX cctv_alert_camera__d38201_idx ON public.cctv_alert USING btree (camera_id, "timestamp");
+
+
+--
+-- TOC entry 4453 (class 1259 OID 16923)
+-- Name: cctv_alert_camera_id_10892e98; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX cctv_alert_camera_id_10892e98 ON public.cctv_alert USING btree (camera_id);
+
+
+--
+-- TOC entry 4456 (class 1259 OID 16891)
+-- Name: cctv_alert_priorit_e9ea02_idx; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX cctv_alert_priorit_e9ea02_idx ON public.cctv_alert USING btree (priority, is_resolved);
+
+
+--
+-- TOC entry 4457 (class 1259 OID 16921)
+-- Name: cctv_alert_resolved_by_id_6f4529dc; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX cctv_alert_resolved_by_id_6f4529dc ON public.cctv_alert USING btree (resolved_by_id);
+
+
+--
+-- TOC entry 4458 (class 1259 OID 16922)
+-- Name: cctv_alert_user_id_08e5ac13; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX cctv_alert_user_id_08e5ac13 ON public.cctv_alert USING btree (user_id);
+
+
+--
+-- TOC entry 4448 (class 1259 OID 16888)
+-- Name: cctv_camera_status_fa531e_idx; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX cctv_camera_status_fa531e_idx ON public.cctv_camera USING btree (status);
+
+
+--
+-- TOC entry 4449 (class 1259 OID 16887)
+-- Name: cctv_camera_user_id_264f16_idx; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX cctv_camera_user_id_264f16_idx ON public.cctv_camera USING btree (user_id, is_active);
+
+
+--
+-- TOC entry 4450 (class 1259 OID 16905)
+-- Name: cctv_camera_user_id_92d5d2c7; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX cctv_camera_user_id_92d5d2c7 ON public.cctv_camera USING btree (user_id);
+
+
+--
+-- TOC entry 4464 (class 1259 OID 16943)
+-- Name: cctv_cameragroup_cameras_camera_id_e731eb60; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX cctv_cameragroup_cameras_camera_id_e731eb60 ON public.cctv_cameragroup_cameras USING btree (camera_id);
+
+
+--
+-- TOC entry 4465 (class 1259 OID 16942)
+-- Name: cctv_cameragroup_cameras_cameragroup_id_582d3745; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX cctv_cameragroup_cameras_cameragroup_id_582d3745 ON public.cctv_cameragroup_cameras USING btree (cameragroup_id);
+
+
+--
+-- TOC entry 4461 (class 1259 OID 16929)
+-- Name: cctv_cameragroup_user_id_025ddb87; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX cctv_cameragroup_user_id_025ddb87 ON public.cctv_cameragroup USING btree (user_id);
+
+
+--
+-- TOC entry 4470 (class 1259 OID 16949)
+-- Name: cctv_camerastream_camera_id_6bb36e52; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX cctv_camerastream_camera_id_6bb36e52 ON public.cctv_camerastream USING btree (camera_id);
+
+
+--
+-- TOC entry 4479 (class 1259 OID 16896)
+-- Name: cctv_record_camera__661a18_idx; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX cctv_record_camera__661a18_idx ON public.cctv_recordingsession USING btree (camera_id, start_time);
+
+
+--
+-- TOC entry 4480 (class 1259 OID 16898)
+-- Name: cctv_record_recordi_e8fd97_idx; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX cctv_record_recordi_e8fd97_idx ON public.cctv_recordingsession USING btree (recording_type);
+
+
+--
+-- TOC entry 4481 (class 1259 OID 16897)
+-- Name: cctv_record_status_fcffcb_idx; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX cctv_record_status_fcffcb_idx ON public.cctv_recordingsession USING btree (status);
+
+
+--
+-- TOC entry 4475 (class 1259 OID 16960)
+-- Name: cctv_recordingschedule_camera_id_8ece72ad; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX cctv_recordingschedule_camera_id_8ece72ad ON public.cctv_recordingschedule USING btree (camera_id);
+
+
+--
+-- TOC entry 4478 (class 1259 OID 16961)
+-- Name: cctv_recordingschedule_user_id_15f7ada0; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX cctv_recordingschedule_user_id_15f7ada0 ON public.cctv_recordingschedule USING btree (user_id);
+
+
+--
+-- TOC entry 4482 (class 1259 OID 16972)
+-- Name: cctv_recordingsession_camera_id_2d6be004; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX cctv_recordingsession_camera_id_2d6be004 ON public.cctv_recordingsession USING btree (camera_id);
+
+
+--
+-- TOC entry 4485 (class 1259 OID 16973)
+-- Name: cctv_recordingsession_user_id_88333beb; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX cctv_recordingsession_user_id_88333beb ON public.cctv_recordingsession USING btree (user_id);
+
+
+--
+-- TOC entry 4441 (class 1259 OID 16899)
+-- Name: cctv_storageconfiguration_name_c9ebf087_like; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX cctv_storageconfiguration_name_c9ebf087_like ON public.cctv_storageconfiguration USING btree (name varchar_pattern_ops);
+
+
+--
+-- TOC entry 4508 (class 1259 OID 17048)
+-- Name: core_account_user_id_8d2af6ae; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX core_account_user_id_8d2af6ae ON public.core_account USING btree (user_id);
+
+
+--
+-- TOC entry 4494 (class 1259 OID 17018)
+-- Name: core_item_categor_72af40_idx; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX core_item_categor_72af40_idx ON public.core_item USING btree (category_id);
+
+
+--
+-- TOC entry 4495 (class 1259 OID 17039)
+-- Name: core_item_category_id_2fe5bbc8; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX core_item_category_id_2fe5bbc8 ON public.core_item USING btree (category_id);
+
+
+--
+-- TOC entry 4496 (class 1259 OID 17016)
+-- Name: core_item_code_2c57e9_idx; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX core_item_code_2c57e9_idx ON public.core_item USING btree (code);
+
+
+--
+-- TOC entry 4497 (class 1259 OID 17038)
+-- Name: core_item_code_be232fd9_like; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX core_item_code_be232fd9_like ON public.core_item USING btree (code varchar_pattern_ops);
+
+
+--
+-- TOC entry 4500 (class 1259 OID 17036)
+-- Name: core_item_name_60a78332; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX core_item_name_60a78332 ON public.core_item USING btree (name);
+
+
+--
+-- TOC entry 4501 (class 1259 OID 17037)
+-- Name: core_item_name_60a78332_like; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX core_item_name_60a78332_like ON public.core_item USING btree (name varchar_pattern_ops);
+
+
+--
+-- TOC entry 4502 (class 1259 OID 17017)
+-- Name: core_item_name_de2dec_idx; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX core_item_name_de2dec_idx ON public.core_item USING btree (name);
+
+
+--
+-- TOC entry 4505 (class 1259 OID 17040)
+-- Name: core_item_unit_id_436a7f13; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX core_item_unit_id_436a7f13 ON public.core_item USING btree (unit_id);
+
+
+--
+-- TOC entry 4488 (class 1259 OID 17025)
+-- Name: core_itemcategory_parent_id_f5858ebb; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX core_itemcategory_parent_id_f5858ebb ON public.core_itemcategory USING btree (parent_id);
+
+
+--
+-- TOC entry 4491 (class 1259 OID 17024)
+-- Name: core_itemcategory_slug_3307a550_like; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX core_itemcategory_slug_3307a550_like ON public.core_itemcategory USING btree (slug varchar_pattern_ops);
+
+
+--
+-- TOC entry 4511 (class 1259 OID 17055)
+-- Name: core_itempr_item_id_7c9d0d_idx; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX core_itempr_item_id_7c9d0d_idx ON public.core_itemprice USING btree (item_id, source, valid_from DESC);
+
+
+--
+-- TOC entry 4512 (class 1259 OID 17054)
+-- Name: core_itemprice_item_id_7f2d3b2b; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX core_itemprice_item_id_7f2d3b2b ON public.core_itemprice USING btree (item_id);
+
+
+--
+-- TOC entry 4885 (class 1259 OID 18247)
+-- Name: crypto_exch_base_as_8e0dec_idx; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX crypto_exch_base_as_8e0dec_idx ON public.crypto_exchange_rates USING btree (base_asset, quote_asset, "timestamp" DESC);
+
+
+--
+-- TOC entry 4886 (class 1259 OID 18245)
+-- Name: crypto_exch_exchang_a0b25f_idx; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX crypto_exch_exchang_a0b25f_idx ON public.crypto_exchange_rates USING btree (exchange, symbol, "timestamp" DESC);
+
+
+--
+-- TOC entry 4887 (class 1259 OID 18246)
+-- Name: crypto_exch_symbol_1e02b0_idx; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX crypto_exch_symbol_1e02b0_idx ON public.crypto_exchange_rates USING btree (symbol, "timestamp" DESC);
+
+
+--
+-- TOC entry 4888 (class 1259 OID 18248)
+-- Name: crypto_exch_timesta_be1984_idx; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX crypto_exch_timesta_be1984_idx ON public.crypto_exchange_rates USING btree ("timestamp" DESC);
+
+
+--
+-- TOC entry 4889 (class 1259 OID 18240)
+-- Name: crypto_exchange_rates_exchange_a939b545; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX crypto_exchange_rates_exchange_a939b545 ON public.crypto_exchange_rates USING btree (exchange);
+
+
+--
+-- TOC entry 4890 (class 1259 OID 18241)
+-- Name: crypto_exchange_rates_exchange_a939b545_like; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX crypto_exchange_rates_exchange_a939b545_like ON public.crypto_exchange_rates USING btree (exchange varchar_pattern_ops);
+
+
+--
+-- TOC entry 4895 (class 1259 OID 18242)
+-- Name: crypto_exchange_rates_symbol_5e2c485e; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX crypto_exchange_rates_symbol_5e2c485e ON public.crypto_exchange_rates USING btree (symbol);
+
+
+--
+-- TOC entry 4896 (class 1259 OID 18243)
+-- Name: crypto_exchange_rates_symbol_5e2c485e_like; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX crypto_exchange_rates_symbol_5e2c485e_like ON public.crypto_exchange_rates USING btree (symbol varchar_pattern_ops);
+
+
+--
+-- TOC entry 4897 (class 1259 OID 18244)
+-- Name: crypto_exchange_rates_timestamp_98e12445; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX crypto_exchange_rates_timestamp_98e12445 ON public.crypto_exchange_rates USING btree ("timestamp");
+
+
+--
+-- TOC entry 4807 (class 1259 OID 18112)
+-- Name: currencies_code_169576e8_like; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX currencies_code_169576e8_like ON public.currencies USING btree (code varchar_pattern_ops);
+
+
+--
+-- TOC entry 4822 (class 1259 OID 18154)
+-- Name: currency_al_base_cu_f383a1_idx; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX currency_al_base_cu_f383a1_idx ON public.currency_alerts USING btree (base_currency_id, target_currency_id, is_active);
+
+
+--
+-- TOC entry 4823 (class 1259 OID 18153)
+-- Name: currency_al_user_id_1a7cd6_idx; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX currency_al_user_id_1a7cd6_idx ON public.currency_alerts USING btree (user_id, is_active);
+
+
+--
+-- TOC entry 4824 (class 1259 OID 18149)
+-- Name: currency_alerts_base_currency_id_dd720868; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX currency_alerts_base_currency_id_dd720868 ON public.currency_alerts USING btree (base_currency_id);
+
+
+--
+-- TOC entry 4825 (class 1259 OID 18150)
+-- Name: currency_alerts_base_currency_id_dd720868_like; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX currency_alerts_base_currency_id_dd720868_like ON public.currency_alerts USING btree (base_currency_id varchar_pattern_ops);
+
+
+--
+-- TOC entry 4828 (class 1259 OID 18151)
+-- Name: currency_alerts_target_currency_id_1e184b84; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX currency_alerts_target_currency_id_1e184b84 ON public.currency_alerts USING btree (target_currency_id);
+
+
+--
+-- TOC entry 4829 (class 1259 OID 18152)
+-- Name: currency_alerts_target_currency_id_1e184b84_like; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX currency_alerts_target_currency_id_1e184b84_like ON public.currency_alerts USING btree (target_currency_id varchar_pattern_ops);
+
+
+--
+-- TOC entry 4830 (class 1259 OID 18148)
+-- Name: currency_alerts_user_id_08a95a16; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX currency_alerts_user_id_08a95a16 ON public.currency_alerts USING btree (user_id);
+
+
+--
+-- TOC entry 4665 (class 1259 OID 17534)
+-- Name: django_session_expire_date_a5c62663; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX django_session_expire_date_a5c62663 ON public.django_session USING btree (expire_date);
+
+
+--
+-- TOC entry 4668 (class 1259 OID 17533)
+-- Name: django_session_session_key_c0390e0f_like; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX django_session_session_key_c0390e0f_like ON public.django_session USING btree (session_key varchar_pattern_ops);
+
+
+--
+-- TOC entry 4577 (class 1259 OID 17304)
+-- Name: documents_achievement_user_id_3a66684f; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX documents_achievement_user_id_3a66684f ON public.documents_achievement USING btree (user_id);
+
+
+--
+-- TOC entry 4528 (class 1259 OID 17161)
+-- Name: documents_creditcard_user_id_83a92ad6; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX documents_creditcard_user_id_83a92ad6 ON public.documents_creditcard USING btree (user_id);
+
+
+--
+-- TOC entry 4531 (class 1259 OID 17148)
+-- Name: documents_d_documen_6ac182_idx; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX documents_d_documen_6ac182_idx ON public.documents_document USING btree (document_type, processing_status);
+
+
+--
+-- TOC entry 4532 (class 1259 OID 17147)
+-- Name: documents_d_user_id_2d1909_idx; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX documents_d_user_id_2d1909_idx ON public.documents_document USING btree (user_id, uploaded_at DESC);
+
+
+--
+-- TOC entry 4533 (class 1259 OID 17221)
+-- Name: documents_document_deleted_by_id_d75ca342; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX documents_document_deleted_by_id_d75ca342 ON public.documents_document USING btree (deleted_by_id);
+
+
+--
+-- TOC entry 4536 (class 1259 OID 17167)
+-- Name: documents_document_user_id_e543d099; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX documents_document_user_id_e543d099 ON public.documents_document USING btree (user_id);
+
+
+--
+-- TOC entry 4539 (class 1259 OID 17173)
+-- Name: documents_documentbatch_user_id_b4b5232d; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX documents_documentbatch_user_id_b4b5232d ON public.documents_documentbatch USING btree (user_id);
+
+
+--
+-- TOC entry 4603 (class 1259 OID 17376)
+-- Name: documents_documentshare_document_id_9be134c4; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX documents_documentshare_document_id_9be134c4 ON public.documents_documentshare USING btree (document_id);
+
+
+--
+-- TOC entry 4610 (class 1259 OID 17375)
+-- Name: documents_documentshare_share_link_387a2b1c_like; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX documents_documentshare_share_link_387a2b1c_like ON public.documents_documentshare USING btree (share_link varchar_pattern_ops);
+
+
+--
+-- TOC entry 4613 (class 1259 OID 17377)
+-- Name: documents_documentshare_shared_by_id_bb1db51d; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX documents_documentshare_shared_by_id_bb1db51d ON public.documents_documentshare USING btree (shared_by_id);
+
+
+--
+-- TOC entry 4614 (class 1259 OID 17378)
+-- Name: documents_documentshare_shared_with_id_cf66b884; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX documents_documentshare_shared_with_id_cf66b884 ON public.documents_documentshare USING btree (shared_with_id);
+
+
+--
+-- TOC entry 4598 (class 1259 OID 17355)
+-- Name: documents_documenttype_name_c2bc4c08_like; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX documents_documenttype_name_c2bc4c08_like ON public.documents_documenttype USING btree (name varchar_pattern_ops);
+
+
+--
+-- TOC entry 4540 (class 1259 OID 17184)
+-- Name: documents_expensecategory_parent_id_5e980808; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX documents_expensecategory_parent_id_5e980808 ON public.documents_expensecategory USING btree (parent_id);
+
+
+--
+-- TOC entry 4543 (class 1259 OID 17185)
+-- Name: documents_expensecategory_user_id_e19ac3b6; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX documents_expensecategory_user_id_e19ac3b6 ON public.documents_expensecategory USING btree (user_id);
+
+
+--
+-- TOC entry 4548 (class 1259 OID 17191)
+-- Name: documents_expensegroup_user_id_ebdf45c2; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX documents_expensegroup_user_id_ebdf45c2 ON public.documents_expensegroup USING btree (user_id);
+
+
+--
+-- TOC entry 4564 (class 1259 OID 17284)
+-- Name: documents_l_pattern_a47375_idx; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX documents_l_pattern_a47375_idx ON public.documents_learningmodel USING btree (pattern_type, confidence_score DESC);
+
+
+--
+-- TOC entry 4580 (class 1259 OID 17313)
+-- Name: documents_l_period__091291_idx; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX documents_l_period__091291_idx ON public.documents_leaderboard USING btree (period_type, points_earned DESC);
+
+
+--
+-- TOC entry 4581 (class 1259 OID 17314)
+-- Name: documents_l_period__9d0dfa_idx; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX documents_l_period__9d0dfa_idx ON public.documents_leaderboard USING btree (period_start, period_end);
+
+
+--
+-- TOC entry 4565 (class 1259 OID 17285)
+-- Name: documents_l_store_n_e932a9_idx; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX documents_l_store_n_e932a9_idx ON public.documents_learningmodel USING btree (store_name, pattern_type);
+
+
+--
+-- TOC entry 4584 (class 1259 OID 17312)
+-- Name: documents_leaderboard_user_id_92b55750; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX documents_leaderboard_user_id_92b55750 ON public.documents_leaderboard USING btree (user_id);
+
+
+--
+-- TOC entry 4523 (class 1259 OID 17153)
+-- Name: documents_ocrtemplate_store_name_069667d9_like; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX documents_ocrtemplate_store_name_069667d9_like ON public.documents_ocrtemplate USING btree (store_name varchar_pattern_ops);
+
+
+--
+-- TOC entry 4570 (class 1259 OID 17291)
+-- Name: documents_pointtransaction_user_id_9cff8e9c; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX documents_pointtransaction_user_id_9cff8e9c ON public.documents_pointtransaction USING btree (user_id);
+
+
+--
+-- TOC entry 4557 (class 1259 OID 17202)
+-- Name: documents_receiptitem_receipt_id_684d6ad0; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX documents_receiptitem_receipt_id_684d6ad0 ON public.documents_receiptitem USING btree (receipt_id);
+
+
+--
+-- TOC entry 4558 (class 1259 OID 17213)
+-- Name: documents_subscription_payment_method_id_dbfc6a70; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX documents_subscription_payment_method_id_dbfc6a70 ON public.documents_subscription USING btree (payment_method_id);
+
+
+--
+-- TOC entry 4561 (class 1259 OID 17214)
+-- Name: documents_subscription_user_id_d154c76d; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX documents_subscription_user_id_d154c76d ON public.documents_subscription USING btree (user_id);
+
+
+--
+-- TOC entry 4587 (class 1259 OID 17327)
+-- Name: documents_userchallenge_challenge_id_74c25aa6; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX documents_userchallenge_challenge_id_74c25aa6 ON public.documents_userchallenge USING btree (challenge_id);
+
+
+--
+-- TOC entry 4590 (class 1259 OID 17328)
+-- Name: documents_userchallenge_user_id_37d5d621; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX documents_userchallenge_user_id_37d5d621 ON public.documents_userchallenge USING btree (user_id);
+
+
+--
+-- TOC entry 4593 (class 1259 OID 17335)
+-- Name: documents_v_documen_0adb64_idx; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX documents_v_documen_0adb64_idx ON public.documents_validationfeedback USING btree (document_id, field_name);
+
+
+--
+-- TOC entry 4594 (class 1259 OID 17336)
+-- Name: documents_v_user_id_7e2231_idx; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX documents_v_user_id_7e2231_idx ON public.documents_validationfeedback USING btree (user_id, created_at DESC);
+
+
+--
+-- TOC entry 4597 (class 1259 OID 17334)
+-- Name: documents_validationfeedback_user_id_cf2c646f; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX documents_validationfeedback_user_id_cf2c646f ON public.documents_validationfeedback USING btree (user_id);
+
+
+--
+-- TOC entry 4810 (class 1259 OID 18130)
+-- Name: exchange_ra_base_cu_da11a0_idx; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX exchange_ra_base_cu_da11a0_idx ON public.exchange_rates USING btree (base_currency_id, target_currency_id, "timestamp");
+
+
+--
+-- TOC entry 4811 (class 1259 OID 18132)
+-- Name: exchange_ra_source_66c8d9_idx; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX exchange_ra_source_66c8d9_idx ON public.exchange_rates USING btree (source, "timestamp");
+
+
+--
+-- TOC entry 4812 (class 1259 OID 18131)
+-- Name: exchange_ra_timesta_efcd56_idx; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX exchange_ra_timesta_efcd56_idx ON public.exchange_rates USING btree ("timestamp");
+
+
+--
+-- TOC entry 4813 (class 1259 OID 18125)
+-- Name: exchange_rates_base_currency_id_45cfb739; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX exchange_rates_base_currency_id_45cfb739 ON public.exchange_rates USING btree (base_currency_id);
+
+
+--
+-- TOC entry 4814 (class 1259 OID 18126)
+-- Name: exchange_rates_base_currency_id_45cfb739_like; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX exchange_rates_base_currency_id_45cfb739_like ON public.exchange_rates USING btree (base_currency_id varchar_pattern_ops);
+
+
+--
+-- TOC entry 4819 (class 1259 OID 18127)
+-- Name: exchange_rates_target_currency_id_f8fd1c7c; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX exchange_rates_target_currency_id_f8fd1c7c ON public.exchange_rates USING btree (target_currency_id);
+
+
+--
+-- TOC entry 4820 (class 1259 OID 18128)
+-- Name: exchange_rates_target_currency_id_f8fd1c7c_like; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX exchange_rates_target_currency_id_f8fd1c7c_like ON public.exchange_rates USING btree (target_currency_id varchar_pattern_ops);
+
+
+--
+-- TOC entry 4821 (class 1259 OID 18129)
+-- Name: exchange_rates_timestamp_a2278406; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX exchange_rates_timestamp_a2278406 ON public.exchange_rates USING btree ("timestamp");
+
+
+--
+-- TOC entry 4630 (class 1259 OID 17441)
+-- Name: inflation_r_basket__f82de0_idx; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX inflation_r_basket__f82de0_idx ON public.inflation_reports USING btree (basket_id, period_end);
+
+
+--
+-- TOC entry 4631 (class 1259 OID 17440)
+-- Name: inflation_r_user_id_4d957a_idx; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX inflation_r_user_id_4d957a_idx ON public.inflation_reports USING btree (user_id, period_end);
+
+
+--
+-- TOC entry 4632 (class 1259 OID 17475)
+-- Name: inflation_reports_basket_id_4062b4f4; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX inflation_reports_basket_id_4062b4f4 ON public.inflation_reports USING btree (basket_id);
+
+
+--
+-- TOC entry 4637 (class 1259 OID 17474)
+-- Name: inflation_reports_user_id_ffcb4586; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX inflation_reports_user_id_ffcb4586 ON public.inflation_reports USING btree (user_id);
+
+
+--
+-- TOC entry 4876 (class 1259 OID 18236)
+-- Name: market_data_currenc_528538_idx; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX market_data_currenc_528538_idx ON public.market_data USING btree (currency_pair, "interval", period_start);
+
+
+--
+-- TOC entry 4877 (class 1259 OID 18233)
+-- Name: market_data_currency_pair_cafe1887; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX market_data_currency_pair_cafe1887 ON public.market_data USING btree (currency_pair);
+
+
+--
+-- TOC entry 4878 (class 1259 OID 18234)
+-- Name: market_data_currency_pair_cafe1887_like; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX market_data_currency_pair_cafe1887_like ON public.market_data USING btree (currency_pair varchar_pattern_ops);
+
+
+--
+-- TOC entry 4881 (class 1259 OID 18237)
+-- Name: market_data_period__481e79_idx; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX market_data_period__481e79_idx ON public.market_data USING btree (period_start);
+
+
+--
+-- TOC entry 4882 (class 1259 OID 18235)
+-- Name: market_data_period_start_f0382331; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX market_data_period_start_f0382331 ON public.market_data USING btree (period_start);
+
+
+--
+-- TOC entry 4989 (class 1259 OID 18517)
+-- Name: movies_coll_user_id_7f8850_idx; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX movies_coll_user_id_7f8850_idx ON public.movies_collection USING btree (user_id, updated_at DESC);
+
+
+--
+-- TOC entry 4990 (class 1259 OID 18518)
+-- Name: movies_coll_visibil_ac6500_idx; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX movies_coll_visibil_ac6500_idx ON public.movies_collection USING btree (visibility, created_at DESC);
+
+
+--
+-- TOC entry 4993 (class 1259 OID 18541)
+-- Name: movies_collection_user_id_e4d2c017; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX movies_collection_user_id_e4d2c017 ON public.movies_collection USING btree (user_id);
+
+
+--
+-- TOC entry 5026 (class 1259 OID 18575)
+-- Name: movies_collectionitem_collection_id_07c53af7; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX movies_collectionitem_collection_id_07c53af7 ON public.movies_collectionitem USING btree (collection_id);
+
+
+--
+-- TOC entry 5029 (class 1259 OID 18576)
+-- Name: movies_collectionitem_movie_id_a4023bce; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX movies_collectionitem_movie_id_a4023bce ON public.movies_collectionitem USING btree (movie_id);
+
+
+--
+-- TOC entry 4996 (class 1259 OID 18543)
+-- Name: movies_genr_slug_a56002_idx; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX movies_genr_slug_a56002_idx ON public.movies_genre USING btree (slug);
+
+
+--
+-- TOC entry 4999 (class 1259 OID 18542)
+-- Name: movies_genre_slug_a6628294_like; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX movies_genre_slug_a6628294_like ON public.movies_genre USING btree (slug varchar_pattern_ops);
+
+
+--
+-- TOC entry 5004 (class 1259 OID 18513)
+-- Name: movies_movi_content_8fc5bc_idx; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX movies_movi_content_8fc5bc_idx ON public.movies_movie USING btree (content_type, popularity DESC);
+
+
+--
+-- TOC entry 5005 (class 1259 OID 18514)
+-- Name: movies_movi_created_2750ad_idx; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX movies_movi_created_2750ad_idx ON public.movies_movie USING btree (created_at DESC);
+
+
+--
+-- TOC entry 5006 (class 1259 OID 18512)
+-- Name: movies_movi_title_20a8c3_idx; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX movies_movi_title_20a8c3_idx ON public.movies_movie USING btree (title, release_date);
+
+
+--
+-- TOC entry 5007 (class 1259 OID 18548)
+-- Name: movies_movie_content_type_cb703dfc; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX movies_movie_content_type_cb703dfc ON public.movies_movie USING btree (content_type);
+
+
+--
+-- TOC entry 5008 (class 1259 OID 18549)
+-- Name: movies_movie_content_type_cb703dfc_like; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX movies_movie_content_type_cb703dfc_like ON public.movies_movie USING btree (content_type varchar_pattern_ops);
+
+
+--
+-- TOC entry 5020 (class 1259 OID 18564)
+-- Name: movies_movie_genres_genre_id_c3609db2; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX movies_movie_genres_genre_id_c3609db2 ON public.movies_movie_genres USING btree (genre_id);
+
+
+--
+-- TOC entry 5021 (class 1259 OID 18563)
+-- Name: movies_movie_genres_movie_id_ff5e55a1; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX movies_movie_genres_movie_id_ff5e55a1 ON public.movies_movie_genres USING btree (movie_id);
+
+
+--
+-- TOC entry 5009 (class 1259 OID 18545)
+-- Name: movies_movie_imdb_id_07ddfa3f_like; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX movies_movie_imdb_id_07ddfa3f_like ON public.movies_movie USING btree (imdb_id varchar_pattern_ops);
+
+
+--
+-- TOC entry 5014 (class 1259 OID 18550)
+-- Name: movies_movie_release_date_3061342f; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX movies_movie_release_date_3061342f ON public.movies_movie USING btree (release_date);
+
+
+--
+-- TOC entry 5015 (class 1259 OID 18546)
+-- Name: movies_movie_title_940cc56f; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX movies_movie_title_940cc56f ON public.movies_movie USING btree (title);
+
+
+--
+-- TOC entry 5016 (class 1259 OID 18547)
+-- Name: movies_movie_title_940cc56f_like; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX movies_movie_title_940cc56f_like ON public.movies_movie USING btree (title varchar_pattern_ops);
+
+
+--
+-- TOC entry 5017 (class 1259 OID 18544)
+-- Name: movies_movie_tmdb_id_a5a63d6d_like; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX movies_movie_tmdb_id_a5a63d6d_like ON public.movies_movie USING btree (tmdb_id varchar_pattern_ops);
+
+
+--
+-- TOC entry 5032 (class 1259 OID 18522)
+-- Name: movies_pers_format_e9971c_idx; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX movies_pers_format_e9971c_idx ON public.movies_personalarchive USING btree (format, quality);
+
+
+--
+-- TOC entry 5033 (class 1259 OID 18521)
+-- Name: movies_pers_user_id_45bdb9_idx; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX movies_pers_user_id_45bdb9_idx ON public.movies_personalarchive USING btree (user_id, added_at DESC);
+
+
+--
+-- TOC entry 5034 (class 1259 OID 18587)
+-- Name: movies_personalarchive_movie_id_4887f522; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX movies_personalarchive_movie_id_4887f522 ON public.movies_personalarchive USING btree (movie_id);
+
+
+--
+-- TOC entry 5037 (class 1259 OID 18588)
+-- Name: movies_personalarchive_user_id_6b62c028; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX movies_personalarchive_user_id_6b62c028 ON public.movies_personalarchive USING btree (user_id);
+
+
+--
+-- TOC entry 5040 (class 1259 OID 18527)
+-- Name: movies_user_is_publ_cca331_idx; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX movies_user_is_publ_cca331_idx ON public.movies_userrating USING btree (is_public, helpful_count DESC);
+
+
+--
+-- TOC entry 5041 (class 1259 OID 18526)
+-- Name: movies_user_movie_i_e0877b_idx; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX movies_user_movie_i_e0877b_idx ON public.movies_userrating USING btree (movie_id, rating DESC);
+
+
+--
+-- TOC entry 5042 (class 1259 OID 18525)
+-- Name: movies_user_user_id_ba5c70_idx; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX movies_user_user_id_ba5c70_idx ON public.movies_userrating USING btree (user_id, created_at DESC);
+
+
+--
+-- TOC entry 5043 (class 1259 OID 18599)
+-- Name: movies_userrating_movie_id_68d8aa46; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX movies_userrating_movie_id_68d8aa46 ON public.movies_userrating USING btree (movie_id);
+
+
+--
+-- TOC entry 5046 (class 1259 OID 18600)
+-- Name: movies_userrating_user_id_632ec00f; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX movies_userrating_user_id_632ec00f ON public.movies_userrating USING btree (user_id);
+
+
+--
+-- TOC entry 5049 (class 1259 OID 18531)
+-- Name: movies_watc_movie_i_783876_idx; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX movies_watc_movie_i_783876_idx ON public.movies_watchhistory USING btree (movie_id, started_at DESC);
+
+
+--
+-- TOC entry 5050 (class 1259 OID 18530)
+-- Name: movies_watc_user_id_691dd3_idx; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX movies_watc_user_id_691dd3_idx ON public.movies_watchhistory USING btree (user_id, started_at DESC);
+
+
+--
+-- TOC entry 5055 (class 1259 OID 18532)
+-- Name: movies_watc_user_id_a2ae41_idx; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX movies_watc_user_id_a2ae41_idx ON public.movies_watchlist USING btree (user_id, status, priority DESC);
+
+
+--
+-- TOC entry 5056 (class 1259 OID 18533)
+-- Name: movies_watc_user_id_e9443e_idx; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX movies_watc_user_id_e9443e_idx ON public.movies_watchlist USING btree (user_id, added_at DESC);
+
+
+--
+-- TOC entry 5051 (class 1259 OID 18611)
+-- Name: movies_watchhistory_movie_id_7d3d0b4b; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX movies_watchhistory_movie_id_7d3d0b4b ON public.movies_watchhistory USING btree (movie_id);
+
+
+--
+-- TOC entry 5054 (class 1259 OID 18612)
+-- Name: movies_watchhistory_user_id_94fbd0e2; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX movies_watchhistory_user_id_94fbd0e2 ON public.movies_watchhistory USING btree (user_id);
+
+
+--
+-- TOC entry 5057 (class 1259 OID 18625)
+-- Name: movies_watchlist_movie_id_8007e236; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX movies_watchlist_movie_id_8007e236 ON public.movies_watchlist USING btree (movie_id);
+
+
+--
+-- TOC entry 5060 (class 1259 OID 18623)
+-- Name: movies_watchlist_status_d2af83cf; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX movies_watchlist_status_d2af83cf ON public.movies_watchlist USING btree (status);
+
+
+--
+-- TOC entry 5061 (class 1259 OID 18624)
+-- Name: movies_watchlist_status_d2af83cf_like; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX movies_watchlist_status_d2af83cf_like ON public.movies_watchlist USING btree (status varchar_pattern_ops);
+
+
+--
+-- TOC entry 5062 (class 1259 OID 18626)
+-- Name: movies_watchlist_user_id_b7cb1960; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX movies_watchlist_user_id_b7cb1960 ON public.movies_watchlist USING btree (user_id);
+
+
+--
+-- TOC entry 5078 (class 1259 OID 18828)
+-- Name: music_album_artist_id_f633b817; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX music_album_artist_id_f633b817 ON public.music_album USING btree (artist_id);
+
+
+--
+-- TOC entry 5090 (class 1259 OID 18841)
+-- Name: music_album_featured_artists_album_id_7ba9d9bf; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX music_album_featured_artists_album_id_7ba9d9bf ON public.music_album_featured_artists USING btree (album_id);
+
+
+--
+-- TOC entry 5093 (class 1259 OID 18842)
+-- Name: music_album_featured_artists_artist_id_9fca8850; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX music_album_featured_artists_artist_id_9fca8850 ON public.music_album_featured_artists USING btree (artist_id);
+
+
+--
+-- TOC entry 5079 (class 1259 OID 18788)
+-- Name: music_album_name_1c7496_idx; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX music_album_name_1c7496_idx ON public.music_album USING btree (name, artist_id);
+
+
+--
+-- TOC entry 5080 (class 1259 OID 18825)
+-- Name: music_album_name_1f80804d; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX music_album_name_1f80804d ON public.music_album USING btree (name);
+
+
+--
+-- TOC entry 5081 (class 1259 OID 18826)
+-- Name: music_album_name_1f80804d_like; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX music_album_name_1f80804d_like ON public.music_album USING btree (name varchar_pattern_ops);
+
+
+--
+-- TOC entry 5084 (class 1259 OID 18790)
+-- Name: music_album_popular_cb53d5_idx; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX music_album_popular_cb53d5_idx ON public.music_album USING btree (popularity DESC);
+
+
+--
+-- TOC entry 5085 (class 1259 OID 18789)
+-- Name: music_album_release_31abd8_idx; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX music_album_release_31abd8_idx ON public.music_album USING btree (release_date DESC);
+
+
+--
+-- TOC entry 5086 (class 1259 OID 18827)
+-- Name: music_album_release_date_9cdddbb9; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX music_album_release_date_9cdddbb9 ON public.music_album USING btree (release_date);
+
+
+--
+-- TOC entry 5087 (class 1259 OID 18824)
+-- Name: music_album_spotify_id_dcb07258_like; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX music_album_spotify_id_dcb07258_like ON public.music_album USING btree (spotify_id varchar_pattern_ops);
+
+
+--
+-- TOC entry 5065 (class 1259 OID 18816)
+-- Name: music_artis_name_e97718_idx; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX music_artis_name_e97718_idx ON public.music_artist USING btree (name);
+
+
+--
+-- TOC entry 5066 (class 1259 OID 18818)
+-- Name: music_artis_popular_433f53_idx; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX music_artis_popular_433f53_idx ON public.music_artist USING btree (popularity DESC);
+
+
+--
+-- TOC entry 5067 (class 1259 OID 18817)
+-- Name: music_artis_slug_38018e_idx; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX music_artis_slug_38018e_idx ON public.music_artist USING btree (slug);
+
+
+--
+-- TOC entry 5068 (class 1259 OID 18813)
+-- Name: music_artist_name_ddbd7346; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX music_artist_name_ddbd7346 ON public.music_artist USING btree (name);
+
+
+--
+-- TOC entry 5069 (class 1259 OID 18814)
+-- Name: music_artist_name_ddbd7346_like; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX music_artist_name_ddbd7346_like ON public.music_artist USING btree (name varchar_pattern_ops);
+
+
+--
+-- TOC entry 5072 (class 1259 OID 18815)
+-- Name: music_artist_slug_e4ee3940_like; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX music_artist_slug_e4ee3940_like ON public.music_artist USING btree (slug varchar_pattern_ops);
+
+
+--
+-- TOC entry 5075 (class 1259 OID 18812)
+-- Name: music_artist_spotify_id_4e3459a0_like; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX music_artist_spotify_id_4e3459a0_like ON public.music_artist USING btree (spotify_id varchar_pattern_ops);
+
+
+--
+-- TOC entry 5142 (class 1259 OID 18804)
+-- Name: music_liste_track_i_c99f29_idx; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX music_liste_track_i_c99f29_idx ON public.music_listeninghistory USING btree (track_id, played_at DESC);
+
+
+--
+-- TOC entry 5143 (class 1259 OID 18805)
+-- Name: music_liste_user_id_6ead05_idx; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX music_liste_user_id_6ead05_idx ON public.music_listeninghistory USING btree (user_id, track_id, played_at DESC);
+
+
+--
+-- TOC entry 5144 (class 1259 OID 18803)
+-- Name: music_liste_user_id_9e039b_idx; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX music_liste_user_id_9e039b_idx ON public.music_listeninghistory USING btree (user_id, played_at DESC);
+
+
+--
+-- TOC entry 5096 (class 1259 OID 18791)
+-- Name: music_liste_user_id_a3211e_idx; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX music_liste_user_id_a3211e_idx ON public.music_listeningstats USING btree (user_id, period, period_date DESC);
+
+
+--
+-- TOC entry 5147 (class 1259 OID 18929)
+-- Name: music_listeninghistory_track_id_03e4d01a; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX music_listeninghistory_track_id_03e4d01a ON public.music_listeninghistory USING btree (track_id);
+
+
+--
+-- TOC entry 5148 (class 1259 OID 18928)
+-- Name: music_listeninghistory_user_id_0cc18943; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX music_listeninghistory_user_id_0cc18943 ON public.music_listeninghistory USING btree (user_id);
+
+
+--
+-- TOC entry 5099 (class 1259 OID 18848)
+-- Name: music_listeningstats_user_id_eb08efb9; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX music_listeningstats_user_id_eb08efb9 ON public.music_listeningstats USING btree (user_id);
+
+
+--
+-- TOC entry 5102 (class 1259 OID 18801)
+-- Name: music_playl_user_id_ab4a82_idx; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX music_playl_user_id_ab4a82_idx ON public.music_playlist USING btree (user_id, updated_at DESC);
+
+
+--
+-- TOC entry 5103 (class 1259 OID 18802)
+-- Name: music_playl_visibil_76eed7_idx; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX music_playl_visibil_76eed7_idx ON public.music_playlist USING btree (visibility, created_at DESC);
+
+
+--
+-- TOC entry 5109 (class 1259 OID 18867)
+-- Name: music_playlist_collaborators_playlist_id_ffc1a710; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX music_playlist_collaborators_playlist_id_ffc1a710 ON public.music_playlist_collaborators USING btree (playlist_id);
+
+
+--
+-- TOC entry 5112 (class 1259 OID 18868)
+-- Name: music_playlist_collaborators_user_id_f6d7bf77; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX music_playlist_collaborators_user_id_f6d7bf77 ON public.music_playlist_collaborators USING btree (user_id);
+
+
+--
+-- TOC entry 5106 (class 1259 OID 18854)
+-- Name: music_playlist_user_id_c54fe691; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX music_playlist_user_id_c54fe691 ON public.music_playlist USING btree (user_id);
+
+
+--
+-- TOC entry 5135 (class 1259 OID 18915)
+-- Name: music_playlisttrack_added_by_id_85ed5672; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX music_playlisttrack_added_by_id_85ed5672 ON public.music_playlisttrack USING btree (added_by_id);
+
+
+--
+-- TOC entry 5138 (class 1259 OID 18916)
+-- Name: music_playlisttrack_playlist_id_585a8ed4; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX music_playlisttrack_playlist_id_585a8ed4 ON public.music_playlisttrack USING btree (playlist_id);
+
+
+--
+-- TOC entry 5141 (class 1259 OID 18917)
+-- Name: music_playlisttrack_track_id_427b6391; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX music_playlisttrack_track_id_427b6391 ON public.music_playlisttrack USING btree (track_id);
+
+
+--
+-- TOC entry 5113 (class 1259 OID 18795)
+-- Name: music_track_album_i_7ec3a1_idx; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX music_track_album_i_7ec3a1_idx ON public.music_track USING btree (album_id, track_number);
+
+
+--
+-- TOC entry 5116 (class 1259 OID 18884)
+-- Name: music_track_album_id_f2264d26; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX music_track_album_id_f2264d26 ON public.music_track USING btree (album_id);
+
+
+--
+-- TOC entry 5117 (class 1259 OID 18885)
+-- Name: music_track_artist_id_a65d07d5; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX music_track_artist_id_a65d07d5 ON public.music_track USING btree (artist_id);
+
+
+--
+-- TOC entry 5129 (class 1259 OID 18899)
+-- Name: music_track_featured_artists_artist_id_eb00406e; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX music_track_featured_artists_artist_id_eb00406e ON public.music_track_featured_artists USING btree (artist_id);
+
+
+--
+-- TOC entry 5132 (class 1259 OID 18898)
+-- Name: music_track_featured_artists_track_id_1c206fbc; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX music_track_featured_artists_track_id_1c206fbc ON public.music_track_featured_artists USING btree (track_id);
+
+
+--
+-- TOC entry 5118 (class 1259 OID 18880)
+-- Name: music_track_isrc_937ded6c; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX music_track_isrc_937ded6c ON public.music_track USING btree (isrc);
+
+
+--
+-- TOC entry 5119 (class 1259 OID 18881)
+-- Name: music_track_isrc_937ded6c_like; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX music_track_isrc_937ded6c_like ON public.music_track USING btree (isrc varchar_pattern_ops);
+
+
+--
+-- TOC entry 5120 (class 1259 OID 18882)
+-- Name: music_track_name_5648f155; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX music_track_name_5648f155 ON public.music_track USING btree (name);
+
+
+--
+-- TOC entry 5121 (class 1259 OID 18883)
+-- Name: music_track_name_5648f155_like; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX music_track_name_5648f155_like ON public.music_track USING btree (name varchar_pattern_ops);
+
+
+--
+-- TOC entry 5122 (class 1259 OID 18794)
+-- Name: music_track_name_8748ed_idx; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX music_track_name_8748ed_idx ON public.music_track USING btree (name);
+
+
+--
+-- TOC entry 5125 (class 1259 OID 18796)
+-- Name: music_track_popular_375f1b_idx; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX music_track_popular_375f1b_idx ON public.music_track USING btree (popularity DESC);
+
+
+--
+-- TOC entry 5126 (class 1259 OID 18879)
+-- Name: music_track_spotify_id_9e2a85a4_like; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX music_track_spotify_id_9e2a85a4_like ON public.music_track USING btree (spotify_id varchar_pattern_ops);
+
+
+--
+-- TOC entry 5149 (class 1259 OID 18935)
+-- Name: music_useralbum_album_id_95a00687; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX music_useralbum_album_id_95a00687 ON public.music_useralbum USING btree (album_id);
+
+
+--
+-- TOC entry 5150 (class 1259 OID 18948)
+-- Name: music_useralbum_library_id_415845ad; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX music_useralbum_library_id_415845ad ON public.music_useralbum USING btree (library_id);
+
+
+--
+-- TOC entry 5155 (class 1259 OID 18941)
+-- Name: music_userartist_artist_id_b9d786fc; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX music_userartist_artist_id_b9d786fc ON public.music_userartist USING btree (artist_id);
+
+
+--
+-- TOC entry 5156 (class 1259 OID 18947)
+-- Name: music_userartist_library_id_4c8376bb; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX music_userartist_library_id_4c8376bb ON public.music_userartist USING btree (library_id);
+
+
+--
+-- TOC entry 5165 (class 1259 OID 18959)
+-- Name: music_usertrack_library_id_f4db77dd; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX music_usertrack_library_id_f4db77dd ON public.music_usertrack USING btree (library_id);
+
+
+--
+-- TOC entry 5170 (class 1259 OID 18960)
+-- Name: music_usertrack_track_id_b562f750; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX music_usertrack_track_id_b562f750 ON public.music_usertrack USING btree (track_id);
+
+
+--
+-- TOC entry 4624 (class 1259 OID 17437)
+-- Name: personal_ba_user_id_de515a_idx; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX personal_ba_user_id_de515a_idx ON public.personal_baskets USING btree (user_id, is_active, is_default);
+
+
+--
+-- TOC entry 4627 (class 1259 OID 17463)
+-- Name: personal_baskets_user_id_2b8874cc; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX personal_baskets_user_id_2b8874cc ON public.personal_baskets USING btree (user_id);
+
+
+--
+-- TOC entry 4836 (class 1259 OID 18176)
+-- Name: portfolio_h_portfol_698636_idx; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX portfolio_h_portfol_698636_idx ON public.portfolio_holdings USING btree (portfolio_id, asset_type);
+
+
+--
+-- TOC entry 4837 (class 1259 OID 18174)
+-- Name: portfolio_holdings_currency_id_45463006; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX portfolio_holdings_currency_id_45463006 ON public.portfolio_holdings USING btree (currency_id);
+
+
+--
+-- TOC entry 4838 (class 1259 OID 18175)
+-- Name: portfolio_holdings_currency_id_45463006_like; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX portfolio_holdings_currency_id_45463006_like ON public.portfolio_holdings USING btree (currency_id varchar_pattern_ops);
+
+
+--
+-- TOC entry 4841 (class 1259 OID 18173)
+-- Name: portfolio_holdings_portfolio_id_b8feb880; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX portfolio_holdings_portfolio_id_b8feb880 ON public.portfolio_holdings USING btree (portfolio_id);
+
+
+--
+-- TOC entry 4856 (class 1259 OID 18207)
+-- Name: portfolio_p_portfol_58d729_idx; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX portfolio_p_portfol_58d729_idx ON public.portfolio_performance USING btree (portfolio_id, snapshot_time DESC);
+
+
+--
+-- TOC entry 4857 (class 1259 OID 18205)
+-- Name: portfolio_p_portfol_9b5295_idx; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX portfolio_p_portfol_9b5295_idx ON public.portfolio_performance USING btree (portfolio_id, snapshot_date DESC);
+
+
+--
+-- TOC entry 4858 (class 1259 OID 18206)
+-- Name: portfolio_p_snapsho_51c476_idx; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX portfolio_p_snapsho_51c476_idx ON public.portfolio_performance USING btree (snapshot_date DESC);
+
+
+--
+-- TOC entry 4861 (class 1259 OID 18202)
+-- Name: portfolio_performance_portfolio_id_68c09684; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX portfolio_performance_portfolio_id_68c09684 ON public.portfolio_performance USING btree (portfolio_id);
+
+
+--
+-- TOC entry 4864 (class 1259 OID 18203)
+-- Name: portfolio_performance_snapshot_date_26e66c89; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX portfolio_performance_snapshot_date_26e66c89 ON public.portfolio_performance USING btree (snapshot_date);
+
+
+--
+-- TOC entry 4865 (class 1259 OID 18204)
+-- Name: portfolio_performance_snapshot_time_f1c0fea7; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX portfolio_performance_snapshot_time_f1c0fea7 ON public.portfolio_performance USING btree (snapshot_time);
+
+
+--
+-- TOC entry 4844 (class 1259 OID 18192)
+-- Name: portfolio_t_currenc_3b76d5_idx; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX portfolio_t_currenc_3b76d5_idx ON public.portfolio_transactions USING btree (currency_id, executed_at DESC);
+
+
+--
+-- TOC entry 4845 (class 1259 OID 18193)
+-- Name: portfolio_t_execute_3f2f1b_idx; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX portfolio_t_execute_3f2f1b_idx ON public.portfolio_transactions USING btree (executed_at DESC);
+
+
+--
+-- TOC entry 4846 (class 1259 OID 18194)
+-- Name: portfolio_t_externa_3024d5_idx; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX portfolio_t_externa_3024d5_idx ON public.portfolio_transactions USING btree (external_id);
+
+
+--
+-- TOC entry 4847 (class 1259 OID 18191)
+-- Name: portfolio_t_portfol_7cb77c_idx; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX portfolio_t_portfol_7cb77c_idx ON public.portfolio_transactions USING btree (portfolio_id, executed_at DESC);
+
+
+--
+-- TOC entry 4848 (class 1259 OID 18188)
+-- Name: portfolio_transactions_currency_id_a678c202; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX portfolio_transactions_currency_id_a678c202 ON public.portfolio_transactions USING btree (currency_id);
+
+
+--
+-- TOC entry 4849 (class 1259 OID 18189)
+-- Name: portfolio_transactions_currency_id_a678c202_like; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX portfolio_transactions_currency_id_a678c202_like ON public.portfolio_transactions USING btree (currency_id varchar_pattern_ops);
+
+
+--
+-- TOC entry 4850 (class 1259 OID 18190)
+-- Name: portfolio_transactions_external_id_b5d52586_like; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX portfolio_transactions_external_id_b5d52586_like ON public.portfolio_transactions USING btree (external_id varchar_pattern_ops);
+
+
+--
+-- TOC entry 4855 (class 1259 OID 18187)
+-- Name: portfolio_transactions_portfolio_id_dc4b9175; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX portfolio_transactions_portfolio_id_dc4b9175 ON public.portfolio_transactions USING btree (portfolio_id);
+
+
+--
+-- TOC entry 4833 (class 1259 OID 18160)
+-- Name: portfolios_user_id_f89dea_idx; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX portfolios_user_id_f89dea_idx ON public.portfolios USING btree (user_id);
+
+
+--
+-- TOC entry 4638 (class 1259 OID 17445)
+-- Name: price_alert_product_621c32_idx; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX price_alert_product_621c32_idx ON public.price_alerts USING btree (product_id, is_active);
+
+
+--
+-- TOC entry 4639 (class 1259 OID 17444)
+-- Name: price_alert_user_id_600b95_idx; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX price_alert_user_id_600b95_idx ON public.price_alerts USING btree (user_id, is_active);
+
+
+--
+-- TOC entry 4642 (class 1259 OID 17487)
+-- Name: price_alerts_product_id_591045be; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX price_alerts_product_id_591045be ON public.price_alerts USING btree (product_id);
+
+
+--
+-- TOC entry 4643 (class 1259 OID 17486)
+-- Name: price_alerts_user_id_75790b71; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX price_alerts_user_id_75790b71 ON public.price_alerts USING btree (user_id);
+
+
+--
+-- TOC entry 4655 (class 1259 OID 17452)
+-- Name: price_recor_product_6111ea_idx; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX price_recor_product_6111ea_idx ON public.price_records USING btree (product_id, recorded_at);
+
+
+--
+-- TOC entry 4656 (class 1259 OID 17454)
+-- Name: price_recor_recorde_dc6528_idx; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX price_recor_recorde_dc6528_idx ON public.price_records USING btree (recorded_at);
+
+
+--
+-- TOC entry 4657 (class 1259 OID 17453)
+-- Name: price_recor_store_i_967808_idx; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX price_recor_store_i_967808_idx ON public.price_records USING btree (store_id, recorded_at);
+
+
+--
+-- TOC entry 4658 (class 1259 OID 17455)
+-- Name: price_recor_user_id_24a800_idx; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX price_recor_user_id_24a800_idx ON public.price_records USING btree (user_id, created_at);
+
+
+--
+-- TOC entry 4661 (class 1259 OID 17524)
+-- Name: price_records_product_id_4dda0575; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX price_records_product_id_4dda0575 ON public.price_records USING btree (product_id);
+
+
+--
+-- TOC entry 4662 (class 1259 OID 17522)
+-- Name: price_records_recorded_at_e64e69db; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX price_records_recorded_at_e64e69db ON public.price_records USING btree (recorded_at);
+
+
+--
+-- TOC entry 4663 (class 1259 OID 17525)
+-- Name: price_records_store_id_b00c53ce; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX price_records_store_id_b00c53ce ON public.price_records USING btree (store_id);
+
+
+--
+-- TOC entry 4664 (class 1259 OID 17523)
+-- Name: price_records_user_id_3644d63e; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX price_records_user_id_3644d63e ON public.price_records USING btree (user_id);
+
+
+--
+-- TOC entry 4651 (class 1259 OID 17449)
+-- Name: product_cat_parent__85b6f5_idx; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX product_cat_parent__85b6f5_idx ON public.product_categories USING btree (parent_id, is_active);
+
+
+--
+-- TOC entry 4652 (class 1259 OID 17505)
+-- Name: product_categories_parent_id_22d4dfe1; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX product_categories_parent_id_22d4dfe1 ON public.product_categories USING btree (parent_id);
+
+
+--
+-- TOC entry 4615 (class 1259 OID 17456)
+-- Name: products_barcode_0ff99788; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX products_barcode_0ff99788 ON public.products USING btree (barcode);
+
+
+--
+-- TOC entry 4616 (class 1259 OID 17457)
+-- Name: products_barcode_0ff99788_like; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX products_barcode_0ff99788_like ON public.products USING btree (barcode varchar_pattern_ops);
+
+
+--
+-- TOC entry 4617 (class 1259 OID 17451)
+-- Name: products_barcode_d008ac_idx; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX products_barcode_d008ac_idx ON public.products USING btree (barcode);
+
+
+--
+-- TOC entry 4618 (class 1259 OID 17450)
+-- Name: products_categor_9e60b3_idx; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX products_categor_9e60b3_idx ON public.products USING btree (category_id, is_active);
+
+
+--
+-- TOC entry 4619 (class 1259 OID 17506)
+-- Name: products_category_id_a7a3a156; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX products_category_id_a7a3a156 ON public.products USING btree (category_id);
+
+
+--
+-- TOC entry 5178 (class 1259 OID 19058)
+-- Name: restopos_me_categor_fcc97b_idx; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX restopos_me_categor_fcc97b_idx ON public.restopos_menuitem USING btree (category_id, is_available);
+
+
+--
+-- TOC entry 5179 (class 1259 OID 19057)
+-- Name: restopos_me_restaur_7a25d8_idx; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX restopos_me_restaur_7a25d8_idx ON public.restopos_menuitem USING btree (restaurant_id, is_available);
+
+
+--
+-- TOC entry 5173 (class 1259 OID 19113)
+-- Name: restopos_menucategory_restaurant_id_c037f93a; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX restopos_menucategory_restaurant_id_c037f93a ON public.restopos_menucategory USING btree (restaurant_id);
+
+
+--
+-- TOC entry 5176 (class 1259 OID 19072)
+-- Name: restopos_menucategory_slug_d1cde325; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX restopos_menucategory_slug_d1cde325 ON public.restopos_menucategory USING btree (slug);
+
+
+--
+-- TOC entry 5177 (class 1259 OID 19073)
+-- Name: restopos_menucategory_slug_d1cde325_like; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX restopos_menucategory_slug_d1cde325_like ON public.restopos_menucategory USING btree (slug varchar_pattern_ops);
+
+
+--
+-- TOC entry 5180 (class 1259 OID 19081)
+-- Name: restopos_menuitem_category_id_8ac7e03a; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX restopos_menuitem_category_id_8ac7e03a ON public.restopos_menuitem USING btree (category_id);
+
+
+--
+-- TOC entry 5183 (class 1259 OID 19112)
+-- Name: restopos_menuitem_restaurant_id_4874b174; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX restopos_menuitem_restaurant_id_4874b174 ON public.restopos_menuitem USING btree (restaurant_id);
+
+
+--
+-- TOC entry 5186 (class 1259 OID 19079)
+-- Name: restopos_menuitem_slug_2bcd8aa1; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX restopos_menuitem_slug_2bcd8aa1 ON public.restopos_menuitem USING btree (slug);
+
+
+--
+-- TOC entry 5187 (class 1259 OID 19080)
+-- Name: restopos_menuitem_slug_2bcd8aa1_like; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX restopos_menuitem_slug_2bcd8aa1_like ON public.restopos_menuitem USING btree (slug varchar_pattern_ops);
+
+
+--
+-- TOC entry 5188 (class 1259 OID 19069)
+-- Name: restopos_or_restaur_6a368f_idx; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX restopos_or_restaur_6a368f_idx ON public.restopos_order USING btree (restaurant_id, created_at DESC);
+
+
+--
+-- TOC entry 5189 (class 1259 OID 19070)
+-- Name: restopos_or_status_a78e4a_idx; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX restopos_or_status_a78e4a_idx ON public.restopos_order USING btree (status, created_at DESC);
+
+
+--
+-- TOC entry 5190 (class 1259 OID 19071)
+-- Name: restopos_or_table_i_bbe090_idx; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX restopos_or_table_i_bbe090_idx ON public.restopos_order USING btree (table_id, status);
+
+
+--
+-- TOC entry 5191 (class 1259 OID 19093)
+-- Name: restopos_order_chef_id_674779f8; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX restopos_order_chef_id_674779f8 ON public.restopos_order USING btree (chef_id);
+
+
+--
+-- TOC entry 5192 (class 1259 OID 19092)
+-- Name: restopos_order_order_number_95f38663_like; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX restopos_order_order_number_95f38663_like ON public.restopos_order USING btree (order_number varchar_pattern_ops);
+
+
+--
+-- TOC entry 5197 (class 1259 OID 19111)
+-- Name: restopos_order_restaurant_id_5edb146c; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX restopos_order_restaurant_id_5edb146c ON public.restopos_order USING btree (restaurant_id);
+
+
+--
+-- TOC entry 5198 (class 1259 OID 19153)
+-- Name: restopos_order_table_id_6b81e243; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX restopos_order_table_id_6b81e243 ON public.restopos_order USING btree (table_id);
+
+
+--
+-- TOC entry 5199 (class 1259 OID 19094)
+-- Name: restopos_order_waiter_id_c82466c4; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX restopos_order_waiter_id_c82466c4 ON public.restopos_order USING btree (waiter_id);
+
+
+--
+-- TOC entry 5200 (class 1259 OID 19105)
+-- Name: restopos_orderitem_menu_item_id_8b8d6e00; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX restopos_orderitem_menu_item_id_8b8d6e00 ON public.restopos_orderitem USING btree (menu_item_id);
+
+
+--
+-- TOC entry 5201 (class 1259 OID 19106)
+-- Name: restopos_orderitem_order_id_128bf52e; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX restopos_orderitem_order_id_128bf52e ON public.restopos_orderitem USING btree (order_id);
+
+
+--
+-- TOC entry 5204 (class 1259 OID 19110)
+-- Name: restopos_re_branch__1d8b5d_idx; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX restopos_re_branch__1d8b5d_idx ON public.restopos_restaurant USING btree (branch_code);
+
+
+--
+-- TOC entry 5241 (class 1259 OID 19160)
+-- Name: restopos_re_issued__858951_idx; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX restopos_re_issued__858951_idx ON public.restopos_receipt USING btree (issued_at DESC);
+
+
+--
+-- TOC entry 5232 (class 1259 OID 19067)
+-- Name: restopos_re_restaur_89d75b_idx; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX restopos_re_restaur_89d75b_idx ON public.restopos_reservation USING btree (restaurant_id, reservation_date, status);
+
+
+--
+-- TOC entry 5205 (class 1259 OID 19109)
+-- Name: restopos_re_slug_789061_idx; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX restopos_re_slug_789061_idx ON public.restopos_restaurant USING btree (slug);
+
+
+--
+-- TOC entry 5233 (class 1259 OID 19068)
+-- Name: restopos_re_table_i_f5f582_idx; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX restopos_re_table_i_f5f582_idx ON public.restopos_reservation USING btree (table_id, reservation_date);
+
+
+--
+-- TOC entry 5246 (class 1259 OID 19159)
+-- Name: restopos_receipt_receipt_number_3b4e2960_like; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX restopos_receipt_receipt_number_3b4e2960_like ON public.restopos_receipt USING btree (receipt_number varchar_pattern_ops);
+
+
+--
+-- TOC entry 5234 (class 1259 OID 19150)
+-- Name: restopos_reservation_confirmation_code_8efa5ad6_like; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX restopos_reservation_confirmation_code_8efa5ad6_like ON public.restopos_reservation USING btree (confirmation_code varchar_pattern_ops);
+
+
+--
+-- TOC entry 5239 (class 1259 OID 19151)
+-- Name: restopos_reservation_restaurant_id_c25029db; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX restopos_reservation_restaurant_id_c25029db ON public.restopos_reservation USING btree (restaurant_id);
+
+
+--
+-- TOC entry 5240 (class 1259 OID 19152)
+-- Name: restopos_reservation_table_id_480c6163; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX restopos_reservation_table_id_480c6163 ON public.restopos_reservation USING btree (table_id);
+
+
+--
+-- TOC entry 5206 (class 1259 OID 19108)
+-- Name: restopos_restaurant_branch_code_f9ddcf6d_like; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX restopos_restaurant_branch_code_f9ddcf6d_like ON public.restopos_restaurant USING btree (branch_code varchar_pattern_ops);
+
+
+--
+-- TOC entry 5211 (class 1259 OID 19107)
+-- Name: restopos_restaurant_slug_bd829953_like; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX restopos_restaurant_slug_bd829953_like ON public.restopos_restaurant USING btree (slug varchar_pattern_ops);
+
+
+--
+-- TOC entry 5214 (class 1259 OID 19124)
+-- Name: restopos_staff_employee_id_702a1c95_like; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX restopos_staff_employee_id_702a1c95_like ON public.restopos_staff USING btree (employee_id varchar_pattern_ops);
+
+
+--
+-- TOC entry 5219 (class 1259 OID 19125)
+-- Name: restopos_staff_restaurant_id_7f6e383a; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX restopos_staff_restaurant_id_7f6e383a ON public.restopos_staff USING btree (restaurant_id);
+
+
+--
+-- TOC entry 5222 (class 1259 OID 19126)
+-- Name: restopos_staff_user_id_cee05f0c; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX restopos_staff_user_id_cee05f0c ON public.restopos_staff USING btree (user_id);
+
+
+--
+-- TOC entry 5223 (class 1259 OID 19138)
+-- Name: restopos_table_current_order_id_79154c94; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX restopos_table_current_order_id_79154c94 ON public.restopos_table USING btree (current_order_id);
+
+
+--
+-- TOC entry 5226 (class 1259 OID 19137)
+-- Name: restopos_table_qr_code_e325d74a_like; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX restopos_table_qr_code_e325d74a_like ON public.restopos_table USING btree (qr_code varchar_pattern_ops);
+
+
+--
+-- TOC entry 5229 (class 1259 OID 19139)
+-- Name: restopos_table_restaurant_id_52a099c2; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX restopos_table_restaurant_id_52a099c2 ON public.restopos_table USING btree (restaurant_id);
+
+
+--
+-- TOC entry 5273 (class 1259 OID 19238)
+-- Name: solitaire_s_is_won_7286d0_idx; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX solitaire_s_is_won_7286d0_idx ON public.solitaire_solitairegamesession USING btree (is_won, is_completed);
+
+
+--
+-- TOC entry 5266 (class 1259 OID 19236)
+-- Name: solitaire_s_last_se_b4b7c3_idx; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX solitaire_s_last_se_b4b7c3_idx ON public.solitaire_solitaireplayer USING btree (last_seen);
+
+
+--
+-- TOC entry 5274 (class 1259 OID 19237)
+-- Name: solitaire_s_player__689a8a_idx; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX solitaire_s_player__689a8a_idx ON public.solitaire_solitairegamesession USING btree (player_id, started_at);
+
+
+--
+-- TOC entry 5249 (class 1259 OID 19188)
+-- Name: solitaire_s_session_8a1531_idx; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX solitaire_s_session_8a1531_idx ON public.solitaire_solitairesession USING btree (session_id);
+
+
+--
+-- TOC entry 5281 (class 1259 OID 19239)
+-- Name: solitaire_s_session_b83e8d_idx; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX solitaire_s_session_b83e8d_idx ON public.solitaire_solitaireactivity USING btree (session_id, action);
+
+
+--
+-- TOC entry 5267 (class 1259 OID 19235)
+-- Name: solitaire_s_session_e16dc2_idx; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX solitaire_s_session_e16dc2_idx ON public.solitaire_solitaireplayer USING btree (session_key, ip_address);
+
+
+--
+-- TOC entry 5282 (class 1259 OID 19240)
+-- Name: solitaire_s_timesta_e183f9_idx; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX solitaire_s_timesta_e183f9_idx ON public.solitaire_solitaireactivity USING btree ("timestamp");
+
+
+--
+-- TOC entry 5250 (class 1259 OID 19187)
+-- Name: solitaire_s_user_id_351ba4_idx; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX solitaire_s_user_id_351ba4_idx ON public.solitaire_solitairesession USING btree (user_id, is_active);
+
+
+--
+-- TOC entry 5285 (class 1259 OID 19261)
+-- Name: solitaire_solitaireactivity_session_id_bee7d0d9; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX solitaire_solitaireactivity_session_id_bee7d0d9 ON public.solitaire_solitaireactivity USING btree (session_id);
+
+
+--
+-- TOC entry 5277 (class 1259 OID 19255)
+-- Name: solitaire_solitairegamesession_player_id_ca28dc7a; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX solitaire_solitairegamesession_player_id_ca28dc7a ON public.solitaire_solitairegamesession USING btree (player_id);
+
+
+--
+-- TOC entry 5278 (class 1259 OID 19254)
+-- Name: solitaire_solitairegamesession_session_id_013aa92e_like; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX solitaire_solitairegamesession_session_id_013aa92e_like ON public.solitaire_solitairegamesession USING btree (session_id varchar_pattern_ops);
+
+
+--
+-- TOC entry 5259 (class 1259 OID 19203)
+-- Name: solitaire_solitairemove_session_id_faf38fe6; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX solitaire_solitairemove_session_id_faf38fe6 ON public.solitaire_solitairemove USING btree (session_id);
+
+
+--
+-- TOC entry 5270 (class 1259 OID 19246)
+-- Name: solitaire_solitaireplayer_session_key_c4e4d061; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX solitaire_solitaireplayer_session_key_c4e4d061 ON public.solitaire_solitaireplayer USING btree (session_key);
+
+
+--
+-- TOC entry 5271 (class 1259 OID 19247)
+-- Name: solitaire_solitaireplayer_session_key_c4e4d061_like; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX solitaire_solitaireplayer_session_key_c4e4d061_like ON public.solitaire_solitaireplayer USING btree (session_key varchar_pattern_ops);
+
+
+--
+-- TOC entry 5272 (class 1259 OID 19248)
+-- Name: solitaire_solitaireplayer_user_id_bb56088a; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX solitaire_solitaireplayer_user_id_bb56088a ON public.solitaire_solitaireplayer USING btree (user_id);
+
+
+--
+-- TOC entry 5253 (class 1259 OID 19196)
+-- Name: solitaire_solitairesession_session_id_0d0e0465_like; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX solitaire_solitairesession_session_id_0d0e0465_like ON public.solitaire_solitairesession USING btree (session_id varchar_pattern_ops);
+
+
+--
+-- TOC entry 5256 (class 1259 OID 19197)
+-- Name: solitaire_solitairesession_user_id_15f9c6a0; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX solitaire_solitairesession_user_id_15f9c6a0 ON public.solitaire_solitairesession USING btree (user_id);
+
+
+--
+-- TOC entry 5288 (class 1259 OID 19319)
+-- Name: store_marketplace_user_id_94674dc8; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX store_marketplace_user_id_94674dc8 ON public.store_marketplace USING btree (user_id);
+
+
+--
+-- TOC entry 5291 (class 1259 OID 19306)
+-- Name: store_order_marketp_81a315_idx; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX store_order_marketp_81a315_idx ON public.store_order USING btree (marketplace_id, status);
+
+
+--
+-- TOC entry 5292 (class 1259 OID 19331)
+-- Name: store_order_marketplace_id_8ce4d993; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX store_order_marketplace_id_8ce4d993 ON public.store_order USING btree (marketplace_id);
+
+
+--
+-- TOC entry 5293 (class 1259 OID 19304)
+-- Name: store_order_order_d_369723_idx; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX store_order_order_d_369723_idx ON public.store_order USING btree (order_date DESC);
+
+
+--
+-- TOC entry 5296 (class 1259 OID 19330)
+-- Name: store_order_platform_order_id_003f281a_like; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX store_order_platform_order_id_003f281a_like ON public.store_order USING btree (platform_order_id varchar_pattern_ops);
+
+
+--
+-- TOC entry 5299 (class 1259 OID 19305)
+-- Name: store_order_status_428b25_idx; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX store_order_status_428b25_idx ON public.store_order USING btree (status);
+
+
+--
+-- TOC entry 5300 (class 1259 OID 19332)
+-- Name: store_order_user_id_ae5f7a5f; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX store_order_user_id_ae5f7a5f ON public.store_order USING btree (user_id);
+
+
+--
+-- TOC entry 5301 (class 1259 OID 19338)
+-- Name: store_orderitem_order_id_acf8722d; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX store_orderitem_order_id_acf8722d ON public.store_orderitem USING btree (order_id);
+
+
+--
+-- TOC entry 5304 (class 1259 OID 19308)
+-- Name: store_produ_barcode_f818f0_idx; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX store_produ_barcode_f818f0_idx ON public.store_product USING btree (barcode);
+
+
+--
+-- TOC entry 5305 (class 1259 OID 19307)
+-- Name: store_produ_sku_8a55cb_idx; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX store_produ_sku_8a55cb_idx ON public.store_product USING btree (sku);
+
+
+--
+-- TOC entry 5306 (class 1259 OID 19309)
+-- Name: store_produ_status_3ab676_idx; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX store_produ_status_3ab676_idx ON public.store_product USING btree (status);
+
+
+--
+-- TOC entry 5307 (class 1259 OID 19351)
+-- Name: store_product_barcode_06b1fff0; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX store_product_barcode_06b1fff0 ON public.store_product USING btree (barcode);
+
+
+--
+-- TOC entry 5308 (class 1259 OID 19352)
+-- Name: store_product_barcode_06b1fff0_like; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX store_product_barcode_06b1fff0_like ON public.store_product USING btree (barcode varchar_pattern_ops);
+
+
+--
+-- TOC entry 5309 (class 1259 OID 19353)
+-- Name: store_product_marketplace_id_e8f55ca6; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX store_product_marketplace_id_e8f55ca6 ON public.store_product USING btree (marketplace_id);
+
+
+--
+-- TOC entry 5314 (class 1259 OID 19349)
+-- Name: store_product_sku_842ee8ec; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX store_product_sku_842ee8ec ON public.store_product USING btree (sku);
+
+
+--
+-- TOC entry 5315 (class 1259 OID 19350)
+-- Name: store_product_sku_842ee8ec_like; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX store_product_sku_842ee8ec_like ON public.store_product USING btree (sku varchar_pattern_ops);
+
+
+--
+-- TOC entry 5316 (class 1259 OID 19354)
+-- Name: store_product_user_id_58ba19a0; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX store_product_user_id_58ba19a0 ON public.store_product USING btree (user_id);
+
+
+--
+-- TOC entry 5317 (class 1259 OID 19360)
+-- Name: store_synclog_marketplace_id_0c015fc4; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX store_synclog_marketplace_id_0c015fc4 ON public.store_synclog USING btree (marketplace_id);
+
+
+--
+-- TOC entry 4866 (class 1259 OID 18229)
+-- Name: transaction_currenc_8518b3_idx; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX transaction_currenc_8518b3_idx ON public.transactions USING btree (currency_id, executed_at);
+
+
+--
+-- TOC entry 4867 (class 1259 OID 18230)
+-- Name: transaction_execute_9861c2_idx; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX transaction_execute_9861c2_idx ON public.transactions USING btree (executed_at);
+
+
+--
+-- TOC entry 4868 (class 1259 OID 18228)
+-- Name: transaction_portfol_2feec9_idx; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX transaction_portfol_2feec9_idx ON public.transactions USING btree (portfolio_id, executed_at);
+
+
+--
+-- TOC entry 4869 (class 1259 OID 18224)
+-- Name: transactions_currency_id_a7fd19d0; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX transactions_currency_id_a7fd19d0 ON public.transactions USING btree (currency_id);
+
+
+--
+-- TOC entry 4870 (class 1259 OID 18225)
+-- Name: transactions_currency_id_a7fd19d0_like; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX transactions_currency_id_a7fd19d0_like ON public.transactions USING btree (currency_id varchar_pattern_ops);
+
+
+--
+-- TOC entry 4871 (class 1259 OID 18226)
+-- Name: transactions_fee_currency_id_8568ce42; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX transactions_fee_currency_id_8568ce42 ON public.transactions USING btree (fee_currency_id);
+
+
+--
+-- TOC entry 4872 (class 1259 OID 18227)
+-- Name: transactions_fee_currency_id_8568ce42_like; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX transactions_fee_currency_id_8568ce42_like ON public.transactions USING btree (fee_currency_id varchar_pattern_ops);
+
+
+--
+-- TOC entry 4875 (class 1259 OID 18223)
+-- Name: transactions_portfolio_id_f41f764e; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX transactions_portfolio_id_f41f764e ON public.transactions USING btree (portfolio_id);
+
+
+--
+-- TOC entry 4674 (class 1259 OID 17571)
+-- Name: version_man_is_anom_9d9dfc_idx; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX version_man_is_anom_9d9dfc_idx ON public.version_manager_versionarchive USING btree (is_anomaly);
+
+
+--
+-- TOC entry 4675 (class 1259 OID 17569)
+-- Name: version_man_size_mb_0fd933_idx; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX version_man_size_mb_0fd933_idx ON public.version_manager_versionarchive USING btree (size_mb);
+
+
+--
+-- TOC entry 4676 (class 1259 OID 17570)
+-- Name: version_man_status_0ffa8a_idx; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX version_man_status_0ffa8a_idx ON public.version_manager_versionarchive USING btree (status);
+
+
+--
+-- TOC entry 4677 (class 1259 OID 17568)
+-- Name: version_man_version_e4ab53_idx; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX version_man_version_e4ab53_idx ON public.version_manager_versionarchive USING btree (version);
+
+
+--
+-- TOC entry 4673 (class 1259 OID 17566)
+-- Name: version_manager_scansession_started_by_id_384e539f; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX version_manager_scansession_started_by_id_384e539f ON public.version_manager_scansession USING btree (started_by_id);
+
+
+--
+-- TOC entry 4680 (class 1259 OID 17567)
+-- Name: version_manager_versionarchive_version_e486631f_like; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX version_manager_versionarchive_version_e486631f_like ON public.version_manager_versionarchive USING btree (version varchar_pattern_ops);
+
+
+--
+-- TOC entry 4802 (class 1259 OID 18111)
+-- Name: web_ui_comm_module_e95b00_idx; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX web_ui_comm_module_e95b00_idx ON public.web_ui_command_history USING btree (module, executed_at);
+
+
+--
+-- TOC entry 4803 (class 1259 OID 18110)
+-- Name: web_ui_comm_user_id_bc2478_idx; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX web_ui_comm_user_id_bc2478_idx ON public.web_ui_command_history USING btree (user_id, executed_at);
+
+
+--
+-- TOC entry 4806 (class 1259 OID 18109)
+-- Name: web_ui_command_history_user_id_0a2f6031; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX web_ui_command_history_user_id_0a2f6031 ON public.web_ui_command_history USING btree (user_id);
+
+
+--
+-- TOC entry 4788 (class 1259 OID 18096)
+-- Name: web_ui_modu_module_07687f_idx; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX web_ui_modu_module_07687f_idx ON public.web_ui_module_access USING btree (module, accessed_at);
+
+
+--
+-- TOC entry 4789 (class 1259 OID 18095)
+-- Name: web_ui_modu_user_id_a15c09_idx; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX web_ui_modu_user_id_a15c09_idx ON public.web_ui_module_access USING btree (user_id, module);
+
+
+--
+-- TOC entry 4792 (class 1259 OID 18094)
+-- Name: web_ui_module_access_session_id_d9a95af0; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX web_ui_module_access_session_id_d9a95af0 ON public.web_ui_module_access USING btree (session_id);
+
+
+--
+-- TOC entry 4793 (class 1259 OID 18093)
+-- Name: web_ui_module_access_user_id_b2f57d1a; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX web_ui_module_access_user_id_b2f57d1a ON public.web_ui_module_access USING btree (user_id);
+
+
+--
+-- TOC entry 4780 (class 1259 OID 18081)
+-- Name: web_ui_sess_session_f15dea_idx; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX web_ui_sess_session_f15dea_idx ON public.web_ui_session_logs USING btree (session_id);
+
+
+--
+-- TOC entry 4781 (class 1259 OID 18082)
+-- Name: web_ui_sess_user_id_ae0a17_idx; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX web_ui_sess_user_id_ae0a17_idx ON public.web_ui_session_logs USING btree (user_id, is_active);
+
+
+--
+-- TOC entry 4784 (class 1259 OID 18080)
+-- Name: web_ui_session_logs_session_id_1a72268b_like; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX web_ui_session_logs_session_id_1a72268b_like ON public.web_ui_session_logs USING btree (session_id varchar_pattern_ops);
+
+
+--
+-- TOC entry 4787 (class 1259 OID 18079)
+-- Name: web_ui_session_logs_user_id_fe54c24c; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX web_ui_session_logs_user_id_fe54c24c ON public.web_ui_session_logs USING btree (user_id);
+
+
+--
+-- TOC entry 4798 (class 1259 OID 18103)
+-- Name: web_ui_syst_last_ch_6b0bd4_idx; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX web_ui_syst_last_ch_6b0bd4_idx ON public.web_ui_system_status USING btree (last_checked);
+
+
+--
+-- TOC entry 4799 (class 1259 OID 18102)
+-- Name: web_ui_syst_module_0d77a5_idx; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX web_ui_syst_module_0d77a5_idx ON public.web_ui_system_status USING btree (module, status);
+
+
+--
+-- TOC entry 4722 (class 1259 OID 17718)
+-- Name: wimm_budget_category_id_b9f806ba; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX wimm_budget_category_id_b9f806ba ON public.wimm_budget USING btree (category_id);
+
+
+--
+-- TOC entry 4725 (class 1259 OID 17717)
+-- Name: wimm_budget_user_id_778a3d42; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX wimm_budget_user_id_778a3d42 ON public.wimm_budget USING btree (user_id);
+
+
+--
+-- TOC entry 4683 (class 1259 OID 17620)
+-- Name: wimm_invoic_invoice_4a17e2_idx; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX wimm_invoic_invoice_4a17e2_idx ON public.wimm_invoice USING btree (invoice_number);
+
+
+--
+-- TOC entry 4684 (class 1259 OID 17622)
+-- Name: wimm_invoic_payment_c06871_idx; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX wimm_invoic_payment_c06871_idx ON public.wimm_invoice USING btree (payment_status);
+
+
+--
+-- TOC entry 4685 (class 1259 OID 17621)
+-- Name: wimm_invoic_user_id_a3a26a_idx; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX wimm_invoic_user_id_a3a26a_idx ON public.wimm_invoice USING btree (user_id, invoice_date DESC);
+
+
+--
+-- TOC entry 4686 (class 1259 OID 17632)
+-- Name: wimm_invoice_invoice_number_bb2eea10_like; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX wimm_invoice_invoice_number_bb2eea10_like ON public.wimm_invoice USING btree (invoice_number varchar_pattern_ops);
+
+
+--
+-- TOC entry 4691 (class 1259 OID 17633)
+-- Name: wimm_invoice_user_id_02cb6353; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX wimm_invoice_user_id_02cb6353 ON public.wimm_invoice USING btree (user_id);
+
+
+--
+-- TOC entry 4692 (class 1259 OID 17644)
+-- Name: wimm_invoiceitem_invoice_id_f0a49313; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX wimm_invoiceitem_invoice_id_f0a49313 ON public.wimm_invoiceitem USING btree (invoice_id);
+
+
+--
+-- TOC entry 4693 (class 1259 OID 17645)
+-- Name: wimm_invoiceitem_item_id_30ebe675; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX wimm_invoiceitem_item_id_30ebe675 ON public.wimm_invoiceitem USING btree (item_id);
+
+
+--
+-- TOC entry 4716 (class 1259 OID 17706)
+-- Name: wimm_recurringtransaction_category_id_59e3b892; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX wimm_recurringtransaction_category_id_59e3b892 ON public.wimm_recurringtransaction USING btree (category_id);
+
+
+--
+-- TOC entry 4717 (class 1259 OID 17703)
+-- Name: wimm_recurringtransaction_from_account_id_57f9c837; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX wimm_recurringtransaction_from_account_id_57f9c837 ON public.wimm_recurringtransaction USING btree (from_account_id);
+
+
+--
+-- TOC entry 4720 (class 1259 OID 17704)
+-- Name: wimm_recurringtransaction_to_account_id_7c2792a8; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX wimm_recurringtransaction_to_account_id_7c2792a8 ON public.wimm_recurringtransaction USING btree (to_account_id);
+
+
+--
+-- TOC entry 4721 (class 1259 OID 17705)
+-- Name: wimm_recurringtransaction_user_id_7f034981; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX wimm_recurringtransaction_user_id_7f034981 ON public.wimm_recurringtransaction USING btree (user_id);
+
+
+--
+-- TOC entry 4702 (class 1259 OID 17624)
+-- Name: wimm_transa_categor_32e172_idx; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX wimm_transa_categor_32e172_idx ON public.wimm_transaction USING btree (category_id, transaction_date DESC);
+
+
+--
+-- TOC entry 4703 (class 1259 OID 17623)
+-- Name: wimm_transa_user_id_457f73_idx; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX wimm_transa_user_id_457f73_idx ON public.wimm_transaction USING btree (user_id, transaction_date DESC);
+
+
+--
+-- TOC entry 4704 (class 1259 OID 17682)
+-- Name: wimm_transaction_category_id_55e8a94a; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX wimm_transaction_category_id_55e8a94a ON public.wimm_transaction USING btree (category_id);
+
+
+--
+-- TOC entry 4705 (class 1259 OID 17745)
+-- Name: wimm_transaction_credit_card_id_7b472bc1; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX wimm_transaction_credit_card_id_7b472bc1 ON public.wimm_transaction USING btree (credit_card_id);
+
+
+--
+-- TOC entry 4706 (class 1259 OID 17746)
+-- Name: wimm_transaction_expense_category_id_f44c14a9; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX wimm_transaction_expense_category_id_f44c14a9 ON public.wimm_transaction USING btree (expense_category_id);
+
+
+--
+-- TOC entry 4707 (class 1259 OID 17747)
+-- Name: wimm_transaction_expense_group_id_9cbf6a1d; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX wimm_transaction_expense_group_id_9cbf6a1d ON public.wimm_transaction USING btree (expense_group_id);
+
+
+--
+-- TOC entry 4708 (class 1259 OID 17678)
+-- Name: wimm_transaction_from_account_id_9c58e59b; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX wimm_transaction_from_account_id_9c58e59b ON public.wimm_transaction USING btree (from_account_id);
+
+
+--
+-- TOC entry 4709 (class 1259 OID 17679)
+-- Name: wimm_transaction_invoice_id_bd68f11f; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX wimm_transaction_invoice_id_bd68f11f ON public.wimm_transaction USING btree (invoice_id);
+
+
+--
+-- TOC entry 4712 (class 1259 OID 17748)
+-- Name: wimm_transaction_source_document_id_a3a53c02; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX wimm_transaction_source_document_id_a3a53c02 ON public.wimm_transaction USING btree (source_document_id);
+
+
+--
+-- TOC entry 4713 (class 1259 OID 17749)
+-- Name: wimm_transaction_subscription_id_fad0014a; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX wimm_transaction_subscription_id_fad0014a ON public.wimm_transaction USING btree (subscription_id);
+
+
+--
+-- TOC entry 4714 (class 1259 OID 17680)
+-- Name: wimm_transaction_to_account_id_6dea8ac9; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX wimm_transaction_to_account_id_6dea8ac9 ON public.wimm_transaction USING btree (to_account_id);
+
+
+--
+-- TOC entry 4715 (class 1259 OID 17681)
+-- Name: wimm_transaction_user_id_21d45b7b; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX wimm_transaction_user_id_21d45b7b ON public.wimm_transaction USING btree (user_id);
+
+
+--
+-- TOC entry 4696 (class 1259 OID 17652)
+-- Name: wimm_transactioncategory_parent_id_daaad250; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX wimm_transactioncategory_parent_id_daaad250 ON public.wimm_transactioncategory USING btree (parent_id);
+
+
+--
+-- TOC entry 4699 (class 1259 OID 17651)
+-- Name: wimm_transactioncategory_slug_76e7b668_like; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX wimm_transactioncategory_slug_76e7b668_like ON public.wimm_transactioncategory USING btree (slug varchar_pattern_ops);
+
+
+--
+-- TOC entry 4747 (class 1259 OID 17852)
+-- Name: wims_itemsupplier_item_id_b30fc7a2; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX wims_itemsupplier_item_id_b30fc7a2 ON public.wims_itemsupplier USING btree (item_id);
+
+
+--
+-- TOC entry 4742 (class 1259 OID 17842)
+-- Name: wims_stockcount_approved_by_id_0acce1bc; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX wims_stockcount_approved_by_id_0acce1bc ON public.wims_stockcount USING btree (approved_by_id);
+
+
+--
+-- TOC entry 4745 (class 1259 OID 17843)
+-- Name: wims_stockcount_user_id_470e84b0; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX wims_stockcount_user_id_470e84b0 ON public.wims_stockcount USING btree (user_id);
+
+
+--
+-- TOC entry 4746 (class 1259 OID 17844)
+-- Name: wims_stockcount_warehouse_id_44fc6631; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX wims_stockcount_warehouse_id_44fc6631 ON public.wims_stockcount USING btree (warehouse_id);
+
+
+--
+-- TOC entry 4752 (class 1259 OID 17870)
+-- Name: wims_stockcountitem_item_id_dd9fb2a2; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX wims_stockcountitem_item_id_dd9fb2a2 ON public.wims_stockcountitem USING btree (item_id);
+
+
+--
+-- TOC entry 4753 (class 1259 OID 17872)
+-- Name: wims_stockcountitem_location_id_eaef3355; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX wims_stockcountitem_location_id_eaef3355 ON public.wims_stockcountitem USING btree (location_id);
+
+
+--
+-- TOC entry 4756 (class 1259 OID 17871)
+-- Name: wims_stockcountitem_stock_count_id_db1e2cf5; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX wims_stockcountitem_stock_count_id_db1e2cf5 ON public.wims_stockcountitem USING btree (stock_count_id);
+
+
+--
+-- TOC entry 4771 (class 1259 OID 17944)
+-- Name: wims_stocki_expiry__438acc_idx; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX wims_stocki_expiry__438acc_idx ON public.wims_stockitem USING btree (expiry_date);
+
+
+--
+-- TOC entry 4772 (class 1259 OID 17943)
+-- Name: wims_stocki_item_id_aa36ee_idx; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX wims_stocki_item_id_aa36ee_idx ON public.wims_stockitem USING btree (item_id, warehouse_id);
+
+
+--
+-- TOC entry 4773 (class 1259 OID 17940)
+-- Name: wims_stockitem_item_id_226e484f; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX wims_stockitem_item_id_226e484f ON public.wims_stockitem USING btree (item_id);
+
+
+--
+-- TOC entry 4776 (class 1259 OID 17941)
+-- Name: wims_stockitem_location_id_82e767c9; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX wims_stockitem_location_id_82e767c9 ON public.wims_stockitem USING btree (location_id);
+
+
+--
+-- TOC entry 4779 (class 1259 OID 17942)
+-- Name: wims_stockitem_warehouse_id_506b6866; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX wims_stockitem_warehouse_id_506b6866 ON public.wims_stockitem USING btree (warehouse_id);
+
+
+--
+-- TOC entry 4736 (class 1259 OID 17825)
+-- Name: wims_stocklocation_parent_id_3c51dc54; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX wims_stocklocation_parent_id_3c51dc54 ON public.wims_stocklocation USING btree (parent_id);
+
+
+--
+-- TOC entry 4739 (class 1259 OID 17826)
+-- Name: wims_stocklocation_warehouse_id_ad86d2c3; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX wims_stocklocation_warehouse_id_ad86d2c3 ON public.wims_stocklocation USING btree (warehouse_id);
+
+
+--
+-- TOC entry 4759 (class 1259 OID 17921)
+-- Name: wims_stockm_item_id_d72153_idx; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX wims_stockm_item_id_d72153_idx ON public.wims_stockmovement USING btree (item_id, movement_date DESC);
+
+
+--
+-- TOC entry 4760 (class 1259 OID 17922)
+-- Name: wims_stockm_movemen_4b23f0_idx; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX wims_stockm_movemen_4b23f0_idx ON public.wims_stockmovement USING btree (movement_type, movement_date DESC);
+
+
+--
+-- TOC entry 4761 (class 1259 OID 17913)
+-- Name: wims_stockmovement_from_location_id_0ef98876; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX wims_stockmovement_from_location_id_0ef98876 ON public.wims_stockmovement USING btree (from_location_id);
+
+
+--
+-- TOC entry 4762 (class 1259 OID 17919)
+-- Name: wims_stockmovement_from_warehouse_id_86887b59; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX wims_stockmovement_from_warehouse_id_86887b59 ON public.wims_stockmovement USING btree (from_warehouse_id);
+
+
+--
+-- TOC entry 4763 (class 1259 OID 17914)
+-- Name: wims_stockmovement_invoice_id_089ef390; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX wims_stockmovement_invoice_id_089ef390 ON public.wims_stockmovement USING btree (invoice_id);
+
+
+--
+-- TOC entry 4764 (class 1259 OID 17915)
+-- Name: wims_stockmovement_invoice_item_id_872b1e6d; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX wims_stockmovement_invoice_item_id_872b1e6d ON public.wims_stockmovement USING btree (invoice_item_id);
+
+
+--
+-- TOC entry 4765 (class 1259 OID 17916)
+-- Name: wims_stockmovement_item_id_9180ac56; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX wims_stockmovement_item_id_9180ac56 ON public.wims_stockmovement USING btree (item_id);
+
+
+--
+-- TOC entry 4768 (class 1259 OID 17917)
+-- Name: wims_stockmovement_to_location_id_f97f9df2; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX wims_stockmovement_to_location_id_f97f9df2 ON public.wims_stockmovement USING btree (to_location_id);
+
+
+--
+-- TOC entry 4769 (class 1259 OID 17920)
+-- Name: wims_stockmovement_to_warehouse_id_139be900; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX wims_stockmovement_to_warehouse_id_139be900 ON public.wims_stockmovement USING btree (to_warehouse_id);
+
+
+--
+-- TOC entry 4770 (class 1259 OID 17918)
+-- Name: wims_stockmovement_user_id_937dbf8e; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX wims_stockmovement_user_id_937dbf8e ON public.wims_stockmovement USING btree (user_id);
+
+
+--
+-- TOC entry 4728 (class 1259 OID 17811)
+-- Name: wims_warehouse_code_b2b8d060_like; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX wims_warehouse_code_b2b8d060_like ON public.wims_warehouse USING btree (code varchar_pattern_ops);
+
+
+--
+-- TOC entry 4735 (class 1259 OID 17812)
+-- Name: wims_warehouse_user_id_ef28eb5c; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX wims_warehouse_user_id_ef28eb5c ON public.wims_warehouse USING btree (user_id);
+
+
+--
+-- TOC entry 5341 (class 2606 OID 16782)
+-- Name: administration_auditlog administration_auditlog_target_user_id_7ac161da_fk_auth_user_id; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.administration_auditlog
+    ADD CONSTRAINT administration_auditlog_target_user_id_7ac161da_fk_auth_user_id FOREIGN KEY (target_user_id) REFERENCES public.auth_user(id) DEFERRABLE INITIALLY DEFERRED;
+
+
+--
+-- TOC entry 5342 (class 2606 OID 16787)
+-- Name: administration_auditlog administration_auditlog_user_id_6876a212_fk_auth_user_id; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.administration_auditlog
+    ADD CONSTRAINT administration_auditlog_user_id_6876a212_fk_auth_user_id FOREIGN KEY (user_id) REFERENCES public.auth_user(id) DEFERRABLE INITIALLY DEFERRED;
+
+
+--
+-- TOC entry 5336 (class 2606 OID 16759)
+-- Name: administration_department administration_depar_default_role_id_38ab3cdf_fk_administr; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.administration_department
+    ADD CONSTRAINT administration_depar_default_role_id_38ab3cdf_fk_administr FOREIGN KEY (default_role_id) REFERENCES public.administration_role(id) DEFERRABLE INITIALLY DEFERRED;
+
+
+--
+-- TOC entry 5339 (class 2606 OID 16770)
+-- Name: administration_department_members administration_depar_department_id_beb695d0_fk_administr; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.administration_department_members
+    ADD CONSTRAINT administration_depar_department_id_beb695d0_fk_administr FOREIGN KEY (department_id) REFERENCES public.administration_department(id) DEFERRABLE INITIALLY DEFERRED;
+
+
+--
+-- TOC entry 5337 (class 2606 OID 16754)
+-- Name: administration_department administration_depar_parent_id_f0b18996_fk_administr; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.administration_department
+    ADD CONSTRAINT administration_depar_parent_id_f0b18996_fk_administr FOREIGN KEY (parent_id) REFERENCES public.administration_department(id) DEFERRABLE INITIALLY DEFERRED;
+
+
+--
+-- TOC entry 5340 (class 2606 OID 16775)
+-- Name: administration_department_members administration_depar_user_id_9dcf3c79_fk_auth_user; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.administration_department_members
+    ADD CONSTRAINT administration_depar_user_id_9dcf3c79_fk_auth_user FOREIGN KEY (user_id) REFERENCES public.auth_user(id) DEFERRABLE INITIALLY DEFERRED;
+
+
+--
+-- TOC entry 5338 (class 2606 OID 16749)
+-- Name: administration_department administration_department_manager_id_8d4ed73f_fk_auth_user_id; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.administration_department
+    ADD CONSTRAINT administration_department_manager_id_8d4ed73f_fk_auth_user_id FOREIGN KEY (manager_id) REFERENCES public.auth_user(id) DEFERRABLE INITIALLY DEFERRED;
+
+
+--
+-- TOC entry 5334 (class 2606 OID 16742)
+-- Name: administration_permissionrequest_permissions administration_permi_permission_id_38aef95b_fk_auth_perm; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.administration_permissionrequest_permissions
+    ADD CONSTRAINT administration_permi_permission_id_38aef95b_fk_auth_perm FOREIGN KEY (permission_id) REFERENCES public.auth_permission(id) DEFERRABLE INITIALLY DEFERRED;
+
+
+--
+-- TOC entry 5335 (class 2606 OID 16737)
+-- Name: administration_permissionrequest_permissions administration_permi_permissionrequest_id_4e70d19f_fk_administr; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.administration_permissionrequest_permissions
+    ADD CONSTRAINT administration_permi_permissionrequest_id_4e70d19f_fk_administr FOREIGN KEY (permissionrequest_id) REFERENCES public.administration_permissionrequest(id) DEFERRABLE INITIALLY DEFERRED;
+
+
+--
+-- TOC entry 5331 (class 2606 OID 16717)
+-- Name: administration_permissionrequest administration_permi_reviewed_by_id_de931119_fk_auth_user; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.administration_permissionrequest
+    ADD CONSTRAINT administration_permi_reviewed_by_id_de931119_fk_auth_user FOREIGN KEY (reviewed_by_id) REFERENCES public.auth_user(id) DEFERRABLE INITIALLY DEFERRED;
+
+
+--
+-- TOC entry 5332 (class 2606 OID 16727)
+-- Name: administration_permissionrequest administration_permi_role_id_223b9bae_fk_administr; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.administration_permissionrequest
+    ADD CONSTRAINT administration_permi_role_id_223b9bae_fk_administr FOREIGN KEY (role_id) REFERENCES public.administration_role(id) DEFERRABLE INITIALLY DEFERRED;
+
+
+--
+-- TOC entry 5333 (class 2606 OID 16722)
+-- Name: administration_permissionrequest administration_permi_user_id_078a5bea_fk_auth_user; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.administration_permissionrequest
+    ADD CONSTRAINT administration_permi_user_id_078a5bea_fk_auth_user FOREIGN KEY (user_id) REFERENCES public.auth_user(id) DEFERRABLE INITIALLY DEFERRED;
+
+
+--
+-- TOC entry 5329 (class 2606 OID 16710)
+-- Name: administration_role_permissions administration_role__permission_id_d20390a8_fk_auth_perm; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.administration_role_permissions
+    ADD CONSTRAINT administration_role__permission_id_d20390a8_fk_auth_perm FOREIGN KEY (permission_id) REFERENCES public.auth_permission(id) DEFERRABLE INITIALLY DEFERRED;
+
+
+--
+-- TOC entry 5330 (class 2606 OID 16705)
+-- Name: administration_role_permissions administration_role__role_id_046d28df_fk_administr; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.administration_role_permissions
+    ADD CONSTRAINT administration_role__role_id_046d28df_fk_administr FOREIGN KEY (role_id) REFERENCES public.administration_role(id) DEFERRABLE INITIALLY DEFERRED;
+
+
+--
+-- TOC entry 5327 (class 2606 OID 16691)
+-- Name: administration_role_groups administration_role__role_id_c12d78c2_fk_administr; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.administration_role_groups
+    ADD CONSTRAINT administration_role__role_id_c12d78c2_fk_administr FOREIGN KEY (role_id) REFERENCES public.administration_role(id) DEFERRABLE INITIALLY DEFERRED;
+
+
+--
+-- TOC entry 5328 (class 2606 OID 16696)
+-- Name: administration_role_groups administration_role_groups_group_id_981adaf0_fk_auth_group_id; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.administration_role_groups
+    ADD CONSTRAINT administration_role_groups_group_id_981adaf0_fk_auth_group_id FOREIGN KEY (group_id) REFERENCES public.auth_group(id) DEFERRABLE INITIALLY DEFERRED;
+
+
+--
+-- TOC entry 5459 (class 2606 OID 18274)
+-- Name: administration_screenlock administration_screenlock_user_id_91767d4e_fk_auth_user_id; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.administration_screenlock
+    ADD CONSTRAINT administration_screenlock_user_id_91767d4e_fk_auth_user_id FOREIGN KEY (user_id) REFERENCES public.auth_user(id) DEFERRABLE INITIALLY DEFERRED;
+
+
+--
+-- TOC entry 5343 (class 2606 OID 16804)
+-- Name: administration_userrole administration_userr_role_id_35e9c1a0_fk_administr; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.administration_userrole
+    ADD CONSTRAINT administration_userr_role_id_35e9c1a0_fk_administr FOREIGN KEY (role_id) REFERENCES public.administration_role(id) DEFERRABLE INITIALLY DEFERRED;
+
+
+--
+-- TOC entry 5344 (class 2606 OID 16799)
+-- Name: administration_userrole administration_userrole_assigned_by_id_eb7586d2_fk_auth_user_id; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.administration_userrole
+    ADD CONSTRAINT administration_userrole_assigned_by_id_eb7586d2_fk_auth_user_id FOREIGN KEY (assigned_by_id) REFERENCES public.auth_user(id) DEFERRABLE INITIALLY DEFERRED;
+
+
+--
+-- TOC entry 5345 (class 2606 OID 16809)
+-- Name: administration_userrole administration_userrole_user_id_a00acf22_fk_auth_user_id; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.administration_userrole
+    ADD CONSTRAINT administration_userrole_user_id_a00acf22_fk_auth_user_id FOREIGN KEY (user_id) REFERENCES public.auth_user(id) DEFERRABLE INITIALLY DEFERRED;
+
+
+--
+-- TOC entry 5321 (class 2606 OID 16564)
+-- Name: auth_group_permissions auth_group_permissio_permission_id_84c5c92e_fk_auth_perm; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.auth_group_permissions
+    ADD CONSTRAINT auth_group_permissio_permission_id_84c5c92e_fk_auth_perm FOREIGN KEY (permission_id) REFERENCES public.auth_permission(id) DEFERRABLE INITIALLY DEFERRED;
+
+
+--
+-- TOC entry 5322 (class 2606 OID 16559)
+-- Name: auth_group_permissions auth_group_permissions_group_id_b120cbf9_fk_auth_group_id; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.auth_group_permissions
+    ADD CONSTRAINT auth_group_permissions_group_id_b120cbf9_fk_auth_group_id FOREIGN KEY (group_id) REFERENCES public.auth_group(id) DEFERRABLE INITIALLY DEFERRED;
+
+
+--
+-- TOC entry 5320 (class 2606 OID 16550)
+-- Name: auth_permission auth_permission_content_type_id_2f476e4b_fk_django_co; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.auth_permission
+    ADD CONSTRAINT auth_permission_content_type_id_2f476e4b_fk_django_co FOREIGN KEY (content_type_id) REFERENCES public.django_content_type(id) DEFERRABLE INITIALLY DEFERRED;
+
+
+--
+-- TOC entry 5323 (class 2606 OID 16579)
+-- Name: auth_user_groups auth_user_groups_group_id_97559544_fk_auth_group_id; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.auth_user_groups
+    ADD CONSTRAINT auth_user_groups_group_id_97559544_fk_auth_group_id FOREIGN KEY (group_id) REFERENCES public.auth_group(id) DEFERRABLE INITIALLY DEFERRED;
+
+
+--
+-- TOC entry 5324 (class 2606 OID 16574)
+-- Name: auth_user_groups auth_user_groups_user_id_6a12ed8b_fk_auth_user_id; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.auth_user_groups
+    ADD CONSTRAINT auth_user_groups_user_id_6a12ed8b_fk_auth_user_id FOREIGN KEY (user_id) REFERENCES public.auth_user(id) DEFERRABLE INITIALLY DEFERRED;
+
+
+--
+-- TOC entry 5325 (class 2606 OID 16593)
+-- Name: auth_user_user_permissions auth_user_user_permi_permission_id_1fbb5f2c_fk_auth_perm; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.auth_user_user_permissions
+    ADD CONSTRAINT auth_user_user_permi_permission_id_1fbb5f2c_fk_auth_perm FOREIGN KEY (permission_id) REFERENCES public.auth_permission(id) DEFERRABLE INITIALLY DEFERRED;
+
+
+--
+-- TOC entry 5326 (class 2606 OID 16588)
+-- Name: auth_user_user_permissions auth_user_user_permissions_user_id_a95ead1b_fk_auth_user_id; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.auth_user_user_permissions
+    ADD CONSTRAINT auth_user_user_permissions_user_id_a95ead1b_fk_auth_user_id FOREIGN KEY (user_id) REFERENCES public.auth_user(id) DEFERRABLE INITIALLY DEFERRED;
+
+
+--
+-- TOC entry 5346 (class 2606 OID 16824)
+-- Name: authtoken_token authtoken_token_user_id_35299eff_fk_auth_user_id; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.authtoken_token
+    ADD CONSTRAINT authtoken_token_user_id_35299eff_fk_auth_user_id FOREIGN KEY (user_id) REFERENCES public.auth_user(id) DEFERRABLE INITIALLY DEFERRED;
+
+
+--
+-- TOC entry 5392 (class 2606 OID 17488)
+-- Name: basket_items basket_items_basket_id_2b854602_fk_personal_baskets_id; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.basket_items
+    ADD CONSTRAINT basket_items_basket_id_2b854602_fk_personal_baskets_id FOREIGN KEY (basket_id) REFERENCES public.personal_baskets(id) DEFERRABLE INITIALLY DEFERRED;
+
+
+--
+-- TOC entry 5393 (class 2606 OID 17493)
+-- Name: basket_items basket_items_product_id_82fb5bc4_fk_products_id; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.basket_items
+    ADD CONSTRAINT basket_items_product_id_82fb5bc4_fk_products_id FOREIGN KEY (product_id) REFERENCES public.products(id) DEFERRABLE INITIALLY DEFERRED;
+
+
+--
+-- TOC entry 5460 (class 2606 OID 18389)
+-- Name: birlikteyiz_earthquake_comments birlikteyiz_earthqua_earthquake_id_11877c02_fk_birliktey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.birlikteyiz_earthquake_comments
+    ADD CONSTRAINT birlikteyiz_earthqua_earthquake_id_11877c02_fk_birliktey FOREIGN KEY (earthquake_id) REFERENCES public.birlikteyiz_earthquakes(id) DEFERRABLE INITIALLY DEFERRED;
+
+
+--
+-- TOC entry 5461 (class 2606 OID 18394)
+-- Name: birlikteyiz_earthquake_comments birlikteyiz_earthqua_user_id_52ec2aa3_fk_auth_user; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.birlikteyiz_earthquake_comments
+    ADD CONSTRAINT birlikteyiz_earthqua_user_id_52ec2aa3_fk_auth_user FOREIGN KEY (user_id) REFERENCES public.auth_user(id) DEFERRABLE INITIALLY DEFERRED;
+
+
+--
+-- TOC entry 5463 (class 2606 OID 18408)
+-- Name: birlikteyiz_emergency_messages birlikteyiz_emergenc_sender_node_id_b9f148f6_fk_birliktey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.birlikteyiz_emergency_messages
+    ADD CONSTRAINT birlikteyiz_emergenc_sender_node_id_b9f148f6_fk_birliktey FOREIGN KEY (sender_node_id) REFERENCES public.birlikteyiz_mesh_nodes(id) DEFERRABLE INITIALLY DEFERRED;
+
+
+--
+-- TOC entry 5467 (class 2606 OID 18435)
+-- Name: birlikteyiz_emergency_contacts birlikteyiz_emergency_contacts_user_id_6c434a68_fk_auth_user_id; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.birlikteyiz_emergency_contacts
+    ADD CONSTRAINT birlikteyiz_emergency_contacts_user_id_6c434a68_fk_auth_user_id FOREIGN KEY (user_id) REFERENCES public.auth_user(id) DEFERRABLE INITIALLY DEFERRED;
+
+
+--
+-- TOC entry 5462 (class 2606 OID 18401)
+-- Name: birlikteyiz_mesh_nodes birlikteyiz_mesh_nodes_owner_id_cfad42ed_fk_auth_user_id; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.birlikteyiz_mesh_nodes
+    ADD CONSTRAINT birlikteyiz_mesh_nodes_owner_id_cfad42ed_fk_auth_user_id FOREIGN KEY (owner_id) REFERENCES public.auth_user(id) DEFERRABLE INITIALLY DEFERRED;
+
+
+--
+-- TOC entry 5464 (class 2606 OID 18415)
+-- Name: birlikteyiz_message_relays birlikteyiz_message__message_id_36c2c9b9_fk_birliktey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.birlikteyiz_message_relays
+    ADD CONSTRAINT birlikteyiz_message__message_id_36c2c9b9_fk_birliktey FOREIGN KEY (message_id) REFERENCES public.birlikteyiz_emergency_messages(id) DEFERRABLE INITIALLY DEFERRED;
+
+
+--
+-- TOC entry 5465 (class 2606 OID 18420)
+-- Name: birlikteyiz_message_relays birlikteyiz_message__previous_node_id_68c90350_fk_birliktey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.birlikteyiz_message_relays
+    ADD CONSTRAINT birlikteyiz_message__previous_node_id_68c90350_fk_birliktey FOREIGN KEY (previous_node_id) REFERENCES public.birlikteyiz_mesh_nodes(id) DEFERRABLE INITIALLY DEFERRED;
+
+
+--
+-- TOC entry 5466 (class 2606 OID 18425)
+-- Name: birlikteyiz_message_relays birlikteyiz_message__relay_node_id_348d3579_fk_birliktey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.birlikteyiz_message_relays
+    ADD CONSTRAINT birlikteyiz_message__relay_node_id_348d3579_fk_birliktey FOREIGN KEY (relay_node_id) REFERENCES public.birlikteyiz_mesh_nodes(id) DEFERRABLE INITIALLY DEFERRED;
+
+
+--
+-- TOC entry 5348 (class 2606 OID 16916)
+-- Name: cctv_alert cctv_alert_camera_id_10892e98_fk_cctv_camera_id; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.cctv_alert
+    ADD CONSTRAINT cctv_alert_camera_id_10892e98_fk_cctv_camera_id FOREIGN KEY (camera_id) REFERENCES public.cctv_camera(id) DEFERRABLE INITIALLY DEFERRED;
+
+
+--
+-- TOC entry 5349 (class 2606 OID 16906)
+-- Name: cctv_alert cctv_alert_resolved_by_id_6f4529dc_fk_auth_user_id; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.cctv_alert
+    ADD CONSTRAINT cctv_alert_resolved_by_id_6f4529dc_fk_auth_user_id FOREIGN KEY (resolved_by_id) REFERENCES public.auth_user(id) DEFERRABLE INITIALLY DEFERRED;
+
+
+--
+-- TOC entry 5350 (class 2606 OID 16911)
+-- Name: cctv_alert cctv_alert_user_id_08e5ac13_fk_auth_user_id; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.cctv_alert
+    ADD CONSTRAINT cctv_alert_user_id_08e5ac13_fk_auth_user_id FOREIGN KEY (user_id) REFERENCES public.auth_user(id) DEFERRABLE INITIALLY DEFERRED;
+
+
+--
+-- TOC entry 5347 (class 2606 OID 16900)
+-- Name: cctv_camera cctv_camera_user_id_92d5d2c7_fk_auth_user_id; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.cctv_camera
+    ADD CONSTRAINT cctv_camera_user_id_92d5d2c7_fk_auth_user_id FOREIGN KEY (user_id) REFERENCES public.auth_user(id) DEFERRABLE INITIALLY DEFERRED;
+
+
+--
+-- TOC entry 5352 (class 2606 OID 16932)
+-- Name: cctv_cameragroup_cameras cctv_cameragroup_cam_cameragroup_id_582d3745_fk_cctv_came; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.cctv_cameragroup_cameras
+    ADD CONSTRAINT cctv_cameragroup_cam_cameragroup_id_582d3745_fk_cctv_came FOREIGN KEY (cameragroup_id) REFERENCES public.cctv_cameragroup(id) DEFERRABLE INITIALLY DEFERRED;
+
+
+--
+-- TOC entry 5353 (class 2606 OID 16937)
+-- Name: cctv_cameragroup_cameras cctv_cameragroup_cameras_camera_id_e731eb60_fk_cctv_camera_id; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.cctv_cameragroup_cameras
+    ADD CONSTRAINT cctv_cameragroup_cameras_camera_id_e731eb60_fk_cctv_camera_id FOREIGN KEY (camera_id) REFERENCES public.cctv_camera(id) DEFERRABLE INITIALLY DEFERRED;
+
+
+--
+-- TOC entry 5351 (class 2606 OID 16924)
+-- Name: cctv_cameragroup cctv_cameragroup_user_id_025ddb87_fk_auth_user_id; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.cctv_cameragroup
+    ADD CONSTRAINT cctv_cameragroup_user_id_025ddb87_fk_auth_user_id FOREIGN KEY (user_id) REFERENCES public.auth_user(id) DEFERRABLE INITIALLY DEFERRED;
+
+
+--
+-- TOC entry 5354 (class 2606 OID 16944)
+-- Name: cctv_camerastream cctv_camerastream_camera_id_6bb36e52_fk_cctv_camera_id; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.cctv_camerastream
+    ADD CONSTRAINT cctv_camerastream_camera_id_6bb36e52_fk_cctv_camera_id FOREIGN KEY (camera_id) REFERENCES public.cctv_camera(id) DEFERRABLE INITIALLY DEFERRED;
+
+
+--
+-- TOC entry 5355 (class 2606 OID 16950)
+-- Name: cctv_recordingschedule cctv_recordingschedule_camera_id_8ece72ad_fk_cctv_camera_id; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.cctv_recordingschedule
+    ADD CONSTRAINT cctv_recordingschedule_camera_id_8ece72ad_fk_cctv_camera_id FOREIGN KEY (camera_id) REFERENCES public.cctv_camera(id) DEFERRABLE INITIALLY DEFERRED;
+
+
+--
+-- TOC entry 5356 (class 2606 OID 16955)
+-- Name: cctv_recordingschedule cctv_recordingschedule_user_id_15f7ada0_fk_auth_user_id; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.cctv_recordingschedule
+    ADD CONSTRAINT cctv_recordingschedule_user_id_15f7ada0_fk_auth_user_id FOREIGN KEY (user_id) REFERENCES public.auth_user(id) DEFERRABLE INITIALLY DEFERRED;
+
+
+--
+-- TOC entry 5357 (class 2606 OID 16962)
+-- Name: cctv_recordingsession cctv_recordingsession_camera_id_2d6be004_fk_cctv_camera_id; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.cctv_recordingsession
+    ADD CONSTRAINT cctv_recordingsession_camera_id_2d6be004_fk_cctv_camera_id FOREIGN KEY (camera_id) REFERENCES public.cctv_camera(id) DEFERRABLE INITIALLY DEFERRED;
+
+
+--
+-- TOC entry 5358 (class 2606 OID 16967)
+-- Name: cctv_recordingsession cctv_recordingsession_user_id_88333beb_fk_auth_user_id; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.cctv_recordingsession
+    ADD CONSTRAINT cctv_recordingsession_user_id_88333beb_fk_auth_user_id FOREIGN KEY (user_id) REFERENCES public.auth_user(id) DEFERRABLE INITIALLY DEFERRED;
+
+
+--
+-- TOC entry 5362 (class 2606 OID 17043)
+-- Name: core_account core_account_user_id_8d2af6ae_fk_auth_user_id; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.core_account
+    ADD CONSTRAINT core_account_user_id_8d2af6ae_fk_auth_user_id FOREIGN KEY (user_id) REFERENCES public.auth_user(id) DEFERRABLE INITIALLY DEFERRED;
+
+
+--
+-- TOC entry 5360 (class 2606 OID 17026)
+-- Name: core_item core_item_category_id_2fe5bbc8_fk_core_itemcategory_id; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.core_item
+    ADD CONSTRAINT core_item_category_id_2fe5bbc8_fk_core_itemcategory_id FOREIGN KEY (category_id) REFERENCES public.core_itemcategory(id) DEFERRABLE INITIALLY DEFERRED;
+
+
+--
+-- TOC entry 5361 (class 2606 OID 17031)
+-- Name: core_item core_item_unit_id_436a7f13_fk_core_unit_id; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.core_item
+    ADD CONSTRAINT core_item_unit_id_436a7f13_fk_core_unit_id FOREIGN KEY (unit_id) REFERENCES public.core_unit(id) DEFERRABLE INITIALLY DEFERRED;
+
+
+--
+-- TOC entry 5359 (class 2606 OID 17019)
+-- Name: core_itemcategory core_itemcategory_parent_id_f5858ebb_fk_core_itemcategory_id; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.core_itemcategory
+    ADD CONSTRAINT core_itemcategory_parent_id_f5858ebb_fk_core_itemcategory_id FOREIGN KEY (parent_id) REFERENCES public.core_itemcategory(id) DEFERRABLE INITIALLY DEFERRED;
+
+
+--
+-- TOC entry 5363 (class 2606 OID 17049)
+-- Name: core_itemprice core_itemprice_item_id_7f2d3b2b_fk_core_item_id; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.core_itemprice
+    ADD CONSTRAINT core_itemprice_item_id_7f2d3b2b_fk_core_item_id FOREIGN KEY (item_id) REFERENCES public.core_item(id) DEFERRABLE INITIALLY DEFERRED;
+
+
+--
+-- TOC entry 5364 (class 2606 OID 17066)
+-- Name: core_userprofile core_userprofile_user_id_5141ad90_fk_auth_user_id; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.core_userprofile
+    ADD CONSTRAINT core_userprofile_user_id_5141ad90_fk_auth_user_id FOREIGN KEY (user_id) REFERENCES public.auth_user(id) DEFERRABLE INITIALLY DEFERRED;
+
+
+--
+-- TOC entry 5447 (class 2606 OID 18138)
+-- Name: currency_alerts currency_alerts_base_currency_id_dd720868_fk_currencies_code; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.currency_alerts
+    ADD CONSTRAINT currency_alerts_base_currency_id_dd720868_fk_currencies_code FOREIGN KEY (base_currency_id) REFERENCES public.currencies(code) DEFERRABLE INITIALLY DEFERRED;
+
+
+--
+-- TOC entry 5448 (class 2606 OID 18143)
+-- Name: currency_alerts currency_alerts_target_currency_id_1e184b84_fk_currencies_code; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.currency_alerts
+    ADD CONSTRAINT currency_alerts_target_currency_id_1e184b84_fk_currencies_code FOREIGN KEY (target_currency_id) REFERENCES public.currencies(code) DEFERRABLE INITIALLY DEFERRED;
+
+
+--
+-- TOC entry 5449 (class 2606 OID 18133)
+-- Name: currency_alerts currency_alerts_user_id_08a95a16_fk_auth_user_id; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.currency_alerts
+    ADD CONSTRAINT currency_alerts_user_id_08a95a16_fk_auth_user_id FOREIGN KEY (user_id) REFERENCES public.auth_user(id) DEFERRABLE INITIALLY DEFERRED;
+
+
+--
+-- TOC entry 5378 (class 2606 OID 17299)
+-- Name: documents_achievement documents_achievement_user_id_3a66684f_fk_auth_user_id; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.documents_achievement
+    ADD CONSTRAINT documents_achievement_user_id_3a66684f_fk_auth_user_id FOREIGN KEY (user_id) REFERENCES public.auth_user(id) DEFERRABLE INITIALLY DEFERRED;
+
+
+--
+-- TOC entry 5365 (class 2606 OID 17156)
+-- Name: documents_creditcard documents_creditcard_user_id_83a92ad6_fk_auth_user_id; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.documents_creditcard
+    ADD CONSTRAINT documents_creditcard_user_id_83a92ad6_fk_auth_user_id FOREIGN KEY (user_id) REFERENCES public.auth_user(id) DEFERRABLE INITIALLY DEFERRED;
+
+
+--
+-- TOC entry 5366 (class 2606 OID 17215)
+-- Name: documents_document documents_document_deleted_by_id_d75ca342_fk_auth_user_id; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.documents_document
+    ADD CONSTRAINT documents_document_deleted_by_id_d75ca342_fk_auth_user_id FOREIGN KEY (deleted_by_id) REFERENCES public.auth_user(id) DEFERRABLE INITIALLY DEFERRED;
+
+
+--
+-- TOC entry 5367 (class 2606 OID 17162)
+-- Name: documents_document documents_document_user_id_e543d099_fk_auth_user_id; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.documents_document
+    ADD CONSTRAINT documents_document_user_id_e543d099_fk_auth_user_id FOREIGN KEY (user_id) REFERENCES public.auth_user(id) DEFERRABLE INITIALLY DEFERRED;
+
+
+--
+-- TOC entry 5368 (class 2606 OID 17168)
+-- Name: documents_documentbatch documents_documentbatch_user_id_b4b5232d_fk_auth_user_id; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.documents_documentbatch
+    ADD CONSTRAINT documents_documentbatch_user_id_b4b5232d_fk_auth_user_id FOREIGN KEY (user_id) REFERENCES public.auth_user(id) DEFERRABLE INITIALLY DEFERRED;
+
+
+--
+-- TOC entry 5383 (class 2606 OID 17360)
+-- Name: documents_documentshare documents_documentsh_document_id_9be134c4_fk_documents; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.documents_documentshare
+    ADD CONSTRAINT documents_documentsh_document_id_9be134c4_fk_documents FOREIGN KEY (document_id) REFERENCES public.documents_document(id) DEFERRABLE INITIALLY DEFERRED;
+
+
+--
+-- TOC entry 5384 (class 2606 OID 17365)
+-- Name: documents_documentshare documents_documentshare_shared_by_id_bb1db51d_fk_auth_user_id; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.documents_documentshare
+    ADD CONSTRAINT documents_documentshare_shared_by_id_bb1db51d_fk_auth_user_id FOREIGN KEY (shared_by_id) REFERENCES public.auth_user(id) DEFERRABLE INITIALLY DEFERRED;
+
+
+--
+-- TOC entry 5385 (class 2606 OID 17370)
+-- Name: documents_documentshare documents_documentshare_shared_with_id_cf66b884_fk_auth_user_id; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.documents_documentshare
+    ADD CONSTRAINT documents_documentshare_shared_with_id_cf66b884_fk_auth_user_id FOREIGN KEY (shared_with_id) REFERENCES public.auth_user(id) DEFERRABLE INITIALLY DEFERRED;
+
+
+--
+-- TOC entry 5369 (class 2606 OID 17174)
+-- Name: documents_expensecategory documents_expensecat_parent_id_5e980808_fk_documents; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.documents_expensecategory
+    ADD CONSTRAINT documents_expensecat_parent_id_5e980808_fk_documents FOREIGN KEY (parent_id) REFERENCES public.documents_expensecategory(id) DEFERRABLE INITIALLY DEFERRED;
+
+
+--
+-- TOC entry 5370 (class 2606 OID 17179)
+-- Name: documents_expensecategory documents_expensecategory_user_id_e19ac3b6_fk_auth_user_id; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.documents_expensecategory
+    ADD CONSTRAINT documents_expensecategory_user_id_e19ac3b6_fk_auth_user_id FOREIGN KEY (user_id) REFERENCES public.auth_user(id) DEFERRABLE INITIALLY DEFERRED;
+
+
+--
+-- TOC entry 5371 (class 2606 OID 17186)
+-- Name: documents_expensegroup documents_expensegroup_user_id_ebdf45c2_fk_auth_user_id; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.documents_expensegroup
+    ADD CONSTRAINT documents_expensegroup_user_id_ebdf45c2_fk_auth_user_id FOREIGN KEY (user_id) REFERENCES public.auth_user(id) DEFERRABLE INITIALLY DEFERRED;
+
+
+--
+-- TOC entry 5379 (class 2606 OID 17307)
+-- Name: documents_leaderboard documents_leaderboard_user_id_92b55750_fk_auth_user_id; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.documents_leaderboard
+    ADD CONSTRAINT documents_leaderboard_user_id_92b55750_fk_auth_user_id FOREIGN KEY (user_id) REFERENCES public.auth_user(id) DEFERRABLE INITIALLY DEFERRED;
+
+
+--
+-- TOC entry 5372 (class 2606 OID 17192)
+-- Name: documents_parsedreceipt documents_parsedrece_document_id_351d81b2_fk_documents; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.documents_parsedreceipt
+    ADD CONSTRAINT documents_parsedrece_document_id_351d81b2_fk_documents FOREIGN KEY (document_id) REFERENCES public.documents_document(id) DEFERRABLE INITIALLY DEFERRED;
+
+
+--
+-- TOC entry 5376 (class 2606 OID 17286)
+-- Name: documents_pointtransaction documents_pointtransaction_user_id_9cff8e9c_fk_auth_user_id; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.documents_pointtransaction
+    ADD CONSTRAINT documents_pointtransaction_user_id_9cff8e9c_fk_auth_user_id FOREIGN KEY (user_id) REFERENCES public.auth_user(id) DEFERRABLE INITIALLY DEFERRED;
+
+
+--
+-- TOC entry 5373 (class 2606 OID 17197)
+-- Name: documents_receiptitem documents_receiptite_receipt_id_684d6ad0_fk_documents; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.documents_receiptitem
+    ADD CONSTRAINT documents_receiptite_receipt_id_684d6ad0_fk_documents FOREIGN KEY (receipt_id) REFERENCES public.documents_parsedreceipt(id) DEFERRABLE INITIALLY DEFERRED;
+
+
+--
+-- TOC entry 5374 (class 2606 OID 17203)
+-- Name: documents_subscription documents_subscripti_payment_method_id_dbfc6a70_fk_documents; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.documents_subscription
+    ADD CONSTRAINT documents_subscripti_payment_method_id_dbfc6a70_fk_documents FOREIGN KEY (payment_method_id) REFERENCES public.documents_creditcard(id) DEFERRABLE INITIALLY DEFERRED;
+
+
+--
+-- TOC entry 5375 (class 2606 OID 17208)
+-- Name: documents_subscription documents_subscription_user_id_d154c76d_fk_auth_user_id; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.documents_subscription
+    ADD CONSTRAINT documents_subscription_user_id_d154c76d_fk_auth_user_id FOREIGN KEY (user_id) REFERENCES public.auth_user(id) DEFERRABLE INITIALLY DEFERRED;
+
+
+--
+-- TOC entry 5380 (class 2606 OID 17317)
+-- Name: documents_userchallenge documents_userchalle_challenge_id_74c25aa6_fk_documents; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.documents_userchallenge
+    ADD CONSTRAINT documents_userchalle_challenge_id_74c25aa6_fk_documents FOREIGN KEY (challenge_id) REFERENCES public.documents_challenge(id) DEFERRABLE INITIALLY DEFERRED;
+
+
+--
+-- TOC entry 5381 (class 2606 OID 17322)
+-- Name: documents_userchallenge documents_userchallenge_user_id_37d5d621_fk_auth_user_id; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.documents_userchallenge
+    ADD CONSTRAINT documents_userchallenge_user_id_37d5d621_fk_auth_user_id FOREIGN KEY (user_id) REFERENCES public.auth_user(id) DEFERRABLE INITIALLY DEFERRED;
+
+
+--
+-- TOC entry 5377 (class 2606 OID 17292)
+-- Name: documents_userprofile documents_userprofile_user_id_545feba7_fk_auth_user_id; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.documents_userprofile
+    ADD CONSTRAINT documents_userprofile_user_id_545feba7_fk_auth_user_id FOREIGN KEY (user_id) REFERENCES public.auth_user(id) DEFERRABLE INITIALLY DEFERRED;
+
+
+--
+-- TOC entry 5382 (class 2606 OID 17329)
+-- Name: documents_validationfeedback documents_validationfeedback_user_id_cf2c646f_fk_auth_user_id; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.documents_validationfeedback
+    ADD CONSTRAINT documents_validationfeedback_user_id_cf2c646f_fk_auth_user_id FOREIGN KEY (user_id) REFERENCES public.auth_user(id) DEFERRABLE INITIALLY DEFERRED;
+
+
+--
+-- TOC entry 5445 (class 2606 OID 18115)
+-- Name: exchange_rates exchange_rates_base_currency_id_45cfb739_fk_currencies_code; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.exchange_rates
+    ADD CONSTRAINT exchange_rates_base_currency_id_45cfb739_fk_currencies_code FOREIGN KEY (base_currency_id) REFERENCES public.currencies(code) DEFERRABLE INITIALLY DEFERRED;
+
+
+--
+-- TOC entry 5446 (class 2606 OID 18120)
+-- Name: exchange_rates exchange_rates_target_currency_id_f8fd1c7c_fk_currencies_code; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.exchange_rates
+    ADD CONSTRAINT exchange_rates_target_currency_id_f8fd1c7c_fk_currencies_code FOREIGN KEY (target_currency_id) REFERENCES public.currencies(code) DEFERRABLE INITIALLY DEFERRED;
+
+
+--
+-- TOC entry 5388 (class 2606 OID 17469)
+-- Name: inflation_reports inflation_reports_basket_id_4062b4f4_fk_personal_baskets_id; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.inflation_reports
+    ADD CONSTRAINT inflation_reports_basket_id_4062b4f4_fk_personal_baskets_id FOREIGN KEY (basket_id) REFERENCES public.personal_baskets(id) DEFERRABLE INITIALLY DEFERRED;
+
+
+--
+-- TOC entry 5389 (class 2606 OID 17464)
+-- Name: inflation_reports inflation_reports_user_id_ffcb4586_fk_auth_user_id; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.inflation_reports
+    ADD CONSTRAINT inflation_reports_user_id_ffcb4586_fk_auth_user_id FOREIGN KEY (user_id) REFERENCES public.auth_user(id) DEFERRABLE INITIALLY DEFERRED;
+
+
+--
+-- TOC entry 5468 (class 2606 OID 18536)
+-- Name: movies_collection movies_collection_user_id_e4d2c017_fk_auth_user_id; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.movies_collection
+    ADD CONSTRAINT movies_collection_user_id_e4d2c017_fk_auth_user_id FOREIGN KEY (user_id) REFERENCES public.auth_user(id) DEFERRABLE INITIALLY DEFERRED;
+
+
+--
+-- TOC entry 5471 (class 2606 OID 18565)
+-- Name: movies_collectionitem movies_collectionite_collection_id_07c53af7_fk_movies_co; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.movies_collectionitem
+    ADD CONSTRAINT movies_collectionite_collection_id_07c53af7_fk_movies_co FOREIGN KEY (collection_id) REFERENCES public.movies_collection(id) DEFERRABLE INITIALLY DEFERRED;
+
+
+--
+-- TOC entry 5472 (class 2606 OID 18570)
+-- Name: movies_collectionitem movies_collectionitem_movie_id_a4023bce_fk_movies_movie_id; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.movies_collectionitem
+    ADD CONSTRAINT movies_collectionitem_movie_id_a4023bce_fk_movies_movie_id FOREIGN KEY (movie_id) REFERENCES public.movies_movie(id) DEFERRABLE INITIALLY DEFERRED;
+
+
+--
+-- TOC entry 5469 (class 2606 OID 18558)
+-- Name: movies_movie_genres movies_movie_genres_genre_id_c3609db2_fk_movies_genre_id; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.movies_movie_genres
+    ADD CONSTRAINT movies_movie_genres_genre_id_c3609db2_fk_movies_genre_id FOREIGN KEY (genre_id) REFERENCES public.movies_genre(id) DEFERRABLE INITIALLY DEFERRED;
+
+
+--
+-- TOC entry 5470 (class 2606 OID 18553)
+-- Name: movies_movie_genres movies_movie_genres_movie_id_ff5e55a1_fk_movies_movie_id; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.movies_movie_genres
+    ADD CONSTRAINT movies_movie_genres_movie_id_ff5e55a1_fk_movies_movie_id FOREIGN KEY (movie_id) REFERENCES public.movies_movie(id) DEFERRABLE INITIALLY DEFERRED;
+
+
+--
+-- TOC entry 5473 (class 2606 OID 18577)
+-- Name: movies_personalarchive movies_personalarchive_movie_id_4887f522_fk_movies_movie_id; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.movies_personalarchive
+    ADD CONSTRAINT movies_personalarchive_movie_id_4887f522_fk_movies_movie_id FOREIGN KEY (movie_id) REFERENCES public.movies_movie(id) DEFERRABLE INITIALLY DEFERRED;
+
+
+--
+-- TOC entry 5474 (class 2606 OID 18582)
+-- Name: movies_personalarchive movies_personalarchive_user_id_6b62c028_fk_auth_user_id; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.movies_personalarchive
+    ADD CONSTRAINT movies_personalarchive_user_id_6b62c028_fk_auth_user_id FOREIGN KEY (user_id) REFERENCES public.auth_user(id) DEFERRABLE INITIALLY DEFERRED;
+
+
+--
+-- TOC entry 5475 (class 2606 OID 18589)
+-- Name: movies_userrating movies_userrating_movie_id_68d8aa46_fk_movies_movie_id; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.movies_userrating
+    ADD CONSTRAINT movies_userrating_movie_id_68d8aa46_fk_movies_movie_id FOREIGN KEY (movie_id) REFERENCES public.movies_movie(id) DEFERRABLE INITIALLY DEFERRED;
+
+
+--
+-- TOC entry 5476 (class 2606 OID 18594)
+-- Name: movies_userrating movies_userrating_user_id_632ec00f_fk_auth_user_id; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.movies_userrating
+    ADD CONSTRAINT movies_userrating_user_id_632ec00f_fk_auth_user_id FOREIGN KEY (user_id) REFERENCES public.auth_user(id) DEFERRABLE INITIALLY DEFERRED;
+
+
+--
+-- TOC entry 5477 (class 2606 OID 18601)
+-- Name: movies_watchhistory movies_watchhistory_movie_id_7d3d0b4b_fk_movies_movie_id; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.movies_watchhistory
+    ADD CONSTRAINT movies_watchhistory_movie_id_7d3d0b4b_fk_movies_movie_id FOREIGN KEY (movie_id) REFERENCES public.movies_movie(id) DEFERRABLE INITIALLY DEFERRED;
+
+
+--
+-- TOC entry 5478 (class 2606 OID 18606)
+-- Name: movies_watchhistory movies_watchhistory_user_id_94fbd0e2_fk_auth_user_id; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.movies_watchhistory
+    ADD CONSTRAINT movies_watchhistory_user_id_94fbd0e2_fk_auth_user_id FOREIGN KEY (user_id) REFERENCES public.auth_user(id) DEFERRABLE INITIALLY DEFERRED;
+
+
+--
+-- TOC entry 5479 (class 2606 OID 18613)
+-- Name: movies_watchlist movies_watchlist_movie_id_8007e236_fk_movies_movie_id; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.movies_watchlist
+    ADD CONSTRAINT movies_watchlist_movie_id_8007e236_fk_movies_movie_id FOREIGN KEY (movie_id) REFERENCES public.movies_movie(id) DEFERRABLE INITIALLY DEFERRED;
+
+
+--
+-- TOC entry 5480 (class 2606 OID 18618)
+-- Name: movies_watchlist movies_watchlist_user_id_b7cb1960_fk_auth_user_id; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.movies_watchlist
+    ADD CONSTRAINT movies_watchlist_user_id_b7cb1960_fk_auth_user_id FOREIGN KEY (user_id) REFERENCES public.auth_user(id) DEFERRABLE INITIALLY DEFERRED;
+
+
+--
+-- TOC entry 5481 (class 2606 OID 18819)
+-- Name: music_album music_album_artist_id_f633b817_fk_music_artist_id; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.music_album
+    ADD CONSTRAINT music_album_artist_id_f633b817_fk_music_artist_id FOREIGN KEY (artist_id) REFERENCES public.music_artist(id) DEFERRABLE INITIALLY DEFERRED;
+
+
+--
+-- TOC entry 5482 (class 2606 OID 18831)
+-- Name: music_album_featured_artists music_album_featured_album_id_7ba9d9bf_fk_music_alb; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.music_album_featured_artists
+    ADD CONSTRAINT music_album_featured_album_id_7ba9d9bf_fk_music_alb FOREIGN KEY (album_id) REFERENCES public.music_album(id) DEFERRABLE INITIALLY DEFERRED;
+
+
+--
+-- TOC entry 5483 (class 2606 OID 18836)
+-- Name: music_album_featured_artists music_album_featured_artist_id_9fca8850_fk_music_art; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.music_album_featured_artists
+    ADD CONSTRAINT music_album_featured_artist_id_9fca8850_fk_music_art FOREIGN KEY (artist_id) REFERENCES public.music_artist(id) DEFERRABLE INITIALLY DEFERRED;
+
+
+--
+-- TOC entry 5495 (class 2606 OID 18923)
+-- Name: music_listeninghistory music_listeninghistory_track_id_03e4d01a_fk_music_track_id; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.music_listeninghistory
+    ADD CONSTRAINT music_listeninghistory_track_id_03e4d01a_fk_music_track_id FOREIGN KEY (track_id) REFERENCES public.music_track(id) DEFERRABLE INITIALLY DEFERRED;
+
+
+--
+-- TOC entry 5496 (class 2606 OID 18918)
+-- Name: music_listeninghistory music_listeninghistory_user_id_0cc18943_fk_auth_user_id; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.music_listeninghistory
+    ADD CONSTRAINT music_listeninghistory_user_id_0cc18943_fk_auth_user_id FOREIGN KEY (user_id) REFERENCES public.auth_user(id) DEFERRABLE INITIALLY DEFERRED;
+
+
+--
+-- TOC entry 5484 (class 2606 OID 18843)
+-- Name: music_listeningstats music_listeningstats_user_id_eb08efb9_fk_auth_user_id; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.music_listeningstats
+    ADD CONSTRAINT music_listeningstats_user_id_eb08efb9_fk_auth_user_id FOREIGN KEY (user_id) REFERENCES public.auth_user(id) DEFERRABLE INITIALLY DEFERRED;
+
+
+--
+-- TOC entry 5486 (class 2606 OID 18857)
+-- Name: music_playlist_collaborators music_playlist_colla_playlist_id_ffc1a710_fk_music_pla; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.music_playlist_collaborators
+    ADD CONSTRAINT music_playlist_colla_playlist_id_ffc1a710_fk_music_pla FOREIGN KEY (playlist_id) REFERENCES public.music_playlist(id) DEFERRABLE INITIALLY DEFERRED;
+
+
+--
+-- TOC entry 5487 (class 2606 OID 18862)
+-- Name: music_playlist_collaborators music_playlist_collaborators_user_id_f6d7bf77_fk_auth_user_id; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.music_playlist_collaborators
+    ADD CONSTRAINT music_playlist_collaborators_user_id_f6d7bf77_fk_auth_user_id FOREIGN KEY (user_id) REFERENCES public.auth_user(id) DEFERRABLE INITIALLY DEFERRED;
+
+
+--
+-- TOC entry 5485 (class 2606 OID 18849)
+-- Name: music_playlist music_playlist_user_id_c54fe691_fk_auth_user_id; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.music_playlist
+    ADD CONSTRAINT music_playlist_user_id_c54fe691_fk_auth_user_id FOREIGN KEY (user_id) REFERENCES public.auth_user(id) DEFERRABLE INITIALLY DEFERRED;
+
+
+--
+-- TOC entry 5492 (class 2606 OID 18900)
+-- Name: music_playlisttrack music_playlisttrack_added_by_id_85ed5672_fk_auth_user_id; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.music_playlisttrack
+    ADD CONSTRAINT music_playlisttrack_added_by_id_85ed5672_fk_auth_user_id FOREIGN KEY (added_by_id) REFERENCES public.auth_user(id) DEFERRABLE INITIALLY DEFERRED;
+
+
+--
+-- TOC entry 5493 (class 2606 OID 18905)
+-- Name: music_playlisttrack music_playlisttrack_playlist_id_585a8ed4_fk_music_playlist_id; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.music_playlisttrack
+    ADD CONSTRAINT music_playlisttrack_playlist_id_585a8ed4_fk_music_playlist_id FOREIGN KEY (playlist_id) REFERENCES public.music_playlist(id) DEFERRABLE INITIALLY DEFERRED;
+
+
+--
+-- TOC entry 5494 (class 2606 OID 18910)
+-- Name: music_playlisttrack music_playlisttrack_track_id_427b6391_fk_music_track_id; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.music_playlisttrack
+    ADD CONSTRAINT music_playlisttrack_track_id_427b6391_fk_music_track_id FOREIGN KEY (track_id) REFERENCES public.music_track(id) DEFERRABLE INITIALLY DEFERRED;
+
+
+--
+-- TOC entry 5488 (class 2606 OID 18869)
+-- Name: music_track music_track_album_id_f2264d26_fk_music_album_id; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.music_track
+    ADD CONSTRAINT music_track_album_id_f2264d26_fk_music_album_id FOREIGN KEY (album_id) REFERENCES public.music_album(id) DEFERRABLE INITIALLY DEFERRED;
+
+
+--
+-- TOC entry 5489 (class 2606 OID 18874)
+-- Name: music_track music_track_artist_id_a65d07d5_fk_music_artist_id; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.music_track
+    ADD CONSTRAINT music_track_artist_id_a65d07d5_fk_music_artist_id FOREIGN KEY (artist_id) REFERENCES public.music_artist(id) DEFERRABLE INITIALLY DEFERRED;
+
+
+--
+-- TOC entry 5490 (class 2606 OID 18893)
+-- Name: music_track_featured_artists music_track_featured_artist_id_eb00406e_fk_music_art; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.music_track_featured_artists
+    ADD CONSTRAINT music_track_featured_artist_id_eb00406e_fk_music_art FOREIGN KEY (artist_id) REFERENCES public.music_artist(id) DEFERRABLE INITIALLY DEFERRED;
+
+
+--
+-- TOC entry 5491 (class 2606 OID 18888)
+-- Name: music_track_featured_artists music_track_featured_track_id_1c206fbc_fk_music_tra; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.music_track_featured_artists
+    ADD CONSTRAINT music_track_featured_track_id_1c206fbc_fk_music_tra FOREIGN KEY (track_id) REFERENCES public.music_track(id) DEFERRABLE INITIALLY DEFERRED;
+
+
+--
+-- TOC entry 5497 (class 2606 OID 18930)
+-- Name: music_useralbum music_useralbum_album_id_95a00687_fk_music_album_id; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.music_useralbum
+    ADD CONSTRAINT music_useralbum_album_id_95a00687_fk_music_album_id FOREIGN KEY (album_id) REFERENCES public.music_album(id) DEFERRABLE INITIALLY DEFERRED;
+
+
+--
+-- TOC entry 5498 (class 2606 OID 18777)
+-- Name: music_useralbum music_useralbum_library_id_415845ad_fk_music_userlibrary_id; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.music_useralbum
+    ADD CONSTRAINT music_useralbum_library_id_415845ad_fk_music_userlibrary_id FOREIGN KEY (library_id) REFERENCES public.music_userlibrary(id) DEFERRABLE INITIALLY DEFERRED;
+
+
+--
+-- TOC entry 5499 (class 2606 OID 18936)
+-- Name: music_userartist music_userartist_artist_id_b9d786fc_fk_music_artist_id; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.music_userartist
+    ADD CONSTRAINT music_userartist_artist_id_b9d786fc_fk_music_artist_id FOREIGN KEY (artist_id) REFERENCES public.music_artist(id) DEFERRABLE INITIALLY DEFERRED;
+
+
+--
+-- TOC entry 5500 (class 2606 OID 18772)
+-- Name: music_userartist music_userartist_library_id_4c8376bb_fk_music_userlibrary_id; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.music_userartist
+    ADD CONSTRAINT music_userartist_library_id_4c8376bb_fk_music_userlibrary_id FOREIGN KEY (library_id) REFERENCES public.music_userlibrary(id) DEFERRABLE INITIALLY DEFERRED;
+
+
+--
+-- TOC entry 5501 (class 2606 OID 18942)
+-- Name: music_userlibrary music_userlibrary_user_id_d241836d_fk_auth_user_id; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.music_userlibrary
+    ADD CONSTRAINT music_userlibrary_user_id_d241836d_fk_auth_user_id FOREIGN KEY (user_id) REFERENCES public.auth_user(id) DEFERRABLE INITIALLY DEFERRED;
+
+
+--
+-- TOC entry 5502 (class 2606 OID 18949)
+-- Name: music_usertrack music_usertrack_library_id_f4db77dd_fk_music_userlibrary_id; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.music_usertrack
+    ADD CONSTRAINT music_usertrack_library_id_f4db77dd_fk_music_userlibrary_id FOREIGN KEY (library_id) REFERENCES public.music_userlibrary(id) DEFERRABLE INITIALLY DEFERRED;
+
+
+--
+-- TOC entry 5503 (class 2606 OID 18954)
+-- Name: music_usertrack music_usertrack_track_id_b562f750_fk_music_track_id; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.music_usertrack
+    ADD CONSTRAINT music_usertrack_track_id_b562f750_fk_music_track_id FOREIGN KEY (track_id) REFERENCES public.music_track(id) DEFERRABLE INITIALLY DEFERRED;
+
+
+--
+-- TOC entry 5387 (class 2606 OID 17458)
+-- Name: personal_baskets personal_baskets_user_id_2b8874cc_fk_auth_user_id; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.personal_baskets
+    ADD CONSTRAINT personal_baskets_user_id_2b8874cc_fk_auth_user_id FOREIGN KEY (user_id) REFERENCES public.auth_user(id) DEFERRABLE INITIALLY DEFERRED;
+
+
+--
+-- TOC entry 5451 (class 2606 OID 18168)
+-- Name: portfolio_holdings portfolio_holdings_currency_id_45463006_fk_currencies_code; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.portfolio_holdings
+    ADD CONSTRAINT portfolio_holdings_currency_id_45463006_fk_currencies_code FOREIGN KEY (currency_id) REFERENCES public.currencies(code) DEFERRABLE INITIALLY DEFERRED;
+
+
+--
+-- TOC entry 5452 (class 2606 OID 18163)
+-- Name: portfolio_holdings portfolio_holdings_portfolio_id_b8feb880_fk_portfolios_id; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.portfolio_holdings
+    ADD CONSTRAINT portfolio_holdings_portfolio_id_b8feb880_fk_portfolios_id FOREIGN KEY (portfolio_id) REFERENCES public.portfolios(id) DEFERRABLE INITIALLY DEFERRED;
+
+
+--
+-- TOC entry 5455 (class 2606 OID 18197)
+-- Name: portfolio_performance portfolio_performance_portfolio_id_68c09684_fk_portfolios_id; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.portfolio_performance
+    ADD CONSTRAINT portfolio_performance_portfolio_id_68c09684_fk_portfolios_id FOREIGN KEY (portfolio_id) REFERENCES public.portfolios(id) DEFERRABLE INITIALLY DEFERRED;
+
+
+--
+-- TOC entry 5453 (class 2606 OID 18182)
+-- Name: portfolio_transactions portfolio_transactions_currency_id_a678c202_fk_currencies_code; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.portfolio_transactions
+    ADD CONSTRAINT portfolio_transactions_currency_id_a678c202_fk_currencies_code FOREIGN KEY (currency_id) REFERENCES public.currencies(code) DEFERRABLE INITIALLY DEFERRED;
+
+
+--
+-- TOC entry 5454 (class 2606 OID 18177)
+-- Name: portfolio_transactions portfolio_transactions_portfolio_id_dc4b9175_fk_portfolios_id; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.portfolio_transactions
+    ADD CONSTRAINT portfolio_transactions_portfolio_id_dc4b9175_fk_portfolios_id FOREIGN KEY (portfolio_id) REFERENCES public.portfolios(id) DEFERRABLE INITIALLY DEFERRED;
+
+
+--
+-- TOC entry 5450 (class 2606 OID 18155)
+-- Name: portfolios portfolios_user_id_bd964e53_fk_auth_user_id; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.portfolios
+    ADD CONSTRAINT portfolios_user_id_bd964e53_fk_auth_user_id FOREIGN KEY (user_id) REFERENCES public.auth_user(id) DEFERRABLE INITIALLY DEFERRED;
+
+
+--
+-- TOC entry 5390 (class 2606 OID 17481)
+-- Name: price_alerts price_alerts_product_id_591045be_fk_products_id; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.price_alerts
+    ADD CONSTRAINT price_alerts_product_id_591045be_fk_products_id FOREIGN KEY (product_id) REFERENCES public.products(id) DEFERRABLE INITIALLY DEFERRED;
+
+
+--
+-- TOC entry 5391 (class 2606 OID 17476)
+-- Name: price_alerts price_alerts_user_id_75790b71_fk_auth_user_id; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.price_alerts
+    ADD CONSTRAINT price_alerts_user_id_75790b71_fk_auth_user_id FOREIGN KEY (user_id) REFERENCES public.auth_user(id) DEFERRABLE INITIALLY DEFERRED;
+
+
+--
+-- TOC entry 5395 (class 2606 OID 17512)
+-- Name: price_records price_records_product_id_4dda0575_fk_products_id; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.price_records
+    ADD CONSTRAINT price_records_product_id_4dda0575_fk_products_id FOREIGN KEY (product_id) REFERENCES public.products(id) DEFERRABLE INITIALLY DEFERRED;
+
+
+--
+-- TOC entry 5396 (class 2606 OID 17517)
+-- Name: price_records price_records_store_id_b00c53ce_fk_stores_id; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.price_records
+    ADD CONSTRAINT price_records_store_id_b00c53ce_fk_stores_id FOREIGN KEY (store_id) REFERENCES public.stores(id) DEFERRABLE INITIALLY DEFERRED;
+
+
+--
+-- TOC entry 5397 (class 2606 OID 17507)
+-- Name: price_records price_records_user_id_3644d63e_fk_auth_user_id; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.price_records
+    ADD CONSTRAINT price_records_user_id_3644d63e_fk_auth_user_id FOREIGN KEY (user_id) REFERENCES public.auth_user(id) DEFERRABLE INITIALLY DEFERRED;
+
+
+--
+-- TOC entry 5394 (class 2606 OID 17500)
+-- Name: product_categories product_categories_parent_id_22d4dfe1_fk_product_categories_id; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.product_categories
+    ADD CONSTRAINT product_categories_parent_id_22d4dfe1_fk_product_categories_id FOREIGN KEY (parent_id) REFERENCES public.product_categories(id) DEFERRABLE INITIALLY DEFERRED;
+
+
+--
+-- TOC entry 5386 (class 2606 OID 17424)
+-- Name: products products_category_id_a7a3a156_fk_product_categories_id; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.products
+    ADD CONSTRAINT products_category_id_a7a3a156_fk_product_categories_id FOREIGN KEY (category_id) REFERENCES public.product_categories(id) DEFERRABLE INITIALLY DEFERRED;
+
+
+--
+-- TOC entry 5504 (class 2606 OID 19013)
+-- Name: restopos_menucategory restopos_menucategor_restaurant_id_c037f93a_fk_restopos_; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.restopos_menucategory
+    ADD CONSTRAINT restopos_menucategor_restaurant_id_c037f93a_fk_restopos_ FOREIGN KEY (restaurant_id) REFERENCES public.restopos_restaurant(id) DEFERRABLE INITIALLY DEFERRED;
+
+
+--
+-- TOC entry 5505 (class 2606 OID 19074)
+-- Name: restopos_menuitem restopos_menuitem_category_id_8ac7e03a_fk_restopos_; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.restopos_menuitem
+    ADD CONSTRAINT restopos_menuitem_category_id_8ac7e03a_fk_restopos_ FOREIGN KEY (category_id) REFERENCES public.restopos_menucategory(id) DEFERRABLE INITIALLY DEFERRED;
+
+
+--
+-- TOC entry 5506 (class 2606 OID 19008)
+-- Name: restopos_menuitem restopos_menuitem_restaurant_id_4874b174_fk_restopos_; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.restopos_menuitem
+    ADD CONSTRAINT restopos_menuitem_restaurant_id_4874b174_fk_restopos_ FOREIGN KEY (restaurant_id) REFERENCES public.restopos_restaurant(id) DEFERRABLE INITIALLY DEFERRED;
+
+
+--
+-- TOC entry 5507 (class 2606 OID 19082)
+-- Name: restopos_order restopos_order_chef_id_674779f8_fk_auth_user_id; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.restopos_order
+    ADD CONSTRAINT restopos_order_chef_id_674779f8_fk_auth_user_id FOREIGN KEY (chef_id) REFERENCES public.auth_user(id) DEFERRABLE INITIALLY DEFERRED;
+
+
+--
+-- TOC entry 5508 (class 2606 OID 19003)
+-- Name: restopos_order restopos_order_restaurant_id_5edb146c_fk_restopos_restaurant_id; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.restopos_order
+    ADD CONSTRAINT restopos_order_restaurant_id_5edb146c_fk_restopos_restaurant_id FOREIGN KEY (restaurant_id) REFERENCES public.restopos_restaurant(id) DEFERRABLE INITIALLY DEFERRED;
+
+
+--
+-- TOC entry 5509 (class 2606 OID 19043)
+-- Name: restopos_order restopos_order_table_id_6b81e243_fk_restopos_table_id; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.restopos_order
+    ADD CONSTRAINT restopos_order_table_id_6b81e243_fk_restopos_table_id FOREIGN KEY (table_id) REFERENCES public.restopos_table(id) DEFERRABLE INITIALLY DEFERRED;
+
+
+--
+-- TOC entry 5510 (class 2606 OID 19087)
+-- Name: restopos_order restopos_order_waiter_id_c82466c4_fk_auth_user_id; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.restopos_order
+    ADD CONSTRAINT restopos_order_waiter_id_c82466c4_fk_auth_user_id FOREIGN KEY (waiter_id) REFERENCES public.auth_user(id) DEFERRABLE INITIALLY DEFERRED;
+
+
+--
+-- TOC entry 5511 (class 2606 OID 19095)
+-- Name: restopos_orderitem restopos_orderitem_menu_item_id_8b8d6e00_fk_restopos_; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.restopos_orderitem
+    ADD CONSTRAINT restopos_orderitem_menu_item_id_8b8d6e00_fk_restopos_ FOREIGN KEY (menu_item_id) REFERENCES public.restopos_menuitem(id) DEFERRABLE INITIALLY DEFERRED;
+
+
+--
+-- TOC entry 5512 (class 2606 OID 19100)
+-- Name: restopos_orderitem restopos_orderitem_order_id_128bf52e_fk_restopos_order_id; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.restopos_orderitem
+    ADD CONSTRAINT restopos_orderitem_order_id_128bf52e_fk_restopos_order_id FOREIGN KEY (order_id) REFERENCES public.restopos_order(id) DEFERRABLE INITIALLY DEFERRED;
+
+
+--
+-- TOC entry 5519 (class 2606 OID 19154)
+-- Name: restopos_receipt restopos_receipt_order_id_ba8066c3_fk_restopos_order_id; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.restopos_receipt
+    ADD CONSTRAINT restopos_receipt_order_id_ba8066c3_fk_restopos_order_id FOREIGN KEY (order_id) REFERENCES public.restopos_order(id) DEFERRABLE INITIALLY DEFERRED;
+
+
+--
+-- TOC entry 5517 (class 2606 OID 19140)
+-- Name: restopos_reservation restopos_reservation_restaurant_id_c25029db_fk_restopos_; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.restopos_reservation
+    ADD CONSTRAINT restopos_reservation_restaurant_id_c25029db_fk_restopos_ FOREIGN KEY (restaurant_id) REFERENCES public.restopos_restaurant(id) DEFERRABLE INITIALLY DEFERRED;
+
+
+--
+-- TOC entry 5518 (class 2606 OID 19145)
+-- Name: restopos_reservation restopos_reservation_table_id_480c6163_fk_restopos_table_id; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.restopos_reservation
+    ADD CONSTRAINT restopos_reservation_table_id_480c6163_fk_restopos_table_id FOREIGN KEY (table_id) REFERENCES public.restopos_table(id) DEFERRABLE INITIALLY DEFERRED;
+
+
+--
+-- TOC entry 5513 (class 2606 OID 19114)
+-- Name: restopos_staff restopos_staff_restaurant_id_7f6e383a_fk_restopos_restaurant_id; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.restopos_staff
+    ADD CONSTRAINT restopos_staff_restaurant_id_7f6e383a_fk_restopos_restaurant_id FOREIGN KEY (restaurant_id) REFERENCES public.restopos_restaurant(id) DEFERRABLE INITIALLY DEFERRED;
+
+
+--
+-- TOC entry 5514 (class 2606 OID 19119)
+-- Name: restopos_staff restopos_staff_user_id_cee05f0c_fk_auth_user_id; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.restopos_staff
+    ADD CONSTRAINT restopos_staff_user_id_cee05f0c_fk_auth_user_id FOREIGN KEY (user_id) REFERENCES public.auth_user(id) DEFERRABLE INITIALLY DEFERRED;
+
+
+--
+-- TOC entry 5515 (class 2606 OID 19127)
+-- Name: restopos_table restopos_table_current_order_id_79154c94_fk_restopos_order_id; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.restopos_table
+    ADD CONSTRAINT restopos_table_current_order_id_79154c94_fk_restopos_order_id FOREIGN KEY (current_order_id) REFERENCES public.restopos_order(id) DEFERRABLE INITIALLY DEFERRED;
+
+
+--
+-- TOC entry 5516 (class 2606 OID 19132)
+-- Name: restopos_table restopos_table_restaurant_id_52a099c2_fk_restopos_restaurant_id; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.restopos_table
+    ADD CONSTRAINT restopos_table_restaurant_id_52a099c2_fk_restopos_restaurant_id FOREIGN KEY (restaurant_id) REFERENCES public.restopos_restaurant(id) DEFERRABLE INITIALLY DEFERRED;
+
+
+--
+-- TOC entry 5525 (class 2606 OID 19256)
+-- Name: solitaire_solitaireactivity solitaire_solitairea_session_id_bee7d0d9_fk_solitaire; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.solitaire_solitaireactivity
+    ADD CONSTRAINT solitaire_solitairea_session_id_bee7d0d9_fk_solitaire FOREIGN KEY (session_id) REFERENCES public.solitaire_solitairegamesession(id) DEFERRABLE INITIALLY DEFERRED;
+
+
+--
+-- TOC entry 5524 (class 2606 OID 19249)
+-- Name: solitaire_solitairegamesession solitaire_solitaireg_player_id_ca28dc7a_fk_solitaire; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.solitaire_solitairegamesession
+    ADD CONSTRAINT solitaire_solitaireg_player_id_ca28dc7a_fk_solitaire FOREIGN KEY (player_id) REFERENCES public.solitaire_solitaireplayer(id) DEFERRABLE INITIALLY DEFERRED;
+
+
+--
+-- TOC entry 5521 (class 2606 OID 19198)
+-- Name: solitaire_solitairemove solitaire_solitairem_session_id_faf38fe6_fk_solitaire; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.solitaire_solitairemove
+    ADD CONSTRAINT solitaire_solitairem_session_id_faf38fe6_fk_solitaire FOREIGN KEY (session_id) REFERENCES public.solitaire_solitairesession(id) DEFERRABLE INITIALLY DEFERRED;
+
+
+--
+-- TOC entry 5523 (class 2606 OID 19241)
+-- Name: solitaire_solitaireplayer solitaire_solitaireplayer_user_id_bb56088a_fk_auth_user_id; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.solitaire_solitaireplayer
+    ADD CONSTRAINT solitaire_solitaireplayer_user_id_bb56088a_fk_auth_user_id FOREIGN KEY (user_id) REFERENCES public.auth_user(id) DEFERRABLE INITIALLY DEFERRED;
+
+
+--
+-- TOC entry 5520 (class 2606 OID 19191)
+-- Name: solitaire_solitairesession solitaire_solitairesession_user_id_15f9c6a0_fk_auth_user_id; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.solitaire_solitairesession
+    ADD CONSTRAINT solitaire_solitairesession_user_id_15f9c6a0_fk_auth_user_id FOREIGN KEY (user_id) REFERENCES public.auth_user(id) DEFERRABLE INITIALLY DEFERRED;
+
+
+--
+-- TOC entry 5522 (class 2606 OID 19204)
+-- Name: solitaire_solitairestatistics solitaire_solitairestatistics_user_id_55bd1c51_fk_auth_user_id; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.solitaire_solitairestatistics
+    ADD CONSTRAINT solitaire_solitairestatistics_user_id_55bd1c51_fk_auth_user_id FOREIGN KEY (user_id) REFERENCES public.auth_user(id) DEFERRABLE INITIALLY DEFERRED;
+
+
+--
+-- TOC entry 5526 (class 2606 OID 19314)
+-- Name: store_marketplace store_marketplace_user_id_94674dc8_fk_auth_user_id; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.store_marketplace
+    ADD CONSTRAINT store_marketplace_user_id_94674dc8_fk_auth_user_id FOREIGN KEY (user_id) REFERENCES public.auth_user(id) DEFERRABLE INITIALLY DEFERRED;
+
+
+--
+-- TOC entry 5527 (class 2606 OID 19320)
+-- Name: store_order store_order_marketplace_id_8ce4d993_fk_store_marketplace_id; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.store_order
+    ADD CONSTRAINT store_order_marketplace_id_8ce4d993_fk_store_marketplace_id FOREIGN KEY (marketplace_id) REFERENCES public.store_marketplace(id) DEFERRABLE INITIALLY DEFERRED;
+
+
+--
+-- TOC entry 5528 (class 2606 OID 19325)
+-- Name: store_order store_order_user_id_ae5f7a5f_fk_auth_user_id; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.store_order
+    ADD CONSTRAINT store_order_user_id_ae5f7a5f_fk_auth_user_id FOREIGN KEY (user_id) REFERENCES public.auth_user(id) DEFERRABLE INITIALLY DEFERRED;
+
+
+--
+-- TOC entry 5529 (class 2606 OID 19333)
+-- Name: store_orderitem store_orderitem_order_id_acf8722d_fk_store_order_id; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.store_orderitem
+    ADD CONSTRAINT store_orderitem_order_id_acf8722d_fk_store_order_id FOREIGN KEY (order_id) REFERENCES public.store_order(id) DEFERRABLE INITIALLY DEFERRED;
+
+
+--
+-- TOC entry 5530 (class 2606 OID 19339)
+-- Name: store_product store_product_marketplace_id_e8f55ca6_fk_store_marketplace_id; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.store_product
+    ADD CONSTRAINT store_product_marketplace_id_e8f55ca6_fk_store_marketplace_id FOREIGN KEY (marketplace_id) REFERENCES public.store_marketplace(id) DEFERRABLE INITIALLY DEFERRED;
+
+
+--
+-- TOC entry 5531 (class 2606 OID 19344)
+-- Name: store_product store_product_user_id_58ba19a0_fk_auth_user_id; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.store_product
+    ADD CONSTRAINT store_product_user_id_58ba19a0_fk_auth_user_id FOREIGN KEY (user_id) REFERENCES public.auth_user(id) DEFERRABLE INITIALLY DEFERRED;
+
+
+--
+-- TOC entry 5532 (class 2606 OID 19355)
+-- Name: store_synclog store_synclog_marketplace_id_0c015fc4_fk_store_marketplace_id; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.store_synclog
+    ADD CONSTRAINT store_synclog_marketplace_id_0c015fc4_fk_store_marketplace_id FOREIGN KEY (marketplace_id) REFERENCES public.store_marketplace(id) DEFERRABLE INITIALLY DEFERRED;
+
+
+--
+-- TOC entry 5456 (class 2606 OID 18213)
+-- Name: transactions transactions_currency_id_a7fd19d0_fk_currencies_code; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.transactions
+    ADD CONSTRAINT transactions_currency_id_a7fd19d0_fk_currencies_code FOREIGN KEY (currency_id) REFERENCES public.currencies(code) DEFERRABLE INITIALLY DEFERRED;
+
+
+--
+-- TOC entry 5457 (class 2606 OID 18218)
+-- Name: transactions transactions_fee_currency_id_8568ce42_fk_currencies_code; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.transactions
+    ADD CONSTRAINT transactions_fee_currency_id_8568ce42_fk_currencies_code FOREIGN KEY (fee_currency_id) REFERENCES public.currencies(code) DEFERRABLE INITIALLY DEFERRED;
+
+
+--
+-- TOC entry 5458 (class 2606 OID 18208)
+-- Name: transactions transactions_portfolio_id_f41f764e_fk_portfolios_id; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.transactions
+    ADD CONSTRAINT transactions_portfolio_id_f41f764e_fk_portfolios_id FOREIGN KEY (portfolio_id) REFERENCES public.portfolios(id) DEFERRABLE INITIALLY DEFERRED;
+
+
+--
+-- TOC entry 5398 (class 2606 OID 17561)
+-- Name: version_manager_scansession version_manager_scan_started_by_id_384e539f_fk_auth_user; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.version_manager_scansession
+    ADD CONSTRAINT version_manager_scan_started_by_id_384e539f_fk_auth_user FOREIGN KEY (started_by_id) REFERENCES public.auth_user(id) DEFERRABLE INITIALLY DEFERRED;
+
+
+--
+-- TOC entry 5444 (class 2606 OID 18104)
+-- Name: web_ui_command_history web_ui_command_history_user_id_0a2f6031_fk_auth_user_id; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.web_ui_command_history
+    ADD CONSTRAINT web_ui_command_history_user_id_0a2f6031_fk_auth_user_id FOREIGN KEY (user_id) REFERENCES public.auth_user(id) DEFERRABLE INITIALLY DEFERRED;
+
+
+--
+-- TOC entry 5441 (class 2606 OID 18088)
+-- Name: web_ui_module_access web_ui_module_access_session_id_d9a95af0_fk_web_ui_se; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.web_ui_module_access
+    ADD CONSTRAINT web_ui_module_access_session_id_d9a95af0_fk_web_ui_se FOREIGN KEY (session_id) REFERENCES public.web_ui_session_logs(id) DEFERRABLE INITIALLY DEFERRED;
+
+
+--
+-- TOC entry 5442 (class 2606 OID 18083)
+-- Name: web_ui_module_access web_ui_module_access_user_id_b2f57d1a_fk_auth_user_id; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.web_ui_module_access
+    ADD CONSTRAINT web_ui_module_access_user_id_b2f57d1a_fk_auth_user_id FOREIGN KEY (user_id) REFERENCES public.auth_user(id) DEFERRABLE INITIALLY DEFERRED;
+
+
+--
+-- TOC entry 5443 (class 2606 OID 18097)
+-- Name: web_ui_preferences web_ui_preferences_user_id_efc87248_fk_auth_user_id; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.web_ui_preferences
+    ADD CONSTRAINT web_ui_preferences_user_id_efc87248_fk_auth_user_id FOREIGN KEY (user_id) REFERENCES public.auth_user(id) DEFERRABLE INITIALLY DEFERRED;
+
+
+--
+-- TOC entry 5440 (class 2606 OID 18074)
+-- Name: web_ui_session_logs web_ui_session_logs_user_id_fe54c24c_fk_auth_user_id; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.web_ui_session_logs
+    ADD CONSTRAINT web_ui_session_logs_user_id_fe54c24c_fk_auth_user_id FOREIGN KEY (user_id) REFERENCES public.auth_user(id) DEFERRABLE INITIALLY DEFERRED;
+
+
+--
+-- TOC entry 5417 (class 2606 OID 17712)
+-- Name: wimm_budget wimm_budget_category_id_b9f806ba_fk_wimm_transactioncategory_id; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.wimm_budget
+    ADD CONSTRAINT wimm_budget_category_id_b9f806ba_fk_wimm_transactioncategory_id FOREIGN KEY (category_id) REFERENCES public.wimm_transactioncategory(id) DEFERRABLE INITIALLY DEFERRED;
+
+
+--
+-- TOC entry 5418 (class 2606 OID 17707)
+-- Name: wimm_budget wimm_budget_user_id_778a3d42_fk_auth_user_id; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.wimm_budget
+    ADD CONSTRAINT wimm_budget_user_id_778a3d42_fk_auth_user_id FOREIGN KEY (user_id) REFERENCES public.auth_user(id) DEFERRABLE INITIALLY DEFERRED;
+
+
+--
+-- TOC entry 5399 (class 2606 OID 17627)
+-- Name: wimm_invoice wimm_invoice_user_id_02cb6353_fk_auth_user_id; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.wimm_invoice
+    ADD CONSTRAINT wimm_invoice_user_id_02cb6353_fk_auth_user_id FOREIGN KEY (user_id) REFERENCES public.auth_user(id) DEFERRABLE INITIALLY DEFERRED;
+
+
+--
+-- TOC entry 5400 (class 2606 OID 17634)
+-- Name: wimm_invoiceitem wimm_invoiceitem_invoice_id_f0a49313_fk_wimm_invoice_id; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.wimm_invoiceitem
+    ADD CONSTRAINT wimm_invoiceitem_invoice_id_f0a49313_fk_wimm_invoice_id FOREIGN KEY (invoice_id) REFERENCES public.wimm_invoice(id) DEFERRABLE INITIALLY DEFERRED;
+
+
+--
+-- TOC entry 5401 (class 2606 OID 17639)
+-- Name: wimm_invoiceitem wimm_invoiceitem_item_id_30ebe675_fk_core_item_id; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.wimm_invoiceitem
+    ADD CONSTRAINT wimm_invoiceitem_item_id_30ebe675_fk_core_item_id FOREIGN KEY (item_id) REFERENCES public.core_item(id) DEFERRABLE INITIALLY DEFERRED;
+
+
+--
+-- TOC entry 5413 (class 2606 OID 17698)
+-- Name: wimm_recurringtransaction wimm_recurringtransa_category_id_59e3b892_fk_wimm_tran; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.wimm_recurringtransaction
+    ADD CONSTRAINT wimm_recurringtransa_category_id_59e3b892_fk_wimm_tran FOREIGN KEY (category_id) REFERENCES public.wimm_transactioncategory(id) DEFERRABLE INITIALLY DEFERRED;
+
+
+--
+-- TOC entry 5414 (class 2606 OID 17683)
+-- Name: wimm_recurringtransaction wimm_recurringtransa_from_account_id_57f9c837_fk_core_acco; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.wimm_recurringtransaction
+    ADD CONSTRAINT wimm_recurringtransa_from_account_id_57f9c837_fk_core_acco FOREIGN KEY (from_account_id) REFERENCES public.core_account(id) DEFERRABLE INITIALLY DEFERRED;
+
+
+--
+-- TOC entry 5415 (class 2606 OID 17688)
+-- Name: wimm_recurringtransaction wimm_recurringtransa_to_account_id_7c2792a8_fk_core_acco; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.wimm_recurringtransaction
+    ADD CONSTRAINT wimm_recurringtransa_to_account_id_7c2792a8_fk_core_acco FOREIGN KEY (to_account_id) REFERENCES public.core_account(id) DEFERRABLE INITIALLY DEFERRED;
+
+
+--
+-- TOC entry 5416 (class 2606 OID 17693)
+-- Name: wimm_recurringtransaction wimm_recurringtransaction_user_id_7f034981_fk_auth_user_id; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.wimm_recurringtransaction
+    ADD CONSTRAINT wimm_recurringtransaction_user_id_7f034981_fk_auth_user_id FOREIGN KEY (user_id) REFERENCES public.auth_user(id) DEFERRABLE INITIALLY DEFERRED;
+
+
+--
+-- TOC entry 5407 (class 2606 OID 17673)
+-- Name: wimm_transaction wimm_transaction_category_id_55e8a94a_fk_wimm_tran; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.wimm_transaction
+    ADD CONSTRAINT wimm_transaction_category_id_55e8a94a_fk_wimm_tran FOREIGN KEY (category_id) REFERENCES public.wimm_transactioncategory(id) DEFERRABLE INITIALLY DEFERRED;
+
+
+--
+-- TOC entry 5408 (class 2606 OID 17719)
+-- Name: wimm_transaction wimm_transaction_credit_card_id_7b472bc1_fk_documents; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.wimm_transaction
+    ADD CONSTRAINT wimm_transaction_credit_card_id_7b472bc1_fk_documents FOREIGN KEY (credit_card_id) REFERENCES public.documents_creditcard(id) DEFERRABLE INITIALLY DEFERRED;
+
+
+--
+-- TOC entry 5409 (class 2606 OID 17724)
+-- Name: wimm_transaction wimm_transaction_expense_category_id_f44c14a9_fk_documents; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.wimm_transaction
+    ADD CONSTRAINT wimm_transaction_expense_category_id_f44c14a9_fk_documents FOREIGN KEY (expense_category_id) REFERENCES public.documents_expensecategory(id) DEFERRABLE INITIALLY DEFERRED;
+
+
+--
+-- TOC entry 5410 (class 2606 OID 17729)
+-- Name: wimm_transaction wimm_transaction_expense_group_id_9cbf6a1d_fk_documents; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.wimm_transaction
+    ADD CONSTRAINT wimm_transaction_expense_group_id_9cbf6a1d_fk_documents FOREIGN KEY (expense_group_id) REFERENCES public.documents_expensegroup(id) DEFERRABLE INITIALLY DEFERRED;
+
+
+--
+-- TOC entry 5403 (class 2606 OID 17653)
+-- Name: wimm_transaction wimm_transaction_from_account_id_9c58e59b_fk_core_account_id; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.wimm_transaction
+    ADD CONSTRAINT wimm_transaction_from_account_id_9c58e59b_fk_core_account_id FOREIGN KEY (from_account_id) REFERENCES public.core_account(id) DEFERRABLE INITIALLY DEFERRED;
+
+
+--
+-- TOC entry 5404 (class 2606 OID 17658)
+-- Name: wimm_transaction wimm_transaction_invoice_id_bd68f11f_fk_wimm_invoice_id; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.wimm_transaction
+    ADD CONSTRAINT wimm_transaction_invoice_id_bd68f11f_fk_wimm_invoice_id FOREIGN KEY (invoice_id) REFERENCES public.wimm_invoice(id) DEFERRABLE INITIALLY DEFERRED;
+
+
+--
+-- TOC entry 5411 (class 2606 OID 17735)
+-- Name: wimm_transaction wimm_transaction_source_document_id_a3a53c02_fk_documents; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.wimm_transaction
+    ADD CONSTRAINT wimm_transaction_source_document_id_a3a53c02_fk_documents FOREIGN KEY (source_document_id) REFERENCES public.documents_document(id) DEFERRABLE INITIALLY DEFERRED;
+
+
+--
+-- TOC entry 5412 (class 2606 OID 17740)
+-- Name: wimm_transaction wimm_transaction_subscription_id_fad0014a_fk_documents; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.wimm_transaction
+    ADD CONSTRAINT wimm_transaction_subscription_id_fad0014a_fk_documents FOREIGN KEY (subscription_id) REFERENCES public.documents_subscription(id) DEFERRABLE INITIALLY DEFERRED;
+
+
+--
+-- TOC entry 5405 (class 2606 OID 17663)
+-- Name: wimm_transaction wimm_transaction_to_account_id_6dea8ac9_fk_core_account_id; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.wimm_transaction
+    ADD CONSTRAINT wimm_transaction_to_account_id_6dea8ac9_fk_core_account_id FOREIGN KEY (to_account_id) REFERENCES public.core_account(id) DEFERRABLE INITIALLY DEFERRED;
+
+
+--
+-- TOC entry 5406 (class 2606 OID 17668)
+-- Name: wimm_transaction wimm_transaction_user_id_21d45b7b_fk_auth_user_id; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.wimm_transaction
+    ADD CONSTRAINT wimm_transaction_user_id_21d45b7b_fk_auth_user_id FOREIGN KEY (user_id) REFERENCES public.auth_user(id) DEFERRABLE INITIALLY DEFERRED;
+
+
+--
+-- TOC entry 5402 (class 2606 OID 17646)
+-- Name: wimm_transactioncategory wimm_transactioncate_parent_id_daaad250_fk_wimm_tran; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.wimm_transactioncategory
+    ADD CONSTRAINT wimm_transactioncate_parent_id_daaad250_fk_wimm_tran FOREIGN KEY (parent_id) REFERENCES public.wimm_transactioncategory(id) DEFERRABLE INITIALLY DEFERRED;
+
+
+--
+-- TOC entry 5425 (class 2606 OID 17847)
+-- Name: wims_itemsupplier wims_itemsupplier_item_id_b30fc7a2_fk_core_item_id; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.wims_itemsupplier
+    ADD CONSTRAINT wims_itemsupplier_item_id_b30fc7a2_fk_core_item_id FOREIGN KEY (item_id) REFERENCES public.core_item(id) DEFERRABLE INITIALLY DEFERRED;
+
+
+--
+-- TOC entry 5422 (class 2606 OID 17827)
+-- Name: wims_stockcount wims_stockcount_approved_by_id_0acce1bc_fk_auth_user_id; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.wims_stockcount
+    ADD CONSTRAINT wims_stockcount_approved_by_id_0acce1bc_fk_auth_user_id FOREIGN KEY (approved_by_id) REFERENCES public.auth_user(id) DEFERRABLE INITIALLY DEFERRED;
+
+
+--
+-- TOC entry 5423 (class 2606 OID 17832)
+-- Name: wims_stockcount wims_stockcount_user_id_470e84b0_fk_auth_user_id; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.wims_stockcount
+    ADD CONSTRAINT wims_stockcount_user_id_470e84b0_fk_auth_user_id FOREIGN KEY (user_id) REFERENCES public.auth_user(id) DEFERRABLE INITIALLY DEFERRED;
+
+
+--
+-- TOC entry 5424 (class 2606 OID 17837)
+-- Name: wims_stockcount wims_stockcount_warehouse_id_44fc6631_fk_wims_warehouse_id; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.wims_stockcount
+    ADD CONSTRAINT wims_stockcount_warehouse_id_44fc6631_fk_wims_warehouse_id FOREIGN KEY (warehouse_id) REFERENCES public.wims_warehouse(id) DEFERRABLE INITIALLY DEFERRED;
+
+
+--
+-- TOC entry 5426 (class 2606 OID 17855)
+-- Name: wims_stockcountitem wims_stockcountitem_item_id_dd9fb2a2_fk_core_item_id; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.wims_stockcountitem
+    ADD CONSTRAINT wims_stockcountitem_item_id_dd9fb2a2_fk_core_item_id FOREIGN KEY (item_id) REFERENCES public.core_item(id) DEFERRABLE INITIALLY DEFERRED;
+
+
+--
+-- TOC entry 5427 (class 2606 OID 17865)
+-- Name: wims_stockcountitem wims_stockcountitem_location_id_eaef3355_fk_wims_stoc; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.wims_stockcountitem
+    ADD CONSTRAINT wims_stockcountitem_location_id_eaef3355_fk_wims_stoc FOREIGN KEY (location_id) REFERENCES public.wims_stocklocation(id) DEFERRABLE INITIALLY DEFERRED;
+
+
+--
+-- TOC entry 5428 (class 2606 OID 17860)
+-- Name: wims_stockcountitem wims_stockcountitem_stock_count_id_db1e2cf5_fk_wims_stoc; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.wims_stockcountitem
+    ADD CONSTRAINT wims_stockcountitem_stock_count_id_db1e2cf5_fk_wims_stoc FOREIGN KEY (stock_count_id) REFERENCES public.wims_stockcount(id) DEFERRABLE INITIALLY DEFERRED;
+
+
+--
+-- TOC entry 5437 (class 2606 OID 17925)
+-- Name: wims_stockitem wims_stockitem_item_id_226e484f_fk_core_item_id; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.wims_stockitem
+    ADD CONSTRAINT wims_stockitem_item_id_226e484f_fk_core_item_id FOREIGN KEY (item_id) REFERENCES public.core_item(id) DEFERRABLE INITIALLY DEFERRED;
+
+
+--
+-- TOC entry 5438 (class 2606 OID 17930)
+-- Name: wims_stockitem wims_stockitem_location_id_82e767c9_fk_wims_stocklocation_id; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.wims_stockitem
+    ADD CONSTRAINT wims_stockitem_location_id_82e767c9_fk_wims_stocklocation_id FOREIGN KEY (location_id) REFERENCES public.wims_stocklocation(id) DEFERRABLE INITIALLY DEFERRED;
+
+
+--
+-- TOC entry 5439 (class 2606 OID 17935)
+-- Name: wims_stockitem wims_stockitem_warehouse_id_506b6866_fk_wims_warehouse_id; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.wims_stockitem
+    ADD CONSTRAINT wims_stockitem_warehouse_id_506b6866_fk_wims_warehouse_id FOREIGN KEY (warehouse_id) REFERENCES public.wims_warehouse(id) DEFERRABLE INITIALLY DEFERRED;
+
+
+--
+-- TOC entry 5420 (class 2606 OID 17815)
+-- Name: wims_stocklocation wims_stocklocation_parent_id_3c51dc54_fk_wims_stocklocation_id; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.wims_stocklocation
+    ADD CONSTRAINT wims_stocklocation_parent_id_3c51dc54_fk_wims_stocklocation_id FOREIGN KEY (parent_id) REFERENCES public.wims_stocklocation(id) DEFERRABLE INITIALLY DEFERRED;
+
+
+--
+-- TOC entry 5421 (class 2606 OID 17820)
+-- Name: wims_stocklocation wims_stocklocation_warehouse_id_ad86d2c3_fk_wims_warehouse_id; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.wims_stocklocation
+    ADD CONSTRAINT wims_stocklocation_warehouse_id_ad86d2c3_fk_wims_warehouse_id FOREIGN KEY (warehouse_id) REFERENCES public.wims_warehouse(id) DEFERRABLE INITIALLY DEFERRED;
+
+
+--
+-- TOC entry 5429 (class 2606 OID 17873)
+-- Name: wims_stockmovement wims_stockmovement_from_location_id_0ef98876_fk_wims_stoc; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.wims_stockmovement
+    ADD CONSTRAINT wims_stockmovement_from_location_id_0ef98876_fk_wims_stoc FOREIGN KEY (from_location_id) REFERENCES public.wims_stocklocation(id) DEFERRABLE INITIALLY DEFERRED;
+
+
+--
+-- TOC entry 5435 (class 2606 OID 17903)
+-- Name: wims_stockmovement wims_stockmovement_from_warehouse_id_86887b59_fk_wims_ware; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.wims_stockmovement
+    ADD CONSTRAINT wims_stockmovement_from_warehouse_id_86887b59_fk_wims_ware FOREIGN KEY (from_warehouse_id) REFERENCES public.wims_warehouse(id) DEFERRABLE INITIALLY DEFERRED;
+
+
+--
+-- TOC entry 5430 (class 2606 OID 17878)
+-- Name: wims_stockmovement wims_stockmovement_invoice_id_089ef390_fk_wimm_invoice_id; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.wims_stockmovement
+    ADD CONSTRAINT wims_stockmovement_invoice_id_089ef390_fk_wimm_invoice_id FOREIGN KEY (invoice_id) REFERENCES public.wimm_invoice(id) DEFERRABLE INITIALLY DEFERRED;
+
+
+--
+-- TOC entry 5431 (class 2606 OID 17883)
+-- Name: wims_stockmovement wims_stockmovement_invoice_item_id_872b1e6d_fk_wimm_invo; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.wims_stockmovement
+    ADD CONSTRAINT wims_stockmovement_invoice_item_id_872b1e6d_fk_wimm_invo FOREIGN KEY (invoice_item_id) REFERENCES public.wimm_invoiceitem(id) DEFERRABLE INITIALLY DEFERRED;
+
+
+--
+-- TOC entry 5432 (class 2606 OID 17888)
+-- Name: wims_stockmovement wims_stockmovement_item_id_9180ac56_fk_core_item_id; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.wims_stockmovement
+    ADD CONSTRAINT wims_stockmovement_item_id_9180ac56_fk_core_item_id FOREIGN KEY (item_id) REFERENCES public.core_item(id) DEFERRABLE INITIALLY DEFERRED;
+
+
+--
+-- TOC entry 5433 (class 2606 OID 17893)
+-- Name: wims_stockmovement wims_stockmovement_to_location_id_f97f9df2_fk_wims_stoc; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.wims_stockmovement
+    ADD CONSTRAINT wims_stockmovement_to_location_id_f97f9df2_fk_wims_stoc FOREIGN KEY (to_location_id) REFERENCES public.wims_stocklocation(id) DEFERRABLE INITIALLY DEFERRED;
+
+
+--
+-- TOC entry 5436 (class 2606 OID 17908)
+-- Name: wims_stockmovement wims_stockmovement_to_warehouse_id_139be900_fk_wims_ware; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.wims_stockmovement
+    ADD CONSTRAINT wims_stockmovement_to_warehouse_id_139be900_fk_wims_ware FOREIGN KEY (to_warehouse_id) REFERENCES public.wims_warehouse(id) DEFERRABLE INITIALLY DEFERRED;
+
+
+--
+-- TOC entry 5434 (class 2606 OID 17898)
+-- Name: wims_stockmovement wims_stockmovement_user_id_937dbf8e_fk_auth_user_id; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.wims_stockmovement
+    ADD CONSTRAINT wims_stockmovement_user_id_937dbf8e_fk_auth_user_id FOREIGN KEY (user_id) REFERENCES public.auth_user(id) DEFERRABLE INITIALLY DEFERRED;
+
+
+--
+-- TOC entry 5419 (class 2606 OID 17806)
+-- Name: wims_warehouse wims_warehouse_user_id_ef28eb5c_fk_auth_user_id; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.wims_warehouse
+    ADD CONSTRAINT wims_warehouse_user_id_ef28eb5c_fk_auth_user_id FOREIGN KEY (user_id) REFERENCES public.auth_user(id) DEFERRABLE INITIALLY DEFERRED;
+
+
+-- Completed on 2025-08-19 10:01:04 +03
+
+--
+-- PostgreSQL database dump complete
+--
+

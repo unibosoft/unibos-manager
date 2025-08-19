@@ -94,6 +94,55 @@ get_current_version() {
     fi
 }
 
+export_postgresql() {
+    local version=$1
+    local timestamp=$2
+    
+    echo -e "${YELLOW}🗄️ PostgreSQL veritabanı export ediliyor...${NC}"
+    
+    # PostgreSQL bağlantı bilgileri
+    DB_NAME="unibos_db"
+    DB_USER="unibos_user"
+    DB_PASS="unibos_password"
+    DB_HOST="localhost"
+    DB_PORT="5432"
+    
+    # Export dosya adı - unibos_ prefix'i ile
+    SQL_FILE="unibos_${version}_${timestamp}.sql"
+    
+    # pg_dump ile export
+    PGPASSWORD=$DB_PASS pg_dump \
+        -h $DB_HOST \
+        -p $DB_PORT \
+        -U $DB_USER \
+        -d $DB_NAME \
+        -f "$SQL_FILE" \
+        --verbose \
+        --clean \
+        --if-exists \
+        --no-owner \
+        --no-privileges \
+        2>/dev/null || {
+            echo -e "${YELLOW}⚠️  PostgreSQL export başarısız oldu (veritabanı çalışmıyor olabilir)${NC}"
+            return 1
+        }
+    
+    if [ -f "$SQL_FILE" ]; then
+        local sql_size=$(du -sh "$SQL_FILE" 2>/dev/null | cut -f1)
+        echo -e "${GREEN}✅ PostgreSQL export tamamlandı: $SQL_FILE ($sql_size)${NC}"
+        
+        # Boyut kontrolü
+        local sql_size_bytes=$(du -sb "$SQL_FILE" 2>/dev/null | cut -f1)
+        if [ -n "$sql_size_bytes" ] && [ $sql_size_bytes -gt 10485760 ]; then  # 10MB
+            echo -e "${YELLOW}⚠️  SQL export boyutu büyük ($sql_size). Boyut optimizasyonu gerekebilir.${NC}"
+        fi
+        return 0
+    else
+        echo -e "${RED}❌ SQL export dosyası oluşturulamadı${NC}"
+        return 1
+    fi
+}
+
 create_backup() {
     local version=$1
     local timestamp=$2
@@ -303,6 +352,9 @@ fi
 # Timestamp - İstanbul saati ile
 export TZ='Europe/Istanbul'
 timestamp=$(date '+%Y%m%d_%H%M')
+
+# PostgreSQL export - versiyon arşivi oluşturmadan önce
+export_postgresql "$current_version" "$timestamp"
 
 # Yedekleme yap
 create_backup "$current_version" "$timestamp"

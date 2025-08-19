@@ -8,7 +8,6 @@
 *.sqlite3-journal
 *.sqlite3.backup
 *.db
-*.sql
 db.sqlite3*
 
 # Log files
