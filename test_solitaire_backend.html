@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Solitaire Backend Test</title>
+    <style>
+        body {
+            background: #1e5620;
+            margin: 0;
+            padding: 20px;
+            color: white;
+            font-family: Arial;
+        }
+        iframe {
+            width: 100%;
+            height: 800px;
+            border: 2px solid white;
+        }
+        .info {
+            padding: 10px;
+            background: rgba(0,0,0,0.5);
+            margin-bottom: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="info">
+        <h2>solitaire backend test</h2>
+        <p>testing if game loads with cards dealt from backend</p>
+        <button onclick="location.reload()">reload page</button>
+        <button onclick="document.getElementById('game').src = 'http://localhost:8000/solitaire/'">reload game</button>
+    </div>
+    
+    <iframe id="game" src="http://localhost:8000/solitaire/"></iframe>
+    
+    <script>
+        console.log('Test page loaded. Game should display with cards dealt.');
+    </script>
+</body>
+</html>

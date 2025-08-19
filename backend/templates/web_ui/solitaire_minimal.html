@@ -90,70 +90,18 @@
     <script>
         console.log('Starting Solitaire Minimal...');
         
-        // Get game state from backend
-        const initialGameState = {{ game_state|safe|default:'{}' }};
-        console.log('Initial game state from backend:', initialGameState);
-        
         const suits = ['♠', '♥', '♦', '♣'];
         const ranks = ['A', '2', '3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K'];
         const values = { A: 1, J: 11, Q: 12, K: 13 };
         
-        // Convert backend card format to frontend format
-        function convertCard(card) {
-            if (!card) return null;
-            
-            const suitMap = {
-                'clubs': 3,    // ♣
-                'hearts': 1,   // ♥
-                'diamonds': 2, // ♦
-                'spades': 0    // ♠
-            };
-            
-            const suitIndex = typeof card.suit === 'string' ? suitMap[card.suit] : card.suit;
-            
-            return {
-                suit: suitIndex,
-                rank: card.rank,
-                value: card.value || values[card.rank] || parseInt(card.rank),
-                color: (suitIndex === 1 || suitIndex === 2) ? 'red' : 'black',
-                faceUp: card.face_up !== undefined ? card.face_up : true
-            };
-        }
-        
-        // Check if we have valid game state from backend
-        const hasValidState = initialGameState && 
-            initialGameState.tableau && 
-            Array.isArray(initialGameState.tableau) &&
-            initialGameState.tableau.some(pile => pile && pile.length > 0);
-        
-        console.log('Has valid state:', hasValidState);
-        
-        // Debug: log converted cards
-        if (hasValidState && initialGameState.tableau) {
-            console.log('Tableau before conversion:', initialGameState.tableau);
-            console.log('First pile converted:', initialGameState.tableau[0] ? initialGameState.tableau[0].map(convertCard) : []);
-        }
-        
         let game = {
             deck: [],
-            stock: hasValidState && initialGameState.stock ? initialGameState.stock.map(convertCard) : [],
-            waste: hasValidState && initialGameState.waste ? initialGameState.waste.map(convertCard) : [],
-            foundations: hasValidState && initialGameState.foundations ? 
-                (Array.isArray(initialGameState.foundations) ? 
-                    initialGameState.foundations.map(pile => pile ? pile.map(convertCard) : []) :
-                    [
-                        initialGameState.foundations.clubs ? initialGameState.foundations.clubs.map(convertCard) : [],
-                        initialGameState.foundations.hearts ? initialGameState.foundations.hearts.map(convertCard) : [],
-                        initialGameState.foundations.diamonds ? initialGameState.foundations.diamonds.map(convertCard) : [],
-                        initialGameState.foundations.spades ? initialGameState.foundations.spades.map(convertCard) : []
-                    ]
-                ) : 
-                [[], [], [], []],
-            tableau: hasValidState && initialGameState.tableau ? 
-                initialGameState.tableau.map(pile => pile ? pile.map(convertCard) : []) : 
-                [[], [], [], [], [], [], []],
-            score: initialGameState.score || 0,
-            moves: initialGameState.moves || 0
+            stock: [],
+            waste: [],
+            foundations: [[], [], [], []],
+            tableau: [[], [], [], [], [], [], []],
+            score: 0,
+            moves: 0
         };
         
         function createCard(card, faceUp) {
@@ -169,12 +117,6 @@
         
         function render() {
             console.log('Rendering game...');
-            console.log('Game state:', {
-                stock: game.stock.length,
-                waste: game.waste.length, 
-                tableau: game.tableau.map(p => p.length),
-                foundations: game.foundations.map(p => p.length)
-            });
             
             // Clear all cards
             document.querySelectorAll('.card').forEach(c => c.remove());
@@ -186,33 +128,6 @@
                 card.style.top = '0';
                 card.style.left = '0';
                 stockEl.appendChild(card);
-            }
-            
-            // Render waste
-            if (game.waste.length > 0) {
-                const wasteEl = document.getElementById('waste');
-                // Show top 3 cards from waste
-                const start = Math.max(0, game.waste.length - 3);
-                for (let i = start; i < game.waste.length; i++) {
-                    const card = createCard(game.waste[i], true);
-                    card.style.top = '0';
-                    card.style.left = ((i - start) * 20) + 'px';
-                    card.style.zIndex = i - start;
-                    wasteEl.appendChild(card);
-                }
-            }
-            
-            // Render foundations
-            for (let f = 0; f < 4; f++) {
-                const foundation = document.getElementById('foundation-' + f);
-                const pile = game.foundations[f];
-                if (pile && pile.length > 0) {
-                    const topCard = pile[pile.length - 1];
-                    const card = createCard(topCard, true);
-                    card.style.top = '0';
-                    card.style.left = '0';
-                    foundation.appendChild(card);
-                }
             }
             
             // Render tableau
@@ -234,17 +149,6 @@
         
         function initGame() {
             console.log('Initializing game...');
-            
-            // If we have valid state from backend, just render it
-            if (hasValidState) {
-                console.log('Using existing game state from backend');
-                console.log('Stock:', game.stock.length, 'Tableau:', game.tableau.map(p => p.length));
-                render();
-                return;
-            }
-            
-            // Otherwise create new game
-            console.log('Creating new game...');
             
             // Create deck
             for (let s = 0; s < 4; s++) {
@@ -280,7 +184,7 @@
                 game.stock.push(game.deck[cardIndex++]);
             }
             
-            console.log('New game created. Stock:', game.stock.length, 'Tableau:', game.tableau.map(p => p.length));
+            console.log('Game initialized. Stock:', game.stock.length, 'Tableau:', game.tableau.map(p => p.length));
             
             render();
         }

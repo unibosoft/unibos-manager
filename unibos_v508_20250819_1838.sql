@@ -5,7 +5,7 @@
 -- Dumped from database version 14.18 (Homebrew)
 -- Dumped by pg_dump version 14.18 (Homebrew)
 
--- Started on 2025-08-19 12:39:02 +03
+-- Started on 2025-08-19 18:38:20 +03
 
 SET statement_timeout = 0;
 SET lock_timeout = 0;
@@ -16431,7 +16431,7 @@ ALTER TABLE ONLY public.wims_warehouse
     ADD CONSTRAINT wims_warehouse_user_id_ef28eb5c_fk_auth_user_id FOREIGN KEY (user_id) REFERENCES public.auth_user(id) DEFERRABLE INITIALLY DEFERRED;
 
 
--- Completed on 2025-08-19 12:39:02 +03
+-- Completed on 2025-08-19 18:38:20 +03
 
 --
 -- PostgreSQL database dump complete

@@ -171,9 +171,13 @@ def solitaire_game(request):
         context_game_state = game_state if 'game_state' in locals() else game_session.game_state
         context_is_locked = False
     
+    # Debug log - REMOVED for production
+    
+    # Convert game state to JSON string for template
+    import json
     context = {
         'session_id': context_session_id,
-        'game_state': context_game_state,
+        'game_state': json.dumps(context_game_state) if context_game_state else '{}',
         'is_locked': context_is_locked,
         'player_id': player.id,
         'is_anonymous': player.is_anonymous

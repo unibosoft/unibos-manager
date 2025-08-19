@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Solitaire Fixed</title>
+    <style>
+        body {
+            background: #1e5620;
+            margin: 0;
+            padding: 20px;
+            color: white;
+        }
+        .board {
+            display: flex;
+            gap: 15px;
+            margin-top: 20px;
+        }
+        .column {
+            width: 110px;
+            min-height: 200px;
+            background: rgba(0,0,0,0.2);
+            position: relative;
+            border: 2px solid rgba(255,255,255,0.1);
+            border-radius: 5px;
+        }
+        .card {
+            width: 110px;
+            height: 148px;
+            background: white;
+            border: 1px solid #999;
+            border-radius: 8px;
+            position: absolute;
+            padding: 5px;
+            font-size: 24px;
+            font-weight: bold;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+        .card.face-down {
+            background: linear-gradient(135deg, #3d3d3d 0%, #2d2d2d 100%);
+            color: white;
+        }
+        .card.red {
+            color: red;
+        }
+        .card.black {
+            color: black;
+        }
+    </style>
+</head>
+<body>
+    <h1>Solitaire Test - Fixed Version</h1>
+    <div id="info"></div>
+    <div class="board" id="board"></div>
+    
+    <script>
+        // Same logic as the actual game
+        const suits = ['♠', '♥', '♦', '♣'];
+        const ranks = ['A', '2', '3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K'];
+        const values = { A: 1, J: 11, Q: 12, K: 13 };
+        
+        // Create game state
+        let game = {
+            deck: [],
+            tableau: [[], [], [], [], [], [], []],
+            stock: []
+        };
+        
+        // Initialize
+        function initGame() {
+            console.log('Initializing game...');
+            
+            // Create deck
+            for (let s = 0; s < 4; s++) {
+                for (let r = 0; r < 13; r++) {
+                    game.deck.push({
+                        suit: s,
+                        rank: ranks[r],
+                        value: values[ranks[r]] || parseInt(ranks[r]),
+                        color: (s === 1 || s === 2) ? 'red' : 'black',
+                        faceUp: false
+                    });
+                }
+            }
+            console.log('Deck created:', game.deck.length, 'cards');
+            
+            // Shuffle
+            for (let i = game.deck.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [game.deck[i], game.deck[j]] = [game.deck[j], game.deck[i]];
+            }
+            console.log('Deck shuffled');
+            
+            // Deal cards
+            let cardIndex = 0;
+            for (let col = 0; col < 7; col++) {
+                for (let row = 0; row <= col; row++) {
+                    const card = game.deck[cardIndex++];
+                    card.faceUp = (row === col);
+                    game.tableau[col].push(card);
+                }
+            }
+            console.log('Cards dealt to tableau:', game.tableau.map(p => p.length));
+            
+            // Rest to stock
+            while (cardIndex < game.deck.length) {
+                game.stock.push(game.deck[cardIndex++]);
+            }
+            console.log('Stock:', game.stock.length, 'cards');
+            
+            render();
+        }
+        
+        // Render
+        function render() {
+            console.log('Rendering...');
+            const board = document.getElementById('board');
+            board.innerHTML = '';
+            
+            // Render tableau
+            for (let col = 0; col < 7; col++) {
+                const column = document.createElement('div');
+                column.className = 'column';
+                
+                const pile = game.tableau[col];
+                console.log(`Column ${col}: ${pile.length} cards`);
+                
+                pile.forEach((card, row) => {
+                    const cardEl = document.createElement('div');
+                    cardEl.className = `card ${card.color} ${card.faceUp ? '' : 'face-down'}`;
+                    cardEl.style.top = (row * 25) + 'px';
+                    
+                    if (card.faceUp) {
+                        cardEl.innerHTML = `${card.rank}${suits[card.suit]}`;
+                    } else {
+                        cardEl.innerHTML = '🦄';
+                    }
+                    
+                    column.appendChild(cardEl);
+                });
+                
+                board.appendChild(column);
+            }
+            
+            // Info
+            document.getElementById('info').innerHTML = `
+                <p>Stock: ${game.stock.length} cards</p>
+                <p>Tableau: ${game.tableau.map((p, i) => `Col${i}: ${p.length}`).join(', ')}</p>
+            `;
+            
+            console.log('Render complete');
+        }
+        
+        // Start
+        console.log('Starting game...');
+        initGame();
+    </script>
+</body>
+</html>

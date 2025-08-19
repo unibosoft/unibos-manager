@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Solitaire Debug Test</title>
+</head>
+<body>
+    <h1>Solitaire Debug Test</h1>
+    <div id="output"></div>
+    
+    <script>
+        // Test the conversion and initialization logic
+        const suits = ['♠', '♥', '♦', '♣'];
+        const ranks = ['A', '2', '3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K'];
+        const values = { A: 1, J: 11, Q: 12, K: 13 };
+        
+        // Simulated backend data
+        const initialGameState = {
+            'stock': [{'suit': 'clubs', 'rank': '2', 'face_up': false}],
+            'waste': [],
+            'foundations': {'spades': [], 'hearts': [], 'diamonds': [], 'clubs': []},
+            'tableau': [[{'suit': 'clubs', 'rank': 'J', 'face_up': true}]],
+            'moves': 0,
+            'score': 0,
+            'time': 0
+        };
+        
+        function convertCard(backendCard) {
+            if (!backendCard) return null;
+            
+            const suitMap = {
+                'spades': 0,
+                'hearts': 1,
+                'diamonds': 2,
+                'clubs': 3
+            };
+            
+            const suitIndex = typeof backendCard.suit === 'string' 
+                ? suitMap[backendCard.suit.toLowerCase()] 
+                : backendCard.suit;
+            
+            return {
+                suit: suitIndex,
+                rank: backendCard.rank,
+                value: values[backendCard.rank] || parseInt(backendCard.rank),
+                color: (suitIndex === 1 || suitIndex === 2) ? 'red' : 'black',
+                faceUp: backendCard.face_up || false
+            };
+        }
+        
+        // Test conversion
+        const output = document.getElementById('output');
+        
+        try {
+            // Convert a card
+            const testCard = initialGameState.tableau[0][0];
+            const converted = convertCard(testCard);
+            
+            output.innerHTML = `
+                <h2>Original Card:</h2>
+                <pre>${JSON.stringify(testCard, null, 2)}</pre>
+                
+                <h2>Converted Card:</h2>
+                <pre>${JSON.stringify(converted, null, 2)}</pre>
+                
+                <h2>Card Display:</h2>
+                <p>Suit Symbol: ${suits[converted.suit]}</p>
+                <p>Rank: ${converted.rank}</p>
+                <p>Color: ${converted.color}</p>
+                <p>Face Up: ${converted.faceUp}</p>
+            `;
+        } catch (error) {
+            output.innerHTML = `<h2>Error:</h2><pre>${error.stack}</pre>`;
+        }
+    </script>
+</body>
+</html>

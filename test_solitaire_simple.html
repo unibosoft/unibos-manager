@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Simple Solitaire Test</title>
+    <style>
+        body {
+            background: green;
+            margin: 0;
+            padding: 20px;
+        }
+        .game-board {
+            display: flex;
+            gap: 10px;
+        }
+        .tableau-column {
+            width: 100px;
+            min-height: 200px;
+            background: rgba(0,0,0,0.2);
+            position: relative;
+            border: 1px solid yellow;
+        }
+        .card {
+            width: 90px;
+            height: 120px;
+            background: white;
+            border: 1px solid black;
+            border-radius: 5px;
+            position: absolute;
+            padding: 5px;
+            font-size: 20px;
+        }
+        .card.red {
+            color: red;
+        }
+        .card.black {
+            color: black;
+        }
+        .face-down {
+            background: darkblue;
+            color: white;
+        }
+    </style>
+</head>
+<body>
+    <h1 style="color: white;">Simple Solitaire Test</h1>
+    <div class="game-board" id="board"></div>
+    <div id="log" style="color: white; margin-top: 20px;"></div>
+    
+    <script>
+        const suits = ['♠', '♥', '♦', '♣'];
+        const ranks = ['A', '2', '3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K'];
+        
+        // Create deck
+        let deck = [];
+        for (let s = 0; s < 4; s++) {
+            for (let r = 0; r < 13; r++) {
+                deck.push({
+                    suit: s,
+                    rank: ranks[r],
+                    color: (s === 1 || s === 2) ? 'red' : 'black',
+                    faceUp: false
+                });
+            }
+        }
+        
+        // Shuffle
+        for (let i = deck.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [deck[i], deck[j]] = [deck[j], deck[i]];
+        }
+        
+        // Create tableau columns
+        const board = document.getElementById('board');
+        const log = document.getElementById('log');
+        let logText = '';
+        
+        for (let col = 0; col < 7; col++) {
+            const div = document.createElement('div');
+            div.className = 'tableau-column';
+            div.id = `col-${col}`;
+            board.appendChild(div);
+        }
+        
+        // Deal cards
+        let cardIndex = 0;
+        for (let col = 0; col < 7; col++) {
+            const column = document.getElementById(`col-${col}`);
+            logText += `Column ${col}: `;
+            
+            for (let row = 0; row <= col; row++) {
+                const card = deck[cardIndex++];
+                card.faceUp = (row === col); // Last card face up
+                
+                const cardDiv = document.createElement('div');
+                cardDiv.className = `card ${card.color} ${card.faceUp ? '' : 'face-down'}`;
+                cardDiv.style.top = (row * 25) + 'px';
+                cardDiv.innerHTML = card.faceUp ? 
+                    `${card.rank}${suits[card.suit]}` : 
+                    'CARD';
+                
+                column.appendChild(cardDiv);
+                logText += card.faceUp ? `${card.rank}${suits[card.suit]} ` : 'X ';
+            }
+            logText += '<br>';
+        }
+        
+        log.innerHTML = `
+            <h3>Cards Dealt:</h3>
+            ${logText}
+            <h3>Remaining deck: ${52 - cardIndex} cards</h3>
+        `;
+    </script>
+</body>
+</html>
