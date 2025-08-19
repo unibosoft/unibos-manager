@@ -1,10 +1,10 @@
 {
-  "version": "v496",
-  "build_number": "20250819_0747",
-  "release_date": "2025-08-19 07:47:34 +0300",
+  "version": "v497",
+  "build_number": "20250819_0755",
+  "release_date": "2025-08-19 07:55:10 +0300",
   "author": "berk hatırlı",
   "location": "bitez, bodrum, muğla, türkiye, dünya, güneş sistemi, samanyolu, yerel galaksi grubu, evren",
-  "description": "User Management: Added delete functionality with custom confirmation popup and bulk operations",
+  "description": "Version Script Update: Modified to push both main and version branches simultaneously",
   "features": [
     "🎬 **Movies Module**: Complete movie/series collection management with TMDB/OMDB API integration",
     "🎵 **Music Module**: Spotify-integrated music library without storing files, open source artwork",

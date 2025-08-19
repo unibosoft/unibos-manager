@@ -215,24 +215,26 @@ git_operations() {
     # Ensure version doesn't already have 'v' prefix to prevent double 'v'
     clean_version=$(echo "$version" | sed 's/^v//')
     
-    # Add and commit
+    # Add and commit on main
+    git checkout main 2>/dev/null || true
     git add -A
     git commit -m "v${clean_version}: ${description}" || true
     
-    # Create branch and tag
+    # Create version branch from main (they will be identical)
     git checkout -b "v${clean_version}" 2>/dev/null || git checkout "v${clean_version}"
+    
+    # Push version branch
     git push origin "v${clean_version}"
     
-    # Push to main
+    # Go back to main and push (main and vXXX are the same)
     git checkout main
-    git merge "v${clean_version}" --no-edit
     git push origin main
     
     # Create and push tag
-    git tag "v${clean_version}"
+    git tag "v${clean_version}" 2>/dev/null || true
     git push origin --tags
     
-    print_color "$GREEN" "✅ Git operations completed"
+    print_color "$GREEN" "✅ Git operations completed (v${clean_version} and main are identical)"
 }
 
 # Main menu
