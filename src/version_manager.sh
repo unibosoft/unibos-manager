@@ -94,6 +94,31 @@ get_current_version() {
     fi
 }
 
+cleanup_old_sql_files() {
+    echo -e "${YELLOW}🧹 Eski SQL dosyaları temizleniyor...${NC}"
+    
+    # Ana dizindeki tüm unibos_*.sql dosyalarını tarih sırasına göre listele
+    local sql_files=($(ls -t "$BASE_DIR"/unibos_v*.sql 2>/dev/null))
+    local count=${#sql_files[@]}
+    
+    # Eğer 3'ten fazla SQL dosyası varsa, en eskileri sil
+    if [ $count -gt 3 ]; then
+        local files_to_delete=$((count - 3))
+        echo -e "${BLUE}   → $count SQL dosyası bulundu, $files_to_delete tanesi silinecek${NC}"
+        
+        # En eski dosyaları sil (dizinin sonundakiler)
+        for ((i=$((count-files_to_delete)); i<$count; i++)); do
+            if [ -f "${sql_files[$i]}" ]; then
+                echo -e "${YELLOW}   🗑️  Siliniyor: $(basename ${sql_files[$i]})${NC}"
+                rm -f "${sql_files[$i]}"
+            fi
+        done
+        echo -e "${GREEN}✅ Eski SQL dosyaları temizlendi${NC}"
+    else
+        echo -e "${GREEN}✅ Temizlenecek eski SQL dosyası yok (${count}/3)${NC}"
+    fi
+}
+
 export_postgresql() {
     local version=$1
     local timestamp=$2
@@ -136,6 +161,10 @@ export_postgresql() {
         if [ -n "$sql_size_bytes" ] && [ $sql_size_bytes -gt 10485760 ]; then  # 10MB
             echo -e "${YELLOW}⚠️  SQL export boyutu büyük ($sql_size). Boyut optimizasyonu gerekebilir.${NC}"
         fi
+        
+        # Eski SQL dosyalarını temizle (sadece 3 tane kalsın)
+        cleanup_old_sql_files
+        
         return 0
     else
         echo -e "${RED}❌ SQL export dosyası oluşturulamadı${NC}"

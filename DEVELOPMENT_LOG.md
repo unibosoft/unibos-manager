@@ -6,6 +6,15 @@ The version manager reads recent entries to generate meaningful commit messages.
 
 ---
 
+## [2025-08-19 10:48] Version Manager: Added automatic SQL cleanup functionality
+- Added cleanup_old_sql_files() function to version_manager.sh
+- Automatically maintains only the 3 most recent SQL backup files
+- Older SQL files are deleted automatically when a 4th is created
+- Prevents accumulation of old database backups in main directory
+- **Result**: Cleaner project directory with automatic SQL file management
+
+---
+
 ## [2025-08-19 10:42] Version Manager: Made automatic git push default behavior
 - Removed push confirmation prompt from version_manager.sh
 - Script now automatically pushes to remote repository
