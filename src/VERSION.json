@@ -1,7 +1,7 @@
 {
-  "version": "v503",
-  "build_number": "20250819_1104",
-  "release_date": "2025-08-19 11:04:47 +03:00",
+  "version": "v504",
+  "build_number": "20250819_1115",
+  "release_date": "2025-08-19 11:15:39 +03:00",
   "author": "berk hatırlı",
   "location": "bitez, bodrum, muğla, türkiye, dünya, güneş sistemi, samanyolu, yerel galaksi grubu, evren",
   "description": "UI/UX: Fixed birlikteyiz popup style, README lowercase conversion, and module descriptions layout",
@@ -222,7 +222,7 @@
   },
   "changelog": [
     {
-      "version": "v503",
+      "version": "v504",
       "date": "2025-08-13 13:14",
       "description": "Bug Fix: Fixed Solitaire card stacking spacing issue",
       "changes": [
@@ -232,7 +232,7 @@
       ]
     },
     {
-      "version": "v503",
+      "version": "v504",
       "date": "2025-08-12 18:24",
       "description": "System Restore: Reverted to v464 with solitaire completed, removed broken versions",
       "changes": [
@@ -243,7 +243,7 @@
       ]
     },
     {
-      "version": "v503",
+      "version": "v504",
       "date": "2025-08-12 12:01",
       "description": "UI/UX: Removed web forge from dev tools and renamed to web ui",
       "changes": [
@@ -253,7 +253,7 @@
       ]
     },
     {
-      "version": "v503",
+      "version": "v504",
       "date": "2025-08-12 09:59",
       "description": "UI/UX: Simplified version manager menu by removing unused items",
       "changes": [
@@ -263,7 +263,7 @@
       ]
     },
     {
-      "version": "v503",
+      "version": "v504",
       "date": "2025-08-12 09:40",
       "description": "UI/UX: Fixed module info display to use standardized documentation format",
       "changes": [
@@ -273,7 +273,7 @@
       ]
     },
     {
-      "version": "v503",
+      "version": "v504",
       "date": "2025-08-12 09:23",
       "description": "UI/UX: Enhanced breadcrumb navigation for CLI",
       "changes": [
@@ -283,7 +283,7 @@
       ]
     },
     {
-      "version": "v503",
+      "version": "v504",
       "date": "2025-08-12 07:21",
       "description": "Bug Fix: Fixed footer overlap in quick release summary",
       "changes": [

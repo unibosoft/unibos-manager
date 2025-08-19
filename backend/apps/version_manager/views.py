@@ -112,6 +112,14 @@ class VersionManagerView(LoginRequiredMixin, BaseUIView):
         # Get or update database records for display
         archives = []
         for data in archives_data[:20]:  # Show top 20
+            # Extract build info from dirname (format: unibos_vXXX_YYYYMMDD_HHMM)
+            build = None
+            if '_' in data['dirname']:
+                parts = data['dirname'].split('_')
+                if len(parts) >= 3:
+                    # Get the date and time parts
+                    build = f"{parts[-2]}_{parts[-1]}" if len(parts) >= 4 else parts[-1]
+            
             archive, created = VersionArchive.objects.get_or_create(
                 version=data['version'],
                 defaults={
@@ -131,6 +139,9 @@ class VersionManagerView(LoginRequiredMixin, BaseUIView):
                 archive.z_score = data.get('z_score', 0)
                 archive.is_anomaly = data.get('is_anomaly', False)
                 archive.save()
+            
+            # Add build info to archive object
+            archive.build = build
             archives.append(archive)
         
         # Get latest scan session

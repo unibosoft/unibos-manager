@@ -273,6 +273,7 @@
         <thead>
             <tr>
                 <th class="sortable" data-sort="version">version <span class="sort-arrow">↕</span></th>
+                <th class="sortable" data-sort="build">build <span class="sort-arrow">↕</span></th>
                 <th class="sortable" data-sort="size">size (mb) <span class="sort-arrow">↕</span></th>
                 <th class="sortable" data-sort="files">files <span class="sort-arrow">↕</span></th>
                 <th class="sortable" data-sort="status">status <span class="sort-arrow">↕</span></th>
@@ -284,6 +285,7 @@
             {% for archive in archives %}
             <tr>
                 <td><strong>v{{ archive.version }}</strong></td>
+                <td style="color: var(--gray); font-size: 12px;">{{ archive.build|default:"—" }}</td>
                 <td>{{ archive.size_mb|floatformat:2 }}</td>
                 <td>{{ archive.file_count }}</td>
                 <td>

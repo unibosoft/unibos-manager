@@ -386,11 +386,11 @@ echo -e "${BLUE}ℹ️  Otomatik push aktif${NC}"
 export TZ='Europe/Istanbul'
 timestamp=$(date '+%Y%m%d_%H%M')
 
-# Yedekleme yap (mevcut durum arşivlenir)
-create_backup "$current_version" "$timestamp"
-
-# Versiyon dosyalarını güncelle  
+# Versiyon dosyalarını güncelle (ÖNCE güncelle ki arşivde yeni versiyon olsun)
 update_version_files "$new_version" "$timestamp"
+
+# Yedekleme yap (güncellenen durum yeni versiyon ile arşivlenir)
+create_backup "$new_version" "$timestamp"
 
 # CHANGELOG güncelle
 update_changelog "$new_version" "$timestamp"
