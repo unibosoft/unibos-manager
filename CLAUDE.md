@@ -34,8 +34,8 @@ This document defines the rules and guidelines Claude should follow when working
 ## 🔤 UI Text Standards
 
 ### All UI Text Must Be:
-- **lowercase** - No uppercase text in web UI
-- **consistent** - Same style across all interfaces
+- **lowercase** - No uppercase text in web UI or CLI interfaces
+- **consistent** - Same style across all interfaces (web and CLI)
 - **minimal** - Short, clear labels
 - **no title case** - "version manager" not "Version Manager"
 
@@ -45,12 +45,18 @@ This document defines the rules and guidelines Claude should follow when working
 - archive analyzer  
 - git status
 - total archives
+- klondike solitaire
+- screen locked - enter password
+- congratulations! you won!
 
 ❌ Incorrect:
 - Version Manager
 - Archive Analyzer
 - Git Status
 - Total Archives
+- KLONDIKE SOLITAIRE
+- Screen Locked - Enter Password
+- CONGRATULATIONS! YOU WON!
 
 ---
 
@@ -90,6 +96,12 @@ This document defines the rules and guidelines Claude should follow when working
 - Semantic HTML5 elements
 - Accessible markup (ARIA labels)
 - Mobile-responsive design
+
+### CLI Interface:
+- All text must be lowercase (game titles, messages, prompts)
+- Consistent prompt formatting: "enter password:" not "Enter Password:"
+- Error messages in lowercase: "incorrect password!" not "Incorrect password!"
+- Game text in lowercase: "klondike solitaire" not "KLONDIKE SOLITAIRE"
 
 ### Documentation (README.md, etc):
 - **ALL text must be lowercase**
@@ -139,7 +151,7 @@ This document defines the rules and guidelines Claude should follow when working
 ## 🚫 Never Do
 
 1. **Never skip logging** development activities
-2. **Never use uppercase** in web UI text
+2. **Never use uppercase** in web UI or CLI text
 3. **Never create ZIP archives** (only folders)
 4. **Never commit without testing**
 5. **Never delete DEVELOPMENT_LOG.md**
@@ -150,7 +162,7 @@ This document defines the rules and guidelines Claude should follow when working
 ## ✅ Always Do
 
 1. **Always update DEVELOPMENT_LOG.md** after changes
-2. **Always use lowercase** in web UI
+2. **Always use lowercase** in web UI and CLI
 3. **Always test before committing**
 4. **Always handle errors gracefully**
 5. **Always document complex logic**

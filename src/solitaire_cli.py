@@ -38,18 +38,25 @@ class CLISolitaire:
         self.show_help = False
         self.game_time_start = time.time()
         self.password_hash = None
+        self.last_message = ""
+        self.last_cursor_pos = None
+        self.screen_initialized = False
+        self.keys_pressed = set()  # Track pressed keys for QW combination
         
-    def draw_game(self):
+    def draw_game(self, force_redraw=False):
         """Draw the complete game screen"""
-        clear_screen()
         cols, lines = get_terminal_size()
         
-        # Green felt background
-        for y in range(1, lines - 3):
-            move_cursor(1, y)
-            print(f"{Colors.BG_GREEN}{' ' * cols}{Colors.RESET}", end='')
+        # Only clear screen on first draw or when forced
+        if not self.screen_initialized or force_redraw:
+            clear_screen()
+            # Green felt background
+            for y in range(1, lines - 3):
+                move_cursor(1, y)
+                print(f"{Colors.BG_GREEN}{' ' * cols}{Colors.RESET}", end='')
+            self.screen_initialized = True
         
-        # Title and stats
+        # Title and stats (update every time for timer)
         self.draw_header(cols)
         
         # Draw game areas
@@ -57,16 +64,29 @@ class CLISolitaire:
         self.draw_foundations(cols - 35, 3)
         self.draw_tableau(5, 8)
         
+        # Clear previous cursor if position changed
+        if self.last_cursor_pos and self.last_cursor_pos != (self.cursor_pile, self.cursor_index):
+            self.clear_cursor_at_position(self.last_cursor_pos)
+        
         # Draw cursor
         self.draw_cursor()
+        self.last_cursor_pos = (self.cursor_pile, self.cursor_index)
+        
+        # Clear previous message if it changed
+        if self.last_message != self.message:
+            if self.last_message:
+                move_cursor(cols//2 - len(self.last_message)//2, lines - 4)
+                print(f"{Colors.BG_GREEN}{' ' * len(self.last_message)}{Colors.RESET}")
+            self.last_message = self.message
         
         # Draw message
         if self.message:
             move_cursor(cols//2 - len(self.message)//2, lines - 4)
             print(f"{Colors.YELLOW}{self.message}{Colors.RESET}")
         
-        # Draw controls
-        self.draw_controls(lines - 2)
+        # Draw controls (static, only on first draw or force redraw)
+        if not self.screen_initialized or force_redraw:
+            self.draw_controls(lines - 2)
         
         # Show help overlay if enabled
         if self.show_help:
@@ -74,7 +94,7 @@ class CLISolitaire:
     
     def draw_header(self, cols):
         """Draw game header with stats"""
-        title = "♠ ♥ KLONDIKE SOLITAIRE ♦ ♣"
+        title = "♠ ♥ klondike solitaire ♦ ♣"
         move_cursor((cols - len(title))//2, 1)
         print(f"{Colors.BOLD}{Colors.WHITE}{title}{Colors.RESET}")
         
@@ -240,6 +260,31 @@ class CLISolitaire:
         move_cursor(x + 5, y)
         print(f"{Colors.CYAN}]{Colors.RESET}", end='')
     
+    def clear_cursor_at_position(self, pos):
+        """Clear cursor at previous position"""
+        pile, index = pos
+        cols, lines = get_terminal_size()
+        
+        if pile == 'stock':
+            x, y = 5, 3
+        elif pile == 'waste':
+            x, y = 13 + len(self.game.waste[-3:]) * 2 if self.game.waste else 13, 3
+        elif pile == 'foundation':
+            x = cols - 35 + index * 7
+            y = 3
+        elif pile == 'tableau':
+            x = 5 + index * 12
+            tableau_pile = self.game.tableau[index]
+            y = 8 + (len(tableau_pile) - 1) * 2 if tableau_pile else 8
+        else:
+            return
+        
+        # Clear cursor brackets
+        move_cursor(x - 1, y)
+        print(f"{Colors.BG_GREEN} {Colors.RESET}", end='')
+        move_cursor(x + 5, y)
+        print(f"{Colors.BG_GREEN} {Colors.RESET}", end='')
+    
     def draw_controls(self, y):
         """Draw control hints"""
         controls = "←↑↓→ move | space select | enter place | d draw | a auto | u undo | h help | q quit"
@@ -267,23 +312,23 @@ class CLISolitaire:
         
         # Help content
         help_text = [
-            "KLONDIKE SOLITAIRE HELP",
+            "klondike solitaire help",
             "",
-            "OBJECTIVE:",
-            "Move all cards to the four foundation piles",
-            "in ascending order (Ace to King) by suit.",
+            "objective:",
+            "move all cards to the four foundation piles",
+            "in ascending order (ace to king) by suit.",
             "",
-            "CONTROLS:",
-            "Arrow Keys - Navigate cursor",
-            "Space - Select/deselect cards",
-            "Enter - Move selected cards",
-            "D - Draw from stock",
-            "A - Auto-move to foundations",
-            "U - Undo last move",
-            "H - Toggle this help",
-            "Q - Quit game",
+            "controls:",
+            "arrow keys - navigate cursor",
+            "space - select/deselect cards",
+            "enter - move selected cards",
+            "d - draw from stock",
+            "a - auto-move to foundations",
+            "u - undo last move",
+            "h - toggle this help",
+            "q - quit game",
             "",
-            "Press H to close help"
+            "press h to close help"
         ]
         
         for i, line in enumerate(help_text):
@@ -296,6 +341,21 @@ class CLISolitaire:
     def handle_input(self, key: str) -> bool:
         """Handle keyboard input"""
         self.message = ""
+        
+        # Handle QW combination for exit
+        if key and len(key) == 1:
+            self.keys_pressed.add(key.lower())
+            
+            # Check for Q+W combination (exit)
+            if 'q' in self.keys_pressed and 'w' in self.keys_pressed:
+                return False
+            
+            # Clear keys after a short timeout
+            import threading
+            def clear_keys():
+                time.sleep(0.5)
+                self.keys_pressed.clear()
+            threading.Thread(target=clear_keys, daemon=True).start()
         
         if key == 'q':
             return False
@@ -330,7 +390,7 @@ class CLISolitaire:
         
         # Check for win
         if self.game.is_won():
-            self.message = "🎉 CONGRATULATIONS! YOU WON! 🎉"
+            self.message = "🎉 congratulations! you won! 🎉"
         
         return True
     
@@ -416,7 +476,11 @@ class CLISolitaire:
         self.game.new_game()
         hide_cursor()
         
+        # Initial draw with full screen clear
+        self.draw_game(force_redraw=True)
+        
         while True:
+            # Update only what's needed (no full screen clear)
             self.draw_game()
             key = get_single_key(timeout=1.0)  # Update every second for timer
             
@@ -458,7 +522,7 @@ class CLISolitaire:
         print(f"{Colors.YELLOW}🔒{Colors.RESET}")
         
         move_cursor(x + 2, y + 4)
-        print(f"{Colors.WHITE}Screen Locked - Enter Password:{Colors.RESET}")
+        print(f"{Colors.WHITE}screen locked - enter password:{Colors.RESET}")
         
         move_cursor(x + 2, y + 6)
         print(f"{Colors.CYAN}> {Colors.RESET}", end='')
@@ -488,7 +552,7 @@ def play_solitaire_cli(with_lock=False):
     
     if with_lock:
         # Set a lock password
-        game.password_hash = hash_password("1234")  # Default password
+        game.password_hash = hash_password("lplp")  # Database password
     
     game.play()
     
@@ -502,7 +566,7 @@ def play_solitaire_cli(with_lock=False):
                 # Show error
                 cols, lines = get_terminal_size()
                 move_cursor(cols//2 - 10, lines//2 + 4)
-                print(f"{Colors.RED}Incorrect password!{Colors.RESET}")
+                print(f"{Colors.RED}incorrect password!{Colors.RESET}")
                 time.sleep(2)
 
 

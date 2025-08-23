@@ -1098,3 +1098,8 @@ Each entry should follow this format:
 - Result: Cards now display immediately on load, new game button works properly, and game state persists correctly
 
 
+## [2025-08-23 10:22] Bug Fix: Solitaire Admin Dashboard Fixes
+- Fixed move recording for anonymous users, improved abandoned game CSS rendering, added move_details support to save endpoint
+- Result: Move history now records properly, abandoned games display correctly with parsed card formats
+
+

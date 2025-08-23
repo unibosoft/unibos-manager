@@ -205,12 +205,12 @@
 <body>
     <div class="terminal-container">
         <div class="ascii-art">╔═══════════════════════════════════════════════════════╗
-║                      unibos {{ version|default:"v434" }}                      ║
+║                      unibos {{ version }}                      ║
 ║         universal business operating system          ║
 ╚═══════════════════════════════════════════════════════╝</div>
         
         <h1>system access</h1>
-        <div class="version">build {{ build_number|default:"20250809_0848" }} | emergency mode</div>
+        <div class="version">build {{ build_number }} | emergency mode</div>
         
         <form class="login-form" id="loginForm">
             {% csrf_token %}

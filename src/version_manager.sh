@@ -272,12 +272,18 @@ update_version_files() {
     
     echo -e "${YELLOW}📝 versiyon dosyaları güncelleniyor...${NC}"
     
-    # Sadece src/VERSION.json güncelle (ana dizinde VERSION.json yok)
     # src/VERSION.json güncelle
     if [ -f "src/VERSION.json" ]; then
         sed -i '' "s/\"version\": \"v[0-9]*\"/\"version\": \"${new_version}\"/" src/VERSION.json
         sed -i '' "s/\"build_number\": \"[^\"]*\"/\"build_number\": \"${timestamp}\"/" src/VERSION.json
         sed -i '' "s/\"release_date\": \"[^\"]*\"/\"release_date\": \"$(TZ='Europe/Istanbul' date '+%Y-%m-%d %H:%M:%S +03:00')\"/" src/VERSION.json
+    fi
+    
+    # backend/VERSION.json güncelle (web ui için)
+    if [ -f "backend/VERSION.json" ]; then
+        sed -i '' "s/\"version\": \"v[0-9]*\"/\"version\": \"${new_version}\"/" backend/VERSION.json
+        sed -i '' "s/\"build_number\": \"[^\"]*\"/\"build_number\": \"${timestamp}\"/" backend/VERSION.json
+        sed -i '' "s/\"release_date\": \"[^\"]*\"/\"release_date\": \"$(TZ='Europe/Istanbul' date '+%Y-%m-%d %H:%M:%S +03:00')\"/" backend/VERSION.json
     fi
     
     # src/main.py güncelle - docstring ve fallback version

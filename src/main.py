@@ -1,11 +1,11 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-🪐 unibos v510 - unicorn bodrum operating system
+🪐 unibos v511 - unicorn bodrum operating system
 Simplified Web Forge + Lowercase UI + Single Server Architecture
 
 Author: berk hatırlı - bitez, bodrum, muğla, türkiye
-Version: v510_20250823_1022
+Version: v511_20250823_1049
 Purpose: Professional terminal UI with multi-module support"""
 
 import os
@@ -128,9 +128,9 @@ except ImportError:
 
 # Version information
 VERSION_INFO = {
-    "version": "v510",
-    "build": "20250823_1022", 
-    "build_date": "2025-08-23 10:22:13 +03:00",
+    "version": "v511",
+    "build": "20250823_1049", 
+    "build_date": "2025-08-23 10:49:58 +03:00",
     "author": "berk hatırlı",
     "location": "bitez, bodrum, muğla, türkiye, dünya, güneş sistemi, samanyolu, yerel galaksi grubu, evren"
 }
@@ -306,9 +306,9 @@ def load_version_info():
         with open(version_path, 'r', encoding='utf-8') as f:
             data = json.load(f)
             return {
-                "version": data.get("version", "v236"),
-                "build": data.get("build_number", "20250725_0254"),
-                "build_date": data.get("release_date", "2025-07-25 02:54:00 +03:00"),
+                "version": data.get("version", "v510"),
+                "build": data.get("build_number", "20250823_1022"),
+                "build_date": data.get("release_date", "2025-08-23 10:22:13 +03:00"),
                 "author": data.get("author", "berk hatırlı"),
                 "location": data.get("location", "bitez, bodrum, muğla, türkiye")
             }
@@ -1525,20 +1525,20 @@ def handle_minimize():
         
         # Simple password prompt
         move_cursor(cols//2 - 15, lines//2)
-        print(f"{Colors.CYAN}Enter password to return: {Colors.RESET}", end='')
+        print(f"{Colors.CYAN}enter password to return: {Colors.RESET}", end='')
         show_cursor()
         password = ""
         while True:
             key = get_single_key(timeout=None)
             if key == '\r':
-                if password == "1234":  # Default password
+                if password == "lplp":  # Database password
                     break
                 else:
                     move_cursor(cols//2 - 10, lines//2 + 2)
-                    print(f"{Colors.RED}Incorrect password!{Colors.RESET}")
+                    print(f"{Colors.RED}incorrect password!{Colors.RESET}")
                     time.sleep(1)
                     move_cursor(cols//2 - 15, lines//2)
-                    print(f"{Colors.CYAN}Enter password to return: {' ' * 20}{Colors.RESET}", end='')
+                    print(f"{Colors.CYAN}enter password to return: {' ' * 20}{Colors.RESET}", end='')
                     move_cursor(cols//2 + 11, lines//2)
                     password = ""
             elif key and len(key) == 1:

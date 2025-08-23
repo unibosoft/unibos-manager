@@ -68,7 +68,7 @@ def health_check(request):
     return JsonResponse({
         'status': 'ok',
         'message': 'UNIBOS Web Server is running!',
-        'version': 'v308'
+        'version': 'v510'
     })
 
 def home(request):

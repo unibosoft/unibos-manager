@@ -920,14 +920,15 @@ document.addEventListener('DOMContentLoaded', function() {
 </style>
 {% endif %}
 
-<!-- Additional styles for completed/abandoned games -->
-{% if session.is_abandoned or session.is_completed %}
+<!-- Additional overlay styles - all CSS styles are preserved for all game states -->
 <style>
-    /* Show game state for completed/abandoned games */
+    /* Ensure game area is positioned for overlay */
     .game-area-viz {
         position: relative;
     }
     
+    {% if session.is_abandoned or session.is_completed %}
+    /* Dark overlay for completed/abandoned games */
     .game-area-viz::after {
         content: '';
         position: absolute;
@@ -938,7 +939,9 @@ document.addEventListener('DOMContentLoaded', function() {
         background: rgba(0, 0, 0, {% if session.is_won %}0.3{% else %}0.5{% endif %});
         border-radius: 8px;
         pointer-events: none;
+        z-index: 900;
     }
+    {% endif %}
     
     .abandoned-indicator {
         position: absolute;
@@ -964,6 +967,5 @@ document.addEventListener('DOMContentLoaded', function() {
         margin-top: 10px;
     }
 </style>
-{% endif %}
 
 {% endblock %}

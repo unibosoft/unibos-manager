@@ -63,36 +63,49 @@ def sidebar_context(request):
 def version_context(request):
     """
     Provides version information for all templates
+    First tries backend/VERSION.json, then src/VERSION.json
     """
     import json
     from pathlib import Path
     
+    version_data = None
+    
     try:
-        # Try to load VERSION.json
-        src_path = Path(__file__).parent.parent.parent.parent / 'src'
-        version_file = src_path / 'VERSION.json'
+        # First try backend VERSION.json (same directory as manage.py)
+        backend_path = Path(__file__).parent.parent.parent
+        backend_version_file = backend_path / 'VERSION.json'
         
-        if version_file.exists():
-            with open(version_file, 'r') as f:
+        if backend_version_file.exists():
+            with open(backend_version_file, 'r') as f:
                 version_data = json.load(f)
-        else:
-            # Fallback version
+        
+        # If not found, try src/VERSION.json
+        if not version_data:
+            src_path = backend_path.parent / 'src'
+            src_version_file = src_path / 'VERSION.json'
+            
+            if src_version_file.exists():
+                with open(src_version_file, 'r') as f:
+                    version_data = json.load(f)
+        
+        # If still not found, use fallback
+        if not version_data:
             version_data = {
-                "version": "v436",
-                "build_number": "20250809_1032",
-                "release_date": "2025-08-09"
+                "version": "v510",
+                "build_number": "20250823_1022",
+                "release_date": "2025-08-23"
             }
-    except:
-        # Fallback version
+    except Exception as e:
+        # Fallback version on any error
         version_data = {
-            "version": "v436",
-            "build_number": "20250809_1032",
-            "release_date": "2025-08-09"
+            "version": "v510",
+            "build_number": "20250823_1022",
+            "release_date": "2025-08-23"
         }
     
     return {
-        'version': version_data['version'],
-        'build_number': version_data['build_number'],
+        'version': version_data.get('version', 'v510'),
+        'build_number': version_data.get('build_number', '20250823_1022'),
         'release_date': version_data.get('release_date', ''),
     }
 

@@ -20,26 +20,39 @@ import os
 from pathlib import Path
 from datetime import datetime
 
-# Import VERSION info
+# Import VERSION info - First try backend/VERSION.json, then src/VERSION.json
+VERSION_DATA = None
 try:
-    src_path = Path(__file__).parent.parent.parent.parent / 'src'
-    version_file = src_path / 'VERSION.json'
-    if version_file.exists():
-        with open(version_file, 'r') as f:
+    # First try backend VERSION.json
+    backend_path = Path(__file__).parent.parent.parent
+    backend_version_file = backend_path / 'VERSION.json'
+    
+    if backend_version_file.exists():
+        with open(backend_version_file, 'r') as f:
             VERSION_DATA = json.load(f)
-    else:
-        # Fallback to current version
+    
+    # If not found, try src/VERSION.json
+    if not VERSION_DATA:
+        src_path = backend_path.parent / 'src'
+        src_version_file = src_path / 'VERSION.json'
+        
+        if src_version_file.exists():
+            with open(src_version_file, 'r') as f:
+                VERSION_DATA = json.load(f)
+    
+    # If still not found, use fallback
+    if not VERSION_DATA:
         VERSION_DATA = {
-            "version": "v447",
-            "build_number": "20250812_0548",
-            "release_date": "2025-08-12"
+            "version": "v510",
+            "build_number": "20250823_1022",
+            "release_date": "2025-08-23"
         }
 except:
     # Fallback to current version
     VERSION_DATA = {
-        "version": "v447",
-        "build_number": "20250812_0548",
-        "release_date": "2025-08-12"
+        "version": "v510",
+        "build_number": "20250823_1022",
+        "release_date": "2025-08-23"
     }
 
 
@@ -637,10 +650,7 @@ class LoginView(TemplateView):
     
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context.update({
-            'version': VERSION_DATA['version'],
-            'build_number': VERSION_DATA['build_number'],
-        })
+        # Version info is now provided by context processor
         return context
     
     def post(self, request, *args, **kwargs):

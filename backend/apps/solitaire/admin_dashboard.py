@@ -228,7 +228,12 @@ def live_game_view(request, session_id):
                 game_state = {}
         
         # For games without game_state (abandoned, completed, or old), try to get from last deck or reconstruct
-        if not game_state:
+        if not game_state or (isinstance(game_state, dict) and not any(game_state.values())):
+            # Log for debugging
+            import logging
+            logger = logging.getLogger(__name__)
+            logger.info(f"No game state for session {game_session.session_id[:8]}, is_abandoned={game_session.is_abandoned}, is_completed={game_session.is_completed}")
+            
             try:
                 # Get the last deck state if available
                 from .models import SolitaireGameDeck
@@ -238,6 +243,7 @@ def live_game_view(request, session_id):
                 
                 if last_deck and last_deck.deck_state:
                     game_state = last_deck.deck_state
+                    logger.info(f"Got game state from SolitaireGameDeck")
             except:
                 pass
             
