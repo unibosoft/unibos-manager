@@ -807,12 +807,21 @@ def solitaire_view(request):
         import time
         tab_id = str(int(time.time() * 1000))  # Use timestamp as tab ID
     
-    # Store referrer URL for this specific tab
+    # Store referrer URL for this specific tab and globally
     if referrer and '/solitaire/' not in referrer and '/login/' not in referrer:
-        request.session[f'pre_solitaire_url_{tab_id}'] = referrer
+        # Parse the referrer to get just the path
+        from urllib.parse import urlparse
+        parsed_url = urlparse(referrer)
+        return_path = parsed_url.path
+        if parsed_url.query:
+            return_path += '?' + parsed_url.query
+        
+        request.session[f'pre_solitaire_url_{tab_id}'] = return_path
+        request.session['last_unibos_page'] = return_path  # Store globally too
+        logger.info(f"Stored return URL for tab {tab_id}: {return_path}")
     elif f'pre_solitaire_url_{tab_id}' not in request.session:
-        # Default to main page
-        request.session[f'pre_solitaire_url_{tab_id}'] = '/'
+        # Try to use the global last page or default to main
+        request.session[f'pre_solitaire_url_{tab_id}'] = request.session.get('last_unibos_page', '/')
     
     # Don't set global in_solitaire flag - allow multiple tabs
     request.session.save()
@@ -856,6 +865,9 @@ def solitaire_view(request):
         logger.info(f"  waste_pile: {len(session.waste_pile) if session.waste_pile else 0} cards")
         logger.info(f"  tableau_piles: {[len(p) for p in session.tableau_piles] if session.tableau_piles else 'None'}")
         logger.info(f"  moves_count: {session.moves_count}, score: {session.score}")
+        
+        # Force refresh from DB to ensure we have latest data
+        session.refresh_from_db()
         
         game_state = session.get_game_state()
         

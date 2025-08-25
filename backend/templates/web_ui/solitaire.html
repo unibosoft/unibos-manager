@@ -528,6 +528,12 @@
         console.log('Score from backend:', initialGameState.score);
         console.log('Time from backend:', initialGameState.time);
         
+        // Verify we have valid game state
+        if (!initialGameState || (!initialGameState.stock && !initialGameState.waste && !initialGameState.tableau)) {
+            console.error('❌ CRITICAL ERROR: No valid game state from backend!');
+            alert('Error: Could not load game state. Please refresh the page.');
+        }
+        
         const suits = ['♠', '♥', '♦', '♣'];
         const ranks = ['A', '2', '3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K'];
         const values = { A: 1, J: 11, Q: 12, K: 13 };
@@ -1576,6 +1582,7 @@
             console.log('Stock cards being saved:', backendGameState.stock.length);
             console.log('Waste cards being saved:', backendGameState.waste.length);
             console.log('Tableau being saved:', backendGameState.tableau.map(p => p.length));
+            console.log('Full save data:', JSON.stringify(saveData));
             
             fetch('/solitaire/api/save/', {
                 method: 'POST',

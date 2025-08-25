@@ -423,7 +423,8 @@ def solitaire_api(request, action):
                 game_session.save()
                 
                 result['success'] = True
-                logger.debug(f"Game saved - moves: {session.moves_count}, score: {session.score}, won: {is_won}")
+                result['message'] = f"Game saved successfully - moves: {session.moves_count}, score: {session.score}"
+                logger.info(f"✓ Game saved - Session: {session_id[:8]}, Moves: {session.moves_count}, Score: {session.score}, Won: {is_won}")
             
         elif action == 'new_game':
             # Get player for tracking
