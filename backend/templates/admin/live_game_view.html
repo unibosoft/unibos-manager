@@ -157,9 +157,10 @@
                 transform-origin: top left;
                 width: 935px;
                 margin: 0 auto;
+                position: relative;
             ">
                 <!-- Visual Game Board - Exact UNIBOS Solitaire Style -->
-                <div id="game-board" class="game-area-viz" style="
+                <div id="game-board" class="game-area-viz {% if session.is_abandoned %}game-abandoned{% elif session.is_completed %}game-completed{% if session.is_won %} game-won{% endif %}{% endif %}" style="
                     background: #1e5620;
                     background-image: radial-gradient(ellipse at center, #2a6f2e 0%, #1e5620 100%);
                     padding: 20px;
@@ -412,7 +413,7 @@
                 
                 <!-- Show game status indicator -->
                 {% if session.is_abandoned %}
-                <div class="abandoned-indicator">
+                <div class="abandoned-indicator indicator-abandoned">
                     <span class="badge badge-rejected">game abandoned</span>
                     <div class="time">
                         {% if session.ended_at %}
@@ -423,7 +424,7 @@
                     </div>
                 </div>
                 {% elif session.is_completed %}
-                <div class="abandoned-indicator">
+                <div class="abandoned-indicator {% if session.is_won %}indicator-won{% else %}indicator-lost{% endif %}">
                     {% if session.is_won %}
                         <span class="badge badge-approved">game won! 🎉</span>
                     {% else %}
@@ -965,21 +966,24 @@ document.addEventListener('DOMContentLoaded', function() {
         position: relative;
     }
     
-    {% if session.is_abandoned or session.is_completed %}
     /* Dark overlay for completed/abandoned games */
-    .game-area-viz::after {
+    .game-area-viz.game-abandoned::after,
+    .game-area-viz.game-completed::after {
         content: '';
         position: absolute;
         top: 0;
         left: 0;
         right: 0;
         bottom: 0;
-        background: rgba(0, 0, 0, {% if session.is_won %}0.3{% else %}0.5{% endif %});
+        background: rgba(0, 0, 0, 0.5);
         border-radius: 8px;
         pointer-events: none;
         z-index: 900;
     }
-    {% endif %}
+    
+    .game-area-viz.game-completed.game-won::after {
+        background: rgba(0, 0, 0, 0.3);
+    }
     
     .abandoned-indicator {
         position: absolute;
@@ -990,8 +994,16 @@ document.addEventListener('DOMContentLoaded', function() {
         background: rgba(26, 26, 26, 0.95);
         padding: 20px 40px;
         border-radius: 8px;
-        border: 2px solid {% if session.is_won %}#4CAF50{% elif session.is_abandoned %}#ff6b35{% else %}#666{% endif %};
+        border: 2px solid #666;
         text-align: center;
+    }
+    
+    .abandoned-indicator.indicator-won {
+        border-color: #4CAF50;
+    }
+    
+    .abandoned-indicator.indicator-abandoned {
+        border-color: #ff6b35;
     }
     
     .abandoned-indicator .badge {

@@ -1,10 +1,10 @@
 {
-  "version": "v512",
-  "build_number": "20250825_2159",
-  "release_date": "2025-08-25 21:59:21 +03:00",
+  "version": "v513",
+  "build_number": "20250826_0003",
+  "release_date": "2025-08-26 00:03:43 +0300",
   "author": "berk hatırlı",
   "location": "bitez, bodrum, muğla, türkiye, dünya, güneş sistemi, samanyolu, yerel galaksi grubu, evren",
-  "description": "UI/UX: Fixed birlikteyiz popup style, README lowercase conversion, and module descriptions layout",
+  "description": "v513: Test scripts quarantined, solitaire improvements",
   "features": [
     "🎬 **Movies Module**: Complete movie/series collection management with TMDB/OMDB API integration",
     "🎵 **Music Module**: Spotify-integrated music library without storing files, open source artwork",

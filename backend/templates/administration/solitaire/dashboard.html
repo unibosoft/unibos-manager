@@ -312,9 +312,10 @@ document.addEventListener('DOMContentLoaded', function() {
             const duration = Math.floor((now - startTime) / 60000); // minutes
             
             row.innerHTML = `
+                <td><input type="checkbox" class="session-checkbox active-checkbox" data-session-id="${game.session_id}" /></td>
                 <td>${game.player}</td>
                 <td>${game.ip_address}</td>
-                <td>${duration} dakika ago</td>
+                <td>${duration} minutes ago</td>
                 <td><strong>${game.score}</strong></td>
                 <td><strong>${game.moves}</strong></td>
                 <td><a href="/administration/solitaire/realtime/live/${game.session_id}/">view details</a></td>
@@ -323,8 +324,13 @@ document.addEventListener('DOMContentLoaded', function() {
         
         if (games.length === 0) {
             const row = tbody.insertRow();
-            row.innerHTML = '<td colspan="6" style="text-align: center; color: #999;">no active games</td>';
+            row.innerHTML = '<td colspan="7" style="text-align: center; color: #999;">no active games</td>';
         }
+        
+        // Re-attach event listeners to new checkboxes
+        document.querySelectorAll('.active-checkbox').forEach(cb => {
+            cb.addEventListener('change', toggleDeleteButton);
+        });
     }
     
     function updateStats(stats) {

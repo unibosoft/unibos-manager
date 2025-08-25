@@ -797,35 +797,104 @@ def solitaire_view(request):
     import uuid
     import json
     
-    # Set session flag
-    request.session['in_solitaire'] = True
+    # Store the previous URL before entering solitaire (for returning after exit)
+    # Use a tab-specific key based on a unique identifier
+    referrer = request.META.get('HTTP_REFERER', '')
+    
+    # Generate a tab ID if not present (for tracking per-tab state)
+    tab_id = request.GET.get('tab_id', '')
+    if not tab_id:
+        import time
+        tab_id = str(int(time.time() * 1000))  # Use timestamp as tab ID
+    
+    # Store referrer URL for this specific tab
+    if referrer and '/solitaire/' not in referrer and '/login/' not in referrer:
+        request.session[f'pre_solitaire_url_{tab_id}'] = referrer
+    elif f'pre_solitaire_url_{tab_id}' not in request.session:
+        # Default to main page
+        request.session[f'pre_solitaire_url_{tab_id}'] = '/'
+    
+    # Don't set global in_solitaire flag - allow multiple tabs
+    request.session.save()
     
     # Get or create screen lock for user
     screen_lock, created = ScreenLock.objects.get_or_create(user=request.user)
     
-    # Get or create active session (same logic as solitaire app)
+    # Log for debugging
+    import logging
+    logger = logging.getLogger(__name__)
+    
+    # Log the request details
+    is_duplicate_tab = not request.META.get('HTTP_REFERER', '').endswith('/solitaire/')
+    logger.info(f"Solitaire view accessed - User: {request.user.username}, "
+               f"Referer: {request.META.get('HTTP_REFERER', 'None')}, "
+               f"Is duplicate tab: {is_duplicate_tab}")
+    
+    # IMPORTANT: Always try to get existing active session first
+    # Don't create new session if one exists
     session = SolitaireSession.objects.filter(
         user=request.user,
         is_active=True
-    ).first()
+    ).order_by('-last_played').first()  # Get most recent active session
     
-    if not session:
-        # Create new game session
+    # Get game state from existing session or create new one
+    if session:
+        # Use existing session - continue from where user left off
+        logger.info(f"Found existing session {session.session_id} for user {request.user.username}")
+        game_state = session.get_game_state()
+        
+        # Calculate actual elapsed time since game started
+        time_elapsed = int((timezone.now() - session.created_at).total_seconds())
+        game_state['time'] = time_elapsed  # Update with actual elapsed time
+        
+        # Check if game state is actually populated
+        is_empty_state = (
+            not game_state.get('stock') and 
+            not game_state.get('waste') and 
+            all(not pile for pile in game_state.get('tableau', []))
+        )
+        
+        if is_empty_state:
+            logger.warning(f"Session {session.session_id} has empty game state")
+            # Check session fields directly
+            logger.warning(f"Stock pile: {session.stock_pile}")
+            logger.warning(f"Waste pile: {session.waste_pile}")
+            logger.warning(f"Tableau piles: {session.tableau_piles}")
+            logger.warning(f"Moves count: {session.moves_count}")
+            
+            # Don't create a new game - this might be a timing issue
+            # The session might be in process of being saved from another tab
+        else:
+            # Log the game state details
+            logger.info(f"Game state - Stock: {len(game_state.get('stock', []))}, "
+                       f"Waste: {len(game_state.get('waste', []))}, "
+                       f"Moves: {game_state.get('moves', 0)}, "
+                       f"Score: {game_state.get('score', 0)}, "
+                       f"Time elapsed: {time_elapsed} seconds")
+        
+        # Update last played timestamp
+        session.last_played = timezone.now()
+        session.save(update_fields=['last_played'])
+    else:
+        # Only create new session if no active session exists
+        logger.info(f"No active session found for user {request.user.username}, creating new game")
         game = SolitaireGame()
         game.new_game()
         game_state = game.to_dict()
+        
+        # New game starts with 0 time elapsed
+        game_state['time'] = 0
         
         # Create session
         session = SolitaireSession.objects.create(
             user=request.user,
             session_id=str(uuid.uuid4()),
-            is_active=True
+            is_active=True,
+            last_played=timezone.now()
         )
         session.save_game_state(game_state)
         session.save()
-    
-    # Get game state
-    game_state = session.get_game_state()
+        logger.info(f"Created new session {session.session_id}")
     
     context = {
         'has_screen_lock': screen_lock.is_enabled,
@@ -837,7 +906,8 @@ def solitaire_view(request):
         # ADD THE MISSING GAME STATE!
         'session_id': session.session_id,
         'game_state': json.dumps(game_state),
-        'is_authenticated': True
+        'is_authenticated': True,
+        'tab_id': tab_id  # Include tab ID for tracking
     }
     
     # Use the actual solitaire template, not a separate one
@@ -863,6 +933,7 @@ def exit_solitaire(request):
     """Exit solitaire (requires screen lock code)"""
     if request.method == 'POST':
         code = request.POST.get('code')
+        tab_id = request.POST.get('tab_id', '')
         
         # Get screen lock
         try:
@@ -870,8 +941,15 @@ def exit_solitaire(request):
             
             if not screen_lock.is_enabled:
                 # No screen lock, allow exit
-                request.session['in_solitaire'] = False
-                return JsonResponse({'success': True})
+                # Get tab-specific return URL
+                return_url = request.session.get(f'pre_solitaire_url_{tab_id}', '/')
+                # Clean up tab-specific session data
+                if f'pre_solitaire_url_{tab_id}' in request.session:
+                    del request.session[f'pre_solitaire_url_{tab_id}']
+                return JsonResponse({
+                    'success': True,
+                    'redirect_url': return_url
+                })
             
             # Check if locked out
             if screen_lock.is_locked_out():
@@ -886,10 +964,17 @@ def exit_solitaire(request):
                 screen_lock.last_unlocked = timezone.now()
                 screen_lock.save()
                 
-                # Clear session flag
-                request.session['in_solitaire'] = False
+                # Get tab-specific return URL
+                return_url = request.session.get(f'pre_solitaire_url_{tab_id}', '/')
                 
-                return JsonResponse({'success': True})
+                # Clean up tab-specific session data
+                if f'pre_solitaire_url_{tab_id}' in request.session:
+                    del request.session[f'pre_solitaire_url_{tab_id}']
+                
+                return JsonResponse({
+                    'success': True,
+                    'redirect_url': return_url
+                })
             else:
                 screen_lock.record_failed_attempt()
                 remaining = screen_lock.max_failed_attempts - screen_lock.failed_attempts

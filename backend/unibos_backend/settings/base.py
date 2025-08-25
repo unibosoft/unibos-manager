@@ -94,6 +94,7 @@ MIDDLEWARE = [
     'apps.common.middleware.SecurityHeadersMiddleware',
     'apps.common.middleware.RequestLoggingMiddleware',
     'apps.common.middleware.RateLimitMiddleware',
+    'apps.web_ui.middleware.SolitaireSecurityMiddleware',  # Solitaire screen lock security
     'apps.common.middleware_activity.UserActivityMiddleware',  # Track user activity
     'apps.common.middleware_activity.APIActivityMiddleware',  # Track API activity
     'apps.logging.middleware.SystemLoggingMiddleware',  # System logging

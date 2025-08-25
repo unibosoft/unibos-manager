@@ -470,9 +470,52 @@
     </div>
     
     <script>
+        // Browser history protection - prevent back/forward navigation
+        let allowNavigation = false; // Flag to control navigation warnings
+        
+        (function() {
+            // Push a new state to prevent back navigation
+            history.pushState(null, null, location.href);
+            
+            // Handle back button - show exit dialog
+            window.addEventListener('popstate', function(event) {
+                // Push state again to prevent navigation
+                history.pushState(null, null, location.href);
+                
+                // Show exit dialog instead of navigating
+                if (typeof showScreenLockDialog === 'function') {
+                    showScreenLockDialog();
+                }
+            });
+            
+            // Allow page refresh with F5 (useful for duplicated tabs)
+            // But save game state first
+            document.addEventListener('keydown', function(e) {
+                if (e.key === 'F5' || (e.ctrlKey && e.key === 'r')) {
+                    // Save game state before refresh
+                    if (typeof saveGameStateSync === 'function') {
+                        saveGameStateSync();
+                    }
+                    // Allow refresh
+                }
+            });
+            
+            // Save game state when leaving, but don't prevent navigation for duplicated tabs
+            window.addEventListener('beforeunload', function(e) {
+                // Always try to save game state before leaving
+                if (typeof saveGameStateSync === 'function') {
+                    saveGameStateSync();
+                }
+                
+                // Don't show warning - allow smooth duplicate tab functionality
+                return undefined;
+            });
+        })();
+        
         // Get game state from backend
         const initialGameState = {{ game_state|safe }};
         const sessionId = '{{ session_id }}';
+        const tabId = '{{ tab_id }}';
         
         console.log('=== GAME STATE FROM BACKEND ===');
         console.log('Session ID:', sessionId);
@@ -1008,16 +1051,56 @@
         let startTime = Date.now();
         let timerInterval = null;
         
+        function formatDuration(seconds) {
+            // Handle very long durations (days, months, years)
+            const year = 365 * 24 * 60 * 60;
+            const month = 30 * 24 * 60 * 60;
+            const day = 24 * 60 * 60;
+            const hour = 60 * 60;
+            const minute = 60;
+            
+            if (seconds >= year) {
+                const years = Math.floor(seconds / year);
+                const remaining = seconds % year;
+                const days = Math.floor(remaining / day);
+                return `${years}y ${days}d`;
+            } else if (seconds >= month) {
+                const months = Math.floor(seconds / month);
+                const remaining = seconds % month;
+                const days = Math.floor(remaining / day);
+                return `${months}mo ${days}d`;
+            } else if (seconds >= day) {
+                const days = Math.floor(seconds / day);
+                const remaining = seconds % day;
+                const hours = Math.floor(remaining / hour);
+                return `${days}d ${hours}h`;
+            } else if (seconds >= hour) {
+                const hours = Math.floor(seconds / hour);
+                const remaining = seconds % hour;
+                const minutes = Math.floor(remaining / minute);
+                return `${hours}h ${minutes}m`;
+            } else {
+                const minutes = Math.floor(seconds / minute);
+                const secs = seconds % minute;
+                return `${minutes}:${secs.toString().padStart(2, '0')}`;
+            }
+        }
+        
         function updateTimer() {
             const elapsed = Math.floor((Date.now() - startTime) / 1000);
-            const minutes = Math.floor(elapsed / 60);
-            const seconds = elapsed % 60;
-            document.getElementById('timer').textContent = `${minutes}:${seconds.toString().padStart(2, '0')}`;
+            document.getElementById('timer').textContent = formatDuration(elapsed);
         }
         
         function startTimer() {
+            // Don't reset startTime if we already have a saved time
+            // This preserves the timer across page reloads
             if (timerInterval) clearInterval(timerInterval);
-            startTime = Date.now();
+            
+            // Only set startTime if it's not already set (from saved game)
+            if (!startTime || startTime === Date.now()) {
+                startTime = Date.now();
+            }
+            
             timerInterval = setInterval(updateTimer, 1000);
             updateTimer();
         }
@@ -1623,6 +1706,7 @@
             // Create form data for POST request
             const formData = new FormData();
             formData.append('password', code);
+            formData.append('tab_id', tabId);
             
             // Verify screen lock code
             fetch('/administration/unlock/', {
@@ -1635,8 +1719,10 @@
             .then(response => response.json())
             .then(data => {
                 if (data.success) {
-                    // Redirect to main page (root URL)
-                    window.location.href = '/';
+                    // Allow navigation without warning
+                    allowNavigation = true;
+                    // Redirect to the previous page or main page
+                    window.location.replace(data.redirect_url || '/');
                 } else {
                     document.getElementById('errorMsg').textContent = data.error || 'Invalid code';
                     document.getElementById('errorMsg').style.display = 'block';
@@ -1726,7 +1812,8 @@
                         game.moveHistory = [];
                         game.undoStack = [];
                         
-                        // Reset timer
+                        // Reset timer for new game
+                        startTime = Date.now();
                         startTimer();
                         
                         // Update UI
@@ -2350,11 +2437,13 @@
                     'Content-Type': 'application/x-www-form-urlencoded',
                     'X-CSRFToken': getCookie('csrftoken')
                 },
-                body: 'code=' + encodeURIComponent(password)
+                body: 'code=' + encodeURIComponent(password) + '&tab_id=' + encodeURIComponent(tabId)
             })
             .then(response => response.json())
             .then(data => {
                 if (data.success) {
+                    // Allow navigation without warning
+                    allowNavigation = true;
                     // Exit solitaire and go back to main
                     window.location.href = '/';
                 } else {
@@ -2454,6 +2543,7 @@
             
             // Initialize game components
             initGame();
+            // Timer will be started with the restored time from initGame
             startTimer();
             setupDropZones();
             

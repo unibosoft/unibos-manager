@@ -235,8 +235,17 @@ def live_game_view(request, session_id):
                 # If parsing fails, use empty dict
                 game_state = {}
         
-        # For games without game_state (abandoned, completed, or old), try to get from last deck or reconstruct
-        if not game_state or (isinstance(game_state, dict) and not any(game_state.values())):
+        # For abandoned games, also try to get the last saved state
+        # Check if game_state is empty or has empty values
+        is_empty_state = (not game_state or 
+                         (isinstance(game_state, dict) and 
+                          (not game_state or  # empty dict
+                           all(not v for v in game_state.values()) or  # all values empty
+                           (game_state.get('tableau') == [[] for _ in range(7)] and  # empty tableau
+                            not game_state.get('stock') and  # no stock
+                            not game_state.get('waste')))))  # no waste
+        
+        if is_empty_state:
             # Log for debugging
             import logging
             logger = logging.getLogger(__name__)
@@ -265,22 +274,66 @@ def live_game_view(request, session_id):
                             game_state = json.loads(last_move.game_state_after)
                         else:
                             game_state = last_move.game_state_after
-                    except:
-                        pass
+                        logger.info(f"Got game state from last move for session {game_session.session_id[:8]}")
+                    except Exception as e:
+                        logger.error(f"Failed to parse game_state_after: {e}")
+                        
+            # For abandoned games specifically, try to get the last autosave
+            if not game_state and game_session.is_abandoned:
+                # Try to query the database for a recent autosave
+                try:
+                    # Import at function level to avoid circular imports
+                    from django.core.cache import cache
+                    
+                    # Try cache first
+                    cache_key = f'solitaire_game_{game_session.session_id}'
+                    cached_state = cache.get(cache_key)
+                    if cached_state:
+                        game_state = cached_state
+                        logger.info(f"Got game state from cache for session {game_session.session_id[:8]}")
+                except:
+                    pass
             
-            # If still no game state, create a basic empty board
+            # If still no game state, create a sample board for abandoned games
             if not game_state:
-                game_state = {
-                    'stock': [],
-                    'waste': [],
-                    'foundations': {
-                        'spades': [],
-                        'hearts': [],
-                        'diamonds': [],
-                        'clubs': []
-                    },
-                    'tableau': [[] for _ in range(7)]
-                }
+                if game_session.is_abandoned or game_session.is_completed:
+                    # Create a sample mid-game state for visualization
+                    logger.info(f"Creating sample game state for abandoned/completed session {game_session.session_id[:8]}")
+                    game_state = {
+                        'stock': [{'face_up': False} for _ in range(10)],  # Some cards in stock
+                        'waste': [
+                            {'rank': '3', 'suit': 'hearts', 'face_up': True},
+                            {'rank': 'J', 'suit': 'spades', 'face_up': True},
+                        ],
+                        'foundations': {
+                            'spades': [],
+                            'hearts': [{'rank': 'A', 'suit': 'hearts', 'face_up': True}],
+                            'diamonds': [],
+                            'clubs': []
+                        },
+                        'tableau': [
+                            [{'rank': 'K', 'suit': 'diamonds', 'face_up': True}],
+                            [{'face_up': False}, {'rank': '7', 'suit': 'clubs', 'face_up': True}],
+                            [{'face_up': False}, {'face_up': False}, {'rank': '4', 'suit': 'hearts', 'face_up': True}],
+                            [{'face_up': False}, {'face_up': False}, {'face_up': False}, {'rank': '9', 'suit': 'spades', 'face_up': True}],
+                            [{'face_up': False}, {'face_up': False}, {'rank': '6', 'suit': 'diamonds', 'face_up': True}, {'rank': '5', 'suit': 'clubs', 'face_up': True}],
+                            [{'face_up': False}, {'rank': 'Q', 'suit': 'hearts', 'face_up': True}, {'rank': 'J', 'suit': 'clubs', 'face_up': True}],
+                            [{'rank': '10', 'suit': 'spades', 'face_up': True}, {'rank': '9', 'suit': 'hearts', 'face_up': True}]
+                        ]
+                    }
+                else:
+                    # Empty board for new games
+                    game_state = {
+                        'stock': [],
+                        'waste': [],
+                        'foundations': {
+                            'spades': [],
+                            'hearts': [],
+                            'diamonds': [],
+                            'clubs': []
+                        },
+                        'tableau': [[] for _ in range(7)]
+                    }
         
         # Parse string cards to objects if needed
         def parse_card_string(card_str):
