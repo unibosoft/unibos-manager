@@ -1393,3 +1393,8 @@ Each entry should follow this format:
 - Result: Successfully added db sync menu option and imported all historical users to PostgreSQL
 
 
+## [2025-08-26 18:43] Deployment: recaria.org deployment and Redis setup
+- Successfully deployed UNIBOS to recaria.org with nginx reverse proxy. Fixed authentication by installing Redis for session management. Fixed database sync issues.
+- Result: recaria.org now fully functional with UNIBOS web UI
+
+
