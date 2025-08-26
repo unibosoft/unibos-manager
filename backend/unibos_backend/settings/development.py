@@ -7,7 +7,7 @@ from .base import *
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['localhost', '127.0.0.1', '0.0.0.0', '.localhost', '158.178.201.117', '10.0.0.24', 'rocksteady', '*']
+ALLOWED_HOSTS = ['localhost', '127.0.0.1', '0.0.0.0', '.localhost', '158.178.201.117', '10.0.0.24', 'rocksteady', 'recaria.org', 'www.recaria.org', '.recaria.org', '*']
 
 # CORS Settings for development
 CORS_ALLOWED_ORIGINS = [

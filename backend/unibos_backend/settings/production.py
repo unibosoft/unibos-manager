@@ -18,6 +18,10 @@ ALLOWED_HOSTS = [
     'unibos.local',
     'localhost',
     '127.0.0.1',
+    '158.178.201.117',
+    'recaria.org',
+    'www.recaria.org',
+    '.recaria.org',
     '*'  # For testing, restrict in real production
 ]
 
