@@ -3408,6 +3408,50 @@ def database_setup_wizard():
     # Main loop with timeout like administration
     database_setup_menu_loop()
     
+def database_setup_menu_loop():
+    """Database setup menu loop with navigation"""
+    last_header_update = time.time()
+    
+    # Define selectable options (without headers and separators)
+    selectable_keys = ["full_install", "python_only", "postgres_only", "create_db", 
+                      "start_service", "test_connection", "sqlite_mode", "back"]
+    
+    while menu_state.in_submenu == 'database_setup':
+        # Update header time every second
+        current_time = time.time()
+        if current_time - last_header_update >= 1.0:
+            draw_header_time_only()
+            last_header_update = current_time
+        
+        # Get user input
+        key = get_single_key(timeout=0.1)
+        
+        if key:
+            num_options = len(selectable_keys)
+            
+            # Handle navigation
+            if key == '\x1b[A' or key == 'k':  # Up arrow
+                menu_state.database_setup_index = (menu_state.database_setup_index - 1) % num_options
+                draw_database_setup_content()
+            
+            elif key == '\x1b[B' or key == 'j':  # Down arrow
+                menu_state.database_setup_index = (menu_state.database_setup_index + 1) % num_options
+                draw_database_setup_content()
+            
+            elif key == '\r' or key == '\x1b[C':  # Enter or Right arrow
+                # Handle selection
+                selected_option = selectable_keys[menu_state.database_setup_index]
+                if selected_option == "back":
+                    menu_state.in_submenu = None
+                    break
+                else:
+                    handle_db_option(selected_option)
+                    draw_database_setup_content()
+            
+            elif key in ['\x1b', '\x1b[D', 'q']:  # ESC, Left arrow or q
+                menu_state.in_submenu = None
+                break
+    
 def draw_database_setup_content():
     """Draw database setup menu content - called only when needed"""
     clear_content_area()
@@ -3419,6 +3463,11 @@ def draw_database_setup_content():
     content_x = 27  # After sidebar (don't add extra offset)
     content_width = cols - content_x - 1
     start_y = 3  # Changed from 4 to 3 for single-line header
+    
+    # Initialize selected_index if not exists
+    if not hasattr(menu_state, 'database_setup_index'):
+        menu_state.database_setup_index = 0
+    selected_index = menu_state.database_setup_index
     
     # Check PostgreSQL status
     try:
@@ -3551,35 +3600,7 @@ def draw_database_setup_content():
     sys.stdout.write(f"{Colors.DIM}↑↓ navigate | enter select | ←/esc/q back{Colors.RESET}")
     sys.stdout.flush()
     
-    # Get key input
-    key = get_single_key(timeout=None)
-    
-    # Count actual selectable items (not headers or separators)
-    selectable_options = [opt for opt in options if opt[0] not in ['header', 'separator']]
-    num_options = len(selectable_options)
-    
-    if key == '\x1b[A':  # Up arrow
-        selected_index = (selected_index - 1) % num_options
-    elif key == '\x1b[B':  # Down arrow
-        selected_index = (selected_index + 1) % num_options
-    elif key == '\r' or key == '\n' or key == '\x1b[C':  # Enter or Right arrow
-        option_key = selectable_options[selected_index][0]
-        if option_key == "back":
-            menu_state.in_submenu = None
-            draw_main_screen()
-            return
-        else:
-            handle_db_option(option_key)
-    elif key == '\x1b' or key == '\x1b[D':  # ESC or Left Arrow
-        menu_state.in_submenu = None
-        draw_main_screen()
-        return
-    elif key == 'L' or key == 'l':  # Language menu
-        language_menu()
-        draw_header()
-        draw_sidebar()
-        draw_footer()
-        # Continue in database setup menu
+    # Navigation handled in database_setup_menu_loop now
 
 def handle_db_option(option):
     """Handle database setup options"""

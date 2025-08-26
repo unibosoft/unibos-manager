@@ -753,8 +753,8 @@ def full_deployment():
         ("collecting static", "ssh rocksteady 'cd ~/unibos/backend && ./venv/bin/python manage.py collectstatic --noinput || true'"),
         ("installing cli deps", "ssh rocksteady 'cd ~/unibos/src && if [ -f requirements.txt ]; then pip3 install --user -r requirements.txt 2>/dev/null || true; fi'"),
         ("setting permissions", "ssh rocksteady 'cd ~/unibos && chmod +x unibos.sh rocksteady_deploy.sh *.sh 2>/dev/null || true'"),
-        ("stopping old server", "ssh rocksteady 'pkill -f \"manage.py runserver\" 2>/dev/null || true; echo \"old server stopped\"'"),
-        ("starting server", "ssh rocksteady 'cd ~/unibos/backend && nohup ./venv/bin/python manage.py runserver 0.0.0.0:8000 </dev/null >logs/server.log 2>&1 & sleep 2 && echo \"server started\"'"),
+        ("stopping old server", "ssh rocksteady 'pkill -f \"manage.py runserver\" 2>/dev/null || true; sleep 1; echo \"old server stopped\"'"),
+        ("starting server", "ssh rocksteady 'cd ~/unibos/backend && (nohup ./venv/bin/python manage.py runserver 0.0.0.0:8000 </dev/null >logs/server.log 2>&1 &); sleep 2; echo \"server started\"'"),
         ("verifying server", "ssh rocksteady 'sleep 3 && (pgrep -f \"manage.py runserver\" > /dev/null && echo \"server running on port 8000\" || echo \"server not detected\")'"),
     ]
     
@@ -784,9 +784,17 @@ def full_deployment():
         time.sleep(0.3)
         
         try:
-            result = subprocess.run(command, shell=True, capture_output=True, text=True, timeout=30)
+            # Special handling for server start command - don't wait for it to complete
+            if step_name == "starting server":
+                result = subprocess.run(command, shell=True, capture_output=True, text=True, timeout=5)
+            else:
+                result = subprocess.run(command, shell=True, capture_output=True, text=True, timeout=30)
         except subprocess.TimeoutExpired:
-            result = type('obj', (object,), {'returncode': 1, 'stderr': 'Command timed out after 30 seconds', 'stdout': ''})()
+            # For starting server, timeout is expected since it runs in background
+            if step_name == "starting server":
+                result = type('obj', (object,), {'returncode': 0, 'stderr': '', 'stdout': 'server start command sent'})()
+            else:
+                result = type('obj', (object,), {'returncode': 1, 'stderr': 'Command timed out after 30 seconds', 'stdout': ''})()
         except Exception as e:
             result = type('obj', (object,), {'returncode': 1, 'stderr': str(e), 'stdout': ''})()
         
