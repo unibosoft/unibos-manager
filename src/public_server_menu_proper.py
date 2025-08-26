@@ -758,7 +758,7 @@ def full_deployment():
         ("collecting static", "ssh rocksteady 'cd ~/unibos/backend && ./venv/bin/python manage.py collectstatic --noinput || true'"),
         ("installing cli deps", "ssh rocksteady 'cd ~/unibos/src && if [ -f requirements.txt ]; then pip3 install --user -r requirements.txt 2>/dev/null || true; fi'"),
         ("setting permissions", "ssh rocksteady 'cd ~/unibos && chmod +x unibos.sh rocksteady_deploy.sh *.sh 2>/dev/null || true'"),
-        ("stopping old server", "ssh rocksteady 'pkill -f \"manage.py runserver\" 2>/dev/null || true; sleep 1; echo \"old server stopped\"'"),
+        ("stopping old server", "ssh rocksteady 'pkill -f \"manage.py runserver\" 2>/dev/null; sleep 1; echo \"old server stopped (if any)\"'"),
         ("starting server", "ssh rocksteady 'cd ~/unibos/backend && (nohup ./venv/bin/python manage.py runserver 0.0.0.0:8000 </dev/null >logs/server.log 2>&1 &); sleep 2; echo \"server started\"'"),
         ("verifying server", "ssh rocksteady 'sleep 3 && (pgrep -f \"manage.py runserver\" > /dev/null && echo \"server running on port 8000\" || echo \"server not detected\")'"),
     ]
@@ -810,25 +810,30 @@ def full_deployment():
             print(f"{Colors.GREEN}✓ {step_name}{Colors.RESET}")
             success_count += 1
         else:
-            print(f"{Colors.RED}✗ {step_name}{Colors.RESET}")
-            fail_count += 1
-            
-            # Collect error for display
-            error = result.stderr.strip() if result.stderr else result.stdout.strip() if result.stdout else "Unknown error"
-            # Extract most relevant error line
-            error_lines = error.split('\n')
-            for line in error_lines:
-                if 'error' in line.lower() or 'failed' in line.lower() or 'denied' in line.lower() or 'permission' in line.lower():
-                    error = line.strip()
-                    break
+            # Special handling for stopping old server - not an error if no process exists
+            if step_name == "stopping old server":
+                print(f"{Colors.GREEN}✓ {step_name}{Colors.RESET}")
+                success_count += 1
             else:
-                # Take last non-empty line if no specific error found
-                error = next((line.strip() for line in reversed(error_lines) if line.strip()), "Check SSH connection")
-            
-            # Truncate error to fit
-            if len(error) > max_width:
-                error = error[:max_width - 3] + "..."
-            errors_to_show.append((step_name, error))
+                print(f"{Colors.RED}✗ {step_name}{Colors.RESET}")
+                fail_count += 1
+                
+                # Collect error for display
+                error = result.stderr.strip() if result.stderr else result.stdout.strip() if result.stdout else "Unknown error"
+                # Extract most relevant error line
+                error_lines = error.split('\n')
+                for line in error_lines:
+                    if 'error' in line.lower() or 'failed' in line.lower() or 'denied' in line.lower() or 'permission' in line.lower():
+                        error = line.strip()
+                        break
+                else:
+                    # Take last non-empty line if no specific error found
+                    error = next((line.strip() for line in reversed(error_lines) if line.strip()), "Check SSH connection")
+                
+                # Truncate error to fit
+                if len(error) > max_width:
+                    error = error[:max_width - 3] + "..."
+                errors_to_show.append((step_name, error))
             
             # Stop on critical early failures
             if i == 0:  # SSH connection check failed
@@ -871,7 +876,7 @@ def full_deployment():
         print(f"{Colors.CYAN}access unibos at:{Colors.RESET}")
         y += 1
         move_cursor(content_x + 4, y)
-        print(f"{Colors.BOLD}http://rocksteady:8000{Colors.RESET}")
+        print(f"{Colors.BOLD}http://158.178.201.117:8000{Colors.RESET}")
     elif critical_failure:
         print(f"{Colors.RED}⛔ deployment failed - fix connection first{Colors.RESET}")
     else:
@@ -882,16 +887,13 @@ def full_deployment():
             print(f"{Colors.CYAN}server may still be accessible at:{Colors.RESET}")
             y += 1
             move_cursor(content_x + 4, y)
-            print(f"{Colors.BOLD}http://rocksteady:8000{Colors.RESET}")
+            print(f"{Colors.BOLD}http://158.178.201.117:8000{Colors.RESET}")
     
-    # Always wait for user input - ensure it's visible and distinct
+    # Ensure everything is displayed
     sys.stdout.flush()
     time.sleep(0.5)  # Small delay to ensure everything is displayed
     
-    move_cursor(content_x + 2, lines - 4)
-    sys.stdout.write('\033[K')
-    print(f"{Colors.BOLD}{Colors.CYAN}← esc/left arrow to return{Colors.RESET}")
-    
+    # Footer already has navigation hint
     draw_footer()
     sys.stdout.flush()
     
