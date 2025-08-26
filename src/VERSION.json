@@ -1,7 +1,7 @@
 {
-  "version": "v516",
-  "build_number": "20250826_1618",
-  "release_date": "2025-08-26 16:18:04 +03:00",
+  "version": "v517",
+  "build_number": "20250826_1733",
+  "release_date": "2025-08-26 17:33:27 +03:00",
   "author": "berk hatırlı",
   "location": "bitez, bodrum, muğla, türkiye, dünya, güneş sistemi, samanyolu, yerel galaksi grubu, evren",
   "description": "v513: Test scripts quarantined, solitaire improvements",
@@ -222,7 +222,7 @@
   },
   "changelog": [
     {
-      "version": "v516",
+      "version": "v517",
       "date": "2025-08-13 13:14",
       "description": "Bug Fix: Fixed Solitaire card stacking spacing issue",
       "changes": [
@@ -232,7 +232,7 @@
       ]
     },
     {
-      "version": "v516",
+      "version": "v517",
       "date": "2025-08-12 18:24",
       "description": "System Restore: Reverted to v464 with solitaire completed, removed broken versions",
       "changes": [
@@ -243,7 +243,7 @@
       ]
     },
     {
-      "version": "v516",
+      "version": "v517",
       "date": "2025-08-12 12:01",
       "description": "UI/UX: Removed web forge from dev tools and renamed to web ui",
       "changes": [
@@ -253,7 +253,7 @@
       ]
     },
     {
-      "version": "v516",
+      "version": "v517",
       "date": "2025-08-12 09:59",
       "description": "UI/UX: Simplified version manager menu by removing unused items",
       "changes": [
@@ -263,7 +263,7 @@
       ]
     },
     {
-      "version": "v516",
+      "version": "v517",
       "date": "2025-08-12 09:40",
       "description": "UI/UX: Fixed module info display to use standardized documentation format",
       "changes": [
@@ -273,7 +273,7 @@
       ]
     },
     {
-      "version": "v516",
+      "version": "v517",
       "date": "2025-08-12 09:23",
       "description": "UI/UX: Enhanced breadcrumb navigation for CLI",
       "changes": [
@@ -283,7 +283,7 @@
       ]
     },
     {
-      "version": "v516",
+      "version": "v517",
       "date": "2025-08-12 07:21",
       "description": "Bug Fix: Fixed footer overlap in quick release summary",
       "changes": [
