@@ -1,0 +1,342 @@
+{% extends "administration/base_admin.html" %}
+
+{% block title %}mailbox: {{ mailbox.email_address }}{% endblock %}
+
+{% block admin_content %}
+<div class="admin-container">
+    <div class="admin-header">
+        <h1 class="admin-title">{{ mailbox.email_address }}</h1>
+        <div class="admin-actions">
+            <a href="{% url 'administration:mailbox_list' %}" class="btn btn-secondary">
+                <i class="fas fa-arrow-left"></i> back to list
+            </a>
+        </div>
+    </div>
+
+    {% if messages %}
+        <div class="messages">
+            {% for message in messages %}
+                <div class="alert alert-{{ message.tags }}">{{ message }}</div>
+            {% endfor %}
+        </div>
+    {% endif %}
+
+    <div class="mailbox-details">
+        <div class="detail-section">
+            <h2>mailbox information</h2>
+            <div class="detail-grid">
+                <div class="detail-item">
+                    <label>user:</label>
+                    <a href="{% url 'administration:user_detail' mailbox.user.id %}">
+                        {{ mailbox.user.username }}
+                    </a>
+                </div>
+                <div class="detail-item">
+                    <label>email:</label>
+                    <span>{{ mailbox.email_address }}</span>
+                </div>
+                <div class="detail-item">
+                    <label>status:</label>
+                    {% if mailbox.is_active %}
+                        <span class="badge badge-success">active</span>
+                    {% else %}
+                        <span class="badge badge-danger">suspended</span>
+                    {% endif %}
+                </div>
+                <div class="detail-item">
+                    <label>created:</label>
+                    <span>{{ mailbox.created_at|date:"Y-m-d H:i" }}</span>
+                </div>
+                <div class="detail-item">
+                    <label>last login:</label>
+                    <span>{{ mailbox.last_login|date:"Y-m-d H:i"|default:"never" }}</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="detail-section">
+            <h2>usage statistics</h2>
+            <div class="detail-grid">
+                <div class="detail-item">
+                    <label>storage used:</label>
+                    <div class="progress" style="width: 200px;">
+                        <div class="progress-bar" 
+                             style="width: {{ mailbox.usage_percentage }}%">
+                            {{ mailbox.current_usage_mb|floatformat:1 }}mb / {{ mailbox.mailbox_size_mb }}mb
+                        </div>
+                    </div>
+                </div>
+                <div class="detail-item">
+                    <label>messages sent:</label>
+                    <span>{{ mailbox.messages_sent }}</span>
+                </div>
+                <div class="detail-item">
+                    <label>messages received:</label>
+                    <span>{{ mailbox.messages_received }}</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="detail-section">
+            <h2>mailbox settings</h2>
+            <form method="post">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="update_settings">
+                
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>mailbox size (mb)</label>
+                        <input type="number" name="mailbox_size_mb" 
+                               value="{{ mailbox.mailbox_size_mb }}" 
+                               min="100" max="10240" class="form-control">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>daily send limit</label>
+                        <input type="number" name="daily_send_limit" 
+                               value="{{ mailbox.daily_send_limit }}" 
+                               min="10" max="5000" class="form-control">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>attachment limit (mb)</label>
+                        <input type="number" name="attachment_size_limit_mb" 
+                               value="{{ mailbox.attachment_size_limit_mb }}" 
+                               min="1" max="100" class="form-control">
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label>protocols</label>
+                    <div class="checkbox-group">
+                        <label>
+                            <input type="checkbox" name="imap_enabled" 
+                                   {% if mailbox.imap_enabled %}checked{% endif %}>
+                            enable imap
+                        </label>
+                        <label>
+                            <input type="checkbox" name="pop3_enabled" 
+                                   {% if mailbox.pop3_enabled %}checked{% endif %}>
+                            enable pop3
+                        </label>
+                        <label>
+                            <input type="checkbox" name="smtp_enabled" 
+                                   {% if mailbox.smtp_enabled %}checked{% endif %}>
+                            enable smtp
+                        </label>
+                    </div>
+                </div>
+                
+                <button type="submit" class="btn btn-primary">update settings</button>
+            </form>
+        </div>
+
+        <div class="detail-section">
+            <h2>mail forwarding</h2>
+            <form method="post">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="set_forwarding">
+                
+                <div class="form-group">
+                    <label>
+                        <input type="checkbox" name="forwarding_enabled" 
+                               {% if mailbox.forwarding_enabled %}checked{% endif %}>
+                        enable forwarding
+                    </label>
+                </div>
+                
+                <div class="form-group">
+                    <label>forward to:</label>
+                    <input type="email" name="forwarding_address" 
+                           value="{{ mailbox.forwarding_address }}" 
+                           class="form-control" 
+                           placeholder="email@example.com">
+                </div>
+                
+                <button type="submit" class="btn btn-primary">update forwarding</button>
+            </form>
+        </div>
+
+        <div class="detail-section">
+            <h2>auto-responder</h2>
+            <form method="post">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="set_autoresponder">
+                
+                <div class="form-group">
+                    <label>
+                        <input type="checkbox" name="auto_responder_enabled" 
+                               {% if mailbox.auto_responder_enabled %}checked{% endif %}>
+                        enable auto-responder
+                    </label>
+                </div>
+                
+                <div class="form-group">
+                    <label>message:</label>
+                    <textarea name="auto_responder_message" 
+                              class="form-control" 
+                              rows="4">{{ mailbox.auto_responder_message }}</textarea>
+                </div>
+                
+                <button type="submit" class="btn btn-primary">update auto-responder</button>
+            </form>
+        </div>
+
+        <div class="detail-section danger-zone">
+            <h2>danger zone</h2>
+            
+            <div class="danger-actions">
+                <form method="post" style="display: inline;">
+                    {% csrf_token %}
+                    <input type="hidden" name="action" value="toggle_active">
+                    {% if mailbox.is_active %}
+                        <button type="submit" class="btn btn-warning" 
+                                onclick="return confirm('suspend this mailbox?')">
+                            suspend mailbox
+                        </button>
+                    {% else %}
+                        <button type="submit" class="btn btn-success">
+                            activate mailbox
+                        </button>
+                    {% endif %}
+                </form>
+                
+                <form method="post" style="display: inline;">
+                    {% csrf_token %}
+                    <input type="hidden" name="action" value="reset_password">
+                    <button type="submit" class="btn btn-warning">
+                        reset password
+                    </button>
+                </form>
+                
+                <form method="post" style="display: inline;">
+                    {% csrf_token %}
+                    <input type="hidden" name="action" value="delete">
+                    <button type="submit" class="btn btn-danger" 
+                            onclick="return confirm('permanently delete this mailbox? this cannot be undone!')">
+                        delete mailbox
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.mailbox-details {
+    margin-top: 20px;
+}
+
+.detail-section {
+    background-color: #1a1a1a;
+    border: 1px solid #333;
+    border-radius: 8px;
+    padding: 20px;
+    margin-bottom: 20px;
+}
+
+.detail-section h2 {
+    color: #28a745;
+    font-size: 18px;
+    margin-bottom: 15px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid #333;
+}
+
+.detail-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 15px;
+}
+
+.detail-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.detail-item label {
+    color: #28a745;
+    font-weight: 500;
+    min-width: 120px;
+}
+
+.form-row {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 15px;
+    margin-bottom: 15px;
+}
+
+.form-group {
+    margin-bottom: 15px;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 5px;
+    color: #28a745;
+}
+
+.form-control {
+    width: 100%;
+    padding: 8px 12px;
+    background-color: #2a2a2a;
+    border: 1px solid #444;
+    color: #e0e0e0;
+    border-radius: 4px;
+}
+
+.checkbox-group label {
+    display: block;
+    margin-bottom: 5px;
+    color: #e0e0e0;
+}
+
+.danger-zone {
+    border-color: #dc3545;
+}
+
+.danger-zone h2 {
+    color: #dc3545;
+}
+
+.danger-actions {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.progress {
+    background-color: #2a2a2a;
+    border-radius: 4px;
+    height: 25px;
+    overflow: hidden;
+}
+
+.progress-bar {
+    background-color: #28a745;
+    color: white;
+    text-align: center;
+    line-height: 25px;
+    font-size: 12px;
+    padding: 0 10px;
+}
+
+.badge {
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 12px;
+}
+
+.badge-success {
+    background-color: #28a745;
+    color: white;
+}
+
+.badge-danger {
+    background-color: #dc3545;
+    color: white;
+}
+</style>
+{% endblock %}

@@ -36,4 +36,9 @@ urlpatterns = [
     
     # Cron job management
     path('cron-jobs/', views.cron_jobs_admin, name='cron_jobs'),
+    
+    # Recaria.org mailbox management
+    path('mailboxes/', views.mailbox_list, name='mailbox_list'),
+    path('mailboxes/create/', views.mailbox_create, name='mailbox_create'),
+    path('mailboxes/<int:mailbox_id>/', views.mailbox_detail, name='mailbox_detail'),
 ]

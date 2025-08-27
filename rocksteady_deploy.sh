@@ -53,18 +53,24 @@ check_connection() {
 sync_files() {
     print_step "Syncing files to $ROCKSTEADY_HOST..."
     
-    # Build exclude list
-    EXCLUDE_FLAGS=""
-    IFS=',' read -ra EXCLUDES <<< "$RSYNC_EXCLUDE"
-    for exc in "${EXCLUDES[@]}"; do
-        EXCLUDE_FLAGS="$EXCLUDE_FLAGS --exclude=$exc"
-    done
+    # Safety check - ensure archive folder is never synced
+    if [ -d "archive" ]; then
+        print_warning "Archive folder detected - will be excluded from sync"
+    fi
     
-    if rsync -avz $EXCLUDE_FLAGS . $ROCKSTEADY_HOST:$ROCKSTEADY_DIR/; then
-        print_success "Files synced successfully"
-        return 0
+    # Use .rsyncignore file for exclusions
+    if [ -f ".rsyncignore" ]; then
+        print_info "Using .rsyncignore file for safe deployment"
+        if rsync -avz --exclude-from=.rsyncignore --delete-excluded . $ROCKSTEADY_HOST:$ROCKSTEADY_DIR/; then
+            print_success "Files synced successfully (archive protected)"
+            return 0
+        else
+            print_error "File sync failed"
+            return 1
+        fi
     else
-        print_error "File sync failed"
+        print_error ".rsyncignore file not found - aborting for safety"
+        print_warning "Archive protection requires .rsyncignore file"
         return 1
     fi
 }

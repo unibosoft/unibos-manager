@@ -1490,3 +1490,19 @@ Each entry should follow this format:
 
 ---
 
+## [2025-08-27 03:40] Email & Deploy: Email configuration and deploy security
+- - Configured mail server with berk@recaria.org
+- Fixed password reset functionality with email sending  
+- Added .rsyncignore for archive protection
+- Fixed Django production settings import issue
+- Installed missing Python packages on remote
+- Created logs directory for Django
+- Fixed 502 errors by resolving package dependencies
+- Result: Email system working, archive protected from deployment, Django running on production
+
+
+## [2025-08-27 15:32] Backend: recaria.org mailbox management
+- Added comprehensive mailbox management system for recaria.org email accounts with models, views, templates, and admin interface
+- Result: Users can now create and manage recaria.org mailboxes through the administration panel
+
+

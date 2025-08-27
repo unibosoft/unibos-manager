@@ -10,7 +10,7 @@ User = get_user_model()
 from django.db.models import Count, Q
 from django.utils import timezone
 from django.http import JsonResponse
-from .models import Role, UserRole, Department, PermissionRequest, AuditLog, SystemSetting, ScreenLock
+from .models import Role, UserRole, Department, PermissionRequest, AuditLog, SystemSetting, ScreenLock, RecariaMailbox
 from apps.solitaire.models import SolitairePlayer, SolitaireGameSession, SolitaireActivity, SolitaireMoveHistory
 from apps.birlikteyiz.models import CronJob, EarthquakeDataSource
 import json
@@ -35,14 +35,35 @@ def is_admin(user):
 def administration_dashboard(request):
     """Main administration dashboard"""
     pending_requests_count = PermissionRequest.objects.filter(status='pending').count()
+    
+    # Get recent activities for the table
+    recent_activities = []
+    recent_logs = AuditLog.objects.all()[:10]
+    for log in recent_logs:
+        recent_activities.append({
+            'user': log.user.username if log.user else 'system',
+            'action': log.get_action_display() if hasattr(log, 'get_action_display') else log.action,
+            'target': log.target_object or '',
+            'time': log.timestamp.strftime('%H:%M') if log.timestamp else '',
+            'status': 'active'
+        })
+    
+    # Count active sessions
+    from django.contrib.sessions.models import Session
+    active_sessions = Session.objects.filter(
+        expire_date__gte=timezone.now()
+    ).count()
+    
     context = {
         'total_users': User.objects.count(),
         'total_roles': Role.objects.count(),
         'total_departments': Department.objects.count(),
         'pending_requests': pending_requests_count,
         'pending_requests_count': pending_requests_count,  # For sidebar badge
-        'recent_logs': AuditLog.objects.all()[:10],
+        'recent_logs': recent_logs,
+        'recent_activities': recent_activities,
         'active_users': User.objects.filter(last_login__gte=timezone.now() - timezone.timedelta(days=7)).count(),
+        'active_sessions': active_sessions,
         'system_roles': Role.objects.filter(is_system=True),
         'custom_roles': Role.objects.filter(is_system=False),
     }
@@ -1289,3 +1310,155 @@ def cron_jobs_admin(request):
     }
     
     return render(request, 'administration/cron_jobs.html', context)
+
+
+@login_required(login_url='/login/')
+@user_passes_test(is_admin, login_url='/login/')
+def mailbox_list(request):
+    """list all recaria.org mailboxes"""
+    mailboxes = RecariaMailbox.objects.all().select_related('user')
+    users_without_mailbox = User.objects.exclude(
+        id__in=RecariaMailbox.objects.values_list('user_id', flat=True)
+    )
+    
+    context = {
+        'mailboxes': mailboxes,
+        'users_without_mailbox': users_without_mailbox,
+        'pending_requests_count': PermissionRequest.objects.filter(status='pending').count(),
+    }
+    
+    return render(request, 'administration/mailboxes.html', context)
+
+
+@login_required(login_url='/login/')
+@user_passes_test(is_admin, login_url='/login/')
+def mailbox_create(request):
+    """create a new recaria.org mailbox for a user"""
+    if request.method == 'POST':
+        user_id = request.POST.get('user_id')
+        email_prefix = request.POST.get('email_prefix', '').lower()
+        
+        if not user_id or not email_prefix:
+            messages.error(request, 'user and email prefix are required')
+            return redirect('administration:mailbox_list')
+        
+        user = get_object_or_404(User, id=user_id)
+        email_address = f"{email_prefix}@recaria.org"
+        
+        # Check if email already exists
+        if RecariaMailbox.objects.filter(email_address=email_address).exists():
+            messages.error(request, f'email address {email_address} already exists')
+            return redirect('administration:mailbox_list')
+        
+        # Check if user already has a mailbox
+        if RecariaMailbox.objects.filter(user=user).exists():
+            messages.error(request, f'user {user.username} already has a mailbox')
+            return redirect('administration:mailbox_list')
+        
+        # Create mailbox
+        mailbox = RecariaMailbox.objects.create(
+            user=user,
+            email_address=email_address,
+            mailbox_size_mb=int(request.POST.get('mailbox_size_mb', 1024)),
+            daily_send_limit=int(request.POST.get('daily_send_limit', 500)),
+            attachment_size_limit_mb=int(request.POST.get('attachment_size_limit_mb', 25)),
+            imap_enabled=request.POST.get('imap_enabled') == 'on',
+            pop3_enabled=request.POST.get('pop3_enabled') == 'on',
+            smtp_enabled=request.POST.get('smtp_enabled') == 'on',
+        )
+        
+        # Log the action
+        AuditLog.objects.create(
+            user=request.user,
+            action='user_create',
+            target_user=user,
+            target_object=f'mailbox: {email_address}',
+            details={'mailbox_id': mailbox.id, 'email': email_address},
+            ip_address=request.META.get('REMOTE_ADDR')
+        )
+        
+        messages.success(request, f'mailbox {email_address} created for {user.username}')
+        return redirect('administration:mailbox_detail', mailbox_id=mailbox.id)
+    
+    return redirect('administration:mailbox_list')
+
+
+@login_required(login_url='/login/')
+@user_passes_test(is_admin, login_url='/login/')
+def mailbox_detail(request, mailbox_id):
+    """view and manage a specific mailbox"""
+    mailbox = get_object_or_404(RecariaMailbox, id=mailbox_id)
+    
+    if request.method == 'POST':
+        action = request.POST.get('action')
+        
+        if action == 'update_settings':
+            mailbox.mailbox_size_mb = int(request.POST.get('mailbox_size_mb', 1024))
+            mailbox.daily_send_limit = int(request.POST.get('daily_send_limit', 500))
+            mailbox.attachment_size_limit_mb = int(request.POST.get('attachment_size_limit_mb', 25))
+            mailbox.imap_enabled = request.POST.get('imap_enabled') == 'on'
+            mailbox.pop3_enabled = request.POST.get('pop3_enabled') == 'on'
+            mailbox.smtp_enabled = request.POST.get('smtp_enabled') == 'on'
+            mailbox.save()
+            
+            messages.success(request, 'mailbox settings updated')
+            
+        elif action == 'toggle_active':
+            mailbox.is_active = not mailbox.is_active
+            if not mailbox.is_active:
+                mailbox.suspended_reason = request.POST.get('reason', '')
+            else:
+                mailbox.suspended_reason = ''
+            mailbox.save()
+            
+            status = 'activated' if mailbox.is_active else 'suspended'
+            messages.success(request, f'mailbox {status}')
+            
+        elif action == 'set_forwarding':
+            mailbox.forwarding_enabled = request.POST.get('forwarding_enabled') == 'on'
+            mailbox.forwarding_address = request.POST.get('forwarding_address', '')
+            mailbox.save()
+            
+            if mailbox.forwarding_enabled:
+                messages.success(request, f'forwarding enabled to {mailbox.forwarding_address}')
+            else:
+                messages.success(request, 'forwarding disabled')
+                
+        elif action == 'set_autoresponder':
+            mailbox.auto_responder_enabled = request.POST.get('auto_responder_enabled') == 'on'
+            mailbox.auto_responder_message = request.POST.get('auto_responder_message', '')
+            mailbox.save()
+            
+            if mailbox.auto_responder_enabled:
+                messages.success(request, 'auto-responder enabled')
+            else:
+                messages.success(request, 'auto-responder disabled')
+                
+        elif action == 'reset_password':
+            # This would integrate with mail server API to reset password
+            messages.info(request, 'password reset functionality will be implemented with mail server api')
+            
+        elif action == 'delete':
+            email = mailbox.email_address
+            user = mailbox.user
+            mailbox.delete()
+            
+            AuditLog.objects.create(
+                user=request.user,
+                action='user_delete',
+                target_user=user,
+                target_object=f'mailbox: {email}',
+                ip_address=request.META.get('REMOTE_ADDR')
+            )
+            
+            messages.success(request, f'mailbox {email} deleted')
+            return redirect('administration:mailbox_list')
+        
+        return redirect('administration:mailbox_detail', mailbox_id=mailbox.id)
+    
+    context = {
+        'mailbox': mailbox,
+        'pending_requests_count': PermissionRequest.objects.filter(status='pending').count(),
+    }
+    
+    return render(request, 'administration/mailbox_detail.html', context)

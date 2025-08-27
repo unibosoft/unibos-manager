@@ -220,6 +220,62 @@ class ScreenLock(BaseModel):
         verbose_name_plural = "Screen Locks"
 
 
+class RecariaMailbox(BaseModel):
+    """recaria.org mailbox management"""
+    user = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='recaria_mailbox')
+    email_address = models.EmailField(unique=True)
+    mailbox_created = models.BooleanField(default=False)
+    mailbox_size_mb = models.IntegerField(default=1024)  # Default 1GB
+    password_set = models.BooleanField(default=False)
+    
+    # Mail server settings
+    imap_enabled = models.BooleanField(default=True)
+    pop3_enabled = models.BooleanField(default=False)
+    smtp_enabled = models.BooleanField(default=True)
+    
+    # Quotas and limits
+    daily_send_limit = models.IntegerField(default=500)
+    attachment_size_limit_mb = models.IntegerField(default=25)
+    
+    # Auto-responder
+    auto_responder_enabled = models.BooleanField(default=False)
+    auto_responder_message = models.TextField(blank=True)
+    
+    # Forwarding
+    forwarding_enabled = models.BooleanField(default=False)
+    forwarding_address = models.EmailField(blank=True)
+    
+    # Status
+    is_active = models.BooleanField(default=True)
+    suspended_reason = models.TextField(blank=True)
+    
+    # Statistics
+    messages_sent = models.IntegerField(default=0)
+    messages_received = models.IntegerField(default=0)
+    current_usage_mb = models.FloatField(default=0)
+    last_login = models.DateTimeField(null=True, blank=True)
+    
+    class Meta:
+        ordering = ['email_address']
+        verbose_name = 'recaria.org mailbox'
+        verbose_name_plural = 'recaria.org mailboxes'
+        
+    def __str__(self):
+        return self.email_address
+    
+    @property
+    def usage_percentage(self):
+        """calculate mailbox usage percentage"""
+        if self.mailbox_size_mb == 0:
+            return 0
+        return min(100, (self.current_usage_mb / self.mailbox_size_mb) * 100)
+    
+    @property
+    def is_over_quota(self):
+        """check if mailbox is over quota"""
+        return self.current_usage_mb >= self.mailbox_size_mb
+
+
 class SystemSetting(BaseModel):
     """System-wide settings for administration"""
     key = models.CharField(max_length=100, unique=True)

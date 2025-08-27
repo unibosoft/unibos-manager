@@ -581,6 +581,10 @@
             <span>⏰</span>
             <span>cron jobs</span>
         </a>
+        <a href="{% url 'administration:mailbox_list' %}" class="admin-nav-item {% if 'mailbox' in request.resolver_match.url_name %}active{% endif %}">
+            <span>📧</span>
+            <span>recaria mail</span>
+        </a>
     </div>
     
     <!-- Admin Content Area -->
