@@ -1,0 +1,29 @@
+[Unit]
+Description=gunicorn daemon for unibos
+After=network.target
+
+[Service]
+User=ubuntu
+Group=ubuntu
+WorkingDirectory=/home/ubuntu/unibos/backend
+ExecStart=/home/ubuntu/unibos/backend/venv/bin/gunicorn \
+          --access-logfile /home/ubuntu/unibos/logs/gunicorn-access.log \
+          --error-logfile /home/ubuntu/unibos/logs/gunicorn-error.log \
+          --workers 3 \
+          --bind 0.0.0.0:8000 \
+          --timeout 120 \
+          --reload \
+          unibos_backend.wsgi:application
+
+Environment="DJANGO_SETTINGS_MODULE=unibos_backend.settings.production"
+Environment="SECRET_KEY=django-insecure-production-key-change-this!"
+Environment="DB_NAME=unibos_db"
+Environment="DB_USER=unibos_user"
+Environment="DB_PASSWORD=unibos_password"
+Environment="DB_HOST=localhost"
+Environment="DB_PORT=5432"
+
+Restart=always
+
+[Install]
+WantedBy=multi-user.target

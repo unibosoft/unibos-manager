@@ -1,0 +1,87 @@
+{
+  "platforms": {
+    "macos": {
+      "python_versions": ["3.12", "3.11", "3.10"],
+      "package_manager": "brew",
+      "services": {
+        "postgresql": "brew services start postgresql",
+        "redis": "brew services start redis",
+        "nginx": "brew services start nginx"
+      },
+      "paths": {
+        "nginx_conf": "/usr/local/etc/nginx/servers/",
+        "postgresql_data": "/usr/local/var/postgres"
+      }
+    },
+    "ubuntu": {
+      "python_versions": ["3.12", "3.11", "3.10"],
+      "package_manager": "apt",
+      "services": {
+        "postgresql": "sudo systemctl start postgresql",
+        "redis": "sudo systemctl start redis-server",
+        "nginx": "sudo systemctl start nginx"
+      },
+      "paths": {
+        "nginx_conf": "/etc/nginx/sites-available/",
+        "postgresql_data": "/var/lib/postgresql"
+      }
+    },
+    "raspberrypi": {
+      "python_versions": ["3.11", "3.10", "3.9"],
+      "package_manager": "apt",
+      "services": {
+        "postgresql": "sudo systemctl start postgresql",
+        "redis": "sudo systemctl start redis-server",
+        "nginx": "sudo systemctl start nginx"
+      },
+      "paths": {
+        "nginx_conf": "/etc/nginx/sites-available/",
+        "postgresql_data": "/var/lib/postgresql"
+      },
+      "optimizations": {
+        "gunicorn_workers": 2,
+        "db_connections": 10,
+        "cache_size": "50mb"
+      }
+    }
+  },
+  "dependencies": {
+    "system": {
+      "macos": [
+        "postgresql",
+        "redis",
+        "nginx"
+      ],
+      "linux": [
+        "postgresql",
+        "postgresql-contrib",
+        "redis-server",
+        "nginx",
+        "python3-pip",
+        "python3-venv",
+        "python3-dev",
+        "build-essential",
+        "libpq-dev",
+        "libjpeg-dev",
+        "zlib1g-dev",
+        "git",
+        "curl"
+      ],
+      "raspberrypi": [
+        "postgresql",
+        "redis-server",
+        "nginx",
+        "python3-pip",
+        "python3-venv",
+        "python3-dev",
+        "build-essential",
+        "libpq-dev",
+        "libjpeg-dev",
+        "zlib1g-dev",
+        "git",
+        "curl",
+        "libatlas-base-dev"
+      ]
+    }
+  }
+}
