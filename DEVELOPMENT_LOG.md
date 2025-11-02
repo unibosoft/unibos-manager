@@ -1929,3 +1929,37 @@ Benefits:
 - Result: Map controls, scale, and attribution now visible on remote. All Leaflet assets served locally. Deployed to recaria.org and tested successfully.
 
 
+## [2025-11-03 02:18] Bug Fix: earthquake map - reverted to CDN (nginx path issue)
+- Reverted Leaflet back to CDN after discovering static files issue:
+
+Issue Found:
+- Previous commit tried to use local static files
+- Nginx on remote serves from: /opt/unibos/static/
+- Django collectstatic puts files in: /home/ubuntu/unibos/.../staticfiles/
+- Path mismatch caused 404 errors on static files
+
+Analysis:
+- Checked remote nginx config at /etc/nginx/sites-available/recaria.org
+- Location /static/ points to /opt/unibos/static/
+- Our files are in different directory
+- Would need nginx config change or file copy
+
+Decision:
+- Reverted to CDN (unpkg.com) for Leaflet
+- CDN is more reliable and always updated
+- Added integrity checks for security
+- Removed {% load static %} dependency
+
+Benefits of CDN:
+- No static files path configuration needed
+- Always gets latest patches
+- Cloudflare CDN ensures fast global delivery
+- Works consistently across all environments
+
+Technical:
+- Using unpkg.com with integrity SHA256 checks
+- Leaflet 1.9.4 (latest stable)
+- CORS enabled, secure delivery
+- Result: Leaflet now loading from CDN with integrity checks. Map should work on remote. Deployed to recaria.org.
+
+
