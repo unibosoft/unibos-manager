@@ -180,6 +180,7 @@ def manual_fetch(request):
 @login_required
 def earthquake_map(request):
     """Interactive map view of earthquakes"""
+    import json
 
     # Get filter parameters
     days = request.GET.get('days', 7)
@@ -223,7 +224,7 @@ def earthquake_map(request):
     minor_count = len([e for e in earthquake_data if 3.0 <= e['magnitude'] < 4.0])
 
     context = {
-        'earthquake_data': earthquake_data,
+        'earthquake_data_json': json.dumps(earthquake_data),  # Convert to JSON string
         'total_earthquakes': total_earthquakes,
         'major_count': major_count,
         'moderate_count': moderate_count,

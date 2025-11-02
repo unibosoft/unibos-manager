@@ -144,7 +144,7 @@
 
 <script>
 // Earthquake data from Django
-const earthquakes = {{ earthquake_data|safe }};
+const earthquakes = {{ earthquake_data_json|safe }};
 
 // Initialize map centered on Turkey
 const map = L.map('earthquake-map', {
