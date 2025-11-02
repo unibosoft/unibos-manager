@@ -152,6 +152,87 @@ with open('backend/VERSION.json', 'w') as f:
     fi
 }
 
+# SQL Backup functions
+cleanup_old_sql_files() {
+    print_color "$YELLOW" "🧹 Cleaning up old SQL backups (keeping last 3)..."
+
+    # Ana dizindeki unibos_vXXX_*.sql dosyalarını bul
+    local sql_files=($(ls -t unibos_v[0-9]*_[0-9]*.sql 2>/dev/null || true))
+    local count=${#sql_files[@]}
+
+    if [ $count -gt 3 ]; then
+        print_color "$YELLOW" "   Found $count SQL backups, removing oldest $(($count - 3))..."
+        # İlk 3'ü atla, geri kalanları sil
+        for ((i=3; i<$count; i++)); do
+            rm -f "${sql_files[$i]}"
+            print_color "$GREEN" "   ✓ Deleted: ${sql_files[$i]}"
+        done
+        print_color "$GREEN" "✅ Cleanup completed"
+    else
+        print_color "$BLUE" "   ℹ️  Only $count SQL backups found (keeping all)"
+    fi
+}
+
+create_sql_backup() {
+    local version=$1
+    local timestamp=$2
+
+    # Clean version
+    local clean_version=$(echo "$version" | sed 's/^v//')
+    local sql_file="unibos_v${clean_version}_${timestamp}.sql"
+
+    print_color "$YELLOW" "\n💾 Creating PostgreSQL backup..."
+
+    # Database credentials from .env or defaults
+    local db_name="${DB_NAME:-unibos_db}"
+    local db_user="${DB_USER:-unibos_user}"
+    local db_pass="${DB_PASSWORD:-unibos_password}"
+    local db_host="${DB_HOST:-localhost}"
+    local db_port="${DB_PORT:-5432}"
+
+    # Try to load from .env if exists
+    if [ -f "backend/.env" ]; then
+        source backend/.env 2>/dev/null || true
+    fi
+
+    # Perform pg_dump
+    print_color "$CYAN" "   Database: $db_name@$db_host:$db_port"
+    PGPASSWORD=$db_pass pg_dump \
+        -h $db_host \
+        -p $db_port \
+        -U $db_user \
+        -d $db_name \
+        -f "$sql_file" \
+        --verbose \
+        --clean \
+        --if-exists \
+        --no-owner \
+        --no-privileges \
+        2>/dev/null || {
+            print_color "$YELLOW" "⚠️  PostgreSQL backup failed (database may not be running)"
+            return 1
+        }
+
+    if [ -f "$sql_file" ]; then
+        local sql_size=$(du -sh "$sql_file" 2>/dev/null | cut -f1)
+        print_color "$GREEN" "✅ PostgreSQL backup completed: $sql_file ($sql_size)"
+
+        # Size check
+        local sql_size_bytes=$(du -sb "$sql_file" 2>/dev/null | cut -f1)
+        if [ -n "$sql_size_bytes" ] && [ $sql_size_bytes -gt 10485760 ]; then  # 10MB
+            print_color "$YELLOW" "   ℹ️  SQL backup size is large ($sql_size)"
+        fi
+
+        # Cleanup old SQL files
+        cleanup_old_sql_files
+
+        return 0
+    else
+        print_color "$RED" "❌ SQL backup file could not be created"
+        return 1
+    fi
+}
+
 # Archive functions
 create_archive() {
     local version=$1
@@ -496,6 +577,11 @@ quick_release() {
     fi
     
     # Perform all operations
+    local timestamp=$(get_istanbul_time "+%Y%m%d_%H%M")
+
+    # Create SQL backup first
+    create_sql_backup "$next_version" "$timestamp"
+
     update_version_json "$next_version" "$description"
     update_django_files "$next_version"
     create_archive "$next_version"
@@ -574,11 +660,16 @@ main() {
         case $choice in
             1) quick_release ;;
             2) status_check ;;
-            3) 
+            3)
                 echo "Enter version number (without 'v'):"
                 read -r version
                 echo "Enter description:"
                 read -r desc
+
+                # Create SQL backup first
+                local timestamp=$(get_istanbul_time "+%Y%m%d_%H%M")
+                create_sql_backup "$version" "$timestamp"
+
                 update_version_json "$version" "$desc"
                 update_django_files "$version"
                 create_archive "$version"

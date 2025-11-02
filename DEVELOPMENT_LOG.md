@@ -1649,3 +1649,8 @@ Each entry should follow this format:
 - Result: UNIBOS now officially uses PostgreSQL for all environments. SQLite support removed from documentation and requirements.
 
 
+## [2025-11-02 11:47] Version Manager: Added SQL backup to version upgrade workflow
+- Restored missing SQL backup functionality to unibos_version.sh. Added create_sql_backup() and cleanup_old_sql_files() functions. SQL backups are now created automatically before each version upgrade in both quick release and manual version workflows. Database credentials loaded from backend/.env. Keeps only last 3 SQL backups in main directory (unibos_vXXX_TIMESTAMP.sql format).
+- Result: SQL backups will now be created for v528+ versions. Backup naming: unibos_vXXX_YYYYMMDD_HHMM.sql
+
+
