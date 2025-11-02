@@ -59,13 +59,10 @@ pip install -r requirements-dev.txt  # Development tools
 #### 2. Database Setup
 
 ```bash
-# For SQLite (development)
-python backend/manage.py migrate
-
-# For PostgreSQL (recommended for testing production features)
+# PostgreSQL setup (required)
 createdb unibos_dev
 psql unibos_dev -c "CREATE EXTENSION postgis;"
-python backend/manage.py migrate --database=postgresql
+python backend/manage.py migrate
 ```
 
 #### 3. Environment Configuration
@@ -85,10 +82,8 @@ SECRET_KEY=your-secret-key-here
 DEBUG=True
 ALLOWED_HOSTS=localhost,127.0.0.1
 
-# Database
-DATABASE_URL=sqlite:///db.sqlite3
-# or for PostgreSQL:
-# DATABASE_URL=postgresql://user:pass@localhost/unibos_dev
+# Database (PostgreSQL required)
+DATABASE_URL=postgresql://user:pass@localhost/unibos_dev
 
 # Redis (optional)
 REDIS_URL=redis://localhost:6379/0

@@ -30,7 +30,7 @@ cd unibos
 python src/main.py
 ```
 
-This launches the terminal UI with SQLite database - perfect for trying out UNIBOS!
+This launches the terminal UI with PostgreSQL database - requires PostgreSQL to be installed and configured.
 
 ## System Requirements
 
@@ -295,7 +295,7 @@ sudo apt update && sudo apt upgrade -y
 # Install dependencies
 sudo apt install -y \
     python3-pip python3-venv \
-    postgresql sqlite3 \
+    postgresql \
     redis-server \
     tesseract-ocr \
     git
@@ -319,8 +319,8 @@ pip install -r requirements-rpi.txt
 
 #### 3. Configure for Pi
 ```bash
-# Use SQLite for better performance on Pi
-echo "DATABASE_URL=sqlite:///db.sqlite3" > .env
+# Configure PostgreSQL connection
+echo "DATABASE_URL=postgresql://unibos:password@localhost/unibos_db" > .env
 
 # Optimize for limited RAM
 echo "DJANGO_DEBUG=False" >> .env
@@ -347,13 +347,9 @@ sudo systemctl start unibos
 
 ## Database Setup
 
-### SQLite (Default)
-No additional setup required! SQLite is perfect for:
-- Single-user installations
-- Development and testing
-- Raspberry Pi deployments
+### PostgreSQL (Required)
 
-### PostgreSQL (Recommended for Production)
+UNIBOS uses PostgreSQL exclusively for all deployments.
 
 #### Installation
 ```bash
@@ -412,10 +408,8 @@ SECRET_KEY=your-very-secret-key-here-generate-a-strong-one
 DEBUG=False  # Set to True for development
 ALLOWED_HOSTS=localhost,127.0.0.1,your-domain.com
 
-# Database
+# Database (PostgreSQL required)
 DATABASE_URL=postgresql://unibos:password@localhost/unibos_db
-# or for SQLite:
-# DATABASE_URL=sqlite:///db.sqlite3
 
 # Redis (optional)
 REDIS_URL=redis://localhost:6379/0

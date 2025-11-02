@@ -1,9 +1,0 @@
-# PostgreSQL requirements for UNIBOS backend
-# Note: SQLite support has been removed - this file now uses PostgreSQL
-
-Django==5.0.1
-djangorestframework==3.14.0
-django-cors-headers==4.3.1
-django-environ==0.11.2
-gunicorn==21.2.0
-psycopg2-binary==2.9.9

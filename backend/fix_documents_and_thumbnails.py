@@ -2,6 +2,10 @@
 """
 Fix documents and thumbnails without full Django setup
 Creates sample receipt images and regenerates thumbnails with TOP-crop
+
+NOTE: This is a legacy utility script that uses SQLite for direct database access
+without Django ORM. The main application uses PostgreSQL exclusively.
+This script should be updated to use Django ORM or deprecated.
 """
 
 import os
@@ -10,7 +14,7 @@ from pathlib import Path
 from datetime import datetime, timedelta
 import random
 import io
-import sqlite3
+import sqlite3  # Legacy - TODO: migrate to Django ORM with PostgreSQL
 import json
 
 # Add PIL import

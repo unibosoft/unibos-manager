@@ -71,12 +71,11 @@
       "psycopg2-binary",
       "sqlalchemy",
       "alembic",
-      "sqlite3 (built-in)",
       "xml.etree (built-in)",
       "psutil (optional)",
       "threading (built-in)"
     ],
-    "database": "PostgreSQL with SQLAlchemy ORM (Django-compatible)",
+    "database": "PostgreSQL only - SQLite support removed",
     "api_integrations": [
       "Turkish Central Bank (TCMB)",
       "Binance API (real-time crypto)",

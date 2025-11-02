@@ -76,9 +76,8 @@ const gameConfig = {
 - **Web Framework**: 
   - Django 4.2+ (Recaria modülü için)
   - Flask 3.0+ (API endpoints için)
-- **Database**: 
-  - PostgreSQL 15+ (production)
-  - SQLite 3.40+ (development)
+- **Database**:
+  - PostgreSQL 15+ (required for all environments)
 - **Async**: asyncio, aiohttp
 - **ORM**: Django ORM, SQLAlchemy
 
@@ -127,8 +126,7 @@ const gameConfig = {
 ## Proje Özel Bilgiler
 
 ### Veritabanı Stratejisi
-- **Development**: SQLite (basit, hızlı, dosya tabanlı)
-- **Production**: PostgreSQL (ölçeklenebilir, güvenli)
+- **All Environments**: PostgreSQL (ölçeklenebilir, güvenli)
 - **Migration**: Otomatik migration scriptleri mevcut
 - **Backup**: Her versiyon değişiminde otomatik yedekleme
 

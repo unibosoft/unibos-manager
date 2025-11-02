@@ -1644,3 +1644,8 @@ Each entry should follow this format:
 - Result: Fixed 403 error when trying to manually fetch earthquake data from all sources
 
 
+## [2025-11-02 11:40] Documentation: Removed all SQLite references - PostgreSQL only
+- Updated documentation to reflect PostgreSQL-only architecture: INSTALLATION.md, README.md, ARCHITECTURE.md, DEVELOPMENT.md, CLAUDE_TECH.md. Deleted obsolete requirements-sqlite.txt. Updated VERSION.json technical specs. Added deprecation note to legacy utility script fix_documents_and_thumbnails.py that still uses SQLite. All main application code uses PostgreSQL exclusively.
+- Result: UNIBOS now officially uses PostgreSQL for all environments. SQLite support removed from documentation and requirements.
+
+

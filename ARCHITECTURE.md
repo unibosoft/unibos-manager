@@ -95,9 +95,8 @@ archive/
 - **Bootstrap 5**: Web UI components
 
 #### Database
-- **PostgreSQL 15+**: Production database
+- **PostgreSQL 15+**: Primary database (required)
 - **PostGIS**: Spatial data extension
-- **SQLite 3.40+**: Development database
 - **Redis 7+**: Caching and sessions
 
 #### Infrastructure
@@ -193,7 +192,7 @@ graph TD
     F --> I[Database Layer]
     H --> I
     
-    I --> J[PostgreSQL/SQLite]
+    I --> J[PostgreSQL]
     
     J --> K[Response]
     K --> L[UI Update]
@@ -201,7 +200,7 @@ graph TD
 
 ### Data Storage Strategy
 
-1. **User Data**: Local SQLite by default, PostgreSQL for production
+1. **User Data**: PostgreSQL for all environments
 2. **Cache**: Redis for session and temporary data
 3. **Files**: Organized directory structure with date-based archiving
 4. **Backups**: Automated versioning with git integration
@@ -262,7 +261,7 @@ systemctl start unibos.service
 ### Phase 1: Foundation (v001-v050)
 - Basic Raspberry Pi system
 - Core modules (Recaria, Birlikteyiz)
-- SQLite database
+- PostgreSQL database
 - Simple CLI interface
 
 ### Phase 2: Expansion (v051-v150)
