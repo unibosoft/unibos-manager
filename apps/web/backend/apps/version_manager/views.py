@@ -89,16 +89,19 @@ class VersionManagerView(LoginRequiredMixin, BaseUIView):
             # Calculate anomalies based on Z-score
             import statistics
             if len(archives_data) > 2:
-                sizes = [a['size_mb'] * (1024 * 1024) for a in archives_data]
-                mean_size = statistics.mean(sizes)
-                stdev_size = statistics.stdev(sizes) if len(sizes) > 1 else 0
-                
+                # Work directly with MB values for consistency
+                sizes_mb = [a['size_mb'] for a in archives_data]
+                mean_size_mb = statistics.mean(sizes_mb)
+                stdev_size_mb = statistics.stdev(sizes_mb) if len(sizes_mb) > 1 else 0
+
                 anomaly_count = 0
                 for archive in archives_data:
-                    if stdev_size > 0:
-                        z_score = abs((archive['size_mb'] * (1024 * 1024) - mean_size) / stdev_size)
+                    if stdev_size_mb > 0:
+                        # Z-score: how many standard deviations away from mean
+                        z_score = abs((archive['size_mb'] - mean_size_mb) / stdev_size_mb)
                         archive['z_score'] = z_score
-                        archive['is_anomaly'] = z_score > 2
+                        # Use threshold of 2.5 to reduce false positives (99% confidence)
+                        archive['is_anomaly'] = z_score > 2.5
                         if archive['is_anomaly']:
                             anomaly_count += 1
                     else:
@@ -193,7 +196,8 @@ class ArchiveAnalyzerView(LoginRequiredMixin, BaseUIView):
             for archive in archives:
                 if stdev_size > 0:
                     archive.z_score = abs((archive.size_bytes - mean_size) / stdev_size)
-                    archive.is_anomaly = archive.z_score > 2
+                    # Use threshold of 2.5 to reduce false positives (99% confidence)
+                    archive.is_anomaly = archive.z_score > 2.5
                 else:
                     archive.z_score = 0
                     archive.is_anomaly = False
@@ -365,7 +369,8 @@ class StartScanView(LoginRequiredMixin, View):
                     if stdev_size > 0:
                         z_score = abs((archive['size_bytes'] - mean_size) / stdev_size)
                         archive['z_score'] = z_score
-                        archive['is_anomaly'] = z_score > 2
+                        # Use threshold of 2.5 to reduce false positives (99% confidence)
+                        archive['is_anomaly'] = z_score > 2.5
                         
                         # Determine status based on size (like terminal version)
                         size_mb = archive['size_mb']
@@ -662,7 +667,8 @@ class RefreshArchivesView(LoginRequiredMixin, View):
                 for archive in archives:
                     if stdev_size > 0:
                         archive.z_score = abs((archive.size_bytes - mean_size) / stdev_size)
-                        archive.is_anomaly = archive.z_score > 2
+                        # Use threshold of 2.5 to reduce false positives (99% confidence)
+                        archive.is_anomaly = archive.z_score > 2.5
                     else:
                         archive.z_score = 0
                         archive.is_anomaly = False
@@ -865,7 +871,8 @@ class ArchiveOperationsView(LoginRequiredMixin, BaseUIView):
             for archive in archives:
                 if stdev_size > 0:
                     archive.z_score = abs((archive.size_bytes - mean_size) / stdev_size)
-                    archive.is_anomaly = archive.z_score > 2
+                    # Use threshold of 2.5 to reduce false positives (99% confidence)
+                    archive.is_anomaly = archive.z_score > 2.5
                     archive.save()
                     analyzed_count += 1
             
