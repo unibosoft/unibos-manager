@@ -154,26 +154,40 @@
         integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
         crossorigin=""></script>
 <script>
-// Wait for DOM to be ready
-document.addEventListener('DOMContentLoaded', function() {
-    console.log('Initializing earthquake map...');
+// Wait for DOM and window to be fully loaded
+window.addEventListener('load', function() {
+    console.log('Window loaded, initializing earthquake map...');
 
-    // Earthquake data from Django
-    const earthquakes = {{ earthquake_data_json|safe }};
-    console.log('Loaded earthquakes:', earthquakes.length);
+    // Extra delay to ensure everything is ready
+    setTimeout(function() {
+        console.log('Starting map initialization...');
 
-    // Check if Leaflet is loaded
-    if (typeof L === 'undefined') {
-        console.error('Leaflet library not loaded!');
-        return;
-    }
+        // Check if map container exists
+        const mapContainer = document.getElementById('earthquake-map');
+        if (!mapContainer) {
+            console.error('Map container #earthquake-map not found in DOM!');
+            return;
+        }
+        console.log('Map container found:', mapContainer);
 
-    // Initialize map centered on Turkey
-    const map = L.map('earthquake-map', {
-        preferCanvas: true,  // Better performance for many markers
-    }).setView([39.0, 35.0], 6);
+        // Earthquake data from Django
+        const earthquakes = {{ earthquake_data_json|safe }};
+        console.log('Loaded earthquakes:', earthquakes.length);
 
-    console.log('Map initialized');
+        // Check if Leaflet is loaded
+        if (typeof L === 'undefined') {
+            console.error('Leaflet library not loaded!');
+            return;
+        }
+        console.log('Leaflet library loaded successfully');
+
+        // Initialize map centered on Turkey
+        try {
+            const map = L.map('earthquake-map', {
+                preferCanvas: true,  // Better performance for many markers
+            }).setView([39.0, 35.0], 6);
+
+            console.log('Map initialized successfully');
 
     // Add dark tile layer
     L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
@@ -276,7 +290,11 @@ document.addEventListener('DOMContentLoaded', function() {
         console.log('Map bounds fitted to earthquake locations');
     }
 
-    console.log('Earthquake map initialization complete');
+            console.log('Earthquake map initialization complete');
+        } catch (error) {
+            console.error('Error initializing map:', error);
+        }
+    }, 500);  // 500ms delay
 });
 </script>
 {% endblock %}
