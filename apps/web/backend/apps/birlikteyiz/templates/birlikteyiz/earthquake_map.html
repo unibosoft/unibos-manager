@@ -1,11 +1,12 @@
 {% extends 'birlikteyiz/base_birlikteyiz.html' %}
+{% load static %}
 
 {% block title %}deprem haritası - birlikteyiz - unibos{% endblock %}
 
 {% block extra_css %}
 {{ block.super }}
-<!-- Leaflet CSS from CDN -->
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.css"/>
+<!-- Leaflet CSS from local static files -->
+<link rel="stylesheet" href="{% static 'leaflet/leaflet.css' %}"/>
 <style>
 /* Override Leaflet styles for dark theme - Updated 2025-11-03 */
 .leaflet-popup-content-wrapper {
@@ -166,8 +167,8 @@
 
 {% block extra_js %}
 {{ block.super }}
-<!-- Leaflet JS from reliable CDN -->
-<script src="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.js"></script>
+<!-- Leaflet JS from local static files -->
+<script src="{% static 'leaflet/leaflet.js' %}"></script>
 <script>
 // Global variables
 let earthquakeMap = null;
@@ -202,10 +203,9 @@ const tileLayers = {
         }
     },
     stamenToner: {
-        url: 'https://stamen-tiles-{s}.a.ssl.fastly.net/toner/{z}/{x}/{y}.png',
+        url: 'https://tiles.stadiamaps.com/tiles/stamen_toner/{z}/{x}/{y}{r}.png',
         options: {
-            attribution: 'Map tiles by Stamen Design, under CC BY 3.0. Data by OpenStreetMap, under ODbL.',
-            subdomains: ['a', 'b', 'c', 'd'],
+            attribution: '&copy; <a href="https://stadiamaps.com/">Stadia Maps</a>, &copy; <a href="https://openmaptiles.org/">OpenMapTiles</a> &copy; <a href="http://openstreetmap.org">OpenStreetMap</a> contributors',
             maxZoom: 20,
             className: ''
         }
