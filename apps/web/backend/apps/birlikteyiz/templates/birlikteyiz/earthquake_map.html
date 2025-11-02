@@ -121,6 +121,17 @@
     </form>
 </div>
 
+<!-- Map Style Selector -->
+<div class="section" style="margin-bottom: 10px;">
+    <div style="display: flex; gap: 10px; align-items: center; padding: 10px; background: var(--bg-dark); border: 1px solid var(--gray);">
+        <span style="color: var(--gray); font-size: 12px;">harita stili:</span>
+        <button id="btnOsmStandard" class="btn-secondary" style="padding: 5px 12px; font-size: 11px;">openstreetmap</button>
+        <button id="btnOsmDark" class="btn-secondary" style="padding: 5px 12px; font-size: 11px;">dark mode (filtre)</button>
+        <button id="btnCartoDark" class="btn-secondary" style="padding: 5px 12px; font-size: 11px;">carto dark</button>
+        <button id="btnStamenToner" class="btn-secondary" style="padding: 5px 12px; font-size: 11px;">stamen toner</button>
+    </div>
+</div>
+
 <!-- Map Container -->
 <div class="section">
     <div id="earthquake-map" style="height: 600px; width: 100%; max-width: 100%; border: 2px solid var(--gray); background: #0a0a0a; overflow: hidden;"></div>
@@ -158,6 +169,85 @@
 <!-- Leaflet JS from reliable CDN -->
 <script src="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.js"></script>
 <script>
+// Global variables
+let earthquakeMap = null;
+let currentTileLayer = null;
+let earthquakeMarkers = [];
+
+// Tile layer definitions
+const tileLayers = {
+    osmStandard: {
+        url: 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
+        options: {
+            attribution: '&copy; OpenStreetMap contributors',
+            maxZoom: 19,
+            className: ''
+        }
+    },
+    osmDark: {
+        url: 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
+        options: {
+            attribution: '&copy; OpenStreetMap contributors',
+            maxZoom: 19,
+            className: 'map-tiles-dark'
+        }
+    },
+    cartoDark: {
+        url: 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png',
+        options: {
+            attribution: '&copy; OpenStreetMap contributors &copy; CARTO',
+            subdomains: 'abcd',
+            maxZoom: 20,
+            className: ''
+        }
+    },
+    stamenToner: {
+        url: 'https://stamen-tiles-{s}.a.ssl.fastly.net/toner/{z}/{x}/{y}.png',
+        options: {
+            attribution: 'Map tiles by Stamen Design, under CC BY 3.0. Data by OpenStreetMap, under ODbL.',
+            subdomains: ['a', 'b', 'c', 'd'],
+            maxZoom: 20,
+            className: ''
+        }
+    }
+};
+
+// Switch tile layer
+function switchTileLayer(layerName) {
+    console.log('Switching to tile layer:', layerName);
+
+    if (!earthquakeMap) {
+        console.error('Map not initialized');
+        return;
+    }
+
+    // Remove current tile layer
+    if (currentTileLayer) {
+        earthquakeMap.removeLayer(currentTileLayer);
+    }
+
+    // Add new tile layer
+    const layer = tileLayers[layerName];
+    currentTileLayer = L.tileLayer(layer.url, layer.options).addTo(earthquakeMap);
+
+    // Update button states
+    document.querySelectorAll('[id^="btn"]').forEach(btn => {
+        btn.style.background = 'var(--dark-gray)';
+        btn.style.color = 'var(--white)';
+        btn.style.borderColor = 'var(--dark-gray)';
+    });
+
+    const activeBtn = document.getElementById('btn' + layerName.charAt(0).toUpperCase() + layerName.slice(1));
+    if (activeBtn) {
+        activeBtn.style.background = 'var(--orange)';
+        activeBtn.style.color = 'var(--bg-black)';
+        activeBtn.style.borderColor = 'var(--orange)';
+    }
+
+    // Save preference
+    localStorage.setItem('earthquakeMapStyle', layerName);
+}
+
 // Initialize map with retry mechanism
 function initializeEarthquakeMap() {
     console.log('Starting map initialization...');
@@ -187,8 +277,8 @@ function initializeEarthquakeMap() {
         mapContainer.style.height = '600px';
         mapContainer.style.width = '100%';
 
-        const map = L.map('earthquake-map', {
-            preferCanvas: true,  // Better performance for many markers
+        earthquakeMap = L.map('earthquake-map', {
+            preferCanvas: true,
             zoomControl: true,
             attributionControl: true
         }).setView([39.0, 35.0], 6);
@@ -197,16 +287,16 @@ function initializeEarthquakeMap() {
 
         // Force map to invalidate size after creation
         setTimeout(function() {
-            map.invalidateSize();
+            earthquakeMap.invalidateSize();
         }, 100);
 
-    // Add OpenStreetMap tile layer (dark style via filter)
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
-        subdomains: ['a', 'b', 'c'],
-        maxZoom: 19,
-        className: 'map-tiles-dark'
-    }).addTo(map);
+    // Get saved preference or use default
+    const savedStyle = localStorage.getItem('earthquakeMapStyle') || 'cartoDark';
+    const layer = tileLayers[savedStyle];
+    currentTileLayer = L.tileLayer(layer.url, layer.options).addTo(earthquakeMap);
+
+    // Set initial button state
+    switchTileLayer(savedStyle);
 
     console.log('Tile layer added');
 
@@ -242,7 +332,9 @@ function initializeEarthquakeMap() {
         weight: 2,
         opacity: 1,
         fillOpacity: 0.7
-    }).addTo(map);
+    }).addTo(earthquakeMap);
+
+    earthquakeMarkers.push(marker);
 
     // Popup content
     const popupContent = `
@@ -293,14 +385,31 @@ function initializeEarthquakeMap() {
     L.control.scale({
         imperial: false,
         metric: true
-    }).addTo(map);
+    }).addTo(earthquakeMap);
 
     // Auto-fit bounds if there are earthquakes
     if (earthquakes.length > 0) {
         const bounds = L.latLngBounds(earthquakes.map(eq => [eq.lat, eq.lon]));
-        map.fitBounds(bounds, { padding: [50, 50] });
+        earthquakeMap.fitBounds(bounds, { padding: [50, 50] });
         console.log('Map bounds fitted to earthquake locations');
     }
+
+    // Setup tile switcher buttons
+    document.getElementById('btnOsmStandard').addEventListener('click', function() {
+        switchTileLayer('osmStandard');
+    });
+
+    document.getElementById('btnOsmDark').addEventListener('click', function() {
+        switchTileLayer('osmDark');
+    });
+
+    document.getElementById('btnCartoDark').addEventListener('click', function() {
+        switchTileLayer('cartoDark');
+    });
+
+    document.getElementById('btnStamenToner').addEventListener('click', function() {
+        switchTileLayer('stamenToner');
+    });
 
         console.log('Earthquake map initialization complete');
         return true;
