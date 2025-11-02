@@ -1785,3 +1785,23 @@ Version Analyzer:
 - Result: Archive size anomalies fixed. v526/v527/v528 cleaned from 1.7GB each to 83MB/87MB/30MB respectively. Flutter build artifacts successfully removed.
 
 
+## [2025-11-03 01:55] Bug Fix: birlikteyiz earthquake map - fixed black screen on remote
+- Map was showing as black screen on recaria.org due to CDN and initialization issues:
+
+Changes:
+- Migrated from unpkg.com to cdn.jsdelivr.net for better reliability
+- Removed integrity checks that were preventing Leaflet from loading
+- Implemented retry mechanism with multiple initialization attempts
+- Added explicit container dimension forcing
+- Added map.invalidateSize() call after initialization
+- Extracted initialization into reusable function with error handling
+- Added comprehensive console logging for debugging
+
+Technical details:
+- Changed CDN for both CSS and JS
+- Added 3-tier retry: immediate, 500ms delay, 1000ms delay
+- Force container style: height=600px, width=100%
+- Listen to both 'load' and 'DOMContentLoaded' events
+- Result: Map initialization significantly improved with robust error handling and retry logic. Deployed to recaria.org (rocksteady). User should test at https://recaria.org/birlikteyiz/map/
+
+
