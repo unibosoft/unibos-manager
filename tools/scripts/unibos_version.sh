@@ -157,7 +157,7 @@ cleanup_old_sql_files() {
     print_color "$YELLOW" "🧹 Cleaning up old SQL backups (keeping last 3)..."
 
     # Ana dizindeki unibos_vXXX_*.sql dosyalarını bul
-    local sql_files=($(ls -t unibos_v[0-9]*_[0-9]*.sql 2>/dev/null || true))
+    local sql_files=($(ls -t data/database/backups/unibos_v[0-9]*_[0-9]*.sql 2>/dev/null || true))
     local count=${#sql_files[@]}
 
     if [ $count -gt 3 ]; then
@@ -179,7 +179,7 @@ create_sql_backup() {
 
     # Clean version
     local clean_version=$(echo "$version" | sed 's/^v//')
-    local sql_file="unibos_v${clean_version}_${timestamp}.sql"
+    local sql_file="data/database/backups/unibos_v${clean_version}_${timestamp}.sql"
 
     print_color "$YELLOW" "\n💾 Creating PostgreSQL backup..."
 

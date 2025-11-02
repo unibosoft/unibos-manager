@@ -1,6 +1,7 @@
 # ===== KULLANICI VERİLERİ =====
 data_db/
 data_db_backup*/
+data/
 
 # ===== ARŞİVLER =====
 archive/
@@ -36,9 +37,9 @@ logs/
 
 # ===== DJANGO =====
 staticfiles/
-backend/staticfiles/
-backend/media/
-backend/documents/2025/
+apps/web/backend/staticfiles/
+apps/web/backend/media/
+apps/web/backend/documents/2025/
 
 # ===== ORTAM DOSYALARI =====
 .env
@@ -88,8 +89,16 @@ yarn-error.log
 secrets/
 credentials/
 
-# ===== DOCS (opsiyonel - şimdilik dahil ediyoruz) =====
-# docs/
+# ===== TEST DOSYALARI =====
+*.test.html
+*_test.html
+test_*.html
 
-# ===== PROJECTS (opsiyonel - şimdilik dahil ediyoruz) =====
-# projects/
+# ===== GEÇİCİ DATA DOSYALARI =====
+all_versions.txt
+missing_versions.txt
+pushed_versions.txt
+screenshot_move_log.json
+
+# ===== SQL BACKUPS (manuel backups hariç) =====
+# data/database/backups/ dizini gitignore'da - SQL backups oraya gidecek
