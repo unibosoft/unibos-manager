@@ -288,9 +288,23 @@ create_archive() {
         done
     fi
     
+    # Create database backup BEFORE archiving
+    print_color "$CYAN" "💾 Creating database backup..."
+    if [ -f "./tools/scripts/backup_database.sh" ]; then
+        ./tools/scripts/backup_database.sh
+        if [ $? -eq 0 ]; then
+            print_color "$GREEN" "✅ Database backup completed"
+        else
+            print_color "$YELLOW" "⚠️  Database backup failed (continuing with archive)"
+        fi
+    else
+        print_color "$YELLOW" "⚠️  Database backup script not found (skipping)"
+    fi
+    echo ""
+
     # Create archive directory
     mkdir -p "$ARCHIVE_DIR"
-    
+
     # Create uncompressed archive only (no ZIP)
     print_color "$CYAN" "📂 Creating folder archive: $archive_name"
     rsync -av --exclude='archive' --exclude='.git' --exclude='venv' \

@@ -101,4 +101,4 @@ pushed_versions.txt
 screenshot_move_log.json
 
 # ===== SQL BACKUPS (manuel backups hariç) =====
-# data/database/backups/ dizini gitignore'da - SQL backups oraya gidecek
+# data/database/backups/ dizini gitignore'da - SQL backups oraya gidecekarchive/database_backups/

@@ -24,11 +24,12 @@ This document defines strict rules for version management and archiving to preve
 - `*.pyc` - Compiled Python files
 
 #### Database & Backups
-- `*.sql` - **SQL dump files (can be 50MB+ each)**
+- `*.sql` - **SQL dump files (can be 50MB+ each) - STORED SEPARATELY**
 - `*.sqlite3` - SQLite database files
 - `*.sqlite3.backup` - SQLite backups
 - `data_db/` - Database data directories
 - `data_db_backup_*` - Database backup folders
+- `archive/database_backups/` - **Managed by backup_database.sh**
 
 #### Logs & Temporary Files
 - `*.log` - Log files
@@ -218,3 +219,97 @@ Contact maintainer if:
 **Last Updated**: 2025-11-07
 **Maintainer**: Berk Hatırlı
 **Related**: `tools/scripts/unibos_version.sh`, `VERSION.json`
+
+## 💾 Database Backup System
+
+### Separation of Concerns
+
+**IMPORTANT**: Database backups are stored SEPARATELY from version archives.
+
+- **Version Archives**: Source code only (~30-90MB)
+- **Database Backups**: SQL dumps in `archive/database_backups/` (10-50MB each)
+
+### Automatic Backup Process
+
+When creating a new version, the system:
+
+1. **Creates database backup** - `./tools/scripts/backup_database.sh`
+2. **Stores in** - `archive/database_backups/unibos_vXXX_TIMESTAMP.sql`
+3. **Keeps last 3** - Automatically deletes older backups
+4. **Creates version archive** - Source code only (no SQL)
+
+### Manual Backup
+
+```bash
+# Create backup manually
+./tools/scripts/backup_database.sh
+
+# Verify backups
+./tools/scripts/verify_database_backup.sh
+```
+
+### Backup Retention Policy
+
+- **Keep**: Last 3 database backups (~30-150MB total)
+- **Automatic cleanup**: Older backups deleted automatically
+- **Not in git**: `archive/database_backups/` is in `.gitignore`
+- **Not in archives**: SQL files excluded from version archives
+
+### Database Restore
+
+To restore from a backup:
+
+```bash
+cd apps/web/backend
+
+# Restore specific backup
+DJANGO_SETTINGS_MODULE=unibos_backend.settings.development \
+  python manage.py loaddata ../../archive/database_backups/unibos_vXXX_TIMESTAMP.sql
+
+# Or use the latest backup
+LATEST=$(ls -t ../../archive/database_backups/*.sql | head -1)
+DJANGO_SETTINGS_MODULE=unibos_backend.settings.development \
+  python manage.py loaddata "$LATEST"
+```
+
+### Backup Verification Checklist
+
+Before creating a new version:
+
+1. ✅ Run backup: `./tools/scripts/backup_database.sh`
+2. ✅ Verify backup: `./tools/scripts/verify_database_backup.sh`
+3. ✅ Check backup size (should be 10-50MB)
+4. ✅ Confirm 3 backups max in directory
+5. ✅ Proceed with version creation
+
+### Troubleshooting
+
+**Backup too large (>100MB)**
+- May include unnecessary data
+- Check if media/documents are in dump
+- Use `--exclude` flags if needed
+
+**Backup empty or very small (<1MB)**
+- Database may be empty
+- Check Django settings
+- Verify database connection
+
+**Restore fails**
+- Check Django settings match
+- Verify JSON format is valid
+- Ensure database is empty or use `--clear`
+
+### Integration with Version Script
+
+The versioning script (`unibos_version.sh`) automatically:
+1. Creates database backup before archiving
+2. Stores it separately in `archive/database_backups/`
+3. Excludes SQL files from version archive
+4. Maintains backup rotation (last 3)
+
+This ensures:
+- ✅ Database state preserved for each version
+- ✅ Version archives remain small
+- ✅ Easy rollback capability
+- ✅ No git repository bloat
+
