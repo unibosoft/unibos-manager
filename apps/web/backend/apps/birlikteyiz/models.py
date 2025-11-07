@@ -516,22 +516,68 @@ class EarthquakeComment(models.Model):
 
 
 class EarthquakeDataSource(models.Model):
-    """Veri kaynaklarının durumu"""
-    
+    """Veri kaynaklarının durumu ve konfigürasyonu"""
+
+    # Basic Info
     name = models.CharField(max_length=50, unique=True)
     url = models.URLField()
+    description = models.TextField(null=True, blank=True)
     is_active = models.BooleanField(default=True)
+
+    # Fetch Configuration
+    fetch_interval_minutes = models.IntegerField(default=5, help_text="Kaç dakikada bir veri çekilecek")
+    min_magnitude = models.DecimalField(max_digits=3, decimal_places=1, default=2.5, help_text="Minimum deprem büyüklüğü")
+    max_results = models.IntegerField(default=100, help_text="Maksimum sonuç sayısı")
+
+    # Geographic Filters
+    use_geographic_filter = models.BooleanField(default=False, help_text="Coğrafi filtreleme kullan")
+    filter_min_lat = models.DecimalField(max_digits=9, decimal_places=6, null=True, blank=True)
+    filter_max_lat = models.DecimalField(max_digits=9, decimal_places=6, null=True, blank=True)
+    filter_min_lon = models.DecimalField(max_digits=9, decimal_places=6, null=True, blank=True)
+    filter_max_lon = models.DecimalField(max_digits=9, decimal_places=6, null=True, blank=True)
+    filter_region_name = models.CharField(max_length=100, null=True, blank=True, help_text="Örn: Türkiye, Küresel, vb.")
+
+    # Statistics
     last_fetch = models.DateTimeField(null=True, blank=True)
     last_success = models.DateTimeField(null=True, blank=True)
     last_error = models.TextField(null=True, blank=True)
+    last_error_time = models.DateTimeField(null=True, blank=True)
     fetch_count = models.IntegerField(default=0)
     error_count = models.IntegerField(default=0)
-    
+    success_count = models.IntegerField(default=0)
+    total_earthquakes_fetched = models.IntegerField(default=0)
+
+    # Performance
+    avg_response_time = models.FloatField(null=True, blank=True, help_text="Ortalama yanıt süresi (saniye)")
+    last_response_time = models.FloatField(null=True, blank=True, help_text="Son yanıt süresi (saniye)")
+
+    # Metadata
+    created_at = models.DateTimeField(auto_now_add=True, null=True, blank=True)
+    updated_at = models.DateTimeField(auto_now=True, null=True, blank=True)
+
     class Meta:
         db_table = 'birlikteyiz_earthquake_sources'
-        
+        ordering = ['name']
+
     def __str__(self):
         return self.name
+
+    def get_success_rate(self):
+        """Başarı oranını hesapla"""
+        if self.fetch_count == 0:
+            return 0
+        return round((self.success_count / self.fetch_count) * 100, 1)
+
+    def get_geographic_bounds(self):
+        """Coğrafi sınırları dict olarak döndür"""
+        if not self.use_geographic_filter:
+            return None
+        return {
+            'min_lat': float(self.filter_min_lat) if self.filter_min_lat else None,
+            'max_lat': float(self.filter_max_lat) if self.filter_max_lat else None,
+            'min_lon': float(self.filter_min_lon) if self.filter_min_lon else None,
+            'max_lon': float(self.filter_max_lon) if self.filter_max_lon else None,
+        }
 
 
 class CronJob(models.Model):
