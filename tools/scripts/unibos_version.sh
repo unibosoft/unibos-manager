@@ -302,7 +302,7 @@ create_archive() {
               --exclude='quarantine' --exclude='docs' \
               --exclude='data' --exclude='projects' \
               --exclude='apps/web/backend/media' --exclude='apps/web/backend/documents/2025' \
-              --exclude='*.sqlite3' --exclude='*.sqlite3.backup' \
+              --exclude='*.sqlite3' --exclude='*.sqlite3.backup' --exclude='*.sql' \
               --exclude='*.log' --exclude='apps/web/backend/staticfiles' \
               --exclude='apps/web/backend/logs' \
               --exclude='apps/mobile/*/build' --exclude='apps/mobile/*/.dart_tool' \
