@@ -12,12 +12,22 @@
     }
     
     .music-header {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
         margin-bottom: 30px;
-        padding-bottom: 15px;
-        border-bottom: 2px solid #333;
+        padding-bottom: 20px;
+        border-bottom: 2px solid var(--orange);
+    }
+
+    .music-header h1 {
+        color: var(--orange);
+        font-size: 24px;
+        margin-bottom: 5px;
+        text-transform: lowercase;
+    }
+
+    .music-header p {
+        color: var(--gray);
+        font-size: 12px;
+        text-transform: lowercase;
     }
     
     .music-stats {
@@ -208,10 +218,8 @@
 {% block content %}
 <div class="music-container">
     <div class="music-header">
-        <h1 style="text-transform: lowercase;">🎵 music library</h1>
-        <div>
-            <a href="#" class="spotify-connect">connect spotify</a>
-        </div>
+        <h1>🎵 music library</h1>
+        <p>spotify-integrated music collection and playlist management</p>
     </div>
     
     <div class="music-stats">

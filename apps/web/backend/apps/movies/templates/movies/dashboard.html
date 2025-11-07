@@ -15,12 +15,22 @@
     }
     
     .movies-header {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
         margin-bottom: 30px;
-        padding-bottom: 15px;
-        border-bottom: 2px solid #333;
+        padding-bottom: 20px;
+        border-bottom: 2px solid var(--orange);
+    }
+
+    .movies-header h1 {
+        color: var(--orange);
+        font-size: 24px;
+        margin-bottom: 5px;
+        text-transform: lowercase;
+    }
+
+    .movies-header p {
+        color: var(--gray);
+        font-size: 12px;
+        text-transform: lowercase;
     }
     
     .movies-stats {
@@ -234,12 +244,8 @@
 {% block content %}
 <div class="movies-container">
     <div class="movies-header">
-        <h1 style="text-transform: lowercase;">🎬 movies collection</h1>
-        <div>
-            <button class="btn btn-primary" style="background: #e50914; border: none; padding: 10px 20px; border-radius: 20px;">
-                add movie
-            </button>
-        </div>
+        <h1>🎬 movies collection</h1>
+        <p>personal movie and series collection management</p>
     </div>
     
     <div class="movies-stats">

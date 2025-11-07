@@ -13,18 +13,21 @@
     }
     
     .anomaly-header {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
         margin-bottom: 30px;
-        padding-bottom: 15px;
-        border-bottom: 2px solid #333;
+        padding-bottom: 20px;
+        border-bottom: 2px solid var(--orange);
     }
-    
-    .anomaly-title {
-        font-size: 24px;
+
+    .anomaly-header h1 {
         color: var(--orange);
-        font-weight: bold;
+        font-size: 24px;
+        margin-bottom: 5px;
+        text-transform: lowercase;
+    }
+
+    .anomaly-header p {
+        color: var(--gray);
+        font-size: 12px;
         text-transform: lowercase;
     }
     
@@ -239,11 +242,8 @@
 
 <div class="anomaly-container">
     <div class="anomaly-header">
-        <h1 class="anomaly-title">🔍 anomaly detection</h1>
-        <div class="action-buttons">
-            <a href="{% url 'version_manager:dashboard' %}" class="btn">← back to dashboard</a>
-            <button onclick="startNewScan()" class="btn btn-primary">run new scan</button>
-        </div>
+        <h1>🔍 anomaly detection</h1>
+        <p>version archive size analysis and anomaly detection system</p>
     </div>
     
     <!-- Statistics -->

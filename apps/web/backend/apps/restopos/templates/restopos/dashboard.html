@@ -12,12 +12,22 @@
     }
     
     .restopos-header {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
         margin-bottom: 30px;
-        padding-bottom: 15px;
-        border-bottom: 2px solid #333;
+        padding-bottom: 20px;
+        border-bottom: 2px solid var(--orange);
+    }
+
+    .restopos-header h1 {
+        color: var(--orange);
+        font-size: 24px;
+        margin-bottom: 5px;
+        text-transform: lowercase;
+    }
+
+    .restopos-header p {
+        color: var(--gray);
+        font-size: 12px;
+        text-transform: lowercase;
     }
     
     .header-info {
@@ -334,15 +344,8 @@
 {% block content %}
 <div class="restopos-container">
     <div class="restopos-header">
-        <h1 style="text-transform: lowercase;">🍽️ restopos</h1>
-        <div class="header-info">
-            <div class="status-indicator">
-                <span class="status-dot"></span>
-                <span style="color: #888;">online</span>
-            </div>
-            <span style="color: #888;">{{ restaurant_name|default:"restaurant" }}</span>
-            <span style="color: #666;">{{ current_shift|default:"lunch shift" }}</span>
-        </div>
+        <h1>🍽️ restopos</h1>
+        <p>professional restaurant pos system with table management</p>
     </div>
     
     <div class="pos-stats">
