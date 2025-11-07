@@ -214,12 +214,31 @@ EOF
 # Run Django migrations
 run_migrations() {
     print_step "Running Django migrations..."
-    
+
+    # Check for unapplied migrations
+    print_info "  Checking for unapplied migrations..."
+    UNAPPLIED=$(run_on_rocksteady "cd $ROCKSTEADY_DIR/apps/web/backend && ./$VENV_DIR/bin/python manage.py showmigrations --plan 2>/dev/null | grep -c '\[ \]' || echo 0")
+
+    if [ "$UNAPPLIED" != "0" ]; then
+        print_info "  Found $UNAPPLIED unapplied migration(s)"
+    fi
+
+    # Check for model changes not in migrations
+    print_info "  Checking for model changes..."
+    CHANGES=$(run_on_rocksteady "cd $ROCKSTEADY_DIR/apps/web/backend && ./$VENV_DIR/bin/python manage.py makemigrations --dry-run 2>&1 | grep -c 'No changes detected' || echo 0")
+
+    if [ "$CHANGES" = "0" ]; then
+        print_warning "  Found model changes not reflected in migrations"
+        print_warning "  Please run 'python manage.py makemigrations' locally and commit"
+        return 1
+    fi
+
+    # Apply migrations
     if run_on_rocksteady "cd $ROCKSTEADY_DIR/apps/web/backend && ./$VENV_DIR/bin/python manage.py migrate --noinput"; then
         print_success "Migrations completed"
         return 0
     else
-        print_warning "Migrations failed, may need manual check"
+        print_error "Migrations failed"
         return 1
     fi
 }
