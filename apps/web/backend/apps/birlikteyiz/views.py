@@ -1,14 +1,17 @@
-from django.shortcuts import render
+from django.shortcuts import render, get_object_or_404
 from django.contrib.auth.decorators import login_required
+from django.contrib.admin.views.decorators import staff_member_required
 from django.core.paginator import Paginator
 from django.db.models import Q
 from django.utils import timezone
 from django.http import JsonResponse
-from django.views.decorators.http import require_POST
+from django.views.decorators.http import require_POST, require_http_methods
 from django.views.decorators.csrf import csrf_exempt
 from django.core.management import call_command
 from datetime import timedelta
 import threading
+import json
+from decimal import Decimal
 from .models import (
     Earthquake, EarthquakeDataSource, CronJob,
     MeshNode, EmergencyMessage, DisasterZone, ResourcePoint
@@ -136,8 +139,13 @@ def earthquake_list(request):
 
 @login_required
 def cron_jobs(request):
-    """Display and manage cron jobs"""
-    
+    """Display and manage cron jobs - redirects to admin page if superuser"""
+
+    # Superusers go to the full admin panel
+    if request.user.is_superuser:
+        return source_admin(request)
+
+    # Regular users see simplified view
     # Ensure earthquake fetch job exists
     fetch_job, _ = CronJob.objects.get_or_create(
         name='Fetch Earthquakes',
@@ -147,14 +155,29 @@ def cron_jobs(request):
             'is_active': True
         }
     )
-    
+
     jobs = CronJob.objects.all().order_by('name')
-    
+    data_sources = EarthquakeDataSource.objects.all().order_by('name')
+
     context = {
         'jobs': jobs,
+        'data_sources': data_sources,
     }
-    
+
     return render(request, 'birlikteyiz/cron_jobs.html', context)
+
+
+@login_required
+def source_admin(request):
+    """Full admin panel for data source management - superusers only"""
+
+    data_sources = EarthquakeDataSource.objects.all().order_by('name')
+
+    context = {
+        'data_sources': data_sources,
+    }
+
+    return render(request, 'birlikteyiz/source_admin.html', context)
 
 
 @login_required
@@ -179,7 +202,7 @@ def manual_fetch(request):
 
 @login_required
 def earthquake_map(request):
-    """Interactive map view of earthquakes"""
+    """Interactive map view of earthquakes with list"""
     import json
 
     # Get filter parameters
@@ -195,15 +218,26 @@ def earthquake_map(request):
     except:
         magnitude_min = 2.5
 
-    # Get earthquakes for map
-    earthquakes = Earthquake.objects.filter(
+    source_filter = request.GET.get('source', None)
+
+    # Get earthquakes for both map and list (using same queryset)
+    earthquakes_qs = Earthquake.objects.filter(
         occurred_at__gte=timezone.now() - timedelta(days=days),
         magnitude__gte=magnitude_min
-    ).order_by('-occurred_at')[:500]  # Limit to 500 for performance
+    )
+
+    # Apply source filter if provided
+    if source_filter:
+        earthquakes_qs = earthquakes_qs.filter(source=source_filter)
+
+    earthquakes_qs = earthquakes_qs.order_by('-occurred_at')
+
+    # For map: limit to 500 for performance
+    earthquakes_for_map = earthquakes_qs[:500]
 
     # Convert to list for JSON serialization
     earthquake_data = []
-    for eq in earthquakes:
+    for eq in earthquakes_for_map:
         earthquake_data.append({
             'id': eq.id,
             'lat': float(eq.latitude),
@@ -217,20 +251,32 @@ def earthquake_map(request):
             'time_ago': f'{(timezone.now() - eq.occurred_at).days} gün önce' if (timezone.now() - eq.occurred_at).days > 0 else f'{(timezone.now() - eq.occurred_at).seconds // 3600} saat önce'
         })
 
+    # For list: paginate
+    from django.core.paginator import Paginator
+    paginator = Paginator(earthquakes_qs, 50)
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
+
     # Statistics
     total_earthquakes = len(earthquake_data)
     major_count = len([e for e in earthquake_data if e['magnitude'] >= 5.0])
     moderate_count = len([e for e in earthquake_data if 4.0 <= e['magnitude'] < 5.0])
     minor_count = len([e for e in earthquake_data if 3.0 <= e['magnitude'] < 4.0])
 
+    # Get data sources with statistics
+    data_sources = EarthquakeDataSource.objects.all().order_by('name')
+
     context = {
         'earthquake_data_json': json.dumps(earthquake_data),  # Convert to JSON string
+        'page_obj': page_obj,  # For the list
         'total_earthquakes': total_earthquakes,
         'major_count': major_count,
         'moderate_count': moderate_count,
         'minor_count': minor_count,
         'filter_days': days,
         'filter_magnitude_min': magnitude_min,
+        'filter_source': source_filter,
+        'data_sources': data_sources,
     }
 
     return render(request, 'birlikteyiz/earthquake_map.html', context)
