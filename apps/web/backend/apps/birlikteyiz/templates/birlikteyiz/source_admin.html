@@ -1,0 +1,540 @@
+{% extends 'birlikteyiz/base_birlikteyiz.html' %}
+
+{% block title %}veri kaynakları yönetimi - birlikteyiz - unibos{% endblock %}
+
+{% block birlikteyiz_content %}
+
+{% if not user.is_superuser %}
+<div class="section" style="margin-bottom: 20px;">
+    <div style="padding: 40px; text-align: center; background: var(--bg-dark); border: 2px solid var(--orange);">
+        <div style="font-size: 48px; margin-bottom: 20px;">🔒</div>
+        <div style="color: var(--orange); font-size: 18px; margin-bottom: 10px;">yetkiniz yok</div>
+        <div style="color: var(--gray); font-size: 14px;">bu sayfa sadece sistem yöneticileri tarafından erişilebilir</div>
+        <a href="{% url 'birlikteyiz:dashboard' %}" class="btn-primary" style="margin-top: 20px; display: inline-block; text-decoration: none;">🗺️ haritaya dön</a>
+    </div>
+</div>
+{% else %}
+
+<!-- Page Header -->
+<div class="section" style="margin-bottom: 30px;">
+    <div style="display: flex; justify-content: space-between; align-items: center; padding-bottom: 15px; border-bottom: 2px solid var(--orange);">
+        <div>
+            <h2 style="color: var(--orange); margin: 0; font-size: 24px;">🔧 veri kaynakları yönetim paneli</h2>
+            <p style="color: var(--gray); margin: 5px 0 0 0; font-size: 12px;">deprem veri kaynaklarının yapılandırması ve izlenmesi</p>
+        </div>
+        <div style="display: flex; gap: 10px;">
+            <button class="btn-primary" onclick="fetchAllSources()" id="fetchAllBtn">📥 tüm kaynaklardan veri çek</button>
+            <button class="btn-secondary" onclick="refreshPage()">🔄 yenile</button>
+            <a href="{% url 'birlikteyiz:dashboard' %}" class="btn-secondary" style="text-decoration: none;">🗺️ haritaya dön</a>
+        </div>
+    </div>
+</div>
+
+<!-- Data Sources Grid -->
+<div class="section" style="margin-bottom: 30px;">
+    <h3 style="color: var(--gray); margin-bottom: 20px; padding-bottom: 10px; border-bottom: 1px solid var(--gray);">
+        📡 veri kaynakları ({{ data_sources|length }})
+    </h3>
+
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(350px, 1fr)); gap: 20px;">
+        {% for source in data_sources %}
+        <div class="source-admin-card" data-source-id="{{ source.id }}" style="background: var(--bg-dark); border: 2px solid {% if source.is_active %}var(--gray){% else %}#555{% endif %}; padding: 20px; border-radius: 6px; position: relative;">
+
+            <!-- Header -->
+            <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 15px;">
+                <div style="flex: 1;">
+                    <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 8px;">
+                        <div style="font-size: 24px;">
+                            {% if source.name == 'KANDILLI' %}🇹🇷
+                            {% elif source.name == 'AFAD' %}🇹🇷
+                            {% elif source.name == 'IRIS' %}🌍
+                            {% elif source.name == 'USGS' %}🇺🇸
+                            {% elif source.name == 'GFZ' %}🇩🇪
+                            {% else %}📡{% endif %}
+                        </div>
+                        <div>
+                            <div style="color: var(--orange); font-weight: bold; font-size: 16px;">{{ source.name|lower }}</div>
+                            <div style="color: var(--gray); font-size: 11px;">
+                                {% if source.filter_region_name %}{{ source.filter_region_name|lower }}{% else %}yapılandırılmamış{% endif %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div style="display: flex; align-items: center; gap: 8px;">
+                    <!-- Status indicator -->
+                    <div style="width: 12px; height: 12px; border-radius: 50%; background: {% if source.is_active %}{% if source.last_success %}#00ff00{% elif source.last_error %}#ff4444{% else %}var(--orange){% endif %}{% else %}#555{% endif %}; box-shadow: 0 0 8px {% if source.is_active %}{% if source.last_success %}rgba(0,255,0,0.5){% elif source.last_error %}rgba(255,68,68,0.5){% else %}rgba(255,140,0,0.5){% endif %}{% else %}none{% endif %};"></div>
+                    <!-- Toggle switch -->
+                    <label class="toggle-switch" style="position: relative; display: inline-block; width: 44px; height: 22px;">
+                        <input type="checkbox" {% if source.is_active %}checked{% endif %} onchange="toggleSource({{ source.id }}, this.checked)" style="opacity: 0; width: 0; height: 0;">
+                        <span style="position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #555; transition: .4s; border-radius: 22px;"></span>
+                    </label>
+                </div>
+            </div>
+
+            <!-- Quick Stats -->
+            <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; padding: 12px; background: rgba(0,0,0,0.3); border-radius: 4px; margin-bottom: 15px;">
+                <div style="text-align: center;">
+                    <div style="font-size: 10px; color: var(--gray); margin-bottom: 3px;">başarı</div>
+                    <div style="font-size: 16px; font-weight: bold; color: {% if source.get_success_rate >= 80 %}#00ff00{% elif source.get_success_rate >= 50 %}var(--orange){% else %}#ff4444{% endif %};">{{ source.get_success_rate|floatformat:1 }}%</div>
+                </div>
+                <div style="text-align: center;">
+                    <div style="font-size: 10px; color: var(--gray); margin-bottom: 3px;">sorgu</div>
+                    <div style="font-size: 16px; font-weight: bold; color: var(--white);">{{ source.fetch_count }}</div>
+                </div>
+                <div style="text-align: center;">
+                    <div style="font-size: 10px; color: var(--gray); margin-bottom: 3px;">deprem</div>
+                    <div style="font-size: 16px; font-weight: bold; color: var(--cyan);">{{ source.total_earthquakes_fetched }}</div>
+                </div>
+            </div>
+
+            <!-- Configuration Summary -->
+            <div style="font-size: 11px; color: var(--gray); margin-bottom: 15px; padding: 10px; background: rgba(0,255,255,0.05); border-left: 2px solid var(--cyan); border-radius: 2px;">
+                <div style="margin-bottom: 5px;"><strong>interval:</strong> {{ source.fetch_interval_minutes }} dakika</div>
+                <div style="margin-bottom: 5px;"><strong>min büyüklük:</strong> {{ source.min_magnitude }}</div>
+                <div style="margin-bottom: 5px;"><strong>max sonuç:</strong> {{ source.max_results }}</div>
+                <div><strong>coğrafi filtre:</strong> {% if source.use_geographic_filter %}✓ aktif{% else %}✗ kapalı{% endif %}</div>
+            </div>
+
+            <!-- Action Buttons -->
+            <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px;">
+                <button class="btn-primary" onclick="openConfigModal({{ source.id }})" style="padding: 8px; font-size: 12px;">
+                    ⚙️ yapılandır
+                </button>
+                <button class="btn-secondary" onclick="testSource({{ source.id }})" style="padding: 8px; font-size: 12px;">
+                    🧪 test et
+                </button>
+                <button class="btn-primary" onclick="fetchSource({{ source.id }})" style="padding: 8px; font-size: 12px;">
+                    📥 veri çek
+                </button>
+            </div>
+
+            <!-- Error display if exists -->
+            {% if source.last_error and source.is_active %}
+            <div style="margin-top: 15px; padding: 10px; background: rgba(255,68,68,0.1); border-left: 2px solid #ff4444; border-radius: 2px;">
+                <div style="font-size: 10px; color: #ff4444; margin-bottom: 5px;">son hata:</div>
+                <div style="font-size: 10px; color: var(--gray); font-family: 'Courier New', monospace;">{{ source.last_error|truncatewords:15 }}</div>
+            </div>
+            {% endif %}
+
+        </div>
+        {% endfor %}
+    </div>
+</div>
+
+<!-- Configuration Modal -->
+<div id="configModal" style="display: none; position: fixed; z-index: 9999; left: 0; top: 0; width: 100%; height: 100%; overflow: auto; background-color: rgba(0,0,0,0.9);">
+    <div style="background-color: #0a0a0a; margin: 2% auto; padding: 30px; border: 2px solid var(--orange); width: 90%; max-width: 800px; max-height: 90vh; overflow-y: auto; border-radius: 8px; box-shadow: 0 0 50px rgba(255,140,0,0.3);">
+
+        <!-- Modal Header -->
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; padding-bottom: 15px; border-bottom: 2px solid var(--orange);">
+            <h3 style="color: var(--orange); margin: 0; font-size: 20px;" id="modalTitle">kaynak yapılandırması</h3>
+            <button onclick="closeConfigModal()" style="background: none; border: none; color: var(--gray); font-size: 24px; cursor: pointer; padding: 0; width: 30px; height: 30px;">&times;</button>
+        </div>
+
+        <form id="configForm">
+            <input type="hidden" id="sourceId" name="source_id">
+
+            <!-- Basic Configuration -->
+            <div style="margin-bottom: 25px;">
+                <h4 style="color: var(--cyan); margin-bottom: 15px; font-size: 14px; border-bottom: 1px solid var(--gray); padding-bottom: 8px;">temel ayarlar</h4>
+
+                <div style="margin-bottom: 15px;">
+                    <label style="display: block; color: var(--gray); font-size: 12px; margin-bottom: 5px;">url</label>
+                    <input type="url" id="sourceUrl" name="url" style="width: 100%; padding: 10px; background: #0a0a0a; border: 1px solid var(--gray); color: var(--white); font-family: 'Courier New', monospace; font-size: 12px; border-radius: 4px;" required>
+                </div>
+
+                <div style="margin-bottom: 15px;">
+                    <label style="display: block; color: var(--gray); font-size: 12px; margin-bottom: 5px;">açıklama</label>
+                    <textarea id="sourceDescription" name="description" rows="2" style="width: 100%; padding: 10px; background: #0a0a0a; border: 1px solid var(--gray); color: var(--white); font-family: 'Courier New', monospace; font-size: 12px; border-radius: 4px;"></textarea>
+                </div>
+            </div>
+
+            <!-- Fetch Configuration -->
+            <div style="margin-bottom: 25px;">
+                <h4 style="color: var(--cyan); margin-bottom: 15px; font-size: 14px; border-bottom: 1px solid var(--gray); padding-bottom: 8px;">veri çekme ayarları</h4>
+
+                <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 15px;">
+                    <div>
+                        <label style="display: block; color: var(--gray); font-size: 12px; margin-bottom: 5px;">interval (dakika)</label>
+                        <input type="number" id="fetchInterval" name="fetch_interval_minutes" min="1" max="1440" value="5" style="width: 100%; padding: 10px; background: #0a0a0a; border: 1px solid var(--gray); color: var(--white); font-size: 12px; border-radius: 4px;" required>
+                    </div>
+                    <div>
+                        <label style="display: block; color: var(--gray); font-size: 12px; margin-bottom: 5px;">min büyüklük</label>
+                        <input type="number" id="minMagnitude" name="min_magnitude" min="0" max="10" step="0.1" value="2.5" style="width: 100%; padding: 10px; background: #0a0a0a; border: 1px solid var(--gray); color: var(--white); font-size: 12px; border-radius: 4px;" required>
+                    </div>
+                    <div>
+                        <label style="display: block; color: var(--gray); font-size: 12px; margin-bottom: 5px;">max sonuç</label>
+                        <input type="number" id="maxResults" name="max_results" min="1" max="1000" value="100" style="width: 100%; padding: 10px; background: #0a0a0a; border: 1px solid var(--gray); color: var(--white); font-size: 12px; border-radius: 4px;" required>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Geographic Filter -->
+            <div style="margin-bottom: 25px;">
+                <h4 style="color: var(--cyan); margin-bottom: 15px; font-size: 14px; border-bottom: 1px solid var(--gray); padding-bottom: 8px;">coğrafi filtreleme</h4>
+
+                <div style="margin-bottom: 15px;">
+                    <label style="display: flex; align-items: center; gap: 10px; cursor: pointer;">
+                        <input type="checkbox" id="useGeoFilter" name="use_geographic_filter" onchange="toggleGeoFilters(this.checked)" style="width: 18px; height: 18px;">
+                        <span style="color: var(--gray); font-size: 12px;">coğrafi filtreleme kullan</span>
+                    </label>
+                </div>
+
+                <div id="geoFiltersContainer" style="display: none;">
+                    <div style="margin-bottom: 15px;">
+                        <label style="display: block; color: var(--gray); font-size: 12px; margin-bottom: 5px;">ön tanımlı bölge</label>
+                        <select id="presetRegion" onchange="applyPresetRegion(this.value)" style="width: 100%; padding: 10px; background: #0a0a0a; border: 1px solid var(--gray); color: var(--gray); font-size: 12px; border-radius: 4px;">
+                            <option value="">-- ön tanımlı bölge seç --</option>
+                            <option value="türkiye">🇹🇷 türkiye</option>
+                            <option value="küresel">🌍 küresel</option>
+                            <option value="avrupa">🇪🇺 avrupa</option>
+                            <option value="asya">🌏 asya</option>
+                            <option value="kuzey_amerika">🇺🇸 kuzey amerika</option>
+                            <option value="pasifik_halka_ateşi">🌋 pasifik halka-i ateşi</option>
+                        </select>
+                    </div>
+
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+                        <div>
+                            <label style="display: block; color: var(--gray); font-size: 12px; margin-bottom: 5px;">min enlem</label>
+                            <input type="number" id="filterMinLat" name="filter_min_lat" min="-90" max="90" step="0.000001" style="width: 100%; padding: 10px; background: #0a0a0a; border: 1px solid var(--gray); color: var(--white); font-size: 12px; border-radius: 4px;">
+                        </div>
+                        <div>
+                            <label style="display: block; color: var(--gray); font-size: 12px; margin-bottom: 5px;">max enlem</label>
+                            <input type="number" id="filterMaxLat" name="filter_max_lat" min="-90" max="90" step="0.000001" style="width: 100%; padding: 10px; background: #0a0a0a; border: 1px solid var(--gray); color: var(--white); font-size: 12px; border-radius: 4px;">
+                        </div>
+                        <div>
+                            <label style="display: block; color: var(--gray); font-size: 12px; margin-bottom: 5px;">min boylam</label>
+                            <input type="number" id="filterMinLon" name="filter_min_lon" min="-180" max="180" step="0.000001" style="width: 100%; padding: 10px; background: #0a0a0a; border: 1px solid var(--gray); color: var(--white); font-size: 12px; border-radius: 4px;">
+                        </div>
+                        <div>
+                            <label style="display: block; color: var(--gray); font-size: 12px; margin-bottom: 5px;">max boylam</label>
+                            <input type="number" id="filterMaxLon" name="filter_max_lon" min="-180" max="180" step="0.000001" style="width: 100%; padding: 10px; background: #0a0a0a; border: 1px solid var(--gray); color: var(--white); font-size: 12px; border-radius: 4px;">
+                        </div>
+                    </div>
+
+                    <div style="margin-top: 15px;">
+                        <label style="display: block; color: var(--gray); font-size: 12px; margin-bottom: 5px;">bölge adı</label>
+                        <input type="text" id="filterRegionName" name="filter_region_name" style="width: 100%; padding: 10px; background: #0a0a0a; border: 1px solid var(--gray); color: var(--white); font-size: 12px; border-radius: 4px;" placeholder="örn: Türkiye, Avrupa, vb.">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Actions -->
+            <div style="display: flex; justify-content: space-between; gap: 15px; padding-top: 20px; border-top: 1px solid var(--gray);">
+                <button type="button" class="btn-secondary" onclick="resetSourceStats()" style="flex: 1;">
+                    🗑️ istatistikleri sıfırla
+                </button>
+                <div style="display: flex; gap: 10px; flex: 2;">
+                    <button type="button" class="btn-secondary" onclick="closeConfigModal()" style="flex: 1;">
+                        iptal
+                    </button>
+                    <button type="submit" class="btn-primary" style="flex: 1;">
+                        💾 kaydet
+                    </button>
+                </div>
+            </div>
+        </form>
+
+    </div>
+</div>
+
+<style>
+/* Toggle switch styling */
+.toggle-switch input:checked + span {
+    background-color: #00ff00;
+}
+
+.toggle-switch span:before {
+    position: absolute;
+    content: "";
+    height: 16px;
+    width: 16px;
+    left: 3px;
+    bottom: 3px;
+    background-color: white;
+    transition: .4s;
+    border-radius: 50%;
+}
+
+.toggle-switch input:checked + span:before {
+    transform: translateX(22px);
+}
+
+/* Source card hover effect */
+.source-admin-card {
+    transition: border-color 0.3s, box-shadow 0.3s;
+}
+
+.source-admin-card:hover {
+    border-color: var(--orange) !important;
+    box-shadow: 0 0 15px rgba(255, 140, 0, 0.3);
+}
+</style>
+
+<script>
+let presetRegions = {};
+let currentSourceId = null;
+
+// Load preset regions on page load
+window.addEventListener('load', function() {
+    fetch('{% url "birlikteyiz:admin_preset_regions" %}')
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                presetRegions = data.presets;
+            }
+        });
+});
+
+function refreshPage() {
+    location.reload();
+}
+
+function openConfigModal(sourceId) {
+    currentSourceId = sourceId;
+
+    // Fetch current configuration
+    fetch(`/birlikteyiz/admin/source/${sourceId}/`)
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                const config = data.data;
+
+                // Populate form
+                document.getElementById('sourceId').value = config.id;
+                document.getElementById('sourceUrl').value = config.url;
+                document.getElementById('sourceDescription').value = config.description || '';
+                document.getElementById('fetchInterval').value = config.fetch_interval_minutes;
+                document.getElementById('minMagnitude').value = config.min_magnitude;
+                document.getElementById('maxResults').value = config.max_results;
+                document.getElementById('useGeoFilter').checked = config.use_geographic_filter;
+
+                if (config.use_geographic_filter) {
+                    document.getElementById('geoFiltersContainer').style.display = 'block';
+                    document.getElementById('filterMinLat').value = config.filter_min_lat || '';
+                    document.getElementById('filterMaxLat').value = config.filter_max_lat || '';
+                    document.getElementById('filterMinLon').value = config.filter_min_lon || '';
+                    document.getElementById('filterMaxLon').value = config.filter_max_lon || '';
+                    document.getElementById('filterRegionName').value = config.filter_region_name || '';
+                }
+
+                document.getElementById('modalTitle').textContent = `${config.name.toLowerCase()} yapılandırması`;
+                document.getElementById('configModal').style.display = 'block';
+            }
+        })
+        .catch(error => {
+            alert('❌ yapılandırma yüklenirken hata oluştu: ' + error);
+        });
+}
+
+function closeConfigModal() {
+    document.getElementById('configModal').style.display = 'none';
+    currentSourceId = null;
+}
+
+function toggleGeoFilters(enabled) {
+    document.getElementById('geoFiltersContainer').style.display = enabled ? 'block' : 'none';
+}
+
+function applyPresetRegion(presetKey) {
+    if (!presetKey || !presetRegions[presetKey]) return;
+
+    const preset = presetRegions[presetKey];
+    document.getElementById('filterMinLat').value = preset.min_lat;
+    document.getElementById('filterMaxLat').value = preset.max_lat;
+    document.getElementById('filterMinLon').value = preset.min_lon;
+    document.getElementById('filterMaxLon').value = preset.max_lon;
+    document.getElementById('filterRegionName').value = preset.name;
+}
+
+// Form submission
+document.getElementById('configForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+
+    const sourceId = document.getElementById('sourceId').value;
+    const formData = {
+        url: document.getElementById('sourceUrl').value,
+        description: document.getElementById('sourceDescription').value,
+        fetch_interval_minutes: parseInt(document.getElementById('fetchInterval').value),
+        min_magnitude: parseFloat(document.getElementById('minMagnitude').value),
+        max_results: parseInt(document.getElementById('maxResults').value),
+        use_geographic_filter: document.getElementById('useGeoFilter').checked,
+        filter_min_lat: parseFloat(document.getElementById('filterMinLat').value) || null,
+        filter_max_lat: parseFloat(document.getElementById('filterMaxLat').value) || null,
+        filter_min_lon: parseFloat(document.getElementById('filterMinLon').value) || null,
+        filter_max_lon: parseFloat(document.getElementById('filterMaxLon').value) || null,
+        filter_region_name: document.getElementById('filterRegionName').value,
+    };
+
+    fetch(`/birlikteyiz/admin/source/${sourceId}/`, {
+        method: 'PUT',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': '{{ csrf_token }}'
+        },
+        body: JSON.stringify(formData)
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            alert('✅ ' + data.message);
+            closeConfigModal();
+            location.reload();
+        } else {
+            alert('❌ hata: ' + data.error);
+        }
+    })
+    .catch(error => {
+        alert('❌ kaydetme hatası: ' + error);
+    });
+});
+
+function toggleSource(sourceId, isActive) {
+    fetch(`/birlikteyiz/admin/source/${sourceId}/toggle/`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': '{{ csrf_token }}'
+        },
+        body: JSON.stringify({ is_active: isActive })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            location.reload();
+        } else {
+            alert('❌ hata: ' + data.error);
+        }
+    })
+    .catch(error => {
+        alert('❌ durum değiştirme hatası: ' + error);
+    });
+}
+
+function testSource(sourceId) {
+    const btn = event.target;
+    btn.disabled = true;
+    btn.textContent = '⏳ test ediliyor...';
+
+    fetch(`/birlikteyiz/admin/source/${sourceId}/test/`, {
+        method: 'POST',
+        headers: {
+            'X-CSRFToken': '{{ csrf_token }}'
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            alert(`✅ ${data.message}\n\nyanıt süresi: ${data.response_time}s\ndurum kodu: ${data.status_code}\nİçerik boyutu: ${data.content_length} byte`);
+        } else {
+            alert(`❌ test başarısız\n\nhata: ${data.error}\nyanıt süresi: ${data.response_time}s`);
+        }
+        btn.disabled = false;
+        btn.textContent = '🧪 test et';
+    })
+    .catch(error => {
+        alert('❌ test hatası: ' + error);
+        btn.disabled = false;
+        btn.textContent = '🧪 test et';
+    });
+}
+
+function resetSourceStats() {
+    if (!currentSourceId) return;
+
+    if (confirm('bu kaynağın tüm istatistiklerini sıfırlamak istediğinizden emin misiniz?\n\nbu işlem geri alınamaz.')) {
+        fetch(`/birlikteyiz/admin/source/${currentSourceId}/reset-stats/`, {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': '{{ csrf_token }}'
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                alert('✅ ' + data.message);
+                closeConfigModal();
+                location.reload();
+            } else {
+                alert('❌ hata: ' + data.error);
+            }
+        })
+        .catch(error => {
+            alert('❌ sıfırlama hatası: ' + error);
+        });
+    }
+}
+
+// Close modal on outside click
+window.onclick = function(event) {
+    const modal = document.getElementById('configModal');
+    if (event.target == modal) {
+        closeConfigModal();
+    }
+}
+
+// Fetch data from all sources
+function fetchAllSources() {
+    const btn = document.getElementById('fetchAllBtn');
+    btn.disabled = true;
+    btn.textContent = '⏳ veri çekiliyor...';
+
+    fetch('/birlikteyiz/admin/fetch-all/', {
+        method: 'POST',
+        headers: {
+            'X-CSRFToken': '{{ csrf_token }}'
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            alert(`✅ ${data.message}`);
+            setTimeout(() => location.reload(), 1000);
+        } else {
+            alert(`❌ hata: ${data.error}`);
+            btn.disabled = false;
+            btn.textContent = '📥 tüm kaynaklardan veri çek';
+        }
+    })
+    .catch(error => {
+        alert('❌ veri çekme hatası: ' + error);
+        btn.disabled = false;
+        btn.textContent = '📥 tüm kaynaklardan veri çek';
+    });
+}
+
+// Fetch data from a single source
+function fetchSource(sourceId) {
+    const btn = event.target;
+    btn.disabled = true;
+    btn.textContent = '⏳ çekiliyor...';
+
+    fetch(`/birlikteyiz/admin/fetch-source/${sourceId}/`, {
+        method: 'POST',
+        headers: {
+            'X-CSRFToken': '{{ csrf_token }}'
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            alert(`✅ ${data.message}`);
+            setTimeout(() => location.reload(), 1000);
+        } else {
+            alert(`❌ hata: ${data.error}`);
+            btn.disabled = false;
+            btn.textContent = '📥 veri çek';
+        }
+    })
+    .catch(error => {
+        alert('❌ veri çekme hatası: ' + error);
+        btn.disabled = false;
+        btn.textContent = '📥 veri çek';
+    });
+}
+</script>
+
+{% endif %}
+
+{% endblock birlikteyiz_content %}

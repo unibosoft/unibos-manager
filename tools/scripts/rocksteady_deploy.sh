@@ -240,17 +240,39 @@ collect_static() {
 # Start backend server
 start_backend() {
     print_step "Starting backend server..."
-    
-    # Kill existing server
-    run_on_rocksteady "pkill -f 'manage.py runserver' || true"
-    
-    # Start new server
-    if run_on_rocksteady "cd $ROCKSTEADY_DIR/apps/web/backend && nohup ./$VENV_DIR/bin/python manage.py runserver 0.0.0.0:$DJANGO_PORT > logs/server.log 2>&1 &"; then
-        print_success "Backend server started on port $DJANGO_PORT"
-        return 0
+
+    # Check if gunicorn systemd service exists
+    if run_on_rocksteady "sudo systemctl list-units --type=service --all | grep -q gunicorn.service"; then
+        print_info "Restarting Gunicorn service..."
+        if run_on_rocksteady "sudo systemctl restart gunicorn"; then
+            print_success "Gunicorn service restarted"
+
+            # Also restart nginx to ensure it picks up any changes
+            if run_on_rocksteady "sudo systemctl restart nginx"; then
+                print_success "Nginx restarted"
+            else
+                print_warning "Nginx restart failed, but Gunicorn is running"
+            fi
+            return 0
+        else
+            print_error "Failed to restart Gunicorn service"
+            return 1
+        fi
     else
-        print_error "Failed to start backend server"
-        return 1
+        # Fallback to runserver if gunicorn service doesn't exist
+        print_info "Gunicorn service not found, using runserver..."
+
+        # Kill existing server
+        run_on_rocksteady "pkill -f 'manage.py runserver' || true"
+
+        # Start new server
+        if run_on_rocksteady "cd $ROCKSTEADY_DIR/apps/web/backend && nohup ./$VENV_DIR/bin/python manage.py runserver 0.0.0.0:$DJANGO_PORT > logs/server.log 2>&1 &"; then
+            print_success "Backend server started on port $DJANGO_PORT"
+            return 0
+        else
+            print_error "Failed to start backend server"
+            return 1
+        fi
     fi
 }
 

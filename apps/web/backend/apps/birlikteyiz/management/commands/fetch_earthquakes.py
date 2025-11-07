@@ -16,7 +16,14 @@ from apps.birlikteyiz.models import Earthquake, EarthquakeDataSource, CronJob
 
 class Command(BaseCommand):
     help = 'Fetch earthquake data from all configured sources'
-    
+
+    def add_arguments(self, parser):
+        parser.add_argument(
+            '--source',
+            type=str,
+            help='Fetch from a specific source only (KANDILLI, AFAD, IRIS, USGS, GFZ)'
+        )
+
     def __init__(self):
         super().__init__()
         self.sources = {
@@ -44,7 +51,7 @@ class Command(BaseCommand):
     
     def handle(self, *args, **options):
         self.stdout.write(self.style.SUCCESS(f'Starting earthquake data fetch at {timezone.now()}'))
-        
+
         # Update cron job status
         cron_job, _ = CronJob.objects.get_or_create(
             name='Fetch Earthquakes',
@@ -56,52 +63,105 @@ class Command(BaseCommand):
         cron_job.status = 'running'
         cron_job.last_run = timezone.now()
         cron_job.save()
-        
+
         total_new = 0
         total_updated = 0
         errors = []
-        
-        for source_name, config in self.sources.items():
+
+        # Filter sources if --source parameter is provided
+        source_filter = options.get('source')
+        sources_to_fetch = {}
+
+        if source_filter:
+            # Fetch only the specified source
+            source_filter_upper = source_filter.upper()
+            if source_filter_upper in self.sources:
+                sources_to_fetch = {source_filter_upper: self.sources[source_filter_upper]}
+                self.stdout.write(f'Fetching from single source: {source_filter_upper}')
+            else:
+                self.stdout.write(self.style.ERROR(f'Unknown source: {source_filter}. Available: {", ".join(self.sources.keys())}'))
+                return
+        else:
+            # Fetch from all sources
+            sources_to_fetch = self.sources
+
+        for source_name, config in sources_to_fetch.items():
+            data_source = None
             try:
-                # Get or create data source
-                data_source, _ = EarthquakeDataSource.objects.get_or_create(
+                # Get or create data source with proper defaults
+                data_source, created = EarthquakeDataSource.objects.get_or_create(
                     name=source_name,
-                    defaults={'url': config['url']}
+                    defaults={
+                        'url': config['url'],
+                        'is_active': True,
+                        'fetch_interval_minutes': 5,
+                        'min_magnitude': Decimal('2.5'),
+                        'max_results': 100,
+                        'use_geographic_filter': source_name in ['KANDILLI', 'AFAD'],  # Turkey-only sources
+                        'filter_min_lat': Decimal('35.0') if source_name in ['KANDILLI', 'AFAD'] else None,
+                        'filter_max_lat': Decimal('43.0') if source_name in ['KANDILLI', 'AFAD'] else None,
+                        'filter_min_lon': Decimal('25.0') if source_name in ['KANDILLI', 'AFAD'] else None,
+                        'filter_max_lon': Decimal('45.0') if source_name in ['KANDILLI', 'AFAD'] else None,
+                        'filter_region_name': 'Türkiye' if source_name in ['KANDILLI', 'AFAD'] else 'Küresel',
+                        'description': self._get_source_description(source_name)
+                    }
                 )
-                
+
+                if created:
+                    self.stdout.write(f'Created data source: {source_name}')
+
                 if not data_source.is_active:
                     self.stdout.write(f'Skipping inactive source: {source_name}')
                     continue
-                
+
                 self.stdout.write(f'Fetching from {source_name}...')
-                
+
+                # Track response time
+                start_time = timezone.now()
+
                 # Fetch and parse data
                 new_count, updated_count = config['parser'](config['url'], data_source)
-                
+
+                # Calculate response time
+                response_time = (timezone.now() - start_time).total_seconds()
+
                 # Update source stats
                 data_source.last_fetch = timezone.now()
                 data_source.last_success = timezone.now()
                 data_source.fetch_count += 1
+                data_source.success_count += 1
+                data_source.total_earthquakes_fetched += new_count
+                data_source.last_response_time = response_time
+
+                # Update average response time
+                if data_source.avg_response_time:
+                    data_source.avg_response_time = (data_source.avg_response_time + response_time) / 2
+                else:
+                    data_source.avg_response_time = response_time
+
+                data_source.last_error = None  # Clear error on success
                 data_source.save()
-                
+
                 total_new += new_count
                 total_updated += updated_count
-                
+
                 self.stdout.write(
                     self.style.SUCCESS(
-                        f'{source_name}: {new_count} new, {updated_count} updated'
+                        f'{source_name}: {new_count} new, {updated_count} updated ({response_time:.2f}s)'
                     )
                 )
-                
+
             except Exception as e:
                 error_msg = f'{source_name}: {str(e)}'
                 errors.append(error_msg)
                 self.stdout.write(self.style.ERROR(error_msg))
-                
+
                 # Update source error info
-                if 'data_source' in locals():
+                if data_source:
                     data_source.last_error = str(e)
+                    data_source.last_error_time = timezone.now()
                     data_source.error_count += 1
+                    data_source.fetch_count += 1
                     data_source.save()
         
         # Update cron job result
@@ -123,7 +183,19 @@ class Command(BaseCommand):
         self.stdout.write(
             self.style.SUCCESS(f'Completed: {result_msg}')
         )
-    
+
+    def _get_source_description(self, source_name):
+        """Get description for data source"""
+        descriptions = {
+            'KANDILLI': 'Boğaziçi Üniversitesi Kandilli Rasathanesi ve Deprem Araştırma Enstitüsü - Türkiye deprem verileri',
+            'AFAD': 'Afet ve Acil Durum Yönetimi Başkanlığı - Türkiye resmi deprem verileri',
+            'IRIS': 'Incorporated Research Institutions for Seismology - Küresel deprem verileri',
+            'USGS': 'United States Geological Survey - Küresel deprem verileri',
+            'GFZ': 'German Research Centre for Geosciences - Avrupa deprem verileri',
+            'EMSC': 'European-Mediterranean Seismological Centre - Gerçek zamanlı küresel deprem verileri (WebSocket)'
+        }
+        return descriptions.get(source_name, '')
+
     def parse_kandilli(self, url, data_source):
         """Parse Kandilli Rasathanesi data"""
         new_count = 0
@@ -246,69 +318,116 @@ class Command(BaseCommand):
         """Parse AFAD data"""
         new_count = 0
         updated_count = 0
-        
-        # Use the new AFAD API endpoint
-        params = {
-            'start': (datetime.now() - timedelta(days=7)).strftime('%Y-%m-%d'),
-            'end': datetime.now().strftime('%Y-%m-%d'),
-            'minmag': 2.0
-        }
-        
-        response = requests.get(url, params=params, timeout=10)
-        data = response.json()
-        
-        for event in data:
-            try:
-                unique_id = f"AFAD_{event['eventID']}"
-                
-                earthquake, created = Earthquake.objects.update_or_create(
-                    unique_id=unique_id,
-                    defaults={
-                        'source': 'AFAD',
-                        'source_id': event['eventID'],
-                        'magnitude': Decimal(str(event['magnitude'])),
-                        'depth': Decimal(str(event['depth'])),
-                        'latitude': Decimal(str(event['latitude'])),
-                        'longitude': Decimal(str(event['longitude'])),
-                        'location': event['location'],
-                        'city': event.get('province'),
-                        'district': event.get('district'),
-                        'occurred_at': timezone.make_aware(datetime.fromisoformat(event['date'].replace('Z', '+00:00').replace('+00:00', ''))),
-                        'raw_data': event
-                    }
-                )
-                
-                if created:
-                    new_count += 1
-                else:
-                    updated_count += 1
-                    
-            except Exception as e:
-                self.stdout.write(f'Error parsing AFAD event: {e}')
-                continue
-        
+
+        try:
+            # Use the new AFAD API endpoint with proper headers
+            headers = {
+                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
+                'Accept': 'application/json',
+                'Connection': 'close'  # Prevent connection reset
+            }
+
+            params = {
+                'start': (datetime.now() - timedelta(days=7)).strftime('%Y-%m-%d'),
+                'end': datetime.now().strftime('%Y-%m-%d'),
+                'minmag': float(data_source.min_magnitude) if data_source.min_magnitude else 2.0,
+                'limit': data_source.max_results if data_source.max_results else 100
+            }
+
+            response = requests.get(url, params=params, headers=headers, timeout=15)
+            response.raise_for_status()
+
+            data = response.json()
+
+            # Handle both array and object responses
+            events = data if isinstance(data, list) else data.get('data', [])
+
+            for event in events:
+                try:
+                    # AFAD API field mapping
+                    event_id = event.get('eventID') or event.get('id')
+                    if not event_id:
+                        continue
+
+                    unique_id = f"AFAD_{event_id}"
+
+                    # Parse datetime - AFAD uses ISO format
+                    date_str = event.get('date') or event.get('eventDate') or event.get('time')
+                    if date_str:
+                        # Remove Z and parse
+                        date_str = date_str.replace('Z', '').replace('+00:00', '')
+                        try:
+                            occurred_at = timezone.make_aware(datetime.fromisoformat(date_str))
+                        except:
+                            occurred_at = timezone.now()
+                    else:
+                        occurred_at = timezone.now()
+
+                    earthquake, created = Earthquake.objects.update_or_create(
+                        unique_id=unique_id,
+                        defaults={
+                            'source': 'AFAD',
+                            'source_id': str(event_id),
+                            'magnitude': Decimal(str(event.get('magnitude', event.get('mag', 0)))),
+                            'depth': Decimal(str(event.get('depth', 0))),
+                            'latitude': Decimal(str(event.get('latitude', event.get('lat', 0)))),
+                            'longitude': Decimal(str(event.get('longitude', event.get('lon', 0)))),
+                            'location': event.get('location', event.get('place', 'Unknown')),
+                            'city': event.get('province', event.get('city')),
+                            'district': event.get('district'),
+                            'occurred_at': occurred_at,
+                            'raw_data': event
+                        }
+                    )
+
+                    if created:
+                        new_count += 1
+                    else:
+                        updated_count += 1
+
+                except Exception as e:
+                    self.stdout.write(f'Error parsing AFAD event: {e}')
+                    continue
+
+        except requests.exceptions.RequestException as e:
+            self.stdout.write(f'Error fetching AFAD data: {e}')
+            raise
+
         return new_count, updated_count
     
     def parse_iris(self, url, data_source):
         """Parse IRIS (Incorporated Research Institutions for Seismology) data"""
         new_count = 0
         updated_count = 0
-        
+
         try:
-            # IRIS FDSNWS parameters for Turkey region
+            # Build params from data source configuration
             params = {
                 'format': 'text',
-                'minmag': 3.0,
-                'minlat': 35.0,
-                'maxlat': 43.0,
-                'minlon': 25.0,
-                'maxlon': 45.0,
+                'minmag': float(data_source.min_magnitude) if data_source.min_magnitude else 3.0,
                 'starttime': (datetime.now() - timedelta(days=7)).strftime('%Y-%m-%d'),
                 'endtime': datetime.now().strftime('%Y-%m-%d'),
-                'orderby': 'time-desc'
+                'orderby': 'time-desc',
+                'limit': data_source.max_results if data_source.max_results else 100
             }
-            
-            response = requests.get(url, params=params, timeout=10)
+
+            # Apply geographic filter if configured
+            if data_source.use_geographic_filter:
+                bounds = data_source.get_geographic_bounds()
+                if bounds and all(bounds.values()):
+                    params.update({
+                        'minlat': bounds['min_lat'],
+                        'maxlat': bounds['max_lat'],
+                        'minlon': bounds['min_lon'],
+                        'maxlon': bounds['max_lon']
+                    })
+
+            headers = {
+                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
+                'Connection': 'close'
+            }
+
+            response = requests.get(url, params=params, headers=headers, timeout=15)
             
             # Parse text format (pipe-separated values)
             lines = response.text.strip().split('\n')
@@ -370,28 +489,26 @@ class Command(BaseCommand):
         """Parse USGS GeoJSON data"""
         new_count = 0
         updated_count = 0
-        
+
         response = requests.get(url, timeout=10)
         data = response.json()
-        
-        # Filter for Turkey and nearby regions
-        turkey_bounds = {
-            'min_lat': 35.0,
-            'max_lat': 43.0,
-            'min_lon': 25.0,
-            'max_lon': 45.0
-        }
-        
+
+        # Get geographic filter bounds if configured
+        bounds = None
+        if data_source.use_geographic_filter:
+            bounds = data_source.get_geographic_bounds()
+
         for feature in data['features']:
             props = feature['properties']
             coords = feature['geometry']['coordinates']
-            
+
             lon, lat, depth = coords
-            
-            # Check if in Turkey region
-            if not (turkey_bounds['min_lat'] <= lat <= turkey_bounds['max_lat'] and
-                    turkey_bounds['min_lon'] <= lon <= turkey_bounds['max_lon']):
-                continue
+
+            # Apply geographic filter if configured
+            if bounds and all(bounds.values()):
+                if not (bounds['min_lat'] <= lat <= bounds['max_lat'] and
+                        bounds['min_lon'] <= lon <= bounds['max_lon']):
+                    continue
             
             try:
                 unique_id = f"USGS_{feature['id']}"
@@ -430,23 +547,36 @@ class Command(BaseCommand):
         """Parse GFZ (German Research Centre for Geosciences) data"""
         new_count = 0
         updated_count = 0
-        
+
         try:
             # GFZ provides data via their FDSNWS service
             api_url = 'https://geofon.gfz-potsdam.de/fdsnws/event/1/query'
             params = {
                 'format': 'text',
-                'minmag': 3.0,
-                'minlat': 35.0,
-                'maxlat': 43.0,
-                'minlon': 25.0,
-                'maxlon': 45.0,
+                'minmag': float(data_source.min_magnitude) if data_source.min_magnitude else 3.0,
                 'starttime': (datetime.now() - timedelta(days=7)).strftime('%Y-%m-%d'),
                 'endtime': datetime.now().strftime('%Y-%m-%d'),
-                'orderby': 'time'
+                'orderby': 'time',
+                'limit': data_source.max_results if data_source.max_results else 100
             }
-            
-            response = requests.get(api_url, params=params, timeout=10)
+
+            # Apply geographic filter if configured
+            if data_source.use_geographic_filter:
+                bounds = data_source.get_geographic_bounds()
+                if bounds and all(bounds.values()):
+                    params.update({
+                        'minlat': bounds['min_lat'],
+                        'maxlat': bounds['max_lat'],
+                        'minlon': bounds['min_lon'],
+                        'maxlon': bounds['max_lon']
+                    })
+
+            headers = {
+                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
+                'Connection': 'close'
+            }
+
+            response = requests.get(api_url, params=params, headers=headers, timeout=15)
             
             # Parse text format
             lines = response.text.strip().split('\n')
