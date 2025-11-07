@@ -2032,3 +2032,25 @@ Phase 5 - Production Deployment:
 - Result: Manuel veri çekme butonları başarıyla eklendi ve production'da aktif. Admin panelinden tek tek veya tüm kaynaklardan manuel veri çekme artık mümkün.
 
 
+## [2025-11-07 15:06] Version Management: Bumped to v530
+- Database backup system implementation:
+- Created backup_database.sh for automated SQL dumps
+- Created verify_database_backup.sh for backup validation
+- Integrated backup creation into version workflow
+- SQL dumps stored separately (archive/database_backups/)
+- Retention policy: keep last 3 backups
+- Archive script excludes SQL and Flutter builds
+- v530 archive size: 27MB (clean)
+- Database backup: 113MB
+
+Deployment improvements:
+- Deploy script now detects Gunicorn vs runserver
+- Flexible for both development and production
+- Automatic service restart (Gunicorn + Nginx)
+
+Documentation:
+- Comprehensive VERSIONING_RULES.md added
+- Database backup/restore procedures documented
+- Result: v530 created successfully with proper archiving and backup systems in place.
+
+
