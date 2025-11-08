@@ -1,10 +1,10 @@
 {
-  "version": "v529",
-  "build_number": "20251102_1259",
-  "release_date": "2025-11-02 12:59:55 +0300",
+  "version": "v530",
+  "build_number": "20251108_1342",
+  "release_date": "2025-11-08 13:42:59 +0300",
   "author": "berk hatırlı",
   "location": "bitez, bodrum, muğla, türkiye, dünya, güneş sistemi, samanyolu, yerel galaksi grubu, evren",
-  "description": "Regular update and maintenance",
+  "description": "OCR model upgraded to MiniCPM-v 2.6 for superior multilingual document scanning",
   "features": [
     "🎬 **Movies Module**: Complete movie/series collection management with TMDB/OMDB API integration",
     "🎵 **Music Module**: Spotify-integrated music library without storing files, open source artwork",
