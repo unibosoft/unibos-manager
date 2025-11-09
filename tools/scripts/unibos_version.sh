@@ -2,6 +2,22 @@
 # UNIBOS Unified Version Management System
 # Combines all version management operations in one optimized script
 # Author: Berk Hatırlı
+#
+# ⚠️  KRİTİK KURAL - ASLA UNUTMA!
+# ARŞİVLENEN = BİTMİŞ VERSİYON (yeni versiyon değil!)
+#
+# DOĞRU WORKFLOW:
+#   1. Mevcut versiyondaki tüm geliştirmeler tamamlandı
+#   2. Database backup oluştur (mevcut versiyon için)
+#   3. ARŞİV oluştur (mevcut versiyonu arşivle - henüz yeni versiyona GEÇMEDİN!)
+#   4. Git commit (mevcut versiyon final)
+#   5. Git tag + branch oluştur (mevcut versiyon)
+#   6. GitHub'a push (tag + branch)
+#   7. ŞİMDİ yeni versiyona geç (VERSION.json güncelle)
+#   8. Yeni versiyon değişikliğini commit et
+#
+# Detaylı kurallar: docs/development/VERSIONING_RULES.md
+# Hızlı referans: VERSIONING_WORKFLOW.md
 
 set -e
 
@@ -631,15 +647,36 @@ quick_release() {
     # Perform all operations
     local timestamp=$(get_istanbul_time "+%Y%m%d_%H%M")
 
-    # Create SQL backup first
-    create_sql_backup "$next_version" "$timestamp"
+    # ⚠️  CRITICAL: Archive CURRENT version BEFORE updating to next version!
+    # Get current version from VERSION.json (the completed version we're archiving)
+    local current_version=$(get_current_version)
 
-    update_version_json "$next_version" "$description"
+    print_color "$CYAN" "\n📋 Version Workflow:"
+    print_color "$BLUE" "   Current version (to archive): v${current_version}"
+    print_color "$BLUE" "   Next version (to bump to): v${next_version}"
+    print_color "$YELLOW" "\n⚠️  Following CORRECT workflow: Archive CURRENT → Tag CURRENT → THEN bump to NEXT"
+
+    # Step 1: Create database backup for CURRENT version
+    create_sql_backup "$current_version" "$timestamp"
+
+    # Step 2: Create archive of CURRENT version (before changing VERSION.json!)
+    create_archive "$current_version"
+
+    # Step 3: Git operations for CURRENT version (commit, tag, branch, push)
+    git_operations "$current_version" "$description"
+
+    # Step 4: NOW update to next version (after current is archived and tagged)
+    print_color "$CYAN" "\n🔄 Now bumping to v${next_version}..."
+    update_version_json "$next_version" "Preparation for next development cycle"
     update_django_files "$next_version"
-    create_archive "$next_version"
-    git_operations "$next_version" "$description"
-    
-    print_color "$GREEN" "\n✅ Version v${next_version} released successfully!"
+
+    # Step 5: Commit the version bump
+    git add apps/cli/src/VERSION.json apps/web/backend/VERSION.json apps/cli/src/main.py 2>/dev/null || true
+    git commit -m "chore: bump version to v${next_version}" 2>/dev/null || true
+    git push origin main 2>/dev/null || true
+
+    print_color "$GREEN" "\n✅ Version v${current_version} archived and tagged successfully!"
+    print_color "$GREEN" "✅ Bumped to v${next_version} for next development cycle"
     
     # Restart services to apply new version
     print_color "$YELLOW" "\n🔄 Restarting services with new version..."

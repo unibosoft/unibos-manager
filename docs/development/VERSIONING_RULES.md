@@ -78,13 +78,59 @@ Before creating a version archive:
 5. ✅ Confirm git commits are clean
 6. ✅ Test exclude patterns work
 
+## ⚠️ KRİTİK: VERSİYONLAMA SIRALAMA KURALI
+
+**EN ÖNEMLİ KURAL - ASLA UNUTULMASIN!**
+
+### Doğru Workflow (MUTLAKA BU SIRAYLA):
+
+```
+MEVCUT VERSİYON (örn. v531):
+  1. Tüm geliştirmeler tamamlandı ✅
+  2. → DATABASE BACKUP oluştur
+  3. → ARŞİV oluştur (mevcut v531'i arşivle)
+  4. → GIT COMMIT (v531 final)
+  5. → GIT TAG oluştur (v531)
+  6. → GIT BRANCH oluştur (v531)
+  7. → GITHUB'A PUSH (tag + branch)
+  8. → DEPLOY (rocksteady'ye v531 gönder)
+  9. → ŞİMDİ YENİ VERSİYONA GEÇ (v532)
+      - VERSION.json'u v532 yap
+      - Git commit: "chore: bump version to v532"
+  10. → Artık v532'desin, yeni geliştirmelere başla!
+```
+
+### ❌ YANLIŞ Workflow (Veri Kaybı Riski!):
+
+```
+❌ VERSION.json'u v532 yap
+❌ Sonra arşivle (v532 boş olarak arşivlenir!)
+❌ Sonra commit et
+❌ v531 kaybolur!
+```
+
+### 📌 Önemli Notlar:
+
+1. **Arşivlenen = Bitmiş versiyon** (v531 tamamlandı → v531'i arşivle)
+2. **Tag = Bitmiş commit** (v531 commit'i → v531 tag'i)
+3. **Branch = Her versiyon için ayrı** (hem tag hem branch olmalı)
+4. **Deploy = Arşivlenen versiy on** (v531 arşivlendi → v531 deploy edilir)
+5. **Yeni versiyon = Boş başlangıç** (v532 = temiz sayfa)
+
+### 🎯 Mantık:
+
+- Bir kitap yazıyorsun
+- Kitap bitti → Basıl (Arşiv)
+- Baskı yapıldı → Kütüphaneye konulsun (Deploy)
+- ŞİMDİ yeni kitaba başla (v532)
+- Eski kitabı (v531) basarken yeni kitabın adını (v532) yazma!
+
 ## 📝 Version Creation Process
 
 ### 1. Update VERSION.json
 ```bash
-# Update version, build_number, release_date
-# Add changelog entry
-# Update description
+# CURRENT version için güncelle (örn. v531)
+# Yeni versiyona (v532) geçme, önce v531'i tamamla!
 ```
 
 ### 2. Git Commits
