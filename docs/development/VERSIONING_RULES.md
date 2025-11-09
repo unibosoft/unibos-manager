@@ -9,6 +9,7 @@ This document defines strict rules for version management and archiving to preve
 2. **No Bloat** - Exclude build artifacts, logs, and temporary files
 3. **Consistency** - Archive sizes should be predictable (~30-90MB range)
 4. **Traceability** - Clear changelog and git history
+5. **One Archive Per Version** - Each version must have exactly ONE current archive directory
 
 ## 📦 Archive Exclusion Rules
 
@@ -196,13 +197,27 @@ du -sh archive/versions/unibos_vXXX_*/apps/*
 # - apps/mobile: ~7-15MB
 ```
 
-### Issue 3: Duplicate Versions
-**Cause**: Created v530 instead of fixing v529
+### Issue 3: Duplicate Archives for Same Version
+**Cause**: Multiple archive attempts created multiple directories for the same version
 
-**Solution**: Follow proper versioning:
-1. Only increment version for NEW features
-2. Fix existing version if it had archiving issues
-3. Use git reset/amend for version number corrections
+**Rule**: **HER VERSİYON İÇİN SADECE 1 ADET GÜNCEL ARŞİV DİZİNİ OLMALI!**
+
+**Solution**:
+1. Keep ONLY the latest and complete archive for each version
+2. Delete older/failed/incomplete archives of the same version
+3. Example: For v531, keep only `unibos_v531_20251109_1403`, delete all others
+4. Verify archive completeness before deleting older ones:
+   ```bash
+   # Check size and structure
+   du -sh archive/versions/unibos_v531_*/
+   ls -la archive/versions/unibos_v531_*/apps/
+
+   # Keep the latest, delete older ones
+   rm -rf archive/versions/unibos_v531_20251109_1255
+   rm -rf archive/versions/unibos_v531_20251109_1300
+   ```
+
+**Prevention**: Use the versioning script which handles this automatically
 
 ## 📜 Changelog Requirements
 
@@ -243,10 +258,16 @@ find "$ARCHIVE" -path "*/build/*" -type d
 
 ## 🎓 Best Practices
 
-1. **Always use the archiving script** - Don't manually rsync
+1. **❌ NEVER USE MANUAL COMMANDS** - ALWAYS use `./tools/scripts/unibos_version.sh`
+   - ❌ NEVER: `rsync -av --exclude-from=...`
+   - ❌ NEVER: `git commit -m "vXXX: ..."`
+   - ❌ NEVER: `git tag vXXX`
+   - ❌ NEVER: `git branch vXXX`
+   - ✅ ALWAYS: `./tools/scripts/unibos_version.sh` (handles ALL of the above)
+
 2. **Verify before committing** - Check archive size and contents
 3. **Document anomalies** - Note any unusual sizes in changelog
-4. **Keep archives clean** - Delete failed/test archives
+4. **Keep archives clean** - Delete failed/test archives (max 1 archive per version)
 5. **Monitor size trends** - Watch for gradual bloat
 
 ## 🚨 Emergency Recovery

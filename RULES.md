@@ -9,8 +9,19 @@
 
 ### 1️⃣ HİÇBİR ZAMAN MANUEL İŞLEM YAPMA
 ```
-❌ ASLA: rsync, git commit, deployment manuel komutları
-✅ HER ZAMAN: Script'leri kullan (tools/scripts/)
+❌ ASLA ASLA ASLA:
+   • Manuel rsync komutları
+   • Manuel git commit/tag/branch komutları
+   • Manuel deployment işlemleri
+   • Manuel arşiv oluşturma
+   • Manuel version bump işlemleri
+
+✅ HER ZAMAN HER ZAMAN HER ZAMAN:
+   • ./tools/scripts/unibos_version.sh (versiyonlama için)
+   • ./tools/scripts/backup_database.sh (database backup için)
+   • ./tools/scripts/rocksteady_deploy.sh (deployment için)
+
+⚠️ BU KURAL İHLAL EDİLEMEZ - HİÇBİR İSTİSNA YOK!
 ```
 
 ### 2️⃣ HER OTURUMDA KURALLARI OKU
