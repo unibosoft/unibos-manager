@@ -5,7 +5,7 @@
 Simplified Web Forge + Lowercase UI + Single Server Architecture
 
 Author: berk hatırlı - bitez, bodrum, muğla, türkiye
-Version: v531_20251108_1348
+Version: v531_20251109_1254
 Purpose: Professional terminal UI with multi-module support"""
 
 import os
