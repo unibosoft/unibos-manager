@@ -1029,10 +1029,10 @@ def run_analysis_methods(request, document_id):
 
         logger.info(f"🚀 Analysis started in background thread for document {document_id}")
 
-        # Return immediately - frontend will poll for results
+        # Return immediately - frontend will receive updates via WebSocket
         return JsonResponse({
             'success': True,
-            'message': f'Analysis started for {len(methods_to_run)} methods. Results will be available via polling.',
+            'message': f'Analysis started for {len(methods_to_run)} methods. Real-time updates via WebSocket.',
             'methods': methods_to_run,
             'document_id': document_id
         })
@@ -1049,7 +1049,7 @@ def run_analysis_methods(request, document_id):
 def get_analysis_status(request, document_id):
     """
     GET endpoint to check current analysis status and results
-    Used for polling during ongoing analysis
+    Legacy endpoint - WebSocket provides real-time updates
 
     Returns:
         JSON response with current analysis results from database
