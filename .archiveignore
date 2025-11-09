@@ -104,6 +104,9 @@ backups/
 data_db_backup*/
 berk_claude_file_pool_DONT_DELETE/
 
+# Archives (CRITICAL - prevents recursive bloat!)
+archive/
+
 # Large data files
 *.csv
 *.xlsx
