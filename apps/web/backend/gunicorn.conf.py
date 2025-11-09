@@ -1,5 +1,6 @@
 """
-Gunicorn configuration for UNIBOS backend
+Gunicorn configuration for UNIBOS backend with Uvicorn workers
+Modern ASGI setup with WebSocket support and improved performance
 """
 
 import multiprocessing
@@ -9,9 +10,9 @@ import os
 bind = "0.0.0.0:8000"
 backlog = 2048
 
-# Worker processes
-workers = 3
-worker_class = "sync"  # Simple sync worker, no special permissions needed
+# Worker processes - Uvicorn workers for ASGI support
+workers = multiprocessing.cpu_count() * 2 + 1  # Recommended formula for CPU-bound apps
+worker_class = "uvicorn.workers.UvicornWorker"  # Modern ASGI worker with WebSocket support
 worker_connections = 1000
 max_requests = 1000
 max_requests_jitter = 50

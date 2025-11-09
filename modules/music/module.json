@@ -1,0 +1,138 @@
+{
+  "id": "music",
+  "name": "Music",
+  "display_name": {
+    "tr": "Müzik Koleksiyonu",
+    "en": "Music Collection"
+  },
+  "version": "1.0.0",
+  "description": "Comprehensive music collection management with Spotify integration. Track artists, albums, playlists, and listening history.",
+  "icon": "🎵",
+  "author": "Berk Hatırlı",
+
+  "capabilities": {
+    "backend": true,
+    "web": true,
+    "mobile": false,
+    "cli": false,
+    "realtime": false
+  },
+
+  "dependencies": {
+    "core_modules": ["authentication", "users"],
+    "python_packages": [
+      "djangorestframework",
+      "spotipy",
+      "requests",
+      "celery",
+      "redis"
+    ],
+    "system_requirements": ["redis", "postgresql"]
+  },
+
+  "database": {
+    "uses_shared_db": true,
+    "tables_prefix": "music_",
+    "models": [
+      "Artist",
+      "Album",
+      "Track",
+      "UserLibrary",
+      "UserArtist",
+      "UserAlbum",
+      "UserTrack",
+      "Playlist",
+      "PlaylistTrack",
+      "ListeningHistory",
+      "ListeningStats"
+    ]
+  },
+
+  "api": {
+    "base_path": "/api/v1/music/",
+    "endpoints": [
+      {"path": "artists/", "methods": ["GET", "POST"], "auth_required": true, "description": "Artist management"},
+      {"path": "artists/{id}/", "methods": ["GET", "PUT", "DELETE"], "auth_required": true, "description": "Artist details"},
+      {"path": "albums/", "methods": ["GET", "POST"], "auth_required": true, "description": "Album management"},
+      {"path": "albums/{id}/", "methods": ["GET", "PUT", "DELETE"], "auth_required": true, "description": "Album details"},
+      {"path": "tracks/", "methods": ["GET", "POST"], "auth_required": true, "description": "Track management"},
+      {"path": "tracks/{id}/", "methods": ["GET", "PUT", "DELETE"], "auth_required": true, "description": "Track details"},
+      {"path": "library/", "methods": ["GET"], "auth_required": true, "description": "User library"},
+      {"path": "library/artists/", "methods": ["GET", "POST"], "auth_required": true, "description": "Favorite artists"},
+      {"path": "library/albums/", "methods": ["GET", "POST"], "auth_required": true, "description": "Saved albums"},
+      {"path": "library/tracks/", "methods": ["GET", "POST"], "auth_required": true, "description": "Liked tracks"},
+      {"path": "playlists/", "methods": ["GET", "POST"], "auth_required": true, "description": "Playlists"},
+      {"path": "playlists/{id}/", "methods": ["GET", "PUT", "DELETE"], "auth_required": true, "description": "Playlist management"},
+      {"path": "playlists/{id}/tracks/", "methods": ["GET", "POST"], "auth_required": true, "description": "Playlist tracks"},
+      {"path": "history/", "methods": ["GET", "POST"], "auth_required": true, "description": "Listening history"},
+      {"path": "stats/", "methods": ["GET"], "auth_required": true, "description": "Listening statistics"},
+      {"path": "spotify/search/", "methods": ["GET"], "auth_required": true, "description": "Search Spotify"},
+      {"path": "spotify/import/", "methods": ["POST"], "auth_required": true, "description": "Import from Spotify"}
+    ]
+  },
+
+  "permissions": [
+    "music.view_artist",
+    "music.add_artist",
+    "music.change_artist",
+    "music.view_album",
+    "music.add_album",
+    "music.change_album",
+    "music.view_track",
+    "music.add_track",
+    "music.view_playlist",
+    "music.add_playlist",
+    "music.change_playlist",
+    "music.delete_playlist"
+  ],
+
+  "celery_tasks": [
+    "sync_spotify_library",
+    "update_artist_popularity",
+    "fetch_missing_album_art",
+    "calculate_listening_stats",
+    "generate_recommendations"
+  ],
+
+  "features": [
+    "Artist, album, and track management",
+    "Spotify API integration",
+    "Personal music library",
+    "Custom playlists",
+    "Listening history tracking",
+    "Listening statistics",
+    "Artist popularity tracking",
+    "Album artwork",
+    "Genre filtering",
+    "Favorite artists/albums/tracks",
+    "Search and discovery",
+    "Spotify data import"
+  ],
+
+  "integration": {
+    "sidebar": {
+      "enabled": true,
+      "position": 13,
+      "category": "media"
+    },
+    "dashboard_widgets": [
+      {"id": "recently_played", "title": "Recently Played", "size": "large"},
+      {"id": "top_artists", "title": "Top Artists", "size": "medium"},
+      {"id": "playlists", "title": "My Playlists", "size": "medium"}
+    ]
+  },
+
+  "external_apis": {
+    "spotify": {
+      "name": "Spotify Web API",
+      "url": "https://developer.spotify.com/documentation/web-api/",
+      "description": "Music streaming and metadata"
+    }
+  },
+
+  "development": {
+    "repository": "https://github.com/berkhatira/unibos",
+    "documentation": "",
+    "maintainer": "berk@berkhatirli.com"
+  }
+}

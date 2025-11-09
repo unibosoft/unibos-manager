@@ -1,0 +1,250 @@
+{
+  "id": "documents",
+  "name": "Documents",
+  "display_name": {
+    "tr": "Dökümanlar",
+    "en": "Documents"
+  },
+  "version": "1.0.0",
+  "description": "OCR and document management system with AI-powered analysis, gamification, and multi-engine support",
+  "icon": "📄",
+  "author": "Berk Hatırlı",
+
+  "capabilities": {
+    "backend": true,
+    "web": false,
+    "mobile": false,
+    "cli": false,
+    "realtime": true
+  },
+
+  "dependencies": {
+    "core_modules": ["authentication", "users"],
+    "python_packages": [
+      "djangorestframework",
+      "channels",
+      "celery",
+      "redis",
+      "pillow",
+      "pytesseract",
+      "opencv-python",
+      "pdf2image",
+      "transformers",
+      "torch"
+    ],
+    "system_requirements": [
+      "redis",
+      "postgresql",
+      "celery",
+      "channels",
+      "tesseract-ocr"
+    ]
+  },
+
+  "database": {
+    "uses_shared_db": true,
+    "tables_prefix": "documents_",
+    "models": [
+      "Document",
+      "ParsedReceipt",
+      "ReceiptItem",
+      "DocumentBatch",
+      "OCRTemplate",
+      "CreditCard",
+      "Subscription",
+      "ExpenseCategory",
+      "ExpenseGroup",
+      "UserProfile",
+      "Achievement",
+      "PointTransaction",
+      "Challenge",
+      "UserChallenge",
+      "Leaderboard",
+      "ValidationFeedback",
+      "LearningModel"
+    ]
+  },
+
+  "api": {
+    "base_path": "/api/v1/documents/",
+    "endpoints": [
+      {
+        "path": "documents/",
+        "methods": ["GET", "POST"],
+        "public": false,
+        "auth_required": true
+      },
+      {
+        "path": "documents/<uuid:pk>/",
+        "methods": ["GET", "PUT", "PATCH", "DELETE"],
+        "public": false,
+        "auth_required": true
+      },
+      {
+        "path": "documents/<uuid:pk>/ocr/",
+        "methods": ["POST"],
+        "public": false,
+        "auth_required": true
+      },
+      {
+        "path": "documents/<uuid:pk>/analyze/",
+        "methods": ["POST"],
+        "public": false,
+        "auth_required": true
+      },
+      {
+        "path": "documents/bulk/",
+        "methods": ["POST"],
+        "public": false,
+        "auth_required": true
+      },
+      {
+        "path": "receipts/",
+        "methods": ["GET", "POST"],
+        "public": false,
+        "auth_required": true
+      },
+      {
+        "path": "receipts/<uuid:pk>/",
+        "methods": ["GET", "PUT", "PATCH", "DELETE"],
+        "public": false,
+        "auth_required": true
+      },
+      {
+        "path": "templates/",
+        "methods": ["GET", "POST"],
+        "public": false,
+        "auth_required": true
+      },
+      {
+        "path": "credit-cards/",
+        "methods": ["GET", "POST"],
+        "public": false,
+        "auth_required": true
+      },
+      {
+        "path": "subscriptions/",
+        "methods": ["GET", "POST"],
+        "public": false,
+        "auth_required": true
+      },
+      {
+        "path": "gamification/profile/",
+        "methods": ["GET"],
+        "public": false,
+        "auth_required": true
+      },
+      {
+        "path": "gamification/achievements/",
+        "methods": ["GET"],
+        "public": false,
+        "auth_required": true
+      },
+      {
+        "path": "gamification/leaderboard/",
+        "methods": ["GET"],
+        "public": false,
+        "auth_required": true
+      }
+    ]
+  },
+
+  "permissions": [
+    "documents.view_document",
+    "documents.add_document",
+    "documents.change_document",
+    "documents.delete_document",
+    "documents.view_parsedreceipt",
+    "documents.add_parsedreceipt",
+    "documents.change_parsedreceipt",
+    "documents.delete_parsedreceipt",
+    "documents.view_ocrtemplate",
+    "documents.add_ocrtemplate",
+    "documents.change_ocrtemplate",
+    "documents.delete_ocrtemplate",
+    "documents.process_ocr",
+    "documents.bulk_upload"
+  ],
+
+  "celery_tasks": [
+    "process_document_ocr",
+    "process_batch_documents",
+    "generate_thumbnail",
+    "ai_enhance_ocr",
+    "validate_receipt_data",
+    "update_user_points",
+    "process_challenge_completion"
+  ],
+
+  "channels": {
+    "websocket_routes": [
+      "ws/documents/processing/",
+      "ws/documents/gamification/"
+    ]
+  },
+
+  "integration": {
+    "sidebar": {
+      "enabled": true,
+      "position": 5,
+      "category": "content"
+    },
+    "dashboard_widgets": [
+      {
+        "id": "recent_documents",
+        "title": "Recent Documents",
+        "size": "medium"
+      },
+      {
+        "id": "ocr_stats",
+        "title": "OCR Statistics",
+        "size": "small"
+      },
+      {
+        "id": "gamification_progress",
+        "title": "Document Processing Progress",
+        "size": "small"
+      }
+    ]
+  },
+
+  "features": {
+    "ocr_engines": [
+      "tesseract",
+      "ollama_vision",
+      "paddleocr",
+      "trocr",
+      "donut",
+      "layoutlmv3",
+      "surya",
+      "doctr",
+      "easyocr",
+      "ocrmypdf",
+      "hybrid"
+    ],
+    "ai_providers": [
+      "mistral",
+      "huggingface",
+      "local"
+    ],
+    "document_types": [
+      "receipt",
+      "invoice",
+      "bank_statement",
+      "credit_card_statement",
+      "contract",
+      "other"
+    ],
+    "gamification": true,
+    "bulk_processing": true,
+    "template_matching": true,
+    "subscription_tracking": true,
+    "expense_categorization": true
+  },
+
+  "development": {
+    "repository": "https://github.com/berkhatira/unibos",
+    "documentation": "",
+    "maintainer": "berk@berkhatirli.com"
+  }
+}

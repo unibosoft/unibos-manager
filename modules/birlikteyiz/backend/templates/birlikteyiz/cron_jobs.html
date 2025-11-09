@@ -1,0 +1,421 @@
+{% extends 'birlikteyiz/base_birlikteyiz.html' %}
+
+{% block title %}veri kaynakları - birlikteyiz - unibos{% endblock %}
+
+{% block birlikteyiz_content %}
+
+<!-- Quick Actions -->
+<div class="section" style="margin-bottom: 20px;">
+    <div style="display: flex; gap: 15px; flex-wrap: wrap; align-items: center;">
+        <button class="btn-primary" onclick="fetchAllData()" style="flex: 1; min-width: 200px;">
+            📥 tüm kaynaklardan veri çek
+        </button>
+        <button class="btn-secondary" onclick="refreshStatus()" style="flex: 1; min-width: 200px;">
+            🔄 durumu yenile
+        </button>
+        {% if user.is_superuser %}
+        <button class="btn-secondary" onclick="toggleAdvancedMode()" style="min-width: 200px;">
+            <span id="advanced-toggle-text">🔧 gelişmiş ayarlar</span>
+        </button>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Data Sources -->
+<div class="section" style="margin-bottom: 20px;">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 1px solid var(--gray); padding-bottom: 10px;">
+        <h3 style="color: var(--gray); margin: 0;">
+            📡 deprem veri kaynakları
+        </h3>
+        <div style="font-size: 11px; color: var(--gray);">
+            {{ data_sources|length }} kaynak aktif
+        </div>
+    </div>
+
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 15px;">
+        {% for source in data_sources %}
+        <div class="source-card" style="background: var(--bg-dark); border: 1px solid var(--gray); padding: 20px; border-radius: 4px; position: relative;">
+            <!-- Status Indicator -->
+            <div style="position: absolute; top: 15px; right: 15px;">
+                {% if source.is_active %}
+                    {% if source.last_success %}
+                        <div style="width: 10px; height: 10px; background: #00ff00; border-radius: 50%; box-shadow: 0 0 8px rgba(0, 255, 0, 0.6);"></div>
+                    {% elif source.last_error %}
+                        <div style="width: 10px; height: 10px; background: #ff4444; border-radius: 50%; box-shadow: 0 0 8px rgba(255, 68, 68, 0.6);"></div>
+                    {% else %}
+                        <div style="width: 10px; height: 10px; background: var(--orange); border-radius: 50%; box-shadow: 0 0 8px rgba(255, 140, 0, 0.6);"></div>
+                    {% endif %}
+                {% else %}
+                    <div style="width: 10px; height: 10px; background: var(--gray); border-radius: 50%;"></div>
+                {% endif %}
+            </div>
+
+            <!-- Header -->
+            <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 15px;">
+                <div style="width: 40px; height: 40px; background: rgba(255, 140, 0, 0.1); border: 2px solid var(--orange); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 20px;">
+                    {% if source.name == 'KANDILLI' %}🇹🇷
+                    {% elif source.name == 'AFAD' %}🇹🇷
+                    {% elif source.name == 'IRIS' %}🌍
+                    {% elif source.name == 'USGS' %}🇺🇸
+                    {% elif source.name == 'GFZ' %}🇩🇪
+                    {% else %}📡{% endif %}
+                </div>
+                <div style="flex: 1;">
+                    <div style="color: var(--orange); font-weight: bold; font-size: 14px;">{{ source.name|lower }}</div>
+                    <div style="color: var(--gray); font-size: 11px;">
+                        {% if source.name == 'KANDILLI' or source.name == 'AFAD' %}türkiye
+                        {% elif source.name == 'IRIS' %}küresel
+                        {% elif source.name == 'USGS' %}amerika
+                        {% elif source.name == 'GFZ' %}almanya
+                        {% else %}unknown{% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Description -->
+            <div style="color: var(--gray); font-size: 11px; opacity: 0.8; margin-bottom: 15px;">
+                {% if source.name == 'KANDILLI' %}kandilli rasathanesi ve deprem araştırma enstitüsü
+                {% elif source.name == 'AFAD' %}afet ve acil durum yönetimi başkanlığı
+                {% elif source.name == 'IRIS' %}uluslararası sismoloji kurumları birliği
+                {% elif source.name == 'USGS' %}amerika birleşik devletleri jeoloji servisi
+                {% elif source.name == 'GFZ' %}alman jeofizik araştırma merkezi
+                {% else %}deprem veri kaynağı{% endif %}
+            </div>
+
+            <!-- Basic Stats -->
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; padding: 12px; background: rgba(0, 0, 0, 0.3); border-radius: 4px; margin-bottom: 10px;">
+                <div>
+                    <div style="font-size: 10px; color: var(--gray); opacity: 0.7; margin-bottom: 3px;">toplam sorgu</div>
+                    <div style="font-size: 13px; color: var(--white); font-weight: bold;">{{ source.fetch_count|default:0 }}</div>
+                </div>
+                <div>
+                    <div style="font-size: 10px; color: var(--gray); opacity: 0.7; margin-bottom: 3px;">hata sayısı</div>
+                    <div style="font-size: 13px; color: {% if source.error_count > 0 %}#ff4444{% else %}var(--white){% endif %}; font-weight: bold;">{{ source.error_count|default:0 }}</div>
+                </div>
+            </div>
+
+            <!-- Advanced Details (Collapsible) -->
+            <div class="advanced-details" style="display: none; margin-top: 15px; padding-top: 15px; border-top: 1px solid var(--gray);">
+                <div style="margin-bottom: 12px;">
+                    <div style="font-size: 10px; color: var(--cyan); margin-bottom: 5px; text-transform: uppercase; letter-spacing: 0.5px;">api endpoint</div>
+                    <div style="font-family: 'Courier New', monospace; font-size: 10px; color: var(--gray); word-break: break-all; background: rgba(0, 0, 0, 0.5); padding: 8px; border-radius: 3px;">
+                        {{ source.url }}
+                    </div>
+                </div>
+
+                {% if source.last_fetch %}
+                <div style="margin-bottom: 12px;">
+                    <div style="font-size: 10px; color: var(--cyan); margin-bottom: 5px; text-transform: uppercase; letter-spacing: 0.5px;">son sorgu</div>
+                    <div style="font-size: 11px; color: var(--white);">
+                        {{ source.last_fetch|date:"d.m.Y H:i:s" }}
+                        <span style="color: var(--gray); font-size: 10px;">({{ source.last_fetch|timesince }} önce)</span>
+                    </div>
+                </div>
+                {% endif %}
+
+                {% if source.last_success %}
+                <div style="margin-bottom: 12px;">
+                    <div style="font-size: 10px; color: var(--cyan); margin-bottom: 5px; text-transform: uppercase; letter-spacing: 0.5px;">son başarılı sorgu</div>
+                    <div style="font-size: 11px; color: #00ff00;">
+                        {{ source.last_success|date:"d.m.Y H:i:s" }}
+                        <span style="color: var(--gray); font-size: 10px;">({{ source.last_success|timesince }} önce)</span>
+                    </div>
+                </div>
+                {% endif %}
+
+                {% if source.last_error %}
+                <div style="margin-bottom: 12px;">
+                    <div style="font-size: 10px; color: #ff4444; margin-bottom: 5px; text-transform: uppercase; letter-spacing: 0.5px;">son hata</div>
+                    <div style="font-family: 'Courier New', monospace; font-size: 10px; color: #ff4444; background: rgba(255, 68, 68, 0.1); padding: 8px; border-radius: 3px; border-left: 2px solid #ff4444;">
+                        {{ source.last_error|truncatewords:15 }}
+                    </div>
+                </div>
+                {% endif %}
+
+                {% if user.is_superuser %}
+                <div style="display: flex; gap: 8px; margin-top: 15px;">
+                    <button class="btn-secondary" style="flex: 1; padding: 6px 12px; font-size: 11px;" onclick="testSource('{{ source.name }}')">
+                        🧪 test et
+                    </button>
+                    <button class="btn-secondary" style="flex: 1; padding: 6px 12px; font-size: 11px;" onclick="toggleSource('{{ source.id }}', {{ source.is_active|lower }})">
+                        {% if source.is_active %}⏸ devre dışı{% else %}▶️ etkinleştir{% endif %}
+                    </button>
+                </div>
+                {% endif %}
+            </div>
+
+            <!-- Expand/Collapse Button -->
+            <button class="toggle-details-btn" onclick="toggleDetails(this)" style="width: 100%; margin-top: 10px; padding: 8px; background: rgba(0, 255, 255, 0.1); border: 1px solid var(--cyan); color: var(--cyan); border-radius: 3px; cursor: pointer; font-size: 11px; transition: all 0.2s;">
+                ▼ detayları göster
+            </button>
+        </div>
+        {% empty %}
+        <div style="grid-column: 1 / -1; text-align: center; padding: 40px; color: var(--gray);">
+            veri kaynağı bulunamadı
+        </div>
+        {% endfor %}
+    </div>
+</div>
+
+<!-- Automatic Updates Status -->
+<div class="section" style="margin-bottom: 20px;">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 1px solid var(--gray); padding-bottom: 10px;">
+        <h3 style="color: var(--gray); margin: 0;">
+            ⏰ otomatik güncelleme
+        </h3>
+    </div>
+
+    {% for job in jobs %}
+    <div style="background: var(--bg-dark); border: 1px solid var(--gray); padding: 20px; border-radius: 4px; margin-bottom: 15px;">
+        <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 15px; flex-wrap: wrap; gap: 15px;">
+            <div style="flex: 1; min-width: 200px;">
+                <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 10px;">
+                    {% if job.is_active %}
+                        {% if job.status == 'success' %}
+                            <div style="width: 12px; height: 12px; background: #00ff00; border-radius: 50%; box-shadow: 0 0 10px rgba(0, 255, 0, 0.5);"></div>
+                            <span style="color: #00ff00; font-weight: bold;">aktif ve çalışıyor</span>
+                        {% elif job.status == 'failed' %}
+                            <div style="width: 12px; height: 12px; background: #ff4444; border-radius: 50%; box-shadow: 0 0 10px rgba(255, 68, 68, 0.5);"></div>
+                            <span style="color: #ff4444; font-weight: bold;">aktif ama hatalı</span>
+                        {% else %}
+                            <div style="width: 12px; height: 12px; background: var(--orange); border-radius: 50%; box-shadow: 0 0 10px rgba(255, 140, 0, 0.5);"></div>
+                            <span style="color: var(--orange); font-weight: bold;">aktif</span>
+                        {% endif %}
+                    {% else %}
+                        <div style="width: 12px; height: 12px; background: var(--gray); border-radius: 50%;"></div>
+                        <span style="color: var(--gray);">pasif</span>
+                    {% endif %}
+                </div>
+
+                <div style="font-size: 12px; color: var(--gray); margin-bottom: 5px;">
+                    her 5 dakikada bir otomatik güncelleme
+                </div>
+            </div>
+
+            <div style="display: flex; gap: 10px;">
+                {% if user.is_superuser %}
+                <button class="btn-secondary" style="padding: 8px 16px; font-size: 12px;"
+                        onclick="toggleJob({{ job.id }}, {% if job.is_active %}false{% else %}true{% endif %})">
+                    {% if job.is_active %}⏸ duraklat{% else %}▶️ başlat{% endif %}
+                </button>
+                {% endif %}
+                <button class="btn-primary" style="padding: 8px 16px; font-size: 12px;"
+                        onclick="runJob({{ job.id }})">
+                    🔄 şimdi güncelle
+                </button>
+            </div>
+        </div>
+
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; padding: 15px; background: rgba(0, 0, 0, 0.3); border-radius: 4px;">
+            <div>
+                <div style="font-size: 10px; color: var(--gray); opacity: 0.7; margin-bottom: 5px;">son güncelleme</div>
+                <div style="font-size: 13px; color: var(--white);">
+                    {% if job.last_run %}
+                        {{ job.last_run|date:"d.m.Y H:i" }}
+                        <div style="font-size: 10px; color: var(--gray); margin-top: 2px;">{{ job.last_run|timesince }} önce</div>
+                    {% else %}
+                        <span style="color: var(--gray);">henüz güncellenmedi</span>
+                    {% endif %}
+                </div>
+            </div>
+
+            <div>
+                <div style="font-size: 10px; color: var(--gray); opacity: 0.7; margin-bottom: 5px;">sonraki güncelleme</div>
+                <div style="font-size: 13px; color: var(--white);">
+                    {% if job.next_run %}
+                        {{ job.next_run|date:"d.m.Y H:i" }}
+                        <div style="font-size: 10px; color: var(--gray); margin-top: 2px;">{{ job.next_run|timeuntil }} içinde</div>
+                    {% else %}
+                        <span style="color: var(--gray);">-</span>
+                    {% endif %}
+                </div>
+            </div>
+
+            <div>
+                <div style="font-size: 10px; color: var(--gray); opacity: 0.7; margin-bottom: 5px;">başarı oranı</div>
+                <div style="font-size: 13px; color: var(--white);">
+                    {% if job.run_count > 0 %}
+                        <span style="color: {% if job.success_count > job.error_count %}#00ff00{% else %}#ff4444{% endif %};">
+                            {% widthratio job.success_count job.run_count 100 %}%
+                        </span>
+                        <div style="font-size: 10px; color: var(--gray); margin-top: 2px;">{{ job.success_count }}/{{ job.run_count }} başarılı</div>
+                    {% else %}
+                        <span style="color: var(--gray);">-</span>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Advanced Cron Details (Collapsible) -->
+        <div class="advanced-details" style="display: none; margin-top: 15px; padding-top: 15px; border-top: 1px solid var(--gray);">
+            <div style="margin-bottom: 12px;">
+                <div style="font-size: 10px; color: var(--cyan); margin-bottom: 5px; text-transform: uppercase; letter-spacing: 0.5px;">cron schedule</div>
+                <div style="font-family: 'Courier New', monospace; font-size: 11px; color: var(--white); background: rgba(0, 0, 0, 0.5); padding: 8px; border-radius: 3px;">
+                    {{ job.schedule }}
+                </div>
+            </div>
+
+            <div style="margin-bottom: 12px;">
+                <div style="font-size: 10px; color: var(--cyan); margin-bottom: 5px; text-transform: uppercase; letter-spacing: 0.5px;">command</div>
+                <div style="font-family: 'Courier New', monospace; font-size: 10px; color: var(--gray); word-break: break-all; background: rgba(0, 0, 0, 0.5); padding: 8px; border-radius: 3px;">
+                    {{ job.command }}
+                </div>
+            </div>
+
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; margin-bottom: 12px;">
+                <div>
+                    <div style="font-size: 10px; color: var(--cyan); margin-bottom: 5px;">toplam çalıştırma</div>
+                    <div style="font-size: 13px; color: var(--white); font-weight: bold;">{{ job.run_count|default:0 }}</div>
+                </div>
+                <div>
+                    <div style="font-size: 10px; color: var(--cyan); margin-bottom: 5px;">başarılı</div>
+                    <div style="font-size: 13px; color: #00ff00; font-weight: bold;">{{ job.success_count|default:0 }}</div>
+                </div>
+                <div>
+                    <div style="font-size: 10px; color: var(--cyan); margin-bottom: 5px;">hatalı</div>
+                    <div style="font-size: 13px; color: #ff4444; font-weight: bold;">{{ job.error_count|default:0 }}</div>
+                </div>
+            </div>
+
+            {% if job.last_result %}
+            <div style="margin-bottom: 12px;">
+                <div style="font-size: 10px; color: var(--cyan); margin-bottom: 5px; text-transform: uppercase; letter-spacing: 0.5px;">son işlem tam çıktısı</div>
+                <div style="font-family: 'Courier New', monospace; font-size: 10px; color: var(--gray); background: rgba(0, 0, 0, 0.5); padding: 8px; border-radius: 3px; max-height: 150px; overflow-y: auto; white-space: pre-wrap; word-break: break-word;">{{ job.last_result }}</div>
+            </div>
+            {% endif %}
+        </div>
+
+        {% if job.last_result %}
+        <div style="margin-top: 15px; padding: 12px; background: rgba(0, 255, 255, 0.05); border-left: 3px solid var(--cyan); border-radius: 4px;">
+            <div style="font-size: 10px; color: var(--cyan); margin-bottom: 5px;">son işlem özeti:</div>
+            <div style="font-family: 'Courier New', monospace; font-size: 11px; color: var(--gray);">
+                {{ job.last_result|truncatewords:20 }}
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Expand/Collapse Button for Cron -->
+        <button class="toggle-details-btn" onclick="toggleDetails(this)" style="width: 100%; margin-top: 15px; padding: 8px; background: rgba(0, 255, 255, 0.1); border: 1px solid var(--cyan); color: var(--cyan); border-radius: 3px; cursor: pointer; font-size: 11px; transition: all 0.2s;">
+            ▼ teknik detayları göster
+        </button>
+    </div>
+    {% empty %}
+    <div style="text-align: center; padding: 40px; color: var(--gray);">
+        otomatik güncelleme ayarlanmamış
+    </div>
+    {% endfor %}
+</div>
+
+<!-- Navigation -->
+<div class="section" style="margin-top: 30px;">
+    <div style="display: flex; gap: 15px; flex-wrap: wrap; padding: 15px; background: var(--bg-dark); border: 1px solid var(--gray);">
+        <a href="{% url 'birlikteyiz:dashboard' %}" class="btn-secondary" style="text-decoration: none;">🗺️ haritaya dön</a>
+        <a href="{% url 'birlikteyiz:earthquake_list' %}" class="btn-secondary" style="text-decoration: none;">🌍 deprem listesi</a>
+    </div>
+</div>
+
+<script>
+function fetchAllData() {
+    if (confirm('tüm kaynaklardan güncel deprem verilerini çekmek istiyor musunuz?\n\nbu işlem birkaç dakika sürebilir.')) {
+        const button = event.target;
+        button.disabled = true;
+        button.textContent = '⏳ veriler çekiliyor...';
+
+        fetch('{% url "birlikteyiz:manual_fetch" %}', {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': '{{ csrf_token }}'
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                alert('✅ başarılı!\n\n' + data.message);
+                setTimeout(() => location.reload(), 2000);
+            } else {
+                alert('❌ hata:\n\n' + data.error);
+                button.disabled = false;
+                button.textContent = '📥 tüm kaynaklardan veri çek';
+            }
+        })
+        .catch(error => {
+            alert('❌ bağlantı hatası:\n\n' + error);
+            button.disabled = false;
+            button.textContent = '📥 tüm kaynaklardan veri çek';
+        });
+    }
+}
+
+function refreshStatus() {
+    location.reload();
+}
+
+function toggleDetails(button) {
+    const card = button.closest('.source-card') || button.parentElement;
+    const detailsDiv = card.querySelector('.advanced-details');
+
+    if (detailsDiv.style.display === 'none') {
+        detailsDiv.style.display = 'block';
+        button.textContent = '▲ detayları gizle';
+        button.style.background = 'rgba(0, 255, 255, 0.2)';
+    } else {
+        detailsDiv.style.display = 'none';
+        button.textContent = button.textContent.includes('teknik') ? '▼ teknik detayları göster' : '▼ detayları göster';
+        button.style.background = 'rgba(0, 255, 255, 0.1)';
+    }
+}
+
+function toggleAdvancedMode() {
+    const allDetails = document.querySelectorAll('.advanced-details');
+    const allButtons = document.querySelectorAll('.toggle-details-btn');
+    const toggleText = document.getElementById('advanced-toggle-text');
+
+    // Check if any details are visible
+    const anyVisible = Array.from(allDetails).some(d => d.style.display !== 'none');
+
+    if (anyVisible) {
+        // Hide all
+        allDetails.forEach(d => d.style.display = 'none');
+        allButtons.forEach(b => {
+            b.textContent = b.textContent.includes('teknik') ? '▼ teknik detayları göster' : '▼ detayları göster';
+            b.style.background = 'rgba(0, 255, 255, 0.1)';
+        });
+        toggleText.textContent = '🔧 gelişmiş ayarlar';
+    } else {
+        // Show all
+        allDetails.forEach(d => d.style.display = 'block');
+        allButtons.forEach(b => {
+            b.textContent = b.textContent.includes('teknik') ? '▲ teknik detayları gizle' : '▲ detayları gizle';
+            b.style.background = 'rgba(0, 255, 255, 0.2)';
+        });
+        toggleText.textContent = '🔧 normal görünüm';
+    }
+}
+
+function toggleJob(jobId, activate) {
+    const action = activate ? 'başlatmak' : 'durdurmak';
+    if (confirm(`otomatik güncellemeyi ${action} istediğinizden emin misiniz?`)) {
+        alert('⚠️ bu özellik yakında eklenecek\n\ngüncelleme ayarlarını değiştirmek için sistem yöneticisi ile iletişime geçin.');
+    }
+}
+
+function runJob(jobId) {
+    fetchAllData();
+}
+
+function testSource(sourceName) {
+    alert(`🧪 ${sourceName} kaynağı test ediliyor...\n\nbu özellik yakında eklenecek.`);
+}
+
+function toggleSource(sourceId, isActive) {
+    const action = isActive ? 'devre dışı bırakmak' : 'etkinleştirmek';
+    if (confirm(`bu veri kaynağını ${action} istediğinizden emin misiniz?`)) {
+        alert('⚠️ bu özellik yakında eklenecek\n\nveri kaynaklarını yönetmek için sistem yöneticisi ile iletişime geçin.');
+    }
+}
+
+// Auto refresh every 60 seconds
+setInterval(refreshStatus, 60000);
+</script>
+
+{% endblock birlikteyiz_content %}

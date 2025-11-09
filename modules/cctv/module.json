@@ -1,0 +1,278 @@
+{
+  "id": "cctv",
+  "name": "CCTV",
+  "display_name": {
+    "tr": "CCTV - Güvenlik Kameraları",
+    "en": "CCTV - Security Cameras"
+  },
+  "version": "1.0.0",
+  "description": "Professional security camera management system with TP-Link Tapo and Kerberos.io integration. Real-time streaming, recording, motion detection, and alert management.",
+  "icon": "📹",
+  "author": "Berk Hatırlı",
+
+  "capabilities": {
+    "backend": true,
+    "web": true,
+    "mobile": false,
+    "cli": false,
+    "realtime": true
+  },
+
+  "dependencies": {
+    "core_modules": ["authentication", "users"],
+    "python_packages": [
+      "djangorestframework",
+      "opencv-python",
+      "numpy",
+      "requests",
+      "celery",
+      "redis"
+    ],
+    "system_requirements": ["redis", "postgresql", "ffmpeg"],
+    "optional_packages": ["opencv-contrib-python"]
+  },
+
+  "database": {
+    "uses_shared_db": true,
+    "tables_prefix": "cctv_",
+    "models": [
+      "Camera",
+      "CameraStream",
+      "RecordingSession",
+      "RecordingSchedule",
+      "Alert",
+      "CameraGroup",
+      "StorageConfiguration"
+    ]
+  },
+
+  "api": {
+    "base_path": "/api/v1/cctv/",
+    "endpoints": [
+      {
+        "path": "",
+        "methods": ["GET"],
+        "public": false,
+        "auth_required": true,
+        "description": "CCTV dashboard with camera grid"
+      },
+      {
+        "path": "grid/",
+        "methods": ["GET"],
+        "public": false,
+        "auth_required": true,
+        "description": "Multi-camera grid view"
+      },
+      {
+        "path": "camera/{id}/",
+        "methods": ["GET", "PUT", "DELETE"],
+        "public": false,
+        "auth_required": true,
+        "description": "Individual camera management"
+      },
+      {
+        "path": "live/{camera_id}/",
+        "methods": ["GET"],
+        "public": false,
+        "auth_required": true,
+        "description": "Live stream information"
+      },
+      {
+        "path": "stream/{camera_id}/",
+        "methods": ["GET"],
+        "public": false,
+        "auth_required": true,
+        "description": "RTSP to MJPEG stream proxy"
+      },
+      {
+        "path": "snapshot/{camera_id}/",
+        "methods": ["GET"],
+        "public": false,
+        "auth_required": true,
+        "description": "Get current camera snapshot"
+      },
+      {
+        "path": "recordings/",
+        "methods": ["GET"],
+        "public": false,
+        "auth_required": true,
+        "description": "List all recordings with filtering"
+      },
+      {
+        "path": "playback/{id}/",
+        "methods": ["GET"],
+        "public": false,
+        "auth_required": true,
+        "description": "Recording playback view"
+      },
+      {
+        "path": "record/start/{camera_id}/",
+        "methods": ["POST"],
+        "public": false,
+        "auth_required": true,
+        "description": "Start manual recording"
+      },
+      {
+        "path": "record/stop/{camera_id}/",
+        "methods": ["POST"],
+        "public": false,
+        "auth_required": true,
+        "description": "Stop recording"
+      },
+      {
+        "path": "alerts/",
+        "methods": ["GET"],
+        "public": false,
+        "auth_required": true,
+        "description": "List security alerts"
+      },
+      {
+        "path": "alert/resolve/{alert_id}/",
+        "methods": ["POST"],
+        "public": false,
+        "auth_required": true,
+        "description": "Resolve security alert"
+      },
+      {
+        "path": "settings/",
+        "methods": ["GET", "PUT"],
+        "public": false,
+        "auth_required": true,
+        "description": "Camera and system settings"
+      },
+      {
+        "path": "api/ptz/{camera_id}/",
+        "methods": ["GET", "POST"],
+        "public": false,
+        "auth_required": true,
+        "description": "PTZ camera controls"
+      },
+      {
+        "path": "api/status/",
+        "methods": ["GET"],
+        "public": false,
+        "auth_required": true,
+        "description": "Get status of all cameras"
+      }
+    ]
+  },
+
+  "permissions": [
+    "cctv.view_camera",
+    "cctv.add_camera",
+    "cctv.change_camera",
+    "cctv.delete_camera",
+    "cctv.view_recordingsession",
+    "cctv.add_recordingsession",
+    "cctv.delete_recordingsession",
+    "cctv.view_alert",
+    "cctv.change_alert",
+    "cctv.view_cameragroup",
+    "cctv.add_cameragroup",
+    "cctv.change_cameragroup",
+    "cctv.delete_cameragroup",
+    "cctv.view_storageconfiguration",
+    "cctv.change_storageconfiguration"
+  ],
+
+  "celery_tasks": [
+    "check_camera_status",
+    "process_motion_detection",
+    "cleanup_old_recordings",
+    "send_alert_notifications",
+    "update_storage_usage",
+    "process_scheduled_recordings",
+    "generate_thumbnails",
+    "check_recording_schedules"
+  ],
+
+  "features": [
+    "Multi-camera management and monitoring",
+    "Real-time RTSP stream viewing",
+    "MJPEG stream proxy for browser compatibility",
+    "Camera snapshot capture",
+    "Manual and scheduled recording",
+    "Motion detection and alerts",
+    "Multi-level alert system (Low, Medium, High, Critical)",
+    "PTZ camera control support",
+    "Multi-camera grid view (1x1 to 8x4 grids)",
+    "Camera grouping for organized viewing",
+    "Recording playback with timeline",
+    "Alert management and resolution",
+    "Storage management with usage tracking",
+    "Automatic cleanup of old recordings",
+    "Recording schedules with day/time configuration",
+    "Multiple camera models support (TP-Link Tapo, Generic RTSP, ONVIF)",
+    "Multiple stream protocols (RTSP, RTMP, HLS, WebRTC)",
+    "Video quality settings (resolution, FPS, bitrate)",
+    "Kerberos.io integration support",
+    "Audio recording support",
+    "AI detection (person, vehicle, animal, package)",
+    "Event-based recording (motion, alert, scheduled)",
+    "Retention policies",
+    "Camera status monitoring",
+    "Network configuration per camera"
+  ],
+
+  "integration": {
+    "sidebar": {
+      "enabled": true,
+      "position": 8,
+      "category": "security"
+    },
+    "dashboard_widgets": [
+      {
+        "id": "camera_status",
+        "title": "Camera Status",
+        "size": "large"
+      },
+      {
+        "id": "recent_alerts",
+        "title": "Recent Alerts",
+        "size": "medium"
+      },
+      {
+        "id": "storage_usage",
+        "title": "Storage Usage",
+        "size": "small"
+      },
+      {
+        "id": "active_recordings",
+        "title": "Active Recordings",
+        "size": "small"
+      }
+    ]
+  },
+
+  "camera_support": {
+    "models": [
+      "TP-Link Tapo C200",
+      "TP-Link Tapo C210",
+      "TP-Link Tapo C310",
+      "TP-Link Tapo C320WS",
+      "Generic RTSP Camera",
+      "ONVIF Compatible Cameras"
+    ],
+    "protocols": ["RTSP", "HTTP", "HTTPS", "ONVIF"],
+    "stream_formats": ["RTSP", "RTMP", "HLS", "WebRTC", "MJPEG"]
+  },
+
+  "external_integrations": {
+    "kerberos": {
+      "name": "Kerberos.io",
+      "description": "Advanced video surveillance platform",
+      "optional": true
+    },
+    "tapo": {
+      "name": "TP-Link Tapo",
+      "description": "TP-Link Tapo camera series",
+      "protocols": ["RTSP", "HTTP"]
+    }
+  },
+
+  "development": {
+    "repository": "https://github.com/berkhatira/unibos",
+    "documentation": "",
+    "maintainer": "berk@berkhatirli.com"
+  }
+}

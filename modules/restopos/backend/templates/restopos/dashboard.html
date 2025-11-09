@@ -1,0 +1,556 @@
+{% extends 'web_ui/base.html' %}
+{% load static %}
+
+{% block title %}restopos - restaurant management - unibos{% endblock %}
+
+{% block extra_css %}
+<style>
+    .restopos-container {
+        padding: 0;  /* No padding - base.html .content already has padding: 20px */
+        max-width: 1600px;
+        margin: 0 auto;
+    }
+    
+    .module-header {
+        display: flex;
+        flex-direction: column;
+        align-items: flex-start;
+        margin-bottom: 30px;
+        padding-bottom: 15px;
+        border-bottom: 2px solid var(--orange);
+    }
+
+    .module-header h1 {
+        display: block;
+        color: var(--orange);
+        font-size: 24px;
+        font-weight: bold;
+        text-transform: lowercase;
+        margin: 0;
+        margin-bottom: 8px;
+        line-height: 1.2;
+    }
+
+    .module-header p {
+        display: block;
+        color: var(--gray);
+        font-size: 14px;
+        text-transform: lowercase;
+        margin: 0;
+        line-height: 1.4;
+    }
+    
+    .header-info {
+        display: flex;
+        gap: 20px;
+        align-items: center;
+    }
+    
+    .status-indicator {
+        display: flex;
+        align-items: center;
+        gap: 5px;
+    }
+    
+    .status-dot {
+        width: 10px;
+        height: 10px;
+        border-radius: 50%;
+        background: #4caf50;
+        animation: pulse 2s infinite;
+    }
+    
+    @keyframes pulse {
+        0% { opacity: 1; }
+        50% { opacity: 0.5; }
+        100% { opacity: 1; }
+    }
+    
+    .pos-stats {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+        gap: 15px;
+        margin-bottom: 30px;
+    }
+    
+    .stat-card {
+        background: #1a1a1a;
+        padding: 15px;
+        border-radius: 8px;
+        text-align: center;
+    }
+    
+    .stat-value {
+        font-size: 1.8em;
+        color: #4caf50;
+        margin-bottom: 5px;
+    }
+    
+    .stat-label {
+        color: #888;
+        text-transform: lowercase;
+        font-size: 0.9em;
+    }
+    
+    .pos-main {
+        display: grid;
+        grid-template-columns: 2fr 1fr;
+        gap: 30px;
+    }
+    
+    .table-section {
+        background: #1a1a1a;
+        padding: 20px;
+        border-radius: 8px;
+    }
+    
+    .section-title {
+        font-size: 1.2em;
+        margin-bottom: 20px;
+        color: #fff;
+        text-transform: lowercase;
+    }
+    
+    .table-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+        gap: 15px;
+    }
+    
+    .table-card {
+        aspect-ratio: 1;
+        background: #2a2a2a;
+        border-radius: 8px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        transition: all 0.2s;
+        position: relative;
+    }
+    
+    .table-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+    }
+    
+    .table-card.occupied {
+        background: #d32f2f;
+    }
+    
+    .table-card.reserved {
+        background: #ff9800;
+    }
+    
+    .table-card.available {
+        background: #2e7d32;
+    }
+    
+    .table-number {
+        font-size: 1.5em;
+        color: #fff;
+        margin-bottom: 5px;
+    }
+    
+    .table-status {
+        font-size: 0.8em;
+        color: rgba(255,255,255,0.8);
+        text-transform: lowercase;
+    }
+    
+    .table-timer {
+        position: absolute;
+        top: 5px;
+        right: 5px;
+        font-size: 0.7em;
+        color: rgba(255,255,255,0.6);
+    }
+    
+    .orders-section {
+        background: #1a1a1a;
+        padding: 20px;
+        border-radius: 8px;
+    }
+    
+    .order-list {
+        max-height: 400px;
+        overflow-y: auto;
+    }
+    
+    .order-item {
+        background: #2a2a2a;
+        padding: 15px;
+        border-radius: 8px;
+        margin-bottom: 10px;
+        cursor: pointer;
+        transition: background 0.2s;
+    }
+    
+    .order-item:hover {
+        background: #333;
+    }
+    
+    .order-header {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 10px;
+    }
+    
+    .order-table {
+        font-weight: bold;
+        color: #4caf50;
+    }
+    
+    .order-time {
+        color: #888;
+        font-size: 0.9em;
+    }
+    
+    .order-items {
+        color: #ccc;
+        font-size: 0.9em;
+        margin-bottom: 10px;
+    }
+    
+    .order-total {
+        display: flex;
+        justify-content: space-between;
+        padding-top: 10px;
+        border-top: 1px solid #444;
+    }
+    
+    .order-status {
+        display: inline-block;
+        padding: 3px 8px;
+        border-radius: 4px;
+        font-size: 0.8em;
+        text-transform: lowercase;
+    }
+    
+    .order-status.pending {
+        background: #ff9800;
+        color: #000;
+    }
+    
+    .order-status.preparing {
+        background: #2196f3;
+        color: #fff;
+    }
+    
+    .order-status.ready {
+        background: #4caf50;
+        color: #fff;
+    }
+    
+    .quick-actions {
+        background: #1a1a1a;
+        padding: 20px;
+        border-radius: 8px;
+        margin-bottom: 30px;
+    }
+    
+    .action-buttons {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+        gap: 10px;
+    }
+    
+    .action-btn {
+        background: #2a2a2a;
+        color: #fff;
+        padding: 15px;
+        border: none;
+        border-radius: 8px;
+        cursor: pointer;
+        transition: background 0.2s;
+        text-transform: lowercase;
+    }
+    
+    .action-btn:hover {
+        background: #333;
+    }
+    
+    .action-btn.primary {
+        background: #4caf50;
+    }
+    
+    .action-btn.primary:hover {
+        background: #45a049;
+    }
+    
+    .menu-categories {
+        display: flex;
+        gap: 10px;
+        margin-bottom: 20px;
+        overflow-x: auto;
+        padding-bottom: 10px;
+    }
+    
+    .category-chip {
+        background: #2a2a2a;
+        color: #ccc;
+        padding: 8px 16px;
+        border-radius: 20px;
+        cursor: pointer;
+        white-space: nowrap;
+        transition: all 0.2s;
+    }
+    
+    .category-chip:hover,
+    .category-chip.active {
+        background: #4caf50;
+        color: #fff;
+    }
+    
+    .kitchen-display {
+        background: #1a1a1a;
+        padding: 20px;
+        border-radius: 8px;
+        margin-top: 30px;
+    }
+    
+    .kitchen-orders {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 15px;
+    }
+    
+    .kitchen-order {
+        background: #2a2a2a;
+        padding: 15px;
+        border-radius: 8px;
+        border-left: 4px solid #ff9800;
+    }
+    
+    .kitchen-order.urgent {
+        border-left-color: #f44336;
+        animation: blink 1s infinite;
+    }
+    
+    @keyframes blink {
+        0%, 100% { opacity: 1; }
+        50% { opacity: 0.7; }
+    }
+    
+    @media (max-width: 1024px) {
+        .pos-main {
+            grid-template-columns: 1fr;
+        }
+    }
+    
+    @media (max-width: 768px) {
+        .table-grid {
+            grid-template-columns: repeat(3, 1fr);
+        }
+        
+        .pos-stats {
+            grid-template-columns: repeat(2, 1fr);
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="restopos-container">
+    <div class="module-header">
+        <h1>🍽️ restopos</h1>
+        <p>professional restaurant pos system with table management</p>
+    </div>
+    
+    <div class="pos-stats">
+        <div class="stat-card">
+            <div class="stat-value">{{ active_tables|default:"0" }}/{{ total_tables|default:"20" }}</div>
+            <div class="stat-label">tables</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-value">{{ pending_orders|default:"0" }}</div>
+            <div class="stat-label">pending</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-value">{{ today_orders|default:"0" }}</div>
+            <div class="stat-label">orders today</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-value">₺{{ today_revenue|default:"0" }}</div>
+            <div class="stat-label">revenue</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-value">{{ avg_time|default:"25" }}m</div>
+            <div class="stat-label">avg time</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-value">{{ staff_count|default:"0" }}</div>
+            <div class="stat-label">staff online</div>
+        </div>
+    </div>
+    
+    <div class="quick-actions">
+        <div class="action-buttons">
+            <button class="action-btn primary">new order</button>
+            <button class="action-btn">take payment</button>
+            <button class="action-btn">reserve table</button>
+            <button class="action-btn">view menu</button>
+            <button class="action-btn">kitchen display</button>
+            <button class="action-btn">reports</button>
+        </div>
+    </div>
+    
+    <div class="pos-main">
+        <div class="table-section">
+            <h2 class="section-title">table overview</h2>
+            <div class="table-grid">
+                {% for i in "12345678901234567890"|make_list|slice:":20" %}
+                <div class="table-card {% cycle 'available' 'occupied' 'available' 'available' 'occupied' 'reserved' %}">
+                    <div class="table-number">{{ forloop.counter }}</div>
+                    <div class="table-status">{% cycle 'available' 'occupied' 'available' 'available' 'occupied' 'reserved' %}</div>
+                    {% if forloop.counter|divisibleby:2 %}
+                    <div class="table-timer">45:23</div>
+                    {% endif %}
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        
+        <div class="orders-section">
+            <h2 class="section-title">active orders</h2>
+            <div class="order-list">
+                <div class="order-item">
+                    <div class="order-header">
+                        <span class="order-table">table 5</span>
+                        <span class="order-time">12:45</span>
+                    </div>
+                    <div class="order-items">
+                        2x margherita pizza<br>
+                        1x caesar salad<br>
+                        3x cola
+                    </div>
+                    <div class="order-total">
+                        <span class="order-status preparing">preparing</span>
+                        <span>₺245.00</span>
+                    </div>
+                </div>
+                
+                <div class="order-item">
+                    <div class="order-header">
+                        <span class="order-table">table 12</span>
+                        <span class="order-time">12:38</span>
+                    </div>
+                    <div class="order-items">
+                        1x grilled salmon<br>
+                        1x pasta carbonara<br>
+                        2x wine glass
+                    </div>
+                    <div class="order-total">
+                        <span class="order-status ready">ready</span>
+                        <span>₺420.00</span>
+                    </div>
+                </div>
+                
+                <div class="order-item">
+                    <div class="order-header">
+                        <span class="order-table">table 3</span>
+                        <span class="order-time">13:02</span>
+                    </div>
+                    <div class="order-items">
+                        4x burger menu<br>
+                        4x fries<br>
+                        4x soft drink
+                    </div>
+                    <div class="order-total">
+                        <span class="order-status pending">pending</span>
+                        <span>₺580.00</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="kitchen-display">
+        <h2 class="section-title">kitchen queue</h2>
+        <div class="menu-categories">
+            <div class="category-chip active">all</div>
+            <div class="category-chip">starters</div>
+            <div class="category-chip">mains</div>
+            <div class="category-chip">desserts</div>
+            <div class="category-chip">drinks</div>
+            <div class="category-chip">urgent</div>
+        </div>
+        <div class="kitchen-orders">
+            <div class="kitchen-order urgent">
+                <div style="font-weight: bold; margin-bottom: 10px;">table 5 - #2034</div>
+                <div style="color: #ccc; font-size: 0.9em;">
+                    2x margherita pizza<br>
+                    1x caesar salad
+                </div>
+                <div style="margin-top: 10px; color: #ff9800;">⏱️ 15:23</div>
+            </div>
+            <div class="kitchen-order">
+                <div style="font-weight: bold; margin-bottom: 10px;">table 8 - #2035</div>
+                <div style="color: #ccc; font-size: 0.9em;">
+                    1x ribeye steak<br>
+                    1x grilled vegetables
+                </div>
+                <div style="margin-top: 10px; color: #4caf50;">⏱️ 08:45</div>
+            </div>
+            <div class="kitchen-order">
+                <div style="font-weight: bold; margin-bottom: 10px;">takeaway - #2036</div>
+                <div style="color: #ccc; font-size: 0.9em;">
+                    3x chicken wrap<br>
+                    2x fries<br>
+                    3x cola
+                </div>
+                <div style="margin-top: 10px; color: #4caf50;">⏱️ 05:12</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Table click handler
+    document.querySelectorAll('.table-card').forEach(table => {
+        table.addEventListener('click', function() {
+            const status = this.classList.contains('occupied') ? 'occupied' : 
+                          this.classList.contains('reserved') ? 'reserved' : 'available';
+            console.log('Table clicked:', this.querySelector('.table-number').textContent, status);
+            // TODO: Open table detail/order modal
+        });
+    });
+    
+    // Order click handler
+    document.querySelectorAll('.order-item').forEach(order => {
+        order.addEventListener('click', function() {
+            console.log('Order clicked');
+            // TODO: Open order detail modal
+        });
+    });
+    
+    // Action buttons
+    document.querySelectorAll('.action-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+            const action = this.textContent;
+            console.log('Action:', action);
+            // TODO: Implement actions
+        });
+    });
+    
+    // Category chips
+    document.querySelectorAll('.category-chip').forEach(chip => {
+        chip.addEventListener('click', function() {
+            document.querySelectorAll('.category-chip').forEach(c => c.classList.remove('active'));
+            this.classList.add('active');
+            console.log('Category:', this.textContent);
+            // TODO: Filter kitchen orders
+        });
+    });
+    
+    // Update timers every second
+    setInterval(() => {
+        document.querySelectorAll('.table-timer').forEach(timer => {
+            // TODO: Update timer display
+        });
+    }, 1000);
+});
+</script>
+{% endblock %}

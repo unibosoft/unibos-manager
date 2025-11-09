@@ -1,0 +1,36 @@
+{
+  "id": "wimm",
+  "name": "WIMM",
+  "display_name": {
+    "tr": "WIMM - Param Takip",
+    "en": "WIMM - Where Is My Money"
+  },
+  "version": "1.0.0",
+  "description": "Comprehensive personal finance management system. Track transactions, budgets, invoices, and recurring expenses with detailed reporting.",
+  "icon": "💰",
+  "author": "Berk Hatırlı",
+  "capabilities": {"backend": true, "web": true, "mobile": false, "cli": false, "realtime": false},
+  "dependencies": {
+    "core_modules": ["authentication", "users"],
+    "python_packages": ["djangorestframework", "celery", "redis"],
+    "system_requirements": ["redis", "postgresql"]
+  },
+  "database": {
+    "uses_shared_db": true,
+    "tables_prefix": "wimm_",
+    "models": ["TransactionCategory", "Transaction", "Invoice", "InvoiceItem", "Budget", "RecurringTransaction"]
+  },
+  "api": {"base_path": "/api/v1/wimm/", "endpoints": [
+    {"path": "transactions/", "methods": ["GET", "POST"], "auth_required": true},
+    {"path": "categories/", "methods": ["GET", "POST"], "auth_required": true},
+    {"path": "invoices/", "methods": ["GET", "POST"], "auth_required": true},
+    {"path": "budgets/", "methods": ["GET", "POST"], "auth_required": true},
+    {"path": "recurring/", "methods": ["GET", "POST"], "auth_required": true},
+    {"path": "reports/", "methods": ["GET"], "auth_required": true}
+  ]},
+  "permissions": ["wimm.view_transaction", "wimm.add_transaction", "wimm.change_transaction", "wimm.delete_transaction"],
+  "celery_tasks": ["process_recurring_transactions", "generate_financial_reports", "send_budget_alerts"],
+  "features": ["Transaction management", "Budget tracking", "Invoice generation", "Recurring transactions", "Financial reports", "Category management"],
+  "integration": {"sidebar": {"enabled": true, "position": 15, "category": "finance"}},
+  "development": {"repository": "https://github.com/berkhatira/unibos", "maintainer": "berk@berkhatirli.com"}
+}

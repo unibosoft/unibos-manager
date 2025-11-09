@@ -1,0 +1,18 @@
+{
+  "id": "logging",
+  "name": "Logging",
+  "display_name": {"tr": "Günlükleme", "en": "System Logging"},
+  "version": "1.0.0",
+  "description": "Comprehensive system and activity logging with log aggregation, retention policies, and buffering.",
+  "icon": "📋",
+  "author": "Berk Hatırlı",
+  "capabilities": {"backend": true, "web": true, "mobile": false, "cli": false, "realtime": false},
+  "dependencies": {"core_modules": ["authentication", "users"], "python_packages": ["djangorestframework", "celery", "redis"], "system_requirements": ["redis", "postgresql"]},
+  "database": {"uses_shared_db": true, "tables_prefix": "log_", "models": ["SystemLog", "ActivityLog", "LogAggregation", "LogRetentionPolicy"]},
+  "api": {"base_path": "/api/v1/logging/", "endpoints": [{"path": "system/", "methods": ["GET"], "auth_required": true}, {"path": "activity/", "methods": ["GET"], "auth_required": true}, {"path": "aggregation/", "methods": ["GET"], "auth_required": true}, {"path": "retention/", "methods": ["GET", "PUT"], "auth_required": true}]},
+  "permissions": ["logging.view_systemlog", "logging.view_activitylog", "logging.view_logaggregation", "logging.change_logretentionpolicy"],
+  "celery_tasks": ["aggregate_logs", "cleanup_old_logs", "archive_logs"],
+  "features": ["System logging", "Activity logging", "Log aggregation", "Retention policies", "Log buffering", "Search and filtering", "Log levels (DEBUG, INFO, WARNING, ERROR, CRITICAL)"],
+  "integration": {"sidebar": {"enabled": true, "position": 2, "category": "system"}},
+  "development": {"repository": "https://github.com/berkhatira/unibos", "maintainer": "berk@berkhatirli.com"}
+}

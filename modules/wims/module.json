@@ -1,0 +1,18 @@
+{
+  "id": "wims",
+  "name": "WIMS",
+  "display_name": {"tr": "WIMS - Envanter Takip", "en": "WIMS - Where Is My Stuff"},
+  "version": "1.0.0",
+  "description": "Inventory management system with warehouse, stock tracking, and supplier management.",
+  "icon": "📦",
+  "author": "Berk Hatırlı",
+  "capabilities": {"backend": true, "web": true, "mobile": false, "cli": false, "realtime": false},
+  "dependencies": {"core_modules": ["authentication", "users"], "python_packages": ["djangorestframework", "celery", "redis"], "system_requirements": ["redis", "postgresql"]},
+  "database": {"uses_shared_db": true, "tables_prefix": "wims_", "models": ["Warehouse", "StockLocation", "StockItem", "StockMovement", "StockCount", "StockCountItem", "ItemSupplier"]},
+  "api": {"base_path": "/api/v1/wims/", "endpoints": [{"path": "warehouses/", "methods": ["GET", "POST"], "auth_required": true}, {"path": "items/", "methods": ["GET", "POST"], "auth_required": true}, {"path": "movements/", "methods": ["GET", "POST"], "auth_required": true}, {"path": "counts/", "methods": ["GET", "POST"], "auth_required": true}]},
+  "permissions": ["wims.view_stockitem", "wims.add_stockitem", "wims.change_stockitem", "wims.view_warehouse", "wims.add_warehouse"],
+  "celery_tasks": ["check_low_stock", "process_stock_movements", "generate_inventory_reports"],
+  "features": ["Multi-warehouse management", "Stock tracking", "Stock movements", "Stock counting", "Supplier management", "Low stock alerts"],
+  "integration": {"sidebar": {"enabled": true, "position": 16, "category": "business"}},
+  "development": {"repository": "https://github.com/berkhatira/unibos", "maintainer": "berk@berkhatirli.com"}
+}

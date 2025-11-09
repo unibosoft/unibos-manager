@@ -14,7 +14,7 @@ from django.conf import settings
 from django.views.decorators.cache import never_cache
 from django.utils.decorators import method_decorator
 from django.views.decorators.csrf import csrf_exempt, csrf_protect
-from apps.administration.models import ScreenLock
+from modules.administration.backend.models import ScreenLock
 import json
 import os
 import logging
@@ -179,7 +179,7 @@ class ModuleView(BaseUIView):
     
     def get_currencies_context(self):
         """Get currencies-specific context data"""
-        from apps.currencies.models import BankExchangeRate, Currency, ExchangeRate
+        from modules.currencies.backend.models import BankExchangeRate, Currency, ExchangeRate
         from django.db.models import Count, Max
         
         try:
@@ -208,12 +208,12 @@ class ModuleView(BaseUIView):
     
     def get_wimm_context(self):
         """Get WIMM-specific context data"""
-        from apps.wimm.views import wimm_dashboard
-        
+        from modules.wimm.backend.views import wimm_dashboard
+
         # Call the WIMM dashboard view logic
         if self.request.user.is_authenticated:
             from apps.core.models import Account
-            from apps.wimm.models import Transaction, Invoice, Budget
+            from modules.wimm.backend.models import Transaction, Invoice, Budget
             from django.db.models import Sum
             from django.utils import timezone
             from decimal import Decimal
@@ -267,7 +267,7 @@ class ModuleView(BaseUIView):
     def get_wims_context(self):
         """Get WIMS-specific context data"""
         if self.request.user.is_authenticated:
-            from apps.wims.models import Warehouse, StockItem, StockMovement
+            from modules.wims.backend.models import Warehouse, StockItem, StockMovement
             from apps.core.models import Item
             from django.db.models import Sum, Count, F
             
@@ -813,8 +813,8 @@ class SettingsView(BaseUIView):
 def solitaire_view(request):
     """Solitaire game view (screen lock minimized mode)"""
     # Import the solitaire models and game logic
-    from apps.solitaire.models import SolitaireSession
-    from apps.solitaire.game import SolitaireGame
+    from modules.solitaire.backend.models import SolitaireSession
+    from modules.solitaire.backend.game import SolitaireGame
     import uuid
     import json
     import logging

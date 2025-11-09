@@ -1,0 +1,113 @@
+{
+  "id": "personal_inflation",
+  "name": "Personal Inflation",
+  "display_name": {
+    "tr": "Kişisel Enflasyon",
+    "en": "Personal Inflation"
+  },
+  "version": "1.0.0",
+  "description": "Track personal consumption basket and calculate individualized inflation rates",
+  "icon": "📈",
+  "author": "Berk Hatırlı",
+
+  "capabilities": {
+    "backend": true,
+    "web": true,
+    "mobile": true,
+    "cli": false,
+    "realtime": false
+  },
+
+  "dependencies": {
+    "core_modules": ["authentication", "users", "currencies"],
+    "python_packages": [
+      "djangorestframework",
+      "pillow"
+    ],
+    "system_requirements": ["postgresql"]
+  },
+
+  "database": {
+    "uses_shared_db": true,
+    "tables_prefix": "personal_inflation_",
+    "models": [
+      "ProductCategory",
+      "Product",
+      "Store",
+      "PersonalBasket",
+      "BasketItem",
+      "PriceRecord",
+      "InflationReport",
+      "PriceAlert"
+    ]
+  },
+
+  "api": {
+    "base_path": "/api/v1/personal-inflation/",
+    "endpoints": [
+      {
+        "path": "products/",
+        "methods": ["GET", "POST"],
+        "public": false,
+        "auth_required": true
+      },
+      {
+        "path": "baskets/",
+        "methods": ["GET", "POST"],
+        "public": false,
+        "auth_required": true
+      },
+      {
+        "path": "prices/",
+        "methods": ["GET", "POST"],
+        "public": false,
+        "auth_required": true
+      },
+      {
+        "path": "reports/",
+        "methods": ["GET"],
+        "public": false,
+        "auth_required": true
+      }
+    ]
+  },
+
+  "permissions": [
+    "personal_inflation.view_product",
+    "personal_inflation.add_product",
+    "personal_inflation.view_personalbasket",
+    "personal_inflation.add_personalbasket",
+    "personal_inflation.view_pricerecord",
+    "personal_inflation.add_pricerecord"
+  ],
+
+  "celery_tasks": [
+    "check_price_alerts",
+    "generate_monthly_reports"
+  ],
+
+  "features": [
+    "Personal consumption basket management",
+    "Product price tracking",
+    "Multi-store price comparison",
+    "Inflation rate calculation",
+    "Category-based analysis",
+    "Monthly inflation reports",
+    "Price alerts and notifications",
+    "Savings recommendations"
+  ],
+
+  "integration": {
+    "sidebar": {
+      "enabled": true,
+      "position": 6,
+      "category": "finance"
+    }
+  },
+
+  "development": {
+    "repository": "https://github.com/berkhatira/unibos",
+    "documentation": "",
+    "maintainer": "berk@berkhatirli.com"
+  }
+}

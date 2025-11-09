@@ -1,0 +1,736 @@
+{% extends 'birlikteyiz/base_birlikteyiz.html' %}
+
+{% block title %}deprem haritası - birlikteyiz - unibos{% endblock %}
+
+{% block extra_css %}
+{{ block.super }}
+<!-- Leaflet CSS from CDN with integrity check -->
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+     integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
+     crossorigin=""/>
+<style>
+/* Override Leaflet styles for dark theme - Updated 2025-11-03 */
+.leaflet-popup-content-wrapper {
+    background: #1a1a1a;
+    color: var(--gray);
+    border: 1px solid var(--gray);
+    font-family: 'Courier New', monospace;
+    font-size: 12px;
+}
+
+.leaflet-popup-tip {
+    background: #1a1a1a;
+    border: 1px solid var(--gray);
+}
+
+.leaflet-container {
+    background: #0a0a0a;
+    max-width: 100%;
+    overflow: hidden;
+}
+
+/* Dark mode filter for map tiles */
+.map-tiles-dark {
+    filter: brightness(0.6) invert(1) contrast(3) hue-rotate(200deg) saturate(0.3) brightness(0.7);
+}
+
+.leaflet-control-zoom a {
+    background: #1a1a1a;
+    color: var(--gray);
+    border: 1px solid var(--gray);
+}
+
+.leaflet-control-zoom a:hover {
+    background: #2a2a2a;
+    color: var(--orange);
+}
+
+.leaflet-bar {
+    border: 1px solid var(--gray);
+}
+
+.leaflet-control-attribution {
+    background: rgba(26, 26, 26, 0.8);
+    color: var(--gray);
+    font-size: 10px;
+}
+
+.leaflet-control-attribution a {
+    color: var(--cyan);
+}
+
+/* Custom scale control styling */
+.leaflet-control-scale {
+    background: rgba(26, 26, 26, 0.9);
+    border: 1px solid var(--gray);
+    border-radius: 2px;
+    padding: 3px 5px;
+    font-family: 'Courier New', monospace;
+    font-size: 11px;
+    color: var(--gray);
+    box-shadow: 0 1px 3px rgba(0,0,0,0.4);
+}
+
+.leaflet-control-scale-line {
+    border: 2px solid var(--gray);
+    border-top: none;
+    background: rgba(10, 10, 10, 0.5);
+    color: var(--gray);
+    font-family: 'Courier New', monospace;
+    font-size: 11px;
+    line-height: 1.1;
+    padding: 2px 5px 1px;
+    white-space: nowrap;
+}
+
+/* Custom locate button */
+.leaflet-control-locate {
+    background: #1a1a1a;
+    border: 2px solid var(--gray);
+    border-radius: 4px;
+    width: 34px;
+    height: 34px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 1px 5px rgba(0,0,0,0.65);
+}
+
+.leaflet-control-locate:hover {
+    background: #2a2a2a;
+    border-color: var(--orange);
+}
+
+.leaflet-control-locate svg {
+    width: 20px;
+    height: 20px;
+    fill: var(--gray);
+}
+
+.leaflet-control-locate:hover svg {
+    fill: var(--orange);
+}
+
+/* Custom map style selector */
+.leaflet-control-mapstyle {
+    background: rgba(26, 26, 26, 0.95);
+    border: 1px solid var(--gray);
+    border-radius: 4px;
+    box-shadow: 0 1px 5px rgba(0,0,0,0.65);
+    padding: 5px;
+}
+
+.leaflet-control-mapstyle select {
+    background: #0a0a0a;
+    border: 1px solid var(--gray);
+    color: var(--gray);
+    padding: 5px 8px;
+    font-family: 'Courier New', monospace;
+    font-size: 11px;
+    cursor: pointer;
+    border-radius: 2px;
+}
+
+.leaflet-control-mapstyle select:hover {
+    border-color: var(--orange);
+}
+
+.leaflet-control-mapstyle select:focus {
+    outline: none;
+    border-color: var(--orange);
+}
+</style>
+{% endblock %}
+
+{% block birlikteyiz_content %}
+
+<!-- Map Container -->
+<div class="section" style="position: relative;">
+    <div id="earthquake-map" style="height: 600px; width: 100%; border: 2px solid var(--gray); border-radius: 4px; margin-bottom: 20px; position: relative;">
+        <!-- Legend inside map - bottom right -->
+        <div style="position: absolute; bottom: 30px; right: 10px; z-index: 1000; background: rgba(50, 50, 50, 0.95); padding: 8px 12px; border: 1px solid #555; border-radius: 4px; box-shadow: 0 2px 10px rgba(0,0,0,0.5);">
+            <div style="display: flex; gap: 12px; align-items: center;">
+                <div style="display: flex; gap: 4px; align-items: center;">
+                    <div style="width: 12px; height: 12px; border-radius: 50%; background: #808080; border: 1px solid #fff;"></div>
+                    <span style="color: #ccc; font-size: 10px;">< 3.0</span>
+                </div>
+                <div style="display: flex; gap: 4px; align-items: center;">
+                    <div style="width: 14px; height: 14px; border-radius: 50%; background: #ffff00; border: 1px solid #fff;"></div>
+                    <span style="color: #ccc; font-size: 10px;">3.0-3.9</span>
+                </div>
+                <div style="display: flex; gap: 4px; align-items: center;">
+                    <div style="width: 16px; height: 16px; border-radius: 50%; background: #ff8c00; border: 1px solid #fff;"></div>
+                    <span style="color: #ccc; font-size: 10px;">4.0-4.9</span>
+                </div>
+                <div style="display: flex; gap: 4px; align-items: center;">
+                    <div style="width: 18px; height: 18px; border-radius: 50%; background: #ff4444; border: 1px solid #fff;"></div>
+                    <span style="color: #ccc; font-size: 10px;">≥ 5.0</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Data Sources Status -->
+<div class="section" style="margin-bottom: 15px;">
+    <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; padding: 15px; background: rgba(255, 255, 255, 0.02); border-radius: 5px; border: 1px solid #333; gap: 20px;">
+        <!-- Filter on the left -->
+        <form method="get" style="display: flex; gap: 15px; align-items: center; flex-wrap: wrap;">
+            <div style="display: flex; gap: 8px; align-items: center;">
+                <label style="color: var(--gray); font-size: 12px;">zaman aralığı:</label>
+                <select name="days" style="background: #0a0a0a; border: 1px solid var(--gray); color: var(--gray); padding: 5px 10px; font-family: 'Courier New', monospace; font-size: 12px;">
+                    <option value="1" {% if filter_days == 1 %}selected{% endif %}>son 24 saat</option>
+                    <option value="3" {% if filter_days == 3 %}selected{% endif %}>son 3 gün</option>
+                    <option value="7" {% if filter_days == 7 %}selected{% endif %}>son 7 gün</option>
+                    <option value="14" {% if filter_days == 14 %}selected{% endif %}>son 14 gün</option>
+                    <option value="30" {% if filter_days == 30 %}selected{% endif %}>son 30 gün</option>
+                </select>
+            </div>
+
+            <div style="display: flex; gap: 8px; align-items: center;">
+                <label style="color: var(--gray); font-size: 12px;">minimum büyüklük:</label>
+                <select name="magnitude_min" style="background: #0a0a0a; border: 1px solid var(--gray); color: var(--gray); padding: 5px 10px; font-family: 'Courier New', monospace; font-size: 12px;">
+                    <option value="2.0" {% if filter_magnitude_min == 2.0 %}selected{% endif %}>2.0+</option>
+                    <option value="2.5" {% if filter_magnitude_min == 2.5 %}selected{% endif %}>2.5+</option>
+                    <option value="3.0" {% if filter_magnitude_min == 3.0 %}selected{% endif %}>3.0+</option>
+                    <option value="4.0" {% if filter_magnitude_min == 4.0 %}selected{% endif %}>4.0+</option>
+                    <option value="5.0" {% if filter_magnitude_min == 5.0 %}selected{% endif %}>5.0+</option>
+                </select>
+            </div>
+
+            <button type="submit" class="btn-primary">filtrele</button>
+        </form>
+
+        <!-- Badges in the middle - clickable filters -->
+        <div style="display: flex; gap: 20px; align-items: center; flex-wrap: wrap;">
+            {% for source in data_sources %}
+            <a href="?days={{ filter_days }}&magnitude_min={{ filter_magnitude_min }}&source={{ source.name }}"
+               style="display: flex; align-items: center; gap: 8px; padding: 5px 12px; background: {% if filter_source == source.name %}rgba(255, 140, 0, 0.3){% else %}rgba(255, 140, 0, 0.1){% endif %}; border: 1px solid var(--orange); border-radius: 15px; font-size: 11px; text-decoration: none; color: inherit; cursor: pointer; transition: all 0.2s; {% if filter_source == source.name %}box-shadow: 0 0 8px rgba(255, 140, 0, 0.4);{% endif %}"
+               onmouseover="this.style.background='rgba(255, 140, 0, 0.2)'; this.style.transform='translateY(-1px)';"
+               onmouseout="this.style.background='{% if filter_source == source.name %}rgba(255, 140, 0, 0.3){% else %}rgba(255, 140, 0, 0.1){% endif %}'; this.style.transform='translateY(0)';"
+               title="sadece {{ source.name|lower }} kaynaklı depremleri göster">
+                <span style="width: 8px; height: 8px; border-radius: 50%; background: {% if source.last_error %}var(--orange){% else %}#00ff00{% endif %};"></span>
+                <span>{{ source.name|lower }}</span>
+            </a>
+            {% endfor %}
+            {% if filter_source %}
+            <a href="?days={{ filter_days }}&magnitude_min={{ filter_magnitude_min }}"
+               style="display: flex; align-items: center; gap: 6px; padding: 5px 10px; background: rgba(255, 0, 0, 0.1); border: 1px solid #ff4444; border-radius: 15px; font-size: 11px; text-decoration: none; color: #ff4444; cursor: pointer; transition: all 0.2s;"
+               onmouseover="this.style.background='rgba(255, 0, 0, 0.2)';"
+               onmouseout="this.style.background='rgba(255, 0, 0, 0.1)';"
+               title="kaynak filtresini kaldır">
+                <span>✕</span>
+                <span>filtre temizle</span>
+            </a>
+            {% endif %}
+        </div>
+
+        <!-- Settings button on the right -->
+        <a href="{% url 'birlikteyiz:source_admin' %}" class="btn-secondary" style="padding: 6px 12px; font-size: 11px; text-decoration: none;">ayarlar</a>
+    </div>
+</div>
+
+<!-- Earthquake List -->
+<div class="section" style="margin-top: 40px;">
+    <h3 style="color: var(--orange); margin-bottom: 20px; border-bottom: 2px solid var(--orange); padding-bottom: 10px;">📋 son depremler</h3>
+
+    <table style="width: 100%; border-collapse: collapse; background: rgba(255, 255, 255, 0.02); border: 1px solid #222;">
+        <thead>
+            <tr style="background: rgba(255, 140, 0, 0.15); border-bottom: 2px solid var(--orange);">
+                <th style="padding: 14px; text-align: left; color: var(--orange); font-size: 12px; font-weight: bold;">zaman</th>
+                <th style="padding: 14px; text-align: left; color: var(--orange); font-size: 12px; font-weight: bold;">büyüklük</th>
+                <th style="padding: 14px; text-align: left; color: var(--orange); font-size: 12px; font-weight: bold;">derinlik</th>
+                <th style="padding: 14px; text-align: left; color: var(--orange); font-size: 12px; font-weight: bold;">lokasyon</th>
+                <th style="padding: 14px; text-align: left; color: var(--orange); font-size: 12px; font-weight: bold;">kaynak</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for eq in page_obj %}
+            <tr style="border-bottom: 1px solid rgba(255, 255, 255, 0.08); background: rgba(0, 0, 0, 0.2);" onmouseover="this.style.background='rgba(255, 140, 0, 0.1)'" onmouseout="this.style.background='rgba(0, 0, 0, 0.2)'">
+                <td style="padding: 12px 14px; font-size: 13px; color: #ccc;">
+                    <div style="font-weight: 500;">{{ eq.occurred_at|date:"d.m.Y H:i" }}</div>
+                    <div style="font-size: 11px; color: #888;">{{ eq.occurred_at|timesince }} önce</div>
+                </td>
+                <td style="padding: 12px 14px;">
+                    <span style="font-weight: bold; font-size: 15px; color: {% if eq.magnitude < 3 %}#00ff00{% elif eq.magnitude < 4 %}#ffff00{% elif eq.magnitude < 5 %}var(--orange){% else %}#ff4444{% endif %};">
+                        {{ eq.magnitude }}
+                    </span>
+                </td>
+                <td style="padding: 12px 14px; color: {% if eq.depth < 10 %}var(--cyan){% elif eq.depth < 70 %}#aaa{% else %}#888{% endif %}; font-size: 13px;">
+                    {{ eq.depth }} km
+                </td>
+                <td style="padding: 12px 14px; font-size: 13px; color: #ccc; max-width: 400px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="{{ eq.location }}">
+                    {{ eq.location }}
+                    {% if eq.city %}
+                        <div style="font-size: 11px; color: #888;">{{ eq.city }}</div>
+                    {% endif %}
+                </td>
+                <td style="padding: 12px 14px;">
+                    <span style="display: inline-block; padding: 3px 10px; background: rgba(0, 255, 255, 0.12); border: 1px solid var(--cyan); border-radius: 10px; font-size: 10px; color: var(--cyan);">
+                        {{ eq.source|lower }}
+                    </span>
+                </td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="5" style="text-align: center; padding: 40px; color: var(--gray); background: rgba(0, 0, 0, 0.2);">
+                    deprem bulunamadı
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <!-- Pagination -->
+    {% if page_obj.has_other_pages %}
+    <div style="display: flex; justify-content: center; gap: 10px; margin-top: 30px; padding-top: 20px; border-top: 1px solid #333;">
+        {% if page_obj.has_previous %}
+            <a href="?page=1&days={{ filter_days }}&magnitude_min={{ filter_magnitude_min }}{% if filter_source %}&source={{ filter_source }}{% endif %}" style="padding: 5px 12px; background: rgba(255, 255, 255, 0.05); border: 1px solid #333; color: var(--gray); text-decoration: none; border-radius: 3px;">«</a>
+            <a href="?page={{ page_obj.previous_page_number }}&days={{ filter_days }}&magnitude_min={{ filter_magnitude_min }}{% if filter_source %}&source={{ filter_source }}{% endif %}" style="padding: 5px 12px; background: rgba(255, 255, 255, 0.05); border: 1px solid #333; color: var(--gray); text-decoration: none; border-radius: 3px;">‹</a>
+        {% endif %}
+
+        <span style="padding: 5px 12px; background: var(--orange); color: #0a0a0a; font-weight: bold; border-radius: 3px;">
+            {{ page_obj.number }} / {{ page_obj.paginator.num_pages }}
+        </span>
+
+        {% if page_obj.has_next %}
+            <a href="?page={{ page_obj.next_page_number }}&days={{ filter_days }}&magnitude_min={{ filter_magnitude_min }}{% if filter_source %}&source={{ filter_source }}{% endif %}" style="padding: 5px 12px; background: rgba(255, 255, 255, 0.05); border: 1px solid #333; color: var(--gray); text-decoration: none; border-radius: 3px;">›</a>
+            <a href="?page={{ page_obj.paginator.num_pages }}&days={{ filter_days }}&magnitude_min={{ filter_magnitude_min }}{% if filter_source %}&source={{ filter_source }}{% endif %}" style="padding: 5px 12px; background: rgba(255, 255, 255, 0.05); border: 1px solid #333; color: var(--gray); text-decoration: none; border-radius: 3px;">»</a>
+        {% endif %}
+    </div>
+    {% endif %}
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+{{ block.super }}
+<!-- Leaflet JS from CDN with integrity check -->
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+     integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
+     crossorigin=""></script>
+<script>
+// Global variables
+let earthquakeMap = null;
+let currentTileLayer = null;
+let earthquakeMarkers = [];
+
+// Tile layer definitions
+const tileLayers = {
+    osmStandard: {
+        url: 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
+        options: {
+            attribution: '&copy; OpenStreetMap contributors',
+            maxZoom: 19,
+            className: ''
+        }
+    },
+    osmDark: {
+        url: 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
+        options: {
+            attribution: '&copy; OpenStreetMap contributors',
+            maxZoom: 19,
+            className: 'map-tiles-dark'
+        }
+    },
+    cartoDark: {
+        url: 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png',
+        options: {
+            attribution: '&copy; OpenStreetMap contributors &copy; CARTO',
+            subdomains: 'abcd',
+            maxZoom: 20,
+            className: ''
+        }
+    },
+    cartoLight: {
+        url: 'https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png',
+        options: {
+            attribution: '&copy; OpenStreetMap contributors &copy; CARTO',
+            subdomains: 'abcd',
+            maxZoom: 20,
+            className: ''
+        }
+    }
+};
+
+// Switch tile layer
+function switchTileLayer(layerName) {
+    console.log('Switching to tile layer:', layerName);
+
+    if (!earthquakeMap) {
+        console.error('Map not initialized');
+        return;
+    }
+
+    // Remove current tile layer
+    if (currentTileLayer) {
+        earthquakeMap.removeLayer(currentTileLayer);
+    }
+
+    // Add new tile layer
+    const layer = tileLayers[layerName];
+    currentTileLayer = L.tileLayer(layer.url, layer.options).addTo(earthquakeMap);
+
+    // Save preference
+    localStorage.setItem('earthquakeMapStyle', layerName);
+}
+
+// Initialize map with retry mechanism
+function initializeEarthquakeMap() {
+    console.log('Starting map initialization...');
+
+    // Check if map container exists
+    const mapContainer = document.getElementById('earthquake-map');
+    if (!mapContainer) {
+        console.error('Map container #earthquake-map not found in DOM!');
+        return false;
+    }
+    console.log('Map container found:', mapContainer);
+
+    // Earthquake data from Django
+    const earthquakes = {{ earthquake_data_json|safe }};
+    console.log('Loaded earthquakes:', earthquakes.length);
+
+    // Check if Leaflet is loaded
+    if (typeof L === 'undefined') {
+        console.error('Leaflet library not loaded!');
+        return false;
+    }
+    console.log('Leaflet library loaded successfully');
+
+    // Initialize map centered on Turkey
+    try {
+        // Force container to have dimensions
+        mapContainer.style.height = '600px';
+        mapContainer.style.width = '100%';
+
+        // Check if this is the very first visit ever (only once per browser)
+        const isVeryFirstVisit = !localStorage.getItem('earthquakeMapEverInitialized');
+
+        // Get saved map position or use defaults
+        let initialCenter = JSON.parse(localStorage.getItem('earthquakeMapCenter') || 'null');
+        let initialZoom = parseInt(localStorage.getItem('earthquakeMapZoom') || '6');
+
+        // If no saved position, default to Turkey
+        if (!initialCenter) {
+            initialCenter = [39.0, 35.0];
+            initialZoom = 6;
+        }
+
+        earthquakeMap = L.map('earthquake-map', {
+            preferCanvas: true,
+            zoomControl: true,
+            attributionControl: true
+        }).setView(initialCenter, initialZoom);
+
+        console.log('Map initialized at', initialCenter, 'zoom:', initialZoom);
+        console.log('Very first visit:', isVeryFirstVisit);
+
+        // Debounce timer for saving position
+        let savePositionTimer = null;
+        let isUserInteraction = false;
+
+        // Save map position when user moves/zooms (debounced to prevent rapid updates)
+        function saveMapPosition() {
+            clearTimeout(savePositionTimer);
+            savePositionTimer = setTimeout(function() {
+                if (isUserInteraction) {
+                    const center = earthquakeMap.getCenter();
+                    const zoom = earthquakeMap.getZoom();
+                    localStorage.setItem('earthquakeMapCenter', JSON.stringify([center.lat, center.lng]));
+                    localStorage.setItem('earthquakeMapZoom', zoom.toString());
+                    console.log('Map position saved:', center, 'zoom:', zoom);
+                }
+            }, 500); // Wait 500ms after last move/zoom before saving
+        }
+
+        // Track user interaction
+        earthquakeMap.on('movestart', function() {
+            isUserInteraction = true;
+        });
+
+        earthquakeMap.on('moveend', saveMapPosition);
+        earthquakeMap.on('zoomend', saveMapPosition);
+
+        // ONLY on the very first visit ever, try to locate user
+        if (isVeryFirstVisit) {
+            console.log('Very first visit - attempting geolocation...');
+
+            // Mark as initialized permanently
+            localStorage.setItem('earthquakeMapEverInitialized', 'true');
+
+            // Disable user interaction flag during initial geolocation
+            isUserInteraction = false;
+
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition(
+                    function(position) {
+                        const userLat = position.coords.latitude;
+                        const userLon = position.coords.longitude;
+                        console.log('User location obtained:', userLat, userLon);
+
+                        // Temporarily disable saving during animation
+                        const tempFlag = isUserInteraction;
+                        isUserInteraction = false;
+
+                        // Fly to user's location with animation
+                        earthquakeMap.once('moveend', function() {
+                            // Save the position
+                            localStorage.setItem('earthquakeMapCenter', JSON.stringify([userLat, userLon]));
+                            localStorage.setItem('earthquakeMapZoom', '7');
+                            console.log('Initial position saved');
+                            // Restore flag
+                            isUserInteraction = tempFlag;
+                        });
+
+                        earthquakeMap.flyTo([userLat, userLon], 7, {
+                            duration: 2
+                        });
+                    },
+                    function(error) {
+                        console.log('Geolocation failed:', error.message);
+                        // Save default location
+                        localStorage.setItem('earthquakeMapCenter', JSON.stringify([39.0, 35.0]));
+                        localStorage.setItem('earthquakeMapZoom', '6');
+                    },
+                    {
+                        timeout: 5000,
+                        maximumAge: 0
+                    }
+                );
+            } else {
+                // No geolocation support, save defaults
+                localStorage.setItem('earthquakeMapCenter', JSON.stringify([39.0, 35.0]));
+                localStorage.setItem('earthquakeMapZoom', '6');
+            }
+        }
+
+        // Force map to invalidate size after creation
+        setTimeout(function() {
+            earthquakeMap.invalidateSize();
+        }, 100);
+
+    // Get saved preference or use default
+    const savedStyle = localStorage.getItem('earthquakeMapStyle') || 'osmDark';
+    const layer = tileLayers[savedStyle];
+    currentTileLayer = L.tileLayer(layer.url, layer.options).addTo(earthquakeMap);
+
+    // Set initial button state
+    switchTileLayer(savedStyle);
+
+    console.log('Tile layer added');
+
+    // Function to get marker color and size based on magnitude
+    function getMarkerStyle(magnitude) {
+    let color, radius;
+
+    if (magnitude >= 5.0) {
+        color = '#ff4444';
+        radius = 10;
+    } else if (magnitude >= 4.0) {
+        color = '#ff8c00';  // orange
+        radius = 8;
+    } else if (magnitude >= 3.0) {
+        color = '#ffff00';  // yellow
+        radius = 6;
+    } else {
+        color = '#808080';  // gray
+        radius = 4;
+    }
+
+        return { color, radius };
+    }
+
+    // Add earthquake markers
+    earthquakes.forEach(eq => {
+    const style = getMarkerStyle(eq.magnitude);
+
+    const marker = L.circleMarker([eq.lat, eq.lon], {
+        radius: style.radius,
+        fillColor: style.color,
+        color: '#ffffff',
+        weight: 2,
+        opacity: 1,
+        fillOpacity: 0.7
+    }).addTo(earthquakeMap);
+
+    earthquakeMarkers.push(marker);
+
+    // Popup content
+    const popupContent = `
+        <div style="padding: 5px;">
+            <div style="font-weight: bold; font-size: 14px; color: ${style.color}; margin-bottom: 5px;">
+                M${eq.magnitude}
+            </div>
+            <div style="margin-bottom: 3px;">
+                <strong>lokasyon:</strong> ${eq.location}
+            </div>
+            ${eq.city ? `<div style="margin-bottom: 3px;"><strong>şehir:</strong> ${eq.city}</div>` : ''}
+            <div style="margin-bottom: 3px;">
+                <strong>derinlik:</strong> ${eq.depth} km
+            </div>
+            <div style="margin-bottom: 3px;">
+                <strong>zaman:</strong> ${eq.occurred_at}
+            </div>
+            <div style="margin-bottom: 3px;">
+                <strong>kaynak:</strong> ${eq.source}
+            </div>
+            <div style="font-size: 10px; color: var(--gray); margin-top: 5px;">
+                ${eq.time_ago}
+            </div>
+        </div>
+    `;
+
+    marker.bindPopup(popupContent);
+
+    // Hover effect
+    marker.on('mouseover', function(e) {
+        this.setStyle({
+            fillOpacity: 1,
+            weight: 3
+        });
+    });
+
+    marker.on('mouseout', function(e) {
+        this.setStyle({
+            fillOpacity: 0.7,
+            weight: 2
+        });
+        });
+    });
+
+    console.log('Added', earthquakes.length, 'markers to map');
+
+    // Add scale control
+    L.control.scale({
+        imperial: false,
+        metric: true,
+        maxWidth: 200,
+        position: 'bottomleft'
+    }).addTo(earthquakeMap);
+
+    // Add custom locate control
+    const LocateControl = L.Control.extend({
+        options: {
+            position: 'topleft'
+        },
+        onAdd: function(map) {
+            const container = L.DomUtil.create('div', 'leaflet-bar leaflet-control leaflet-control-locate');
+            container.innerHTML = '<svg viewBox="0 0 24 24"><path d="M12 8c-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4-1.79-4-4-4zm8.94 3c-.46-4.17-3.77-7.48-7.94-7.94V1h-2v2.06C6.83 3.52 3.52 6.83 3.06 11H1v2h2.06c.46 4.17 3.77 7.48 7.94 7.94V23h2v-2.06c4.17-.46 7.48-3.77 7.94-7.94H23v-2h-2.06zM12 19c-3.87 0-7-3.13-7-7s3.13-7 7-7 7 3.13 7 7-3.13 7-7 7z"/></svg>';
+
+            container.onclick = function() {
+                if (navigator.geolocation) {
+                    container.style.borderColor = 'var(--orange)';
+                    navigator.geolocation.getCurrentPosition(
+                        function(position) {
+                            const lat = position.coords.latitude;
+                            const lon = position.coords.longitude;
+                            map.setView([lat, lon], 7);
+
+                            // Add temporary marker for user location
+                            L.circleMarker([lat, lon], {
+                                radius: 8,
+                                fillColor: '#00d4ff',
+                                color: '#ffffff',
+                                weight: 2,
+                                opacity: 1,
+                                fillOpacity: 0.8
+                            }).addTo(map);
+
+                            container.style.borderColor = 'var(--gray)';
+                        },
+                        function(error) {
+                            console.error('Konum alınamadı:', error);
+                            alert('konum bilgisi alınamadı. lütfen tarayıcınızın konum iznini kontrol edin.');
+                            container.style.borderColor = 'var(--gray)';
+                        }
+                    );
+                } else {
+                    alert('tarayıcınız konum servislerini desteklemiyor.');
+                }
+            };
+
+            return container;
+        }
+    });
+
+    earthquakeMap.addControl(new LocateControl());
+
+    // Add custom map style selector control
+    const MapStyleControl = L.Control.extend({
+        options: {
+            position: 'topright'
+        },
+        onAdd: function(map) {
+            const container = L.DomUtil.create('div', 'leaflet-control leaflet-control-mapstyle');
+            container.innerHTML = `
+                <select id="mapStyleSelect">
+                    <option value="osmDark">dark mode</option>
+                    <option value="osmStandard">openstreetmap</option>
+                    <option value="cartoDark">carto dark</option>
+                    <option value="cartoLight">carto light</option>
+                </select>
+            `;
+
+            // Prevent map interactions when using the dropdown
+            L.DomEvent.disableClickPropagation(container);
+            L.DomEvent.disableScrollPropagation(container);
+
+            return container;
+        }
+    });
+
+    earthquakeMap.addControl(new MapStyleControl());
+
+    // Setup dropdown change event
+    const mapStyleSelect = document.getElementById('mapStyleSelect');
+    mapStyleSelect.value = savedStyle;
+    mapStyleSelect.addEventListener('change', function() {
+        switchTileLayer(this.value);
+    });
+
+    // Auto-fit bounds if there are earthquakes
+    if (earthquakes.length > 0) {
+        const bounds = L.latLngBounds(earthquakes.map(eq => [eq.lat, eq.lon]));
+        earthquakeMap.fitBounds(bounds, { padding: [50, 50] });
+        console.log('Map bounds fitted to earthquake locations');
+    }
+
+        console.log('Earthquake map initialization complete');
+        return true;
+    } catch (error) {
+        console.error('Error initializing map:', error);
+        return false;
+    }
+}
+
+// Try to initialize when everything is loaded
+window.addEventListener('load', function() {
+    console.log('Window loaded, initializing earthquake map...');
+
+    // Try immediately
+    let success = initializeEarthquakeMap();
+
+    // If failed, retry with delays
+    if (!success) {
+        console.log('First attempt failed, retrying in 500ms...');
+        setTimeout(function() {
+            success = initializeEarthquakeMap();
+            if (!success) {
+                console.log('Second attempt failed, retrying in 1000ms...');
+                setTimeout(function() {
+                    initializeEarthquakeMap();
+                }, 1000);
+            }
+        }, 500);
+    }
+});
+
+// Also try on DOMContentLoaded as backup
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('DOM ready, will try map initialization on window load...');
+});
+</script>
+
+{% endblock %}

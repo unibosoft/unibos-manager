@@ -1,0 +1,149 @@
+{
+  "id": "restopos",
+  "name": "RestoPOS",
+  "display_name": {
+    "tr": "Restoran POS Sistemi",
+    "en": "Restaurant POS System"
+  },
+  "version": "1.0.0",
+  "description": "Professional restaurant Point of Sale system with table management, order tracking, inventory integration, and financial reporting.",
+  "icon": "🍽️",
+  "author": "Berk Hatırlı",
+
+  "capabilities": {
+    "backend": true,
+    "web": true,
+    "mobile": false,
+    "cli": false,
+    "realtime": true
+  },
+
+  "dependencies": {
+    "core_modules": ["authentication", "users", "wimm", "wims"],
+    "python_packages": [
+      "djangorestframework",
+      "celery",
+      "redis",
+      "channels"
+    ],
+    "system_requirements": ["redis", "postgresql", "channels"]
+  },
+
+  "database": {
+    "uses_shared_db": true,
+    "tables_prefix": "restopos_",
+    "models": [
+      "Restaurant",
+      "MenuCategory",
+      "MenuItem",
+      "Table",
+      "Order",
+      "OrderItem",
+      "Receipt",
+      "Reservation",
+      "Staff"
+    ]
+  },
+
+  "api": {
+    "base_path": "/api/v1/restopos/",
+    "endpoints": [
+      {"path": "restaurants/", "methods": ["GET", "POST"], "auth_required": true, "description": "Restaurant management"},
+      {"path": "restaurants/{id}/", "methods": ["GET", "PUT", "DELETE"], "auth_required": true, "description": "Restaurant details"},
+      {"path": "menu/categories/", "methods": ["GET", "POST"], "auth_required": true, "description": "Menu categories"},
+      {"path": "menu/items/", "methods": ["GET", "POST"], "auth_required": true, "description": "Menu items"},
+      {"path": "menu/items/{id}/", "methods": ["GET", "PUT", "DELETE"], "auth_required": true, "description": "Menu item details"},
+      {"path": "tables/", "methods": ["GET", "POST"], "auth_required": true, "description": "Table management"},
+      {"path": "tables/{id}/", "methods": ["GET", "PUT", "DELETE"], "auth_required": true, "description": "Table details"},
+      {"path": "tables/{id}/status/", "methods": ["PUT"], "auth_required": true, "description": "Update table status"},
+      {"path": "orders/", "methods": ["GET", "POST"], "auth_required": true, "description": "Order management"},
+      {"path": "orders/{id}/", "methods": ["GET", "PUT", "DELETE"], "auth_required": true, "description": "Order details"},
+      {"path": "orders/{id}/items/", "methods": ["POST", "PUT", "DELETE"], "auth_required": true, "description": "Order items"},
+      {"path": "orders/{id}/submit/", "methods": ["POST"], "auth_required": true, "description": "Submit order to kitchen"},
+      {"path": "orders/{id}/complete/", "methods": ["POST"], "auth_required": true, "description": "Complete order"},
+      {"path": "orders/{id}/cancel/", "methods": ["POST"], "auth_required": true, "description": "Cancel order"},
+      {"path": "receipts/", "methods": ["GET"], "auth_required": true, "description": "Receipt history"},
+      {"path": "receipts/{id}/", "methods": ["GET"], "auth_required": true, "description": "Receipt details"},
+      {"path": "receipts/{id}/print/", "methods": ["POST"], "auth_required": true, "description": "Print receipt"},
+      {"path": "reservations/", "methods": ["GET", "POST"], "auth_required": true, "description": "Reservation management"},
+      {"path": "reservations/{id}/", "methods": ["GET", "PUT", "DELETE"], "auth_required": true, "description": "Reservation details"},
+      {"path": "staff/", "methods": ["GET", "POST"], "auth_required": true, "description": "Staff management"},
+      {"path": "reports/sales/", "methods": ["GET"], "auth_required": true, "description": "Sales reports"},
+      {"path": "reports/inventory/", "methods": ["GET"], "auth_required": true, "description": "Inventory reports"}
+    ]
+  },
+
+  "permissions": [
+    "restopos.view_restaurant",
+    "restopos.add_restaurant",
+    "restopos.change_restaurant",
+    "restopos.view_menuitem",
+    "restopos.add_menuitem",
+    "restopos.change_menuitem",
+    "restopos.view_order",
+    "restopos.add_order",
+    "restopos.change_order",
+    "restopos.delete_order",
+    "restopos.view_receipt",
+    "restopos.view_reservation",
+    "restopos.add_reservation",
+    "restopos.change_reservation"
+  ],
+
+  "celery_tasks": [
+    "process_daily_sales",
+    "update_inventory_levels",
+    "send_reservation_reminders",
+    "generate_sales_reports",
+    "sync_with_wimm",
+    "sync_with_wims"
+  ],
+
+  "channels": {
+    "websocket_routes": [
+      "ws/restopos/orders/",
+      "ws/restopos/kitchen/",
+      "ws/restopos/tables/"
+    ]
+  },
+
+  "features": [
+    "Multi-restaurant/branch management",
+    "Dynamic menu management",
+    "Table layout and management",
+    "Order creation and tracking",
+    "Kitchen display system (KDS)",
+    "Receipt generation and printing",
+    "Reservation system",
+    "Staff management",
+    "Split bill support",
+    "Tax and service charge calculation",
+    "Multiple payment methods",
+    "Daily sales reports",
+    "WIMM integration (financial tracking)",
+    "WIMS integration (inventory management)",
+    "Real-time order updates",
+    "Table status tracking",
+    "Custom menu categories",
+    "Item modifiers and options"
+  ],
+
+  "integration": {
+    "sidebar": {
+      "enabled": true,
+      "position": 14,
+      "category": "business"
+    },
+    "dashboard_widgets": [
+      {"id": "active_orders", "title": "Active Orders", "size": "large"},
+      {"id": "table_status", "title": "Table Status", "size": "medium"},
+      {"id": "daily_sales", "title": "Today's Sales", "size": "small"}
+    ]
+  },
+
+  "development": {
+    "repository": "https://github.com/berkhatira/unibos",
+    "documentation": "",
+    "maintainer": "berk@berkhatirli.com"
+  }
+}

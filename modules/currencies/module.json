@@ -1,0 +1,350 @@
+{
+  "id": "currencies",
+  "name": "Currencies",
+  "display_name": {
+    "tr": "Döviz ve Portföy",
+    "en": "Currencies & Portfolio"
+  },
+  "version": "1.0.0",
+  "description": "Comprehensive currency tracking, portfolio management, and cryptocurrency analytics with real-time rates",
+  "icon": "💱",
+  "author": "Berk Hatırlı",
+
+  "capabilities": {
+    "backend": true,
+    "web": true,
+    "mobile": true,
+    "cli": false,
+    "realtime": true
+  },
+
+  "dependencies": {
+    "core_modules": ["authentication", "users"],
+    "python_packages": [
+      "djangorestframework",
+      "celery",
+      "redis",
+      "channels",
+      "requests",
+      "numpy",
+      "openpyxl"
+    ],
+    "system_requirements": ["redis", "postgresql", "celery", "channels"]
+  },
+
+  "database": {
+    "uses_shared_db": true,
+    "tables_prefix": "currencies_",
+    "models": [
+      "Currency",
+      "ExchangeRate",
+      "CurrencyAlert",
+      "Portfolio",
+      "PortfolioHolding",
+      "PortfolioTransaction",
+      "PortfolioPerformance",
+      "Transaction",
+      "MarketData",
+      "CryptoExchangeRate",
+      "BankExchangeRate",
+      "BankRateImportLog"
+    ]
+  },
+
+  "api": {
+    "base_path": "/api/v1/currencies/",
+    "endpoints": [
+      {
+        "path": "currencies/",
+        "methods": ["GET", "POST"],
+        "public": false,
+        "auth_required": true,
+        "description": "Currency CRUD operations"
+      },
+      {
+        "path": "currencies/rates/",
+        "methods": ["GET"],
+        "public": true,
+        "auth_required": false,
+        "description": "Get current exchange rates"
+      },
+      {
+        "path": "currencies/convert/",
+        "methods": ["POST"],
+        "public": false,
+        "auth_required": true,
+        "description": "Convert between currencies"
+      },
+      {
+        "path": "currencies/update-rates/",
+        "methods": ["POST"],
+        "public": false,
+        "auth_required": true,
+        "admin_only": true,
+        "description": "Update exchange rates from external APIs"
+      },
+      {
+        "path": "currencies/{id}/history/",
+        "methods": ["GET"],
+        "public": false,
+        "auth_required": true,
+        "description": "Get historical rates for a currency"
+      },
+      {
+        "path": "portfolio/",
+        "methods": ["GET"],
+        "public": false,
+        "auth_required": true,
+        "description": "Get user's portfolio"
+      },
+      {
+        "path": "portfolio/add-asset/",
+        "methods": ["POST"],
+        "public": false,
+        "auth_required": true,
+        "description": "Add asset to portfolio"
+      },
+      {
+        "path": "portfolio/remove-asset/",
+        "methods": ["POST"],
+        "public": false,
+        "auth_required": true,
+        "description": "Remove asset from portfolio"
+      },
+      {
+        "path": "portfolio/stats/",
+        "methods": ["GET"],
+        "public": false,
+        "auth_required": true,
+        "description": "Get comprehensive portfolio statistics"
+      },
+      {
+        "path": "portfolio/history/",
+        "methods": ["GET"],
+        "public": false,
+        "auth_required": true,
+        "description": "Get historical portfolio performance"
+      },
+      {
+        "path": "portfolios/{id}/performance/",
+        "methods": ["GET"],
+        "public": false,
+        "auth_required": true,
+        "description": "Get portfolio performance analytics"
+      },
+      {
+        "path": "portfolios/{id}/transactions/",
+        "methods": ["GET"],
+        "public": false,
+        "auth_required": true,
+        "description": "Get portfolio transactions with filtering"
+      },
+      {
+        "path": "alerts/",
+        "methods": ["GET", "POST"],
+        "public": false,
+        "auth_required": true,
+        "description": "Price alert management"
+      },
+      {
+        "path": "alerts/check/",
+        "methods": ["POST"],
+        "public": false,
+        "auth_required": true,
+        "admin_only": true,
+        "description": "Check and trigger alerts"
+      },
+      {
+        "path": "market-data/",
+        "methods": ["GET"],
+        "public": false,
+        "auth_required": true,
+        "description": "Historical market data"
+      },
+      {
+        "path": "market-data/chart/",
+        "methods": ["GET"],
+        "public": false,
+        "auth_required": true,
+        "description": "Get formatted chart data"
+      },
+      {
+        "path": "bank-rates/",
+        "methods": ["GET"],
+        "public": false,
+        "auth_required": true,
+        "description": "Bank exchange rates"
+      },
+      {
+        "path": "bank-rates/latest/",
+        "methods": ["GET"],
+        "public": true,
+        "auth_required": false,
+        "description": "Get latest bank rates"
+      },
+      {
+        "path": "bank-rates/compare/",
+        "methods": ["GET"],
+        "public": false,
+        "auth_required": true,
+        "description": "Compare rates between banks"
+      },
+      {
+        "path": "bank-rates/history/",
+        "methods": ["GET"],
+        "public": false,
+        "auth_required": true,
+        "description": "Get historical bank rates"
+      },
+      {
+        "path": "bank-rates/export/",
+        "methods": ["POST"],
+        "public": false,
+        "auth_required": true,
+        "description": "Export bank rates to CSV/Excel"
+      },
+      {
+        "path": "bank-rates/banks/",
+        "methods": ["GET"],
+        "public": true,
+        "auth_required": false,
+        "description": "Get list of available banks"
+      },
+      {
+        "path": "bank-rates/best-rates/",
+        "methods": ["GET"],
+        "public": true,
+        "auth_required": false,
+        "description": "Get best buy/sell rates"
+      },
+      {
+        "path": "chart-data/ohlc/{pair}/{timeframe}/",
+        "methods": ["GET"],
+        "public": false,
+        "auth_required": true,
+        "description": "Get OHLC candlestick chart data"
+      },
+      {
+        "path": "chart-data/line/{pair}/{timeframe}/",
+        "methods": ["GET"],
+        "public": false,
+        "auth_required": true,
+        "description": "Get line chart data"
+      },
+      {
+        "path": "chart-data/comparison/{pair}/",
+        "methods": ["GET"],
+        "public": false,
+        "auth_required": true,
+        "description": "Compare rates across banks"
+      },
+      {
+        "path": "chart-data/indicators/{pair}/",
+        "methods": ["GET"],
+        "public": false,
+        "auth_required": true,
+        "description": "Technical indicators (SMA, EMA, RSI)"
+      }
+    ]
+  },
+
+  "permissions": [
+    "currencies.view_currency",
+    "currencies.add_currency",
+    "currencies.change_currency",
+    "currencies.view_portfolio",
+    "currencies.add_portfolio",
+    "currencies.change_portfolio",
+    "currencies.view_exchangerate",
+    "currencies.add_exchangerate",
+    "currencies.view_currencyalert",
+    "currencies.add_currencyalert",
+    "currencies.change_currencyalert",
+    "currencies.delete_currencyalert"
+  ],
+
+  "celery_tasks": [
+    "update_exchange_rates",
+    "check_currency_alerts",
+    "update_portfolio_performance",
+    "fetch_crypto_prices",
+    "import_bank_rates",
+    "cleanup_old_rates",
+    "calculate_technical_indicators"
+  ],
+
+  "channels": {
+    "websocket_routes": [
+      "ws/currencies/rates/",
+      "ws/currencies/alerts/",
+      "ws/currencies/portfolio/"
+    ]
+  },
+
+  "features": [
+    "Real-time currency exchange rates",
+    "Cryptocurrency price tracking (BTC, ETH, AVAX)",
+    "Personal portfolio management",
+    "Transaction tracking with P&L calculation",
+    "Historical performance analytics",
+    "Price alerts and notifications",
+    "Bank exchange rate comparison",
+    "Technical indicators (SMA, EMA, RSI)",
+    "OHLC candlestick charts",
+    "Multi-currency conversion",
+    "CSV/Excel export",
+    "WebSocket real-time updates"
+  ],
+
+  "integration": {
+    "sidebar": {
+      "enabled": true,
+      "position": 5,
+      "category": "finance"
+    },
+    "dashboard_widgets": [
+      {
+        "id": "portfolio_summary",
+        "title": "Portfolio Summary",
+        "size": "large"
+      },
+      {
+        "id": "currency_rates",
+        "title": "Current Rates",
+        "size": "medium"
+      },
+      {
+        "id": "price_alerts",
+        "title": "Price Alerts",
+        "size": "small"
+      }
+    ]
+  },
+
+  "external_apis": {
+    "tcmb": {
+      "name": "T.C. Merkez Bankası",
+      "url": "https://www.tcmb.gov.tr",
+      "rate_limit": "30 minutes",
+      "description": "Official Turkish Central Bank rates"
+    },
+    "coingecko": {
+      "name": "CoinGecko",
+      "url": "https://www.coingecko.com/api",
+      "rate_limit": "100 requests/minute",
+      "description": "Cryptocurrency prices and market data"
+    },
+    "binance": {
+      "name": "Binance",
+      "url": "https://api.binance.com",
+      "rate_limit": "1200 requests/minute",
+      "description": "Cryptocurrency exchange rates"
+    }
+  },
+
+  "development": {
+    "repository": "https://github.com/berkhatira/unibos",
+    "documentation": "",
+    "maintainer": "berk@berkhatirli.com"
+  }
+}

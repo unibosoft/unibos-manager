@@ -35,47 +35,47 @@ urlpatterns = [
     path(f'{API_V1_PREFIX}', include('apps.core.urls')),  # Core auth/profile
     path(f'{API_V1_PREFIX}auth/', include('apps.authentication.urls')),
     path(f'{API_V1_PREFIX}users/', include('apps.users.urls')),
-    path(f'{API_V1_PREFIX}currencies/', include('apps.currencies.urls')),
-    # path(f'{API_V1_PREFIX}inflation/', include('apps.personal_inflation.urls')),
+    path(f'{API_V1_PREFIX}currencies/', include('modules.currencies.backend.urls')),
+    # path(f'{API_V1_PREFIX}inflation/', include('modules.personal_inflation.backend.urls')),
     # API URLs don't need namespace since they're already defined in main URLs
-    # path(f'{API_V1_PREFIX}recaria/', include('apps.recaria.urls')),
-    # path(f'{API_V1_PREFIX}birlikteyiz/', include('apps.birlikteyiz.urls')),
-    path(f'{API_V1_PREFIX}wimm/', include('apps.wimm.urls')),
-    path(f'{API_V1_PREFIX}wims/', include('apps.wims.urls')),
-    path(f'{API_V1_PREFIX}cctv/', include('apps.cctv.urls', namespace='cctv-api')),
-    
+    # path(f'{API_V1_PREFIX}recaria/', include('modules.recaria.backend.urls')),
+    # path(f'{API_V1_PREFIX}birlikteyiz/', include('modules.birlikteyiz.backend.urls')),
+    path(f'{API_V1_PREFIX}wimm/', include('modules.wimm.backend.urls')),
+    path(f'{API_V1_PREFIX}wims/', include('modules.wims.backend.urls')),
+    path(f'{API_V1_PREFIX}cctv/', include('modules.cctv.backend.urls', namespace='cctv-api')),
+
     # CCTV Module (separate from API for web interface)
-    path('cctv/', include('apps.cctv.urls', namespace='cctv')),
+    path('cctv/', include('modules.cctv.backend.urls', namespace='cctv')),
 
     # Documents Module (Recaria OCR & Document Management)
-    path('documents/', include('apps.documents.urls', namespace='documents')),
+    path('documents/', include('modules.documents.backend.urls', namespace='documents')),
 
     # Store Module - Marketplace Integration & Order Management
     path('store/', include('store.urls', namespace='store')),
-    
+
     # Version Manager Module
-    path('version-manager/', include('apps.version_manager.urls', namespace='version_manager')),
-    
+    path('version-manager/', include('modules.version_manager.backend.urls', namespace='version_manager')),
+
     # Administration Module
-    path('administration/', include('apps.administration.urls', namespace='administration')),
-    
+    path('administration/', include('modules.administration.backend.urls', namespace='administration')),
+
     # Movies Module - Movie/Series Collection Management
-    path('movies/', include('apps.movies.urls', namespace='movies')),
-    
+    path('movies/', include('modules.movies.backend.urls', namespace='movies')),
+
     # Music Module - Music Collection with Spotify Integration
-    path('music/', include('apps.music.urls', namespace='music')),
-    
+    path('music/', include('modules.music.backend.urls', namespace='music')),
+
     # RestoPOS Module - Restaurant POS System
-    path('restopos/', include('apps.restopos.urls', namespace='restopos')),
-    
+    path('restopos/', include('modules.restopos.backend.urls', namespace='restopos')),
+
     # Personal Inflation Module - Personal consumption tracking
-    path('personal-inflation/', include('apps.personal_inflation.urls', namespace='personal_inflation')),
-    
+    path('personal-inflation/', include('modules.personal_inflation.backend.urls', namespace='personal_inflation')),
+
     # Recaria Module - MMORPG System
-    path('recaria/', include('apps.recaria.urls', namespace='recaria')),
-    
+    path('recaria/', include('modules.recaria.backend.urls', namespace='recaria')),
+
     # Birlikteyiz Module - Emergency Mesh Network
-    path('birlikteyiz/', include('apps.birlikteyiz.urls', namespace='birlikteyiz')),
+    path('birlikteyiz/', include('modules.birlikteyiz.backend.urls', namespace='birlikteyiz')),
     
     # WebSocket URLs (handled by ASGI)
     # ws/currencies/ - Real-time currency updates
@@ -103,7 +103,7 @@ urlpatterns = [
     
     # Solitaire Game Module API endpoints
     # Note: /solitaire/ is handled by web_ui, this is just for API
-    path('solitaire/', include('apps.solitaire.urls', namespace='solitaire')),
+    path('solitaire/', include('modules.solitaire.backend.urls', namespace='solitaire')),
 ]
 
 # Serve media files in development

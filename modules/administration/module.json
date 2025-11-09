@@ -1,0 +1,18 @@
+{
+  "id": "administration",
+  "name": "Administration",
+  "display_name": {"tr": "Yönetim", "en": "Administration"},
+  "version": "1.0.0",
+  "description": "System administration module for user management, roles, permissions, audit logs, and system settings.",
+  "icon": "⚙️",
+  "author": "Berk Hatırlı",
+  "capabilities": {"backend": true, "web": true, "mobile": false, "cli": false, "realtime": false},
+  "dependencies": {"core_modules": ["authentication", "users"], "python_packages": ["djangorestframework", "celery", "redis"], "system_requirements": ["redis", "postgresql"]},
+  "database": {"uses_shared_db": true, "tables_prefix": "admin_", "models": ["Role", "UserRole", "Department", "PermissionRequest", "AuditLog", "ScreenLock", "RecariaMailbox", "SystemSetting"]},
+  "api": {"base_path": "/api/v1/admin/", "endpoints": [{"path": "roles/", "methods": ["GET", "POST"], "auth_required": true}, {"path": "users/", "methods": ["GET", "PUT"], "auth_required": true}, {"path": "permissions/", "methods": ["GET", "POST"], "auth_required": true}, {"path": "audit-logs/", "methods": ["GET"], "auth_required": true}, {"path": "settings/", "methods": ["GET", "PUT"], "auth_required": true}]},
+  "permissions": ["administration.view_role", "administration.add_role", "administration.change_role", "administration.view_auditlog", "administration.view_systemsetting", "administration.change_systemsetting"],
+  "celery_tasks": ["cleanup_old_audit_logs", "send_permission_notifications", "sync_user_roles"],
+  "features": ["Role management", "User administration", "Department management", "Permission requests", "Audit logging", "Screen lock system", "Recaria mailbox", "System settings"],
+  "integration": {"sidebar": {"enabled": true, "position": 1, "category": "system"}},
+  "development": {"repository": "https://github.com/berkhatira/unibos", "maintainer": "berk@berkhatirli.com"}
+}

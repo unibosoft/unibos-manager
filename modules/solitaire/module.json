@@ -1,0 +1,18 @@
+{
+  "id": "solitaire",
+  "name": "Solitaire",
+  "display_name": {"tr": "Solitaire", "en": "Solitaire Card Game"},
+  "version": "1.0.0",
+  "description": "Classic Solitaire card game with session tracking, statistics, multiplayer, and screen lock integration.",
+  "icon": "🃏",
+  "author": "Berk Hatırlı",
+  "capabilities": {"backend": true, "web": true, "mobile": false, "cli": false, "realtime": true},
+  "dependencies": {"core_modules": ["authentication", "users"], "python_packages": ["djangorestframework", "channels", "redis"], "system_requirements": ["redis", "postgresql", "channels"]},
+  "database": {"uses_shared_db": true, "tables_prefix": "solitaire_", "models": ["SolitaireSession", "SolitaireMove", "SolitaireStatistics", "SolitairePlayer", "SolitaireGameSession", "SolitaireGameDeck", "SolitaireMultiplayerGame", "SolitaireActivity", "SolitaireMoveHistory"]},
+  "api": {"base_path": "/api/v1/solitaire/", "endpoints": [{"path": "sessions/", "methods": ["GET", "POST"], "auth_required": true}, {"path": "sessions/{id}/", "methods": ["GET", "PUT", "DELETE"], "auth_required": true}, {"path": "stats/", "methods": ["GET"], "auth_required": true}, {"path": "leaderboard/", "methods": ["GET"], "auth_required": true}, {"path": "multiplayer/", "methods": ["GET", "POST"], "auth_required": true}]},
+  "permissions": ["solitaire.view_session", "solitaire.add_session", "solitaire.view_statistics"],
+  "channels": {"websocket_routes": ["ws/solitaire/game/", "ws/solitaire/multiplayer/"]},
+  "features": ["Classic Solitaire gameplay", "Session tracking", "Move history", "Statistics and achievements", "Multiplayer support", "Leaderboard", "Screen lock integration", "Activity tracking"],
+  "integration": {"sidebar": {"enabled": true, "position": 20, "category": "games"}},
+  "development": {"repository": "https://github.com/berkhatira/unibos", "maintainer": "berk@berkhatirli.com"}
+}

@@ -1,0 +1,18 @@
+{
+  "id": "version_manager",
+  "name": "Version Manager",
+  "display_name": {"tr": "Versiyon Yöneticisi", "en": "Version Manager"},
+  "version": "1.0.0",
+  "description": "Version archive management system with Git integration, scan sessions, and automated backups.",
+  "icon": "📚",
+  "author": "Berk Hatırlı",
+  "capabilities": {"backend": true, "web": true, "mobile": false, "cli": false, "realtime": false},
+  "dependencies": {"core_modules": ["authentication", "users"], "python_packages": ["djangorestframework", "gitpython", "celery"], "system_requirements": ["redis", "postgresql", "git"]},
+  "database": {"uses_shared_db": true, "tables_prefix": "version_", "models": ["VersionArchive", "ScanSession", "GitStatus"]},
+  "api": {"base_path": "/api/v1/version/", "endpoints": [{"path": "archives/", "methods": ["GET", "POST"], "auth_required": true}, {"path": "scans/", "methods": ["GET", "POST"], "auth_required": true}, {"path": "git-status/", "methods": ["GET"], "auth_required": true}]},
+  "permissions": ["version_manager.view_versionarchive", "version_manager.add_versionarchive", "version_manager.view_scansession"],
+  "celery_tasks": ["create_version_archive", "scan_codebase", "check_git_status", "cleanup_old_archives"],
+  "features": ["Version archiving", "Git integration", "Codebase scanning", "Automated backups", "Archive management", "Git status tracking"],
+  "integration": {"sidebar": {"enabled": true, "position": 18, "category": "development"}},
+  "development": {"repository": "https://github.com/berkhatira/unibos", "maintainer": "berk@berkhatirli.com"}
+}

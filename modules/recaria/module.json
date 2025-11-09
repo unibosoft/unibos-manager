@@ -1,0 +1,394 @@
+{
+  "id": "recaria",
+  "name": "Recaria",
+  "display_name": {
+    "tr": "Recaria",
+    "en": "Recaria - Consciousness Exploration"
+  },
+  "version": "1.0.0",
+  "description": "Medieval-themed consciousness exploration MMORPG inspired by Ultima Online. Explore mystical realms, advance consciousness levels, and journey through different planes of existence.",
+  "icon": "🪐",
+  "author": "Berk Hatırlı",
+
+  "capabilities": {
+    "backend": true,
+    "web": true,
+    "mobile": false,
+    "cli": false,
+    "realtime": true
+  },
+
+  "dependencies": {
+    "core_modules": ["authentication", "users"],
+    "python_packages": [
+      "djangorestframework",
+      "channels",
+      "celery",
+      "redis",
+      "psycopg2"
+    ],
+    "system_requirements": ["redis", "postgresql", "channels"]
+  },
+
+  "database": {
+    "uses_shared_db": true,
+    "tables_prefix": "recaria_",
+    "models": [
+      "Realm",
+      "Character",
+      "Skill",
+      "Item",
+      "Inventory",
+      "ConsciousnessNode",
+      "Quest",
+      "CharacterQuest",
+      "Guild",
+      "Creature",
+      "CreatureSpawn",
+      "CombatLog",
+      "MeditationSession",
+      "Achievement",
+      "CharacterAchievement"
+    ]
+  },
+
+  "api": {
+    "base_path": "/api/v1/recaria/",
+    "endpoints": [
+      {
+        "path": "dashboard/",
+        "methods": ["GET"],
+        "public": false,
+        "auth_required": true,
+        "description": "Recaria dashboard view"
+      },
+      {
+        "path": "character/",
+        "methods": ["GET", "POST", "PUT"],
+        "public": false,
+        "auth_required": true,
+        "description": "Character creation and management"
+      },
+      {
+        "path": "character/stats/",
+        "methods": ["GET"],
+        "public": false,
+        "auth_required": true,
+        "description": "Get character stats and attributes"
+      },
+      {
+        "path": "character/inventory/",
+        "methods": ["GET"],
+        "public": false,
+        "auth_required": true,
+        "description": "Get character inventory"
+      },
+      {
+        "path": "character/skills/",
+        "methods": ["GET"],
+        "public": false,
+        "auth_required": true,
+        "description": "Get character skills and progression"
+      },
+      {
+        "path": "realms/",
+        "methods": ["GET"],
+        "public": false,
+        "auth_required": true,
+        "description": "List all realms"
+      },
+      {
+        "path": "realms/{id}/",
+        "methods": ["GET"],
+        "public": false,
+        "auth_required": true,
+        "description": "Get specific realm details"
+      },
+      {
+        "path": "realms/{id}/nodes/",
+        "methods": ["GET"],
+        "public": false,
+        "auth_required": true,
+        "description": "Get consciousness nodes in realm"
+      },
+      {
+        "path": "guilds/",
+        "methods": ["GET", "POST"],
+        "public": false,
+        "auth_required": true,
+        "description": "Guild listing and creation"
+      },
+      {
+        "path": "guilds/{id}/",
+        "methods": ["GET", "PUT", "DELETE"],
+        "public": false,
+        "auth_required": true,
+        "description": "Guild details and management"
+      },
+      {
+        "path": "guilds/{id}/members/",
+        "methods": ["GET"],
+        "public": false,
+        "auth_required": true,
+        "description": "Guild member list"
+      },
+      {
+        "path": "guilds/{id}/join/",
+        "methods": ["POST"],
+        "public": false,
+        "auth_required": true,
+        "description": "Join a guild"
+      },
+      {
+        "path": "guilds/{id}/leave/",
+        "methods": ["POST"],
+        "public": false,
+        "auth_required": true,
+        "description": "Leave guild"
+      },
+      {
+        "path": "quests/",
+        "methods": ["GET"],
+        "public": false,
+        "auth_required": true,
+        "description": "Available quests"
+      },
+      {
+        "path": "quests/{id}/accept/",
+        "methods": ["POST"],
+        "public": false,
+        "auth_required": true,
+        "description": "Accept a quest"
+      },
+      {
+        "path": "quests/{id}/complete/",
+        "methods": ["POST"],
+        "public": false,
+        "auth_required": true,
+        "description": "Complete a quest"
+      },
+      {
+        "path": "quests/active/",
+        "methods": ["GET"],
+        "public": false,
+        "auth_required": true,
+        "description": "Get active character quests"
+      },
+      {
+        "path": "items/",
+        "methods": ["GET"],
+        "public": false,
+        "auth_required": true,
+        "description": "Item database"
+      },
+      {
+        "path": "items/{id}/",
+        "methods": ["GET"],
+        "public": false,
+        "auth_required": true,
+        "description": "Item details"
+      },
+      {
+        "path": "meditation/start/",
+        "methods": ["POST"],
+        "public": false,
+        "auth_required": true,
+        "description": "Start meditation session"
+      },
+      {
+        "path": "meditation/end/",
+        "methods": ["POST"],
+        "public": false,
+        "auth_required": true,
+        "description": "End meditation session"
+      },
+      {
+        "path": "meditation/sessions/",
+        "methods": ["GET"],
+        "public": false,
+        "auth_required": true,
+        "description": "Meditation session history"
+      },
+      {
+        "path": "combat/attack/",
+        "methods": ["POST"],
+        "public": false,
+        "auth_required": true,
+        "description": "Perform combat attack"
+      },
+      {
+        "path": "combat/logs/",
+        "methods": ["GET"],
+        "public": false,
+        "auth_required": true,
+        "description": "Combat history"
+      },
+      {
+        "path": "creatures/",
+        "methods": ["GET"],
+        "public": false,
+        "auth_required": true,
+        "description": "Creature bestiary"
+      },
+      {
+        "path": "achievements/",
+        "methods": ["GET"],
+        "public": false,
+        "auth_required": true,
+        "description": "Achievement list"
+      },
+      {
+        "path": "achievements/character/",
+        "methods": ["GET"],
+        "public": false,
+        "auth_required": true,
+        "description": "Character achievements and progress"
+      }
+    ]
+  },
+
+  "permissions": [
+    "recaria.view_character",
+    "recaria.add_character",
+    "recaria.change_character",
+    "recaria.view_realm",
+    "recaria.add_realm",
+    "recaria.change_realm",
+    "recaria.view_guild",
+    "recaria.add_guild",
+    "recaria.change_guild",
+    "recaria.delete_guild",
+    "recaria.view_quest",
+    "recaria.add_quest",
+    "recaria.change_quest",
+    "recaria.view_item",
+    "recaria.add_item",
+    "recaria.change_item",
+    "recaria.view_creature",
+    "recaria.add_creature",
+    "recaria.change_creature",
+    "recaria.view_achievement",
+    "recaria.add_achievement"
+  ],
+
+  "celery_tasks": [
+    "spawn_creatures",
+    "update_realm_events",
+    "process_meditation_rewards",
+    "calculate_guild_consciousness",
+    "cleanup_combat_logs",
+    "process_quest_objectives",
+    "regenerate_character_stats",
+    "spawn_consciousness_nodes"
+  ],
+
+  "channels": {
+    "websocket_routes": [
+      "ws/recaria/game/",
+      "ws/recaria/realm/{realm_id}/",
+      "ws/recaria/combat/",
+      "ws/recaria/guild/{guild_id}/"
+    ]
+  },
+
+  "features": [
+    "Character creation with 6 unique classes (Mystic, Sage, Dreamwalker, Voidseeker, Mindbender, Soulweaver)",
+    "Multi-dimensional realm exploration (Material, Ethereal, Astral, Shadow, Dream, Void)",
+    "Consciousness-based progression system",
+    "Guild system with collective consciousness",
+    "Real-time combat with creatures and PvP",
+    "Meditation and consciousness node activation",
+    "Quest system (Main, Consciousness, Guild, Daily, Event quests)",
+    "Comprehensive inventory and equipment system",
+    "Skill progression with 6 categories (Combat, Magic, Consciousness, Crafting, Gathering, Social)",
+    "Achievement system with rare rewards",
+    "Real-time WebSocket gameplay",
+    "Creature spawning and AI behavior",
+    "Combat logging and statistics",
+    "Item rarity system (Common to Mythic)",
+    "Death and respawn mechanics",
+    "Karma system",
+    "Special currencies (Gold, Soul Fragments, Void Essence)",
+    "Enhanced attributes (Strength, Dexterity, Intelligence, Wisdom, Consciousness)",
+    "Guild halls and collective resources",
+    "Meditation session tracking with rewards"
+  ],
+
+  "integration": {
+    "sidebar": {
+      "enabled": true,
+      "position": 10,
+      "category": "games"
+    },
+    "dashboard_widgets": [
+      {
+        "id": "character_stats",
+        "title": "Character Stats",
+        "size": "large"
+      },
+      {
+        "id": "active_quests",
+        "title": "Active Quests",
+        "size": "medium"
+      },
+      {
+        "id": "guild_status",
+        "title": "Guild Status",
+        "size": "small"
+      },
+      {
+        "id": "realm_info",
+        "title": "Current Realm",
+        "size": "medium"
+      }
+    ]
+  },
+
+  "game_settings": {
+    "character_classes": [
+      "Mystic",
+      "Sage",
+      "Dreamwalker",
+      "Voidseeker",
+      "Mindbender",
+      "Soulweaver"
+    ],
+    "realm_types": [
+      "Material Plane",
+      "Ethereal Plane",
+      "Astral Plane",
+      "Shadow Realm",
+      "Dream Realm",
+      "The Void"
+    ],
+    "item_rarities": [
+      "Common",
+      "Uncommon",
+      "Rare",
+      "Epic",
+      "Legendary",
+      "Mythic"
+    ],
+    "skill_categories": [
+      "Combat",
+      "Magic",
+      "Consciousness",
+      "Crafting",
+      "Gathering",
+      "Social"
+    ],
+    "meditation_types": [
+      "Focus Meditation",
+      "Void Meditation",
+      "Astral Projection",
+      "Dream Walking",
+      "Group Meditation"
+    ]
+  },
+
+  "development": {
+    "repository": "https://github.com/berkhatira/unibos",
+    "documentation": "",
+    "maintainer": "berk@berkhatirli.com"
+  }
+}

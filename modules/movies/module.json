@@ -1,0 +1,139 @@
+{
+  "id": "movies",
+  "name": "Movies",
+  "display_name": {
+    "tr": "Film ve Dizi Koleksiyonu",
+    "en": "Movies & TV Series Collection"
+  },
+  "version": "1.0.0",
+  "description": "Comprehensive movie and TV series collection management with TMDB and OMDB integration. Track watchlists, personal ratings, and viewing history.",
+  "icon": "🎬",
+  "author": "Berk Hatırlı",
+
+  "capabilities": {
+    "backend": true,
+    "web": true,
+    "mobile": false,
+    "cli": false,
+    "realtime": false
+  },
+
+  "dependencies": {
+    "core_modules": ["authentication", "users"],
+    "python_packages": [
+      "djangorestframework",
+      "requests",
+      "celery",
+      "redis"
+    ],
+    "system_requirements": ["redis", "postgresql"]
+  },
+
+  "database": {
+    "uses_shared_db": true,
+    "tables_prefix": "movies_",
+    "models": [
+      "Genre",
+      "Movie",
+      "Collection",
+      "CollectionItem",
+      "WatchList",
+      "UserRating",
+      "PersonalArchive",
+      "WatchHistory"
+    ]
+  },
+
+  "api": {
+    "base_path": "/api/v1/movies/",
+    "endpoints": [
+      {"path": "movies/", "methods": ["GET", "POST"], "auth_required": true, "description": "Movie CRUD operations"},
+      {"path": "movies/{id}/", "methods": ["GET", "PUT", "DELETE"], "auth_required": true, "description": "Movie details"},
+      {"path": "movies/search/", "methods": ["GET"], "auth_required": true, "description": "Search movies"},
+      {"path": "movies/{id}/rate/", "methods": ["POST"], "auth_required": true, "description": "Rate a movie"},
+      {"path": "genres/", "methods": ["GET"], "auth_required": true, "description": "List genres"},
+      {"path": "collections/", "methods": ["GET", "POST"], "auth_required": true, "description": "User collections"},
+      {"path": "collections/{id}/", "methods": ["GET", "PUT", "DELETE"], "auth_required": true, "description": "Collection management"},
+      {"path": "watchlist/", "methods": ["GET", "POST"], "auth_required": true, "description": "Watchlist management"},
+      {"path": "watchlist/{id}/", "methods": ["DELETE"], "auth_required": true, "description": "Remove from watchlist"},
+      {"path": "history/", "methods": ["GET"], "auth_required": true, "description": "Watch history"},
+      {"path": "archive/", "methods": ["GET"], "auth_required": true, "description": "Personal archive"},
+      {"path": "tmdb/search/", "methods": ["GET"], "auth_required": true, "description": "Search TMDB"},
+      {"path": "tmdb/import/", "methods": ["POST"], "auth_required": true, "description": "Import from TMDB"},
+      {"path": "omdb/search/", "methods": ["GET"], "auth_required": true, "description": "Search OMDB"},
+      {"path": "recommendations/", "methods": ["GET"], "auth_required": true, "description": "Get recommendations"}
+    ]
+  },
+
+  "permissions": [
+    "movies.view_movie",
+    "movies.add_movie",
+    "movies.change_movie",
+    "movies.delete_movie",
+    "movies.view_collection",
+    "movies.add_collection",
+    "movies.change_collection",
+    "movies.delete_collection",
+    "movies.view_watchlist",
+    "movies.add_watchlist"
+  ],
+
+  "celery_tasks": [
+    "sync_tmdb_data",
+    "update_movie_ratings",
+    "fetch_missing_posters",
+    "cleanup_old_history",
+    "generate_recommendations"
+  ],
+
+  "features": [
+    "Movie and TV series management",
+    "TMDB API integration",
+    "OMDB API integration",
+    "Personal collections",
+    "Watch history tracking",
+    "User ratings and reviews",
+    "Watchlist management",
+    "Genre filtering",
+    "Advanced search",
+    "Personal archive",
+    "Release date tracking",
+    "Poster and backdrop images",
+    "Trailer links",
+    "Production information",
+    "Financial data (budget/revenue)",
+    "Multi-language support"
+  ],
+
+  "integration": {
+    "sidebar": {
+      "enabled": true,
+      "position": 12,
+      "category": "media"
+    },
+    "dashboard_widgets": [
+      {"id": "watchlist", "title": "Watchlist", "size": "medium"},
+      {"id": "recent_movies", "title": "Recently Added", "size": "large"},
+      {"id": "recommendations", "title": "Recommendations", "size": "medium"}
+    ]
+  },
+
+  "external_apis": {
+    "tmdb": {
+      "name": "The Movie Database",
+      "url": "https://www.themoviedb.org",
+      "description": "Movie and TV series metadata"
+    },
+    "omdb": {
+      "name": "Open Movie Database",
+      "url": "http://www.omdbapi.com",
+      "description": "Alternative movie database"
+    }
+  },
+
+  "development": {
+    "repository": "https://github.com/berkhatira/unibos",
+    "documentation": "",
+    "maintainer": "berk@berkhatirli.com"
+  }
+}

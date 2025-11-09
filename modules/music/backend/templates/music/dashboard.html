@@ -1,0 +1,376 @@
+{% extends 'web_ui/base.html' %}
+{% load static %}
+
+{% block title %}music library - unibos{% endblock %}
+
+{% block extra_css %}
+<style>
+    .music-container {
+        padding: 0;  /* No padding - base.html .content already has padding: 20px */
+        max-width: 1400px;
+        margin: 0 auto;
+    }
+    
+    .module-header {
+        display: flex;
+        flex-direction: column;
+        align-items: flex-start;
+        margin-bottom: 30px;
+        padding-bottom: 15px;
+        border-bottom: 2px solid var(--orange);
+    }
+
+    .module-header h1 {
+        display: block;
+        color: var(--orange);
+        font-size: 24px;
+        font-weight: bold;
+        text-transform: lowercase;
+        margin: 0;
+        margin-bottom: 8px;
+        line-height: 1.2;
+    }
+
+    .module-header p {
+        display: block;
+        color: var(--gray);
+        font-size: 14px;
+        text-transform: lowercase;
+        margin: 0;
+        line-height: 1.4;
+    }
+    
+    .music-stats {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 20px;
+        margin-bottom: 30px;
+    }
+    
+    .stat-card {
+        background: #1a1a1a;
+        padding: 20px;
+        border-radius: 8px;
+        text-align: center;
+    }
+    
+    .stat-value {
+        font-size: 2em;
+        color: #1db954;
+        margin-bottom: 5px;
+    }
+    
+    .stat-label {
+        color: #888;
+        text-transform: lowercase;
+    }
+    
+    .music-sections {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 30px;
+    }
+    
+    .music-section {
+        background: #1a1a1a;
+        padding: 20px;
+        border-radius: 8px;
+    }
+    
+    .section-title {
+        font-size: 1.2em;
+        margin-bottom: 15px;
+        color: #fff;
+        text-transform: lowercase;
+    }
+    
+    .track-list {
+        list-style: none;
+        padding: 0;
+    }
+    
+    .track-item {
+        display: flex;
+        align-items: center;
+        padding: 10px;
+        margin-bottom: 5px;
+        background: #2a2a2a;
+        border-radius: 4px;
+        transition: background 0.2s;
+    }
+    
+    .track-item:hover {
+        background: #333;
+    }
+    
+    .track-artwork {
+        width: 40px;
+        height: 40px;
+        border-radius: 4px;
+        margin-right: 15px;
+        background: #444;
+    }
+    
+    .track-info {
+        flex: 1;
+    }
+    
+    .track-name {
+        color: #fff;
+        margin-bottom: 3px;
+    }
+    
+    .track-artist {
+        color: #888;
+        font-size: 0.9em;
+    }
+    
+    .track-duration {
+        color: #666;
+        font-size: 0.9em;
+    }
+    
+    .playlist-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+        gap: 15px;
+    }
+    
+    .playlist-card {
+        background: #2a2a2a;
+        padding: 15px;
+        border-radius: 8px;
+        text-align: center;
+        cursor: pointer;
+        transition: transform 0.2s;
+    }
+    
+    .playlist-card:hover {
+        transform: translateY(-2px);
+        background: #333;
+    }
+    
+    .playlist-cover {
+        width: 100%;
+        aspect-ratio: 1;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        border-radius: 4px;
+        margin-bottom: 10px;
+    }
+    
+    .playlist-name {
+        color: #fff;
+        font-size: 0.9em;
+        margin-bottom: 5px;
+    }
+    
+    .playlist-tracks {
+        color: #666;
+        font-size: 0.8em;
+    }
+    
+    .spotify-connect {
+        background: #1db954;
+        color: #fff;
+        padding: 10px 20px;
+        border-radius: 20px;
+        text-decoration: none;
+        display: inline-block;
+        transition: background 0.2s;
+    }
+    
+    .spotify-connect:hover {
+        background: #1ed760;
+    }
+    
+    .listening-activity {
+        margin-top: 20px;
+    }
+    
+    .activity-graph {
+        background: #2a2a2a;
+        padding: 20px;
+        border-radius: 8px;
+        height: 200px;
+        display: flex;
+        align-items: flex-end;
+        justify-content: space-around;
+    }
+    
+    .activity-bar {
+        width: 30px;
+        background: linear-gradient(to top, #1db954, #1ed760);
+        border-radius: 4px 4px 0 0;
+        position: relative;
+    }
+    
+    .activity-label {
+        position: absolute;
+        bottom: -20px;
+        left: 50%;
+        transform: translateX(-50%);
+        color: #666;
+        font-size: 0.8em;
+    }
+    
+    @media (max-width: 768px) {
+        .music-sections {
+            grid-template-columns: 1fr;
+        }
+        
+        .music-stats {
+            grid-template-columns: repeat(2, 1fr);
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="music-container">
+    <div class="module-header">
+        <h1>🎵 music</h1>
+        <p>spotify-integrated music collection and playlist management</p>
+    </div>
+    
+    <div class="music-stats">
+        <div class="stat-card">
+            <div class="stat-value">{{ total_tracks|default:"0" }}</div>
+            <div class="stat-label">tracks</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-value">{{ total_artists|default:"0" }}</div>
+            <div class="stat-label">artists</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-value">{{ total_albums|default:"0" }}</div>
+            <div class="stat-label">albums</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-value">{{ listening_hours|default:"0" }}h</div>
+            <div class="stat-label">listening time</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-value">{{ playlists_count|default:"0" }}</div>
+            <div class="stat-label">playlists</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-value">{{ followers|default:"0" }}</div>
+            <div class="stat-label">followers</div>
+        </div>
+    </div>
+    
+    <div class="music-sections">
+        <div class="music-section">
+            <h2 class="section-title">recently played</h2>
+            <ul class="track-list">
+                {% for track in recent_tracks|slice:":5" %}
+                <li class="track-item">
+                    <div class="track-artwork"></div>
+                    <div class="track-info">
+                        <div class="track-name">{{ track.name|default:"track name" }}</div>
+                        <div class="track-artist">{{ track.artist|default:"artist" }}</div>
+                    </div>
+                    <div class="track-duration">{{ track.duration|default:"3:42" }}</div>
+                </li>
+                {% empty %}
+                <li class="track-item">
+                    <div class="track-info">
+                        <div class="track-name">no recent tracks</div>
+                        <div class="track-artist">connect spotify to start tracking</div>
+                    </div>
+                </li>
+                {% endfor %}
+            </ul>
+        </div>
+        
+        <div class="music-section">
+            <h2 class="section-title">top tracks this month</h2>
+            <ul class="track-list">
+                {% for track in top_tracks|slice:":5" %}
+                <li class="track-item">
+                    <div class="track-artwork"></div>
+                    <div class="track-info">
+                        <div class="track-name">{{ track.name|default:"track name" }}</div>
+                        <div class="track-artist">{{ track.artist|default:"artist" }} • {{ track.play_count|default:"0" }} plays</div>
+                    </div>
+                </li>
+                {% empty %}
+                <li class="track-item">
+                    <div class="track-info">
+                        <div class="track-name">no data yet</div>
+                        <div class="track-artist">start listening to build your stats</div>
+                    </div>
+                </li>
+                {% endfor %}
+            </ul>
+        </div>
+    </div>
+    
+    <div class="music-section" style="margin-top: 30px;">
+        <h2 class="section-title">your playlists</h2>
+        <div class="playlist-grid">
+            {% for playlist in playlists %}
+            <div class="playlist-card">
+                <div class="playlist-cover"></div>
+                <div class="playlist-name">{{ playlist.name|default:"playlist" }}</div>
+                <div class="playlist-tracks">{{ playlist.track_count|default:"0" }} tracks</div>
+            </div>
+            {% empty %}
+            <div class="playlist-card">
+                <div class="playlist-cover" style="background: #333; display: flex; align-items: center; justify-content: center;">
+                    <span style="font-size: 3em;">+</span>
+                </div>
+                <div class="playlist-name">create playlist</div>
+                <div class="playlist-tracks">start fresh</div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    
+    <div class="music-section listening-activity" style="margin-top: 30px;">
+        <h2 class="section-title">listening activity (last 7 days)</h2>
+        <div class="activity-graph">
+            <div class="activity-bar" style="height: 60%;">
+                <span class="activity-label">mon</span>
+            </div>
+            <div class="activity-bar" style="height: 80%;">
+                <span class="activity-label">tue</span>
+            </div>
+            <div class="activity-bar" style="height: 45%;">
+                <span class="activity-label">wed</span>
+            </div>
+            <div class="activity-bar" style="height: 90%;">
+                <span class="activity-label">thu</span>
+            </div>
+            <div class="activity-bar" style="height: 70%;">
+                <span class="activity-label">fri</span>
+            </div>
+            <div class="activity-bar" style="height: 100%;">
+                <span class="activity-label">sat</span>
+            </div>
+            <div class="activity-bar" style="height: 85%;">
+                <span class="activity-label">sun</span>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Spotify connect button
+    document.querySelector('.spotify-connect').addEventListener('click', function(e) {
+        e.preventDefault();
+        // TODO: Implement Spotify OAuth flow
+        console.log('Connecting to Spotify...');
+    });
+    
+    // Playlist cards
+    document.querySelectorAll('.playlist-card').forEach(card => {
+        card.addEventListener('click', function() {
+            // TODO: Navigate to playlist detail
+            console.log('Opening playlist...');
+        });
+    });
+});
+</script>
+{% endblock %}

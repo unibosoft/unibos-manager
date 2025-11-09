@@ -1,0 +1,318 @@
+{% extends 'web_ui/base.html' %}
+{% load static %}
+
+{% block header_title %}unibos{% endblock %}
+{% block module_name %}birlikteyiz - acil durum yanıt sistemi{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* Birlikteyiz Module Styles - Based on Administration Layout */
+    
+    /* Module Container */
+    .module-container {
+        padding: 0;  /* No padding - base.html .content already has padding: 20px */
+        max-width: 1400px;
+        margin: 0 auto;
+        width: 100%;
+        height: auto;
+        position: relative;
+    }
+    
+    /* Module Header */
+    .module-header {
+        display: flex;
+        flex-direction: column;
+        align-items: flex-start;
+        margin-bottom: 30px;
+        padding-bottom: 15px;
+        border-bottom: 2px solid var(--orange);
+    }
+
+    .module-header h1 {
+        display: block;
+        color: var(--orange);
+        font-size: 24px;
+        font-weight: bold;
+        text-transform: lowercase;
+        margin: 0;
+        margin-bottom: 8px;
+        line-height: 1.2;
+    }
+
+    .module-header p {
+        display: block;
+        color: var(--gray);
+        font-size: 14px;
+        text-transform: lowercase;
+        margin: 0;
+        line-height: 1.4;
+    }
+    
+    /* Navigation Tabs */
+    .birlikteyiz-nav {
+        display: flex;
+        gap: 10px;
+        margin-bottom: 30px;
+        padding: 15px;
+        background: var(--bg-dark);
+        border: 1px solid var(--dark-gray);
+        border-radius: 5px;
+        flex-wrap: wrap;
+    }
+    
+    .birlikteyiz-nav-item {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 10px 16px;
+        color: var(--white);
+        text-decoration: none;
+        border: 1px solid var(--dark-gray);
+        border-radius: 3px;
+        transition: all 0.2s;
+        font-size: 13px;
+        text-transform: lowercase;
+    }
+    
+    .birlikteyiz-nav-item:hover {
+        background: var(--dark-gray);
+        color: var(--cyan);
+        border-color: var(--orange);
+    }
+    
+    .birlikteyiz-nav-item.active {
+        background: var(--orange);
+        color: var(--bg-black);
+        border-color: var(--orange);
+        font-weight: bold;
+    }
+    
+    .nav-badge {
+        background: #ff4444;
+        color: white;
+        padding: 2px 6px;
+        border-radius: 10px;
+        font-size: 10px;
+        font-weight: bold;
+        margin-left: 5px;
+    }
+    
+    /* Section Styles */
+    .section {
+        margin-bottom: 30px;
+    }
+    
+    .section-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 20px;
+        padding-bottom: 10px;
+        border-bottom: 1px solid var(--dark-gray);
+    }
+    
+    .section h2 {
+        color: var(--orange);
+        font-size: 16px;
+        margin: 0;
+        text-transform: lowercase;
+    }
+    
+    .section-controls {
+        display: flex;
+        gap: 10px;
+    }
+    
+    /* Stats Grid */
+    .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 15px;
+        margin-bottom: 30px;
+    }
+    
+    .stat-card {
+        background: var(--bg-dark);
+        border: 1px solid var(--dark-gray);
+        border-radius: 5px;
+        padding: 20px;
+        transition: all 0.2s;
+    }
+    
+    .stat-card:hover {
+        border-color: var(--orange);
+        background: rgba(255, 140, 0, 0.05);
+    }
+    
+    .stat-value {
+        font-size: 28px;
+        font-weight: bold;
+        color: var(--white);
+        margin-bottom: 5px;
+    }
+    
+    .stat-label {
+        font-size: 11px;
+        color: var(--gray);
+        text-transform: lowercase;
+    }
+    
+    /* Tables */
+    .data-table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+    
+    .data-table th {
+        background: var(--bg-dark);
+        color: var(--orange);
+        padding: 12px;
+        text-align: left;
+        font-weight: bold;
+        font-size: 11px;
+        text-transform: lowercase;
+        border-bottom: 2px solid var(--orange);
+    }
+    
+    .data-table td {
+        padding: 10px 12px;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        font-size: 12px;
+    }
+    
+    .data-table tr:hover {
+        background: rgba(255, 140, 0, 0.02);
+    }
+    
+    /* Buttons */
+    .btn-primary {
+        background: var(--orange);
+        color: var(--bg-black);
+        border: none;
+        padding: 8px 16px;
+        border-radius: 3px;
+        font-weight: bold;
+        cursor: pointer;
+        transition: opacity 0.2s;
+        text-transform: lowercase;
+        font-size: 12px;
+    }
+    
+    .btn-primary:hover {
+        opacity: 0.8;
+    }
+    
+    .btn-secondary {
+        background: transparent;
+        color: var(--white);
+        border: 1px solid var(--dark-gray);
+        padding: 8px 16px;
+        border-radius: 3px;
+        cursor: pointer;
+        transition: all 0.2s;
+        text-transform: lowercase;
+        font-size: 12px;
+    }
+    
+    .btn-secondary:hover {
+        background: var(--dark-gray);
+        border-color: var(--orange);
+        color: var(--orange);
+    }
+    
+    /* Status Indicators */
+    .status-badge {
+        display: inline-block;
+        padding: 3px 8px;
+        border-radius: 10px;
+        font-size: 10px;
+        font-weight: bold;
+    }
+    
+    .status-active {
+        background: rgba(0, 255, 0, 0.1);
+        color: var(--green);
+        border: 1px solid var(--green);
+    }
+    
+    .status-inactive {
+        background: rgba(128, 128, 128, 0.1);
+        color: var(--gray);
+        border: 1px solid var(--gray);
+    }
+    
+    .status-error {
+        background: rgba(255, 68, 68, 0.1);
+        color: #ff4444;
+        border: 1px solid #ff4444;
+    }
+    
+    /* Alert Box */
+    .alert {
+        padding: 15px;
+        border-radius: 5px;
+        margin-bottom: 20px;
+    }
+    
+    .alert-info {
+        background: rgba(0, 255, 255, 0.1);
+        border: 1px solid var(--cyan);
+        color: var(--cyan);
+    }
+    
+    .alert-warning {
+        background: rgba(255, 140, 0, 0.1);
+        border: 1px solid var(--orange);
+        color: var(--orange);
+    }
+    
+    .alert-danger {
+        background: rgba(255, 68, 68, 0.1);
+        border: 1px solid #ff4444;
+        color: #ff4444;
+    }
+    
+    .alert-success {
+        background: rgba(0, 255, 0, 0.1);
+        border: 1px solid var(--green);
+        color: var(--green);
+    }
+    
+    /* Empty State */
+    .empty-state {
+        text-align: center;
+        padding: 60px 20px;
+        color: var(--gray);
+    }
+    
+    .empty-state-icon {
+        font-size: 48px;
+        margin-bottom: 20px;
+        opacity: 0.3;
+    }
+    
+    .empty-state-title {
+        font-size: 18px;
+        margin-bottom: 10px;
+        color: var(--white);
+    }
+    
+    .empty-state-text {
+        font-size: 12px;
+        margin-bottom: 20px;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="module-container">
+    <div class="module-header">
+        <h1>📡 birlikteyiz</h1>
+        <p>acil durum yanıt ve deprem takip sistemi</p>
+    </div>
+
+    {% block birlikteyiz_content %}
+    <!-- Child templates will fill this -->
+    {% endblock %}
+</div>
+{% endblock %}

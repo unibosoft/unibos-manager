@@ -1,0 +1,346 @@
+{% extends 'birlikteyiz/base_birlikteyiz.html' %}
+
+{% block title %}depremler - birlikteyiz - unibos{% endblock %}
+
+{% block birlikteyiz_content %}
+<style>
+    .earthquake-container {
+        padding: 0;
+        max-width: 100%;
+        margin: 0;
+    }
+    
+    /* Header styles inherited from base_birlikteyiz.html */
+    
+    .earthquake-filters {
+        display: flex;
+        gap: 15px;
+        align-items: center;
+        margin-bottom: 20px;
+        padding: 15px;
+        background: rgba(255, 255, 255, 0.02);
+        border-radius: 5px;
+        border: 1px solid var(--dark-gray);
+    }
+    
+    .filter-item {
+        display: flex;
+        flex-direction: column;
+        gap: 5px;
+    }
+    
+    .filter-label {
+        font-size: 11px;
+        color: var(--gray);
+        text-transform: lowercase;
+    }
+    
+    .filter-input {
+        background: rgba(255, 255, 255, 0.05);
+        border: 1px solid var(--dark-gray);
+        color: var(--white);
+        padding: 5px 10px;
+        border-radius: 3px;
+        font-family: 'JetBrains Mono', monospace;
+        font-size: 12px;
+    }
+    
+    .sources-row {
+        display: flex;
+        gap: 20px;
+        margin-bottom: 20px;
+        padding: 15px;
+        background: rgba(255, 255, 255, 0.02);
+        border-radius: 5px;
+        border: 1px solid var(--dark-gray);
+    }
+    
+    .source-badge {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 5px 12px;
+        background: rgba(255, 140, 0, 0.1);
+        border: 1px solid var(--orange);
+        border-radius: 15px;
+        font-size: 11px;
+    }
+    
+    .source-status {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background: var(--green);
+    }
+    
+    .source-status.error {
+        background: var(--orange);
+    }
+    
+    .earthquake-table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 20px;
+    }
+    
+    .earthquake-table th {
+        background: rgba(255, 140, 0, 0.1);
+        color: var(--orange);
+        padding: 12px;
+        text-align: left;
+        font-weight: bold;
+        font-size: 12px;
+        text-transform: lowercase;
+        border-bottom: 2px solid var(--orange);
+    }
+    
+    .earthquake-table td {
+        padding: 10px 12px;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        font-size: 13px;
+    }
+    
+    .earthquake-table tr:hover {
+        background: rgba(255, 140, 0, 0.05);
+    }
+    
+    .magnitude-cell {
+        font-weight: bold;
+        font-size: 14px;
+    }
+    
+    .magnitude-low { color: var(--green); }
+    .magnitude-medium { color: var(--yellow); }
+    .magnitude-high { color: var(--orange); }
+    .magnitude-severe { color: #ff4444; }
+    
+    .depth-shallow { color: var(--cyan); }
+    .depth-medium { color: var(--white); }
+    .depth-deep { color: var(--gray); }
+    
+    .source-tag {
+        display: inline-block;
+        padding: 2px 8px;
+        background: rgba(0, 255, 255, 0.1);
+        border: 1px solid var(--cyan);
+        border-radius: 10px;
+        font-size: 10px;
+        color: var(--cyan);
+    }
+    
+    .location-cell {
+        max-width: 300px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+    
+    .time-ago {
+        color: var(--gray);
+        font-size: 11px;
+    }
+    
+    .felt-indicator {
+        display: inline-block;
+        padding: 2px 6px;
+        background: rgba(255, 100, 100, 0.1);
+        border: 1px solid #ff6666;
+        border-radius: 10px;
+        font-size: 10px;
+        color: #ff6666;
+    }
+    
+    .pagination {
+        display: flex;
+        justify-content: center;
+        gap: 10px;
+        margin-top: 30px;
+        padding-top: 20px;
+        border-top: 1px solid var(--dark-gray);
+    }
+    
+    .page-link {
+        padding: 5px 12px;
+        background: rgba(255, 255, 255, 0.05);
+        border: 1px solid var(--dark-gray);
+        color: var(--white);
+        text-decoration: none;
+        border-radius: 3px;
+        transition: all 0.2s;
+    }
+    
+    .page-link:hover {
+        background: rgba(255, 140, 0, 0.1);
+        border-color: var(--orange);
+    }
+    
+    .page-link.active {
+        background: var(--orange);
+        color: var(--bg-black);
+        font-weight: bold;
+    }
+</style>
+
+<div class="earthquake-container">
+    <div class="module-header">
+        <h1>🌍 güncel depremler</h1>
+        <p>acil durum yanıt ve deprem takip sistemi</p>
+    </div>
+
+    <div class="earthquake-filters">
+        <form method="get" style="display: flex; gap: 15px; width: 100%;">
+            <div class="filter-item">
+                <span class="filter-label">minimum büyüklük</span>
+                <input type="number"
+                       name="magnitude_min"
+                       class="filter-input"
+                       value="{{ filter_magnitude }}"
+                       min="1" max="9" step="0.1"
+                       placeholder="2.5">
+            </div>
+
+            <div class="filter-item">
+                <span class="filter-label">kaynak</span>
+                <select name="source" class="filter-input">
+                    <option value="">tümü</option>
+                    <option value="KANDILLI" {% if filter_source == 'KANDILLI' %}selected{% endif %}>kandilli</option>
+                    <option value="AFAD" {% if filter_source == 'AFAD' %}selected{% endif %}>afad</option>
+                    <option value="USGS" {% if filter_source == 'USGS' %}selected{% endif %}>usgs</option>
+                    <option value="EMSC" {% if filter_source == 'EMSC' %}selected{% endif %}>emsc</option>
+                </select>
+            </div>
+
+            <div class="filter-item">
+                <span class="filter-label">şehir</span>
+                <input type="text"
+                       name="city"
+                       class="filter-input"
+                       value="{{ filter_city }}"
+                       placeholder="istanbul">
+            </div>
+
+            <div class="filter-item">
+                <span class="filter-label">son (gün)</span>
+                <select name="days" class="filter-input">
+                    <option value="1" {% if filter_days == 1 %}selected{% endif %}>1 gün</option>
+                    <option value="7" {% if filter_days == 7 %}selected{% endif %}>7 gün</option>
+                    <option value="30" {% if filter_days == 30 %}selected{% endif %}>30 gün</option>
+                </select>
+            </div>
+
+            <div class="filter-item" style="align-self: flex-end;">
+                <button type="submit" class="filter-input" style="background: var(--orange); color: var(--bg-black); border: none; cursor: pointer; font-weight: bold;">
+                    filtrele
+                </button>
+            </div>
+        </form>
+    </div>
+    
+    <!-- Data Sources Status -->
+    <div class="sources-row">
+        {% for source in sources %}
+        <div class="source-badge">
+            <span class="source-status {% if source.last_error %}error{% endif %}"></span>
+            <span>{{ source.name|lower }}</span>
+            {% if source.last_fetch %}
+                <span style="color: var(--gray); font-size: 10px;">
+                    {{ source.last_fetch|timesince }} önce
+                </span>
+            {% endif %}
+        </div>
+        {% endfor %}
+    </div>
+    
+    <!-- Earthquakes Table -->
+    <table class="earthquake-table">
+        <thead>
+            <tr>
+                <th>zaman</th>
+                <th>büyüklük</th>
+                <th>derinlik</th>
+                <th>lokasyon</th>
+                <th>enlem/boylam</th>
+                <th>kaynak</th>
+                <th>hissedildi</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for eq in page_obj %}
+            <tr>
+                <td>
+                    <div>{{ eq.occurred_at|date:"d.m.Y H:i:s" }}</div>
+                    <div class="time-ago">{{ eq.occurred_at|timesince }} önce</div>
+                </td>
+                <td>
+                    <span class="magnitude-cell 
+                        {% if eq.magnitude < 3 %}magnitude-low
+                        {% elif eq.magnitude < 4 %}magnitude-medium
+                        {% elif eq.magnitude < 5 %}magnitude-high
+                        {% else %}magnitude-severe{% endif %}">
+                        {{ eq.magnitude }}
+                    </span>
+                </td>
+                <td>
+                    <span class="{% if eq.depth < 10 %}depth-shallow
+                                 {% elif eq.depth < 70 %}depth-medium
+                                 {% else %}depth-deep{% endif %}">
+                        {{ eq.depth }} km
+                    </span>
+                </td>
+                <td class="location-cell" title="{{ eq.location }}">
+                    {{ eq.location }}
+                    {% if eq.city %}
+                        <div style="color: var(--gray); font-size: 11px;">{{ eq.city }}</div>
+                    {% endif %}
+                </td>
+                <td style="font-family: monospace; font-size: 11px; color: var(--gray);">
+                    {{ eq.latitude|floatformat:4 }}, {{ eq.longitude|floatformat:4 }}
+                </td>
+                <td>
+                    <span class="source-tag">{{ eq.source|lower }}</span>
+                </td>
+                <td>
+                    {% if eq.felt_reports > 0 %}
+                        <span class="felt-indicator">{{ eq.felt_reports }} rapor</span>
+                    {% else %}
+                        <span style="color: var(--gray);">-</span>
+                    {% endif %}
+                </td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="7" style="text-align: center; padding: 40px; color: var(--gray);">
+                    belirtilen kriterlere uygun deprem bulunamadı
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    
+    <!-- Pagination -->
+    {% if page_obj.has_other_pages %}
+    <div class="pagination">
+        {% if page_obj.has_previous %}
+            <a href="?page=1{% if filter_magnitude %}&magnitude_min={{ filter_magnitude }}{% endif %}{% if filter_source %}&source={{ filter_source }}{% endif %}{% if filter_city %}&city={{ filter_city }}{% endif %}&days={{ filter_days }}" class="page-link">«</a>
+            <a href="?page={{ page_obj.previous_page_number }}{% if filter_magnitude %}&magnitude_min={{ filter_magnitude }}{% endif %}{% if filter_source %}&source={{ filter_source }}{% endif %}{% if filter_city %}&city={{ filter_city }}{% endif %}&days={{ filter_days }}" class="page-link">‹</a>
+        {% endif %}
+        
+        <span class="page-link active">
+            {{ page_obj.number }} / {{ page_obj.paginator.num_pages }}
+        </span>
+        
+        {% if page_obj.has_next %}
+            <a href="?page={{ page_obj.next_page_number }}{% if filter_magnitude %}&magnitude_min={{ filter_magnitude }}{% endif %}{% if filter_source %}&source={{ filter_source }}{% endif %}{% if filter_city %}&city={{ filter_city }}{% endif %}&days={{ filter_days }}" class="page-link">›</a>
+            <a href="?page={{ page_obj.paginator.num_pages }}{% if filter_magnitude %}&magnitude_min={{ filter_magnitude }}{% endif %}{% if filter_source %}&source={{ filter_source }}{% endif %}{% if filter_city %}&city={{ filter_city }}{% endif %}&days={{ filter_days }}" class="page-link">»</a>
+        {% endif %}
+    </div>
+    {% endif %}
+</div>
+
+<script>
+    // Auto-refresh every 5 minutes
+    setTimeout(function() {
+        location.reload();
+    }, 5 * 60 * 1000);
+</script>
+{% endblock birlikteyiz_content %}

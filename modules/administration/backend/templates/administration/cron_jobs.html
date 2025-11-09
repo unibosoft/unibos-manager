@@ -1,0 +1,275 @@
+{% extends 'administration/base_admin.html' %}
+
+{% block title %}cron jobs - administration - unibos{% endblock %}
+
+{% block admin_content %}
+
+<!-- Statistics Overview -->
+<div class="stats-grid">
+    <div class="stat-card">
+        <div class="stat-value">{{ total_jobs }}</div>
+        <div class="stat-label">toplam görev</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-value positive">{{ active_jobs }}</div>
+        <div class="stat-label">aktif görev</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-value {% if failed_jobs > 0 %}negative{% else %}positive{% endif %}">{{ failed_jobs }}</div>
+        <div class="stat-label">hatalı görev</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-value {% if jobs_needing_attention %}negative{% else %}positive{% endif %}">{{ jobs_needing_attention|length }}</div>
+        <div class="stat-label">dikkat gereken</div>
+    </div>
+</div>
+
+<!-- Jobs Needing Attention -->
+{% if jobs_needing_attention %}
+<div class="section">
+    <h2>dikkat gerektiren görevler</h2>
+    {% for item in jobs_needing_attention %}
+    <div class="alert alert-warning">
+        <strong>{{ item.job.name|lower }}</strong> - {{ item.reason }}
+        <div style="float: right;">
+            <form method="post" style="display: inline;">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="reset_errors">
+                <input type="hidden" name="job_id" value="{{ item.job.id }}">
+                <button type="submit" class="btn-secondary" style="padding: 5px 10px; font-size: 11px;">
+                    hataları sıfırla
+                </button>
+            </form>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{% endif %}
+
+<!-- Cron Jobs Management -->
+<div class="section">
+    <div class="section-header">
+        <h2>sistem cron görevleri</h2>
+        <div class="section-controls">
+            <button class="btn-primary" onclick="document.getElementById('newJobForm').style.display='block'">
+                + yeni görev ekle
+            </button>
+        </div>
+    </div>
+    
+    <!-- New Job Form (hidden by default) -->
+    <div id="newJobForm" style="display: none; margin-bottom: 20px; padding: 20px; background: var(--bg-dark); border: 1px solid var(--orange); border-radius: 5px;">
+        <form method="post">
+            {% csrf_token %}
+            <input type="hidden" name="action" value="create">
+            <div class="form-group">
+                <label class="form-label">görev adı</label>
+                <input type="text" name="name" class="form-input" placeholder="örn: Database Backup" required>
+            </div>
+            <div class="form-group">
+                <label class="form-label">komut</label>
+                <input type="text" name="command" class="form-input" placeholder="örn: backup_database" required>
+            </div>
+            <div class="form-group">
+                <label class="form-label">zamanlama (cron formatı)</label>
+                <select name="schedule" class="form-select" onchange="if(this.value=='custom') document.getElementById('customSchedule').style.display='block';">
+                    {% for schedule, description in schedule_examples %}
+                    <option value="{{ schedule }}">{{ schedule }} - {{ description }}</option>
+                    {% endfor %}
+                    <option value="custom">özel...</option>
+                </select>
+                <input type="text" id="customSchedule" name="custom_schedule" class="form-input" style="display: none; margin-top: 10px;" placeholder="örn: */10 * * * *">
+            </div>
+            <div class="button-group">
+                <button type="submit" class="btn-primary">görev oluştur</button>
+                <button type="button" class="btn-secondary" onclick="document.getElementById('newJobForm').style.display='none'">iptal</button>
+            </div>
+        </form>
+    </div>
+    
+    <!-- Jobs Table -->
+    <table class="data-table">
+        <thead>
+            <tr>
+                <th>durum</th>
+                <th>görev adı</th>
+                <th>komut</th>
+                <th>zamanlama</th>
+                <th>son çalışma</th>
+                <th>sonraki çalışma</th>
+                <th>başarı/toplam</th>
+                <th>hata sayısı</th>
+                <th>işlemler</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for job in jobs %}
+            <tr>
+                <td>
+                    {% if job.is_active %}
+                        <span class="badge badge-active">aktif</span>
+                    {% else %}
+                        <span class="badge badge-inactive">pasif</span>
+                    {% endif %}
+                    {% if job.status == 'running' %}
+                        <span class="badge badge-pending">çalışıyor</span>
+                    {% elif job.status == 'success' %}
+                        <span class="badge badge-approved">başarılı</span>
+                    {% elif job.status == 'failed' %}
+                        <span class="badge badge-rejected">hatalı</span>
+                    {% endif %}
+                </td>
+                <td>
+                    <strong>{{ job.name|lower }}</strong>
+                    {% if job.description %}
+                    <div style="font-size: 11px; color: var(--gray);">{{ job.description }}</div>
+                    {% endif %}
+                </td>
+                <td style="font-family: monospace; font-size: 11px;">{{ job.command }}</td>
+                <td style="font-family: monospace; font-size: 11px;">{{ job.schedule }}</td>
+                <td>
+                    {% if job.last_run %}
+                        {{ job.last_run|date:"d.m.Y H:i" }}
+                        <div style="font-size: 10px; color: var(--gray);">{{ job.last_run|timesince }} önce</div>
+                    {% else %}
+                        <span class="text-muted">henüz çalışmadı</span>
+                    {% endif %}
+                </td>
+                <td>
+                    {% if job.next_run %}
+                        {{ job.next_run|date:"d.m.Y H:i" }}
+                        <div style="font-size: 10px; color: var(--cyan);">{{ job.next_run|timeuntil }} içinde</div>
+                    {% else %}
+                        <span class="text-muted">-</span>
+                    {% endif %}
+                </td>
+                <td>
+                    {% if job.run_count > 0 %}
+                        <span style="color: {% if job.success_count > job.error_count %}var(--green){% else %}#ff4444{% endif %};">
+                            {{ job.success_count }}/{{ job.run_count }}
+                        </span>
+                    {% else %}
+                        <span class="text-muted">0/0</span>
+                    {% endif %}
+                </td>
+                <td>
+                    {% if job.error_count > 0 %}
+                        <span style="color: #ff4444;">{{ job.error_count }}</span>
+                        {% if job.last_error %}
+                        <div style="font-size: 10px; color: var(--gray); max-width: 200px; overflow: hidden; text-overflow: ellipsis;" title="{{ job.last_error }}">
+                            {{ job.last_error|truncatechars:30 }}
+                        </div>
+                        {% endif %}
+                    {% else %}
+                        <span style="color: var(--green);">0</span>
+                    {% endif %}
+                </td>
+                <td class="actions">
+                    <form method="post" style="display: inline;">
+                        {% csrf_token %}
+                        <input type="hidden" name="action" value="toggle">
+                        <input type="hidden" name="job_id" value="{{ job.id }}">
+                        <button type="submit" class="btn-secondary" style="padding: 5px 10px; font-size: 11px;">
+                            {% if job.is_active %}durdur{% else %}başlat{% endif %}
+                        </button>
+                    </form>
+                    <form method="post" style="display: inline;">
+                        {% csrf_token %}
+                        <input type="hidden" name="action" value="run_now">
+                        <input type="hidden" name="job_id" value="{{ job.id }}">
+                        <button type="submit" class="btn-primary" style="padding: 5px 10px; font-size: 11px;">
+                            şimdi çalıştır
+                        </button>
+                    </form>
+                </td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="9" class="text-center" style="padding: 40px;">
+                    <span class="text-muted">henüz cron görevi tanımlanmamış</span>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+<!-- Data Sources Status -->
+{% if data_sources %}
+<div class="section">
+    <h2>veri kaynakları durumu</h2>
+    
+    <div class="stats-grid">
+        {% for source in data_sources %}
+        <div class="stat-card">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                <strong>{{ source.name|lower }}</strong>
+                {% if source.is_active %}
+                    <span class="badge badge-active">aktif</span>
+                {% else %}
+                    <span class="badge badge-inactive">pasif</span>
+                {% endif %}
+            </div>
+            
+            <div style="font-size: 11px; color: var(--gray); margin-bottom: 5px;">
+                {{ source.url|truncatechars:40 }}
+            </div>
+            
+            <div style="display: grid; grid-template-columns: auto 1fr; gap: 5px; font-size: 11px;">
+                <span style="color: var(--gray);">toplam çekim:</span>
+                <span>{{ source.fetch_count }}</span>
+                
+                <span style="color: var(--gray);">hata sayısı:</span>
+                <span style="color: {% if source.error_count > 0 %}#ff4444{% else %}var(--green){% endif %};">
+                    {{ source.error_count }}
+                </span>
+                
+                {% if source.last_fetch %}
+                <span style="color: var(--gray);">son çekim:</span>
+                <span>{{ source.last_fetch|timesince }} önce</span>
+                {% endif %}
+                
+                {% if source.last_success %}
+                <span style="color: var(--gray);">son başarı:</span>
+                <span style="color: var(--green);">{{ source.last_success|timesince }} önce</span>
+                {% endif %}
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endif %}
+
+<!-- Last Results -->
+{% for job in jobs %}
+    {% if job.last_result %}
+    <div class="section">
+        <h2>{{ job.name|lower }} - son çalışma sonucu</h2>
+        <div style="padding: 15px; background: var(--bg-dark); border: 1px solid var(--dark-gray); border-radius: 5px;">
+            <pre style="font-family: monospace; font-size: 12px; color: var(--white); margin: 0; white-space: pre-wrap;">{{ job.last_result }}</pre>
+        </div>
+    </div>
+    {% endif %}
+{% endfor %}
+
+<script>
+// Auto refresh every 30 seconds
+setTimeout(function() {
+    location.reload();
+}, 30000);
+
+// Handle custom schedule input
+document.querySelector('select[name="schedule"]').addEventListener('change', function() {
+    if (this.value === 'custom') {
+        document.getElementById('customSchedule').style.display = 'block';
+        document.getElementById('customSchedule').name = 'schedule';
+        this.name = 'schedule_select';
+    } else {
+        document.getElementById('customSchedule').style.display = 'none';
+        document.getElementById('customSchedule').name = 'custom_schedule';
+        this.name = 'schedule';
+    }
+});
+</script>
+
+{% endblock %}

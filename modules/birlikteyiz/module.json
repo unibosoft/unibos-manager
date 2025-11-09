@@ -1,0 +1,153 @@
+{
+  "id": "birlikteyiz",
+  "name": "Birlikteyiz",
+  "display_name": {
+    "tr": "Birlikteyiz",
+    "en": "Together We Stand"
+  },
+  "version": "1.0.0",
+  "description": "Emergency mesh network communication system for disaster response and earthquake early warning",
+  "icon": "📡",
+  "author": "Berk Hatırlı",
+
+  "capabilities": {
+    "backend": true,
+    "web": false,
+    "mobile": true,
+    "cli": false,
+    "realtime": true
+  },
+
+  "dependencies": {
+    "core_modules": ["authentication", "users"],
+    "python_packages": [
+      "djangorestframework",
+      "channels",
+      "celery",
+      "redis"
+    ],
+    "system_requirements": ["redis", "postgresql", "celery", "channels"]
+  },
+
+  "database": {
+    "uses_shared_db": true,
+    "tables_prefix": "birlikteyiz_",
+    "models": [
+      "MeshNode",
+      "Earthquake",
+      "EarthquakeAlert",
+      "SafeZone",
+      "EmergencyContact",
+      "UserLocation",
+      "MeshMessage"
+    ]
+  },
+
+  "api": {
+    "base_path": "/api/v1/birlikteyiz/",
+    "endpoints": [
+      {
+        "path": "earthquakes/",
+        "methods": ["GET"],
+        "public": true,
+        "auth_required": false
+      },
+      {
+        "path": "earthquakes/recent/",
+        "methods": ["GET"],
+        "public": true,
+        "auth_required": false
+      },
+      {
+        "path": "earthquakes/manual_fetch/",
+        "methods": ["POST"],
+        "public": false,
+        "auth_required": true
+      },
+      {
+        "path": "safe-zones/",
+        "methods": ["GET", "POST"],
+        "public": false,
+        "auth_required": true
+      },
+      {
+        "path": "user-location/",
+        "methods": ["GET", "POST", "PUT"],
+        "public": false,
+        "auth_required": true
+      },
+      {
+        "path": "mesh-nodes/",
+        "methods": ["GET", "POST"],
+        "public": false,
+        "auth_required": true
+      },
+      {
+        "path": "alerts/",
+        "methods": ["GET"],
+        "public": false,
+        "auth_required": true
+      }
+    ]
+  },
+
+  "permissions": [
+    "birlikteyiz.view_earthquake",
+    "birlikteyiz.add_earthquake",
+    "birlikteyiz.view_safezone",
+    "birlikteyiz.add_safezone",
+    "birlikteyiz.change_safezone",
+    "birlikteyiz.view_meshnode",
+    "birlikteyiz.add_meshnode"
+  ],
+
+  "celery_tasks": [
+    "fetch_earthquakes",
+    "process_earthquake_alerts",
+    "sync_mesh_nodes",
+    "send_emergency_notifications"
+  ],
+
+  "channels": {
+    "websocket_routes": [
+      "ws/birlikteyiz/earthquakes/",
+      "ws/birlikteyiz/alerts/",
+      "ws/birlikteyiz/mesh/"
+    ]
+  },
+
+  "integration": {
+    "sidebar": {
+      "enabled": true,
+      "position": 1,
+      "category": "security"
+    },
+    "dashboard_widgets": [
+      {
+        "id": "recent_earthquakes",
+        "title": "Recent Earthquakes",
+        "size": "large"
+      },
+      {
+        "id": "active_alerts",
+        "title": "Active Alerts",
+        "size": "medium"
+      }
+    ]
+  },
+
+  "mobile_app": {
+    "package": "org.unibos.birlikteyiz",
+    "min_version": "1.0.0",
+    "store_urls": {
+      "ios": "",
+      "android": ""
+    }
+  },
+
+  "development": {
+    "repository": "https://github.com/berkhatira/unibos",
+    "documentation": "",
+    "maintainer": "berk@berkhatirli.com"
+  }
+}

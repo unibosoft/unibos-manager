@@ -1,0 +1,340 @@
+{% extends 'birlikteyiz/base_birlikteyiz.html' %}
+
+{% block title %}birlikteyiz - unibos{% endblock %}
+
+{% block birlikteyiz_content %}
+
+<!-- Statistics Overview -->
+<div class="section">
+    <div class="section-header">
+        <h2>istatistikler</h2>
+        <div class="section-controls">
+            <button class="btn-secondary" onclick="refreshData()">🔄 yenile</button>
+        </div>
+    </div>
+    
+    <div class="stats-grid">
+        <div class="stat-card">
+            <div class="stat-value">{{ recent_earthquakes|length }}</div>
+            <div class="stat-label">son 7 gün deprem</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-value">{{ active_zones|length }}</div>
+            <div class="stat-label">aktif afet bölgesi</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-value">{{ online_nodes }}/{{ total_nodes }}</div>
+            <div class="stat-label">mesh ağı düğümleri</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-value">{{ recent_messages }}</div>
+            <div class="stat-label">24 saat içi mesaj</div>
+        </div>
+    </div>
+</div>
+
+<!-- Recent Earthquakes -->
+<div class="section">
+    <div class="section-header">
+        <h2>son depremler</h2>
+        <div class="section-controls">
+            <a href="{% url 'birlikteyiz:earthquake_map' %}" class="btn-primary" style="margin-right: 10px;">🗺️ harita görünümü</a>
+            <a href="{% url 'birlikteyiz:earthquake_list' %}" class="btn-secondary">tümünü göster →</a>
+        </div>
+    </div>
+    
+    {% if recent_earthquakes %}
+    <table class="data-table">
+        <thead>
+            <tr>
+                <th>zaman</th>
+                <th>büyüklük</th>
+                <th>derinlik</th>
+                <th>lokasyon</th>
+                <th>kaynak</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for eq in recent_earthquakes|slice:":10" %}
+            <tr>
+                <td>
+                    {{ eq.occurred_at|date:"d.m.Y H:i" }}
+                    <div style="font-size: 10px; color: var(--gray);">{{ eq.occurred_at|timesince }} önce</div>
+                </td>
+                <td>
+                    <span style="font-weight: bold; color: 
+                        {% if eq.magnitude >= 5 %}#ff4444
+                        {% elif eq.magnitude >= 4 %}var(--orange)
+                        {% elif eq.magnitude >= 3 %}var(--yellow)
+                        {% else %}var(--green){% endif %};">
+                        {{ eq.magnitude }}
+                    </span>
+                </td>
+                <td>{{ eq.depth }} km</td>
+                <td title="{{ eq.location }}">
+                    {{ eq.location|truncatechars:40 }}
+                    {% if eq.city %}
+                    <div style="font-size: 10px; color: var(--gray);">{{ eq.city }}</div>
+                    {% endif %}
+                </td>
+                <td>
+                    <span class="status-badge" style="background: rgba(0, 255, 255, 0.1); color: var(--cyan); border: 1px solid var(--cyan);">
+                        {{ eq.source|lower }}
+                    </span>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+    <div class="empty-state">
+        <div class="empty-state-icon">🌍</div>
+        <div class="empty-state-title">henüz deprem verisi yok</div>
+        <div class="empty-state-text">veriler 5 dakikada bir güncellenir</div>
+        <button class="btn-primary" onclick="startDataFetch()">şimdi veri çek</button>
+    </div>
+    {% endif %}
+</div>
+
+<!-- Data Sources Status -->
+<div class="section">
+    <div class="section-header">
+        <h2>veri kaynakları durumu</h2>
+        <div class="section-controls">
+            <a href="{% url 'birlikteyiz:cron_jobs' %}" class="btn-secondary">detaylar →</a>
+        </div>
+    </div>
+    
+    <div class="stats-grid">
+        {% for source in data_sources %}
+        <div class="stat-card">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+                <div>
+                    <div style="font-weight: bold; margin-bottom: 5px;">{{ source.name|lower }}</div>
+                    <div style="font-size: 10px; color: var(--gray);">{{ source.url|truncatechars:30 }}</div>
+                </div>
+                <span class="status-badge status-{% if source.is_active %}active{% else %}inactive{% endif %}">
+                    {% if source.is_active %}aktif{% else %}pasif{% endif %}
+                </span>
+            </div>
+            <div style="margin-top: 10px; padding-top: 10px; border-top: 1px solid var(--dark-gray);">
+                <div style="display: flex; justify-content: space-between; font-size: 11px;">
+                    <span>toplam çekim:</span>
+                    <span>{{ source.fetch_count }}</span>
+                </div>
+                <div style="display: flex; justify-content: space-between; font-size: 11px;">
+                    <span>hata sayısı:</span>
+                    <span style="color: {% if source.error_count > 0 %}#ff4444{% else %}var(--green){% endif %};">
+                        {{ source.error_count }}
+                    </span>
+                </div>
+                {% if source.last_fetch %}
+                <div style="display: flex; justify-content: space-between; font-size: 11px;">
+                    <span>son çekim:</span>
+                    <span>{{ source.last_fetch|timesince }} önce</span>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+
+<!-- Active Alerts -->
+{% if active_zones %}
+<div class="section">
+    <div class="section-header">
+        <h2>aktif uyarılar</h2>
+    </div>
+    
+    {% for zone in active_zones %}
+    <div class="alert alert-danger">
+        <strong>{{ zone.name }}</strong> - Seviye: {{ zone.severity }}
+        <div style="font-size: 11px; margin-top: 5px;">
+            {{ zone.declared_at|timesince }} önce ilan edildi
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{% endif %}
+
+<!-- Custom Confirmation Popup -->
+<div id="confirmPopup" class="confirm-popup" style="display: none;">
+    <div class="popup-content">
+        <div class="popup-header">
+            <span class="popup-icon">⚠️</span>
+            <h3 id="popupTitle">veri çekme onayı</h3>
+        </div>
+        <div class="popup-body">
+            <p id="popupMessage">tüm kaynaklardan veri çekmek istiyor musunuz?</p>
+        </div>
+        <div class="popup-footer">
+            <button class="btn-cancel" onclick="closePopup()">iptal</button>
+            <button class="btn-confirm" id="confirmButton">onayla</button>
+        </div>
+    </div>
+</div>
+
+<!-- Success Popup -->
+<div id="successPopup" class="confirm-popup" style="display: none;">
+    <div class="popup-content">
+        <div class="popup-header">
+            <span class="popup-icon">✅</span>
+            <h3>başarılı</h3>
+        </div>
+        <div class="popup-body">
+            <p id="successMessage">veri çekme işlemi başlatıldı</p>
+        </div>
+        <div class="popup-footer">
+            <button class="btn-confirm" onclick="closeSuccessPopup()">tamam</button>
+        </div>
+    </div>
+</div>
+
+<style>
+.confirm-popup {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.7);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 10000;
+}
+
+.popup-content {
+    background: #1a1a1a;
+    border: 2px solid #00ff00;
+    border-radius: 0;
+    padding: 0;
+    width: 400px;
+    font-family: 'Courier New', monospace;
+    box-shadow: 0 0 20px rgba(0, 255, 0, 0.3);
+}
+
+.popup-header {
+    background: #0a0a0a;
+    padding: 15px;
+    border-bottom: 1px solid #00ff00;
+    text-align: center;
+}
+
+.popup-icon {
+    font-size: 24px;
+    display: block;
+    margin-bottom: 10px;
+}
+
+.popup-header h3 {
+    color: #00ff00;
+    margin: 0;
+    font-size: 16px;
+    text-transform: lowercase;
+}
+
+.popup-body {
+    padding: 20px;
+    text-align: center;
+}
+
+.popup-body p {
+    color: #00ff00;
+    margin: 0;
+    font-size: 14px;
+}
+
+.popup-footer {
+    padding: 15px;
+    border-top: 1px solid #00ff00;
+    display: flex;
+    justify-content: space-around;
+}
+
+.btn-cancel, .btn-confirm {
+    padding: 8px 20px;
+    border: 1px solid #00ff00;
+    background: #0a0a0a;
+    color: #00ff00;
+    cursor: pointer;
+    font-family: 'Courier New', monospace;
+    font-size: 12px;
+    text-transform: lowercase;
+}
+
+.btn-cancel:hover {
+    background: #1a1a1a;
+}
+
+.btn-confirm {
+    background: #00ff00;
+    color: #0a0a0a;
+}
+
+.btn-confirm:hover {
+    background: #00cc00;
+}
+</style>
+
+<script>
+function refreshData() {
+    location.reload();
+}
+
+function showPopup(title, message, onConfirm) {
+    document.getElementById('popupTitle').textContent = title;
+    document.getElementById('popupMessage').textContent = message;
+    document.getElementById('confirmPopup').style.display = 'flex';
+    
+    document.getElementById('confirmButton').onclick = function() {
+        if (onConfirm) {
+            onConfirm();
+        }
+        closePopup();
+    };
+}
+
+function closePopup() {
+    document.getElementById('confirmPopup').style.display = 'none';
+}
+
+function showSuccessPopup(message) {
+    document.getElementById('successMessage').textContent = message;
+    document.getElementById('successPopup').style.display = 'flex';
+    setTimeout(() => {
+        closeSuccessPopup();
+        location.reload();
+    }, 2000);
+}
+
+function closeSuccessPopup() {
+    document.getElementById('successPopup').style.display = 'none';
+}
+
+function startDataFetch() {
+    showPopup(
+        'veri çekme onayı',
+        'tüm kaynaklardan veri çekmek istiyor musunuz?',
+        function() {
+            fetch('{% url "birlikteyiz:manual_fetch" %}', {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': '{{ csrf_token }}'
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    showSuccessPopup('veri çekme işlemi başlatıldı');
+                } else {
+                    showPopup('hata', 'hata: ' + data.error, null);
+                }
+            });
+        }
+    );
+}
+</script>
+
+{% endblock %}

@@ -57,31 +57,64 @@ THIRD_PARTY_APPS = [
     'django_celery_beat',  # Celery Beat database scheduler
 ]
 
-LOCAL_APPS = [
+CORE_APPS = [
     'apps.core',  # Core models - MUST be first
-    'apps.authentication',
-    'apps.users',  # Custom User model with UUID
-    'apps.currencies',
-    'apps.personal_inflation',
-    'apps.recaria',
-    'apps.birlikteyiz',
-    'apps.common',
-    'apps.web_ui',
-    'apps.cctv',
-    'apps.documents',  # Document management module
-    'apps.version_manager',  # Version archive management
-    'apps.administration',  # Administration module for user/role management
-    'apps.solitaire',  # Solitaire game with session tracking
-    'apps.movies',  # Movies and series collection management
-    'apps.music',  # Music collection with Spotify integration
-    'apps.restopos',  # Restaurant POS system
-    'apps.wimm',  # Where Is My Money - Personal finance tracker
-    'apps.wims',  # Where Is My Stuff - Inventory management
-    'store',  # Store - Marketplace Integration & Order Management
-    'apps.logging',  # System and activity logging
 ]
 
-INSTALLED_APPS = DJANGO_APPS + THIRD_PARTY_APPS + LOCAL_APPS
+UNIBOS_SYSTEM_APPS = [
+    # Module registry must be loaded early to discover modules
+    # Note: module_registry symlink exists at apps/web/backend/core/
+    # but we're referencing the original location
+    'core.backend.core_apps.module_registry',  # UNIBOS Module Registry
+]
+
+UNIBOS_MODULES = [
+    # New modular architecture - modules from modules/ directory
+    'modules.birlikteyiz.backend',  # Emergency mesh network (reference implementation)
+    'modules.documents.backend',  # OCR and document management system
+    'modules.currencies.backend',  # Currency tracking and portfolio management
+    'modules.personal_inflation.backend',  # Personal inflation tracking
+    'modules.recaria.backend',  # Medieval consciousness exploration MMORPG
+    'modules.cctv.backend',  # Security camera management system
+    'modules.movies.backend',  # Movie and TV series collection
+    'modules.music.backend',  # Music collection with Spotify integration
+    'modules.restopos.backend',  # Restaurant POS system
+    'modules.wimm.backend',  # Where Is My Money - Personal finance tracker
+    'modules.wims.backend',  # Where Is My Stuff - Inventory management
+    'modules.solitaire.backend',  # Solitaire game with session tracking
+    'modules.version_manager.backend',  # Version archive management
+    'modules.administration.backend',  # Administration module for user/role management
+    'modules.logging.backend',  # System and activity logging
+]
+
+LOCAL_APPS = [
+    # Legacy apps from apps/web/backend/apps/ directory
+    # Apps commented out have been migrated to modules/ structure
+    'apps.authentication',
+    'apps.users',  # Custom User model with UUID
+    'apps.common',
+    'apps.web_ui',
+    'store',  # Store - Marketplace Integration & Order Management
+
+    # === MIGRATED TO MODULES/ ===
+    # 'apps.currencies',  # MIGRATED to modules/currencies/
+    # 'apps.personal_inflation',  # MIGRATED to modules/personal_inflation/
+    # 'apps.recaria',  # MIGRATED to modules/recaria/
+    # 'apps.birlikteyiz',  # MIGRATED to modules/birlikteyiz/
+    # 'apps.cctv',  # MIGRATED to modules/cctv/
+    # 'apps.documents',  # MIGRATED to modules/documents/
+    # 'apps.version_manager',  # MIGRATED to modules/version_manager/
+    # 'apps.administration',  # MIGRATED to modules/administration/
+    # 'apps.solitaire',  # MIGRATED to modules/solitaire/
+    # 'apps.movies',  # MIGRATED to modules/movies/
+    # 'apps.music',  # MIGRATED to modules/music/
+    # 'apps.restopos',  # MIGRATED to modules/restopos/
+    # 'apps.wimm',  # MIGRATED to modules/wimm/
+    # 'apps.wims',  # MIGRATED to modules/wims/
+    # 'apps.logging',  # MIGRATED to modules/logging/
+]
+
+INSTALLED_APPS = DJANGO_APPS + THIRD_PARTY_APPS + CORE_APPS + UNIBOS_SYSTEM_APPS + UNIBOS_MODULES + LOCAL_APPS
 
 MIDDLEWARE = [
     'django_prometheus.middleware.PrometheusBeforeMiddleware',  # Must be first
@@ -224,6 +257,21 @@ STATICFILES_DIRS = [
 MEDIA_URL = '/media/'
 DATA_DIR = BASE_DIR.parent.parent.parent / 'data'
 MEDIA_ROOT = DATA_DIR / 'runtime' / 'media'
+
+# UNIBOS Module System Configuration
+# Project root directory (contains modules/, core/, shared/)
+PROJECT_ROOT = BASE_DIR.parent.parent.parent
+MODULES_DIR = PROJECT_ROOT / 'modules'
+
+# Add UNIBOS project root to Python path (for core/ and modules/ imports)
+import sys
+if str(PROJECT_ROOT) not in sys.path:
+    sys.path.insert(0, str(PROJECT_ROOT))
+
+# Add shared Python SDK to path for UNIBOS modules
+SDK_PATH = PROJECT_ROOT / 'shared' / 'python'
+if SDK_PATH.exists() and str(SDK_PATH) not in sys.path:
+    sys.path.insert(0, str(SDK_PATH))
 
 # Default primary key field type
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
