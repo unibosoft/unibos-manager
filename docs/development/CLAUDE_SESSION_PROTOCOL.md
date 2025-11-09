@@ -153,7 +153,7 @@ Her kod değişikliğinde:
 
 Versiyonlama yapılacaksa:
 
-1. **[VERSIONING_WORKFLOW.md](../../VERSIONING_WORKFLOW.md)** ← Hızlı workflow
+1. **[VERSIONING_WORKFLOW.md](VERSIONING_WORKFLOW.md)** ← Hızlı workflow
 2. **[VERSIONING_RULES.md](VERSIONING_RULES.md)** ← Detaylı kurallar
 3. **Script kullan:** `./tools/scripts/unibos_version.sh`
 

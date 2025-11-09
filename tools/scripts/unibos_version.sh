@@ -17,7 +17,7 @@
 #   8. Yeni versiyon değişikliğini commit et
 #
 # Detaylı kurallar: docs/development/VERSIONING_RULES.md
-# Hızlı referans: VERSIONING_WORKFLOW.md
+# Hızlı referans: docs/development/VERSIONING_WORKFLOW.md
 
 set -e
 

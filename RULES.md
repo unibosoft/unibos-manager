@@ -77,7 +77,7 @@ Ne üzerinde çalışmamı istersin?
 ## 📂 KURAL DOSYALARI - BURAYA GIT!
 
 ### Versiyonlama Yapacaksan:
-1. **[VERSIONING_WORKFLOW.md](VERSIONING_WORKFLOW.md)** ← Hızlı workflow özeti
+1. **[docs/development/VERSIONING_WORKFLOW.md](docs/development/VERSIONING_WORKFLOW.md)** ← Hızlı workflow özeti
 2. **[docs/development/VERSIONING_RULES.md](docs/development/VERSIONING_RULES.md)** ← Detaylı kurallar
 3. **Script:** `./tools/scripts/unibos_version.sh`
 
@@ -102,9 +102,8 @@ Ne üzerinde çalışmamı istersin?
 ```
 RULES.md (bu dosya - YÖNLENDME)
     ↓
-VERSIONING_WORKFLOW.md (hızlı referans)
-    ↓
 docs/development/
+    ├── VERSIONING_WORKFLOW.md (hızlı referans)
     ├── VERSIONING_RULES.md (DETAYLI KURALLAR - BURAYA GIT!)
     ├── DEVELOPMENT_LOG.md
     └── [diğer dokümanlar]

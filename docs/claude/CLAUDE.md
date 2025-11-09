@@ -11,9 +11,8 @@ UNIBOS uses a hierarchical rule system that prevents rules from degrading over t
 ```
 RULES.md (Ana dizin - Yönlendirme)
     ↓
-VERSIONING_WORKFLOW.md (Hızlı referans)
-    ↓
 docs/development/
+    ├── VERSIONING_WORKFLOW.md (Hızlı referans)
     ├── VERSIONING_RULES.md (Detaylı kurallar)
     ├── DEVELOPMENT_LOG.md (Geliştirme kaydı)
     └── [diğer dokümanlar]
@@ -40,7 +39,7 @@ tools/scripts/
 ## 📂 Detaylı Kural Dosyaları
 
 ### Versiyonlama ve Deployment:
-- **[VERSIONING_WORKFLOW.md](../../VERSIONING_WORKFLOW.md)** - Hızlı workflow özeti
+- **[VERSIONING_WORKFLOW.md](../development/VERSIONING_WORKFLOW.md)** - Hızlı workflow özeti
 - **[VERSIONING_RULES.md](../development/VERSIONING_RULES.md)** - Detaylı versiyonlama kuralları
   - Versiyonlama workflow
   - Archive exclusion kuralları
