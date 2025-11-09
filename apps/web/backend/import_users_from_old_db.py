@@ -15,7 +15,7 @@ os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'unibos_backend.settings.emergen
 django.setup()
 
 from django.contrib.auth.models import User
-from apps.core.models import UserProfile
+from modules.core.backend.models import UserProfile
 from django.db import transaction
 
 def parse_sql_insert(line, table_name):

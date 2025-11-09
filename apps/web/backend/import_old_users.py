@@ -204,7 +204,7 @@ for user in User.objects.all().order_by('id'):
 
 # Check for UserProfile or additional user data
 try:
-    from apps.users.models import UserProfile
+    from modules.users.backend.models import UserProfile
     print("\nChecking UserProfile data...")
     for user in User.objects.all():
         profile, created = UserProfile.objects.get_or_create(user=user)

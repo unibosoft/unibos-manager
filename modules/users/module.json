@@ -1,0 +1,90 @@
+{
+  "id": "users",
+  "name": "Users",
+  "display_name": {
+    "tr": "Kullanıcılar",
+    "en": "Users"
+  },
+  "version": "1.0.0",
+  "description": "Custom user model with UUID support and extended profile fields",
+  "icon": "👥",
+  "author": "Berk Hatırlı",
+
+  "capabilities": {
+    "backend": true,
+    "web": false,
+    "mobile": false,
+    "cli": false,
+    "realtime": false
+  },
+
+  "dependencies": {
+    "core_modules": [],
+    "python_packages": [
+      "djangorestframework",
+      "pillow"
+    ],
+    "system_requirements": [
+      "postgresql"
+    ]
+  },
+
+  "database": {
+    "uses_shared_db": true,
+    "tables_prefix": "users_",
+    "models": [
+      "User"
+    ]
+  },
+
+  "api": {
+    "base_path": "/api/v1/users/",
+    "endpoints": [
+      {
+        "path": "me/",
+        "methods": ["GET", "PUT", "PATCH"],
+        "public": false,
+        "auth_required": true
+      },
+      {
+        "path": "users/",
+        "methods": ["GET"],
+        "public": false,
+        "auth_required": true
+      },
+      {
+        "path": "users/<uuid:pk>/",
+        "methods": ["GET", "PUT", "PATCH"],
+        "public": false,
+        "auth_required": true
+      }
+    ]
+  },
+
+  "permissions": [
+    "users.view_user",
+    "users.add_user",
+    "users.change_user",
+    "users.delete_user"
+  ],
+
+  "integration": {
+    "sidebar": {
+      "enabled": false
+    }
+  },
+
+  "features": {
+    "uuid_primary_key": true,
+    "avatar_uploads": true,
+    "profile_fields": true,
+    "timezone_support": true,
+    "multi_language": true
+  },
+
+  "development": {
+    "repository": "https://github.com/berkhatira/unibos",
+    "documentation": "",
+    "maintainer": "berk@berkhatirli.com"
+  }
+}

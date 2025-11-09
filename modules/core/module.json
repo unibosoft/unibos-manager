@@ -1,0 +1,73 @@
+{
+  "id": "core",
+  "name": "Core",
+  "display_name": {
+    "tr": "Çekirdek",
+    "en": "Core"
+  },
+  "version": "1.0.0",
+  "description": "Core application functionality including authentication, user management, and shared models",
+  "icon": "⚙️",
+  "author": "Berk Hatırlı",
+
+  "capabilities": {
+    "backend": true,
+    "web": false,
+    "mobile": false,
+    "cli": false,
+    "realtime": false
+  },
+
+  "dependencies": {
+    "core_modules": ["authentication", "users"],
+    "python_packages": [
+      "djangorestframework",
+      "django-environ"
+    ],
+    "system_requirements": [
+      "postgresql"
+    ]
+  },
+
+  "database": {
+    "uses_shared_db": true,
+    "tables_prefix": "core_",
+    "models": [
+      "UserProfile"
+    ]
+  },
+
+  "api": {
+    "base_path": "/api/v1/",
+    "endpoints": [
+      {
+        "path": "profile/",
+        "methods": ["GET", "PUT", "PATCH"],
+        "public": false,
+        "auth_required": true
+      }
+    ]
+  },
+
+  "permissions": [
+    "core.view_userprofile",
+    "core.change_userprofile"
+  ],
+
+  "integration": {
+    "sidebar": {
+      "enabled": false
+    }
+  },
+
+  "features": {
+    "user_profiles": true,
+    "shared_models": true
+  },
+
+  "development": {
+    "repository": "https://github.com/berkhatira/unibos",
+    "documentation": "",
+    "maintainer": "berk@berkhatirli.com"
+  }
+}

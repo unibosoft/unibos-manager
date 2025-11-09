@@ -212,7 +212,7 @@ class ModuleView(BaseUIView):
 
         # Call the WIMM dashboard view logic
         if self.request.user.is_authenticated:
-            from apps.core.models import Account
+            from modules.core.backend.models import Account
             from modules.wimm.backend.models import Transaction, Invoice, Budget
             from django.db.models import Sum
             from django.utils import timezone
@@ -268,7 +268,7 @@ class ModuleView(BaseUIView):
         """Get WIMS-specific context data"""
         if self.request.user.is_authenticated:
             from modules.wims.backend.models import Warehouse, StockItem, StockMovement
-            from apps.core.models import Item
+            from modules.core.backend.models import Item
             from django.db.models import Sum, Count, F
             
             warehouses = Warehouse.objects.filter(user=self.request.user)
@@ -740,7 +740,7 @@ class ProfileView(BaseUIView):
         # Get user profile if it exists
         profile = None
         try:
-            from apps.core.models import UserProfile
+            from modules.core.backend.models import UserProfile
             profile = UserProfile.objects.filter(user=self.request.user).first()
             if not profile:
                 # Create profile if it doesn't exist
@@ -777,7 +777,7 @@ class SettingsView(BaseUIView):
         # Get user profile if it exists
         profile = None
         try:
-            from apps.core.models import UserProfile
+            from modules.core.backend.models import UserProfile
             profile = UserProfile.objects.filter(user=self.request.user).first()
         except:
             # UserProfile model might not exist

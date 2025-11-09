@@ -16,7 +16,7 @@ import csv
 import logging
 
 from .models import Document
-from apps.web_ui.views import BaseUIView
+from modules.web_ui.backend.views import BaseUIView
 
 logger = logging.getLogger('documents.bulk')
 

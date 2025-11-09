@@ -1,0 +1,65 @@
+{
+  "id": "common",
+  "name": "Common",
+  "display_name": {
+    "tr": "Ortak",
+    "en": "Common"
+  },
+  "version": "1.0.0",
+  "description": "Shared utilities, middleware, exception handlers, and common functionality",
+  "icon": "🔧",
+  "author": "Berk Hatırlı",
+
+  "capabilities": {
+    "backend": true,
+    "web": false,
+    "mobile": false,
+    "cli": false,
+    "realtime": false
+  },
+
+  "dependencies": {
+    "core_modules": [],
+    "python_packages": [
+      "djangorestframework"
+    ],
+    "system_requirements": [
+      "redis"
+    ]
+  },
+
+  "database": {
+    "uses_shared_db": false,
+    "tables_prefix": "",
+    "models": []
+  },
+
+  "api": {
+    "base_path": "/",
+    "endpoints": []
+  },
+
+  "permissions": [],
+
+  "integration": {
+    "sidebar": {
+      "enabled": false
+    }
+  },
+
+  "features": {
+    "middleware": true,
+    "exception_handlers": true,
+    "pagination": true,
+    "throttling": true,
+    "activity_tracking": true,
+    "security_headers": true,
+    "rate_limiting": true
+  },
+
+  "development": {
+    "repository": "https://github.com/berkhatira/unibos",
+    "documentation": "",
+    "maintainer": "berk@berkhatirli.com"
+  }
+}

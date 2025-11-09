@@ -58,7 +58,7 @@ THIRD_PARTY_APPS = [
 ]
 
 CORE_APPS = [
-    'apps.core',  # Core models - MUST be first
+    'modules.core.backend',  # Core models - MUST be first (MIGRATED from apps.core)
 ]
 
 UNIBOS_SYSTEM_APPS = [
@@ -88,15 +88,20 @@ UNIBOS_MODULES = [
 ]
 
 LOCAL_APPS = [
-    # Legacy apps from apps/web/backend/apps/ directory
-    # Apps commented out have been migrated to modules/ structure
-    'apps.authentication',
-    'apps.users',  # Custom User model with UUID
-    'apps.common',
-    'apps.web_ui',
-    'store',  # Store - Marketplace Integration & Order Management
+    # All apps migrated to modules/ structure
+    'modules.authentication.backend',  # MIGRATED from apps.authentication
+    'modules.users.backend',  # Custom User model with UUID - MIGRATED from apps.users
+    'modules.common.backend',  # MIGRATED from apps.common
+    'modules.web_ui.backend',  # MIGRATED from apps.web_ui
+    'modules.store.backend',  # Store - Marketplace Integration & Order Management - MIGRATED from store
 
-    # === MIGRATED TO MODULES/ ===
+    # === ALL APPS SUCCESSFULLY MIGRATED TO MODULES/ ===
+    # 'apps.core',  # MIGRATED to modules/core/
+    # 'apps.authentication',  # MIGRATED to modules/authentication/
+    # 'apps.users',  # MIGRATED to modules/users/
+    # 'apps.common',  # MIGRATED to modules/common/
+    # 'apps.web_ui',  # MIGRATED to modules/web_ui/
+    # 'store',  # MIGRATED to modules/store/
     # 'apps.currencies',  # MIGRATED to modules/currencies/
     # 'apps.personal_inflation',  # MIGRATED to modules/personal_inflation/
     # 'apps.recaria',  # MIGRATED to modules/recaria/
@@ -127,15 +132,15 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
-    'apps.common.middleware.SecurityHeadersMiddleware',
-    'apps.common.middleware.RequestLoggingMiddleware',
-    'apps.common.middleware.RateLimitMiddleware',
-    'apps.web_ui.middleware.SolitaireSecurityMiddleware',  # Solitaire screen lock security
-    'apps.web_ui.middleware_navigation.NavigationTrackingMiddleware',  # Track last visited page
-    'apps.common.middleware_activity.UserActivityMiddleware',  # Track user activity
-    'apps.common.middleware_activity.APIActivityMiddleware',  # Track API activity
-    'apps.logging.middleware.SystemLoggingMiddleware',  # System logging
-    'apps.logging.middleware.ActivityLoggingMiddleware',  # Activity logging
+    'modules.common.backend.middleware.SecurityHeadersMiddleware',
+    'modules.common.backend.middleware.RequestLoggingMiddleware',
+    'modules.common.backend.middleware.RateLimitMiddleware',
+    'modules.web_ui.backend.middleware.SolitaireSecurityMiddleware',  # Solitaire screen lock security
+    'modules.web_ui.backend.middleware_navigation.NavigationTrackingMiddleware',  # Track last visited page
+    'modules.common.backend.middleware_activity.UserActivityMiddleware',  # Track user activity
+    'modules.common.backend.middleware_activity.APIActivityMiddleware',  # Track API activity
+    'modules.logging.backend.middleware.SystemLoggingMiddleware',  # System logging
+    'modules.logging.backend.middleware.ActivityLoggingMiddleware',  # Activity logging
     'django_prometheus.middleware.PrometheusAfterMiddleware',  # Must be last
 ]
 
@@ -153,9 +158,9 @@ TEMPLATES = [
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
                 # UNIBOS custom context processors
-                'apps.web_ui.context_processors.sidebar_context',
-                'apps.web_ui.context_processors.version_context',
-                'apps.web_ui.context_processors.unibos_context',
+                'modules.web_ui.backend.context_processors.sidebar_context',
+                'modules.web_ui.backend.context_processors.version_context',
+                'modules.web_ui.backend.context_processors.unibos_context',
             ],
         },
     },
@@ -227,7 +232,7 @@ AUTH_PASSWORD_VALIDATORS = [
         'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator',
     },
     {
-        'NAME': 'apps.authentication.validators.CustomPasswordValidator',
+        'NAME': 'modules.authentication.backend.validators.CustomPasswordValidator',
     },
 ]
 
@@ -297,10 +302,10 @@ REST_FRAMEWORK = {
         'rest_framework.filters.SearchFilter',
         'rest_framework.filters.OrderingFilter',
     ],
-    'DEFAULT_PAGINATION_CLASS': 'apps.common.pagination.StandardResultsSetPagination',
+    'DEFAULT_PAGINATION_CLASS': 'modules.common.backend.pagination.StandardResultsSetPagination',
     'PAGE_SIZE': 20,
     'DEFAULT_SCHEMA_CLASS': 'drf_spectacular.openapi.AutoSchema',
-    'EXCEPTION_HANDLER': 'apps.common.exceptions.custom_exception_handler',
+    'EXCEPTION_HANDLER': 'modules.common.backend.exceptions.custom_exception_handler',
     'DEFAULT_THROTTLE_CLASSES': [
         'rest_framework.throttling.AnonRateThrottle',
         'rest_framework.throttling.UserRateThrottle',
@@ -378,39 +383,39 @@ CELERY_WORKER_MAX_TASKS_PER_CHILD = 1000
 # Celery Beat Schedule
 CELERY_BEAT_SCHEDULE = {
     'cleanup-expired-tokens': {
-        'task': 'apps.authentication.tasks.cleanup_expired_tokens',
+        'task': 'modules.authentication.backend.tasks.cleanup_expired_tokens',
         'schedule': timedelta(hours=24),
     },
     'update-currency-rates': {
-        'task': 'apps.currencies.tasks.update_currency_rates',
+        'task': 'modules.currencies.backend.tasks.update_currency_rates',
         'schedule': timedelta(minutes=30),
     },
     'calculate-personal-inflation': {
-        'task': 'apps.personal_inflation.tasks.calculate_monthly_inflation',
+        'task': 'modules.personal_inflation.backend.tasks.calculate_monthly_inflation',
         'schedule': timedelta(days=1),
     },
     'import-firebase-rates-incremental': {
-        'task': 'apps.currencies.tasks.import_firebase_rates_incremental',
+        'task': 'modules.currencies.backend.tasks.import_firebase_rates_incremental',
         'schedule': timedelta(minutes=5),  # Check for new rates every 5 minutes
     },
     'check-currency-alerts': {
-        'task': 'apps.currencies.tasks.check_currency_alerts',
+        'task': 'modules.currencies.backend.tasks.check_currency_alerts',
         'schedule': timedelta(minutes=5),  # Check alerts every 5 minutes
     },
     'cleanup-old-bank-rates': {
-        'task': 'apps.currencies.tasks.cleanup_old_bank_rates',
+        'task': 'modules.currencies.backend.tasks.cleanup_old_bank_rates',
         'schedule': timedelta(days=7),  # Weekly cleanup
     },
     'generate-market-data': {
-        'task': 'apps.currencies.tasks.generate_market_data',
+        'task': 'modules.currencies.backend.tasks.generate_market_data',
         'schedule': timedelta(hours=1),  # Generate hourly market data
     },
     'calculate-portfolio-performance': {
-        'task': 'apps.currencies.tasks.calculate_portfolio_performance',
+        'task': 'modules.currencies.backend.tasks.calculate_portfolio_performance',
         'schedule': timedelta(minutes=15),  # Update portfolio metrics
     },
     'fetch-earthquakes': {
-        'task': 'birlikteyiz.fetch_earthquakes',
+        'task': 'modules.birlikteyiz.backend.tasks.fetch_earthquakes',
         'schedule': timedelta(minutes=5),  # Fetch earthquake data every 5 minutes
     },
 }

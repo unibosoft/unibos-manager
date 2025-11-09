@@ -32,9 +32,9 @@ urlpatterns = [
     path(f'{API_V1_PREFIX}schema/redoc/', SpectacularRedocView.as_view(url_name='schema'), name='redoc'),
     
     # API URLs
-    path(f'{API_V1_PREFIX}', include('apps.core.urls')),  # Core auth/profile
-    path(f'{API_V1_PREFIX}auth/', include('apps.authentication.urls')),
-    path(f'{API_V1_PREFIX}users/', include('apps.users.urls')),
+    path(f'{API_V1_PREFIX}', include('modules.core.backend.urls')),  # Core auth/profile
+    path(f'{API_V1_PREFIX}auth/', include('modules.authentication.backend.urls')),
+    path(f'{API_V1_PREFIX}users/', include('modules.users.backend.urls')),
     path(f'{API_V1_PREFIX}currencies/', include('modules.currencies.backend.urls')),
     # path(f'{API_V1_PREFIX}inflation/', include('modules.personal_inflation.backend.urls')),
     # API URLs don't need namespace since they're already defined in main URLs
@@ -51,7 +51,7 @@ urlpatterns = [
     path('documents/', include('modules.documents.backend.urls', namespace='documents')),
 
     # Store Module - Marketplace Integration & Order Management
-    path('store/', include('store.urls', namespace='store')),
+    path('store/', include('modules.store.backend.urls', namespace='store')),
 
     # Version Manager Module
     path('version-manager/', include('modules.version_manager.backend.urls', namespace='version_manager')),
@@ -99,7 +99,7 @@ urlpatterns = [
     ), name='api-root'),
     
     # Web UI - Terminal-style interface (includes solitaire at /solitaire/)
-    path('', include('apps.web_ui.urls')),
+    path('', include('modules.web_ui.backend.urls')),
     
     # Solitaire Game Module API endpoints
     # Note: /solitaire/ is handled by web_ui, this is just for API
@@ -118,10 +118,10 @@ if settings.DEBUG:
     # ] + urlpatterns
 
 # Custom error handlers
-handler400 = 'apps.common.views.bad_request'
-handler403 = 'apps.common.views.permission_denied'
-handler404 = 'apps.common.views.not_found'
-handler500 = 'apps.common.views.server_error'
+handler400 = 'modules.common.backend.views.bad_request'
+handler403 = 'modules.common.backend.views.permission_denied'
+handler404 = 'modules.common.backend.views.not_found'
+handler500 = 'modules.common.backend.views.server_error'
 
 # Admin customization
 admin.site.site_header = "UNIBOS Administration"

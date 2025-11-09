@@ -1,0 +1,114 @@
+{
+  "id": "authentication",
+  "name": "Authentication",
+  "display_name": {
+    "tr": "Kimlik Doğrulama",
+    "en": "Authentication"
+  },
+  "version": "1.0.0",
+  "description": "User authentication and authorization system with JWT support",
+  "icon": "🔐",
+  "author": "Berk Hatırlı",
+
+  "capabilities": {
+    "backend": true,
+    "web": false,
+    "mobile": false,
+    "cli": false,
+    "realtime": false
+  },
+
+  "dependencies": {
+    "core_modules": ["users"],
+    "python_packages": [
+      "djangorestframework",
+      "djangorestframework-simplejwt",
+      "django-cors-headers"
+    ],
+    "system_requirements": [
+      "postgresql",
+      "redis"
+    ]
+  },
+
+  "database": {
+    "uses_shared_db": true,
+    "tables_prefix": "auth_",
+    "models": [
+      "EmailAccount"
+    ]
+  },
+
+  "api": {
+    "base_path": "/api/v1/auth/",
+    "endpoints": [
+      {
+        "path": "login/",
+        "methods": ["POST"],
+        "public": true,
+        "auth_required": false
+      },
+      {
+        "path": "logout/",
+        "methods": ["POST"],
+        "public": false,
+        "auth_required": true
+      },
+      {
+        "path": "register/",
+        "methods": ["POST"],
+        "public": true,
+        "auth_required": false
+      },
+      {
+        "path": "token/refresh/",
+        "methods": ["POST"],
+        "public": true,
+        "auth_required": false
+      },
+      {
+        "path": "password/change/",
+        "methods": ["POST"],
+        "public": false,
+        "auth_required": true
+      },
+      {
+        "path": "password/reset/",
+        "methods": ["POST"],
+        "public": true,
+        "auth_required": false
+      }
+    ]
+  },
+
+  "permissions": [
+    "authentication.view_emailaccount",
+    "authentication.add_emailaccount",
+    "authentication.change_emailaccount",
+    "authentication.delete_emailaccount"
+  ],
+
+  "celery_tasks": [
+    "cleanup_expired_tokens",
+    "sync_email_accounts"
+  ],
+
+  "integration": {
+    "sidebar": {
+      "enabled": false
+    }
+  },
+
+  "features": {
+    "jwt_authentication": true,
+    "password_reset": true,
+    "email_verification": true,
+    "two_factor_auth": false
+  },
+
+  "development": {
+    "repository": "https://github.com/berkhatira/unibos",
+    "documentation": "",
+    "maintainer": "berk@berkhatirli.com"
+  }
+}

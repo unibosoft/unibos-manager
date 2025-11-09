@@ -1,0 +1,105 @@
+{
+  "id": "store",
+  "name": "Store",
+  "display_name": {
+    "tr": "Mağaza",
+    "en": "Store"
+  },
+  "version": "1.0.0",
+  "description": "Marketplace integration and order management with SentOS API integration",
+  "icon": "🛒",
+  "author": "Berk Hatırlı",
+
+  "capabilities": {
+    "backend": true,
+    "web": true,
+    "mobile": false,
+    "cli": false,
+    "realtime": false
+  },
+
+  "dependencies": {
+    "core_modules": ["authentication", "users"],
+    "python_packages": [
+      "djangorestframework",
+      "requests"
+    ],
+    "system_requirements": [
+      "postgresql"
+    ]
+  },
+
+  "database": {
+    "uses_shared_db": true,
+    "tables_prefix": "store_",
+    "models": [
+      "Product",
+      "Order",
+      "OrderItem",
+      "Cart",
+      "CartItem",
+      "Marketplace"
+    ]
+  },
+
+  "api": {
+    "base_path": "/store/",
+    "endpoints": [
+      {
+        "path": "products/",
+        "methods": ["GET"],
+        "public": false,
+        "auth_required": true
+      },
+      {
+        "path": "orders/",
+        "methods": ["GET", "POST"],
+        "public": false,
+        "auth_required": true
+      },
+      {
+        "path": "cart/",
+        "methods": ["GET", "POST", "PUT", "DELETE"],
+        "public": false,
+        "auth_required": true
+      }
+    ]
+  },
+
+  "permissions": [
+    "store.view_product",
+    "store.add_order",
+    "store.view_order",
+    "store.change_order",
+    "store.view_cart",
+    "store.change_cart"
+  ],
+
+  "integration": {
+    "sidebar": {
+      "enabled": true,
+      "position": 10,
+      "category": "commerce"
+    },
+    "dashboard_widgets": [
+      {
+        "id": "recent_orders",
+        "title": "Recent Orders",
+        "size": "medium"
+      }
+    ]
+  },
+
+  "features": {
+    "marketplace_integration": true,
+    "sentos_api": true,
+    "cart_management": true,
+    "order_tracking": true
+  },
+
+  "development": {
+    "repository": "https://github.com/berkhatira/unibos",
+    "documentation": "",
+    "maintainer": "berk@berkhatirli.com"
+  }
+}

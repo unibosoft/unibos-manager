@@ -108,7 +108,7 @@ class Command(BaseCommand):
         profile_match = re.search(profile_pattern, content, re.DOTALL)
         
         if profile_match:
-            from apps.core.models import UserProfile
+            from modules.core.backend.models import UserProfile
             
             profiles_data = profile_match.group(1)
             profile_records = profiles_data.split('),(')

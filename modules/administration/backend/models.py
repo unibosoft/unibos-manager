@@ -3,7 +3,7 @@ from django.contrib.auth.models import Group, Permission
 from django.contrib.contenttypes.models import ContentType
 from django.conf import settings
 from django.contrib.auth.hashers import make_password, check_password
-from apps.core.models import BaseModel
+from modules.core.backend.models import BaseModel
 import json
 
 

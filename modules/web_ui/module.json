@@ -1,0 +1,117 @@
+{
+  "id": "web_ui",
+  "name": "Web UI",
+  "display_name": {
+    "tr": "Web Arayüzü",
+    "en": "Web Interface"
+  },
+  "version": "1.0.0",
+  "description": "Terminal-style web interface for UNIBOS with navigation, sidebar, and solitaire game integration",
+  "icon": "🖥️",
+  "author": "Berk Hatırlı",
+
+  "capabilities": {
+    "backend": true,
+    "web": true,
+    "mobile": false,
+    "cli": false,
+    "realtime": true
+  },
+
+  "dependencies": {
+    "core_modules": ["authentication", "users"],
+    "python_packages": [
+      "djangorestframework",
+      "channels",
+      "redis"
+    ],
+    "system_requirements": [
+      "postgresql",
+      "redis",
+      "channels"
+    ]
+  },
+
+  "database": {
+    "uses_shared_db": true,
+    "tables_prefix": "web_ui_",
+    "models": [
+      "NavigationHistory",
+      "ScreenLock",
+      "SolitaireSession"
+    ]
+  },
+
+  "api": {
+    "base_path": "/",
+    "endpoints": [
+      {
+        "path": "/",
+        "methods": ["GET"],
+        "public": false,
+        "auth_required": true
+      },
+      {
+        "path": "login/",
+        "methods": ["GET", "POST"],
+        "public": true,
+        "auth_required": false
+      },
+      {
+        "path": "dashboard/",
+        "methods": ["GET"],
+        "public": false,
+        "auth_required": true
+      },
+      {
+        "path": "solitaire/",
+        "methods": ["GET"],
+        "public": false,
+        "auth_required": true
+      }
+    ]
+  },
+
+  "permissions": [
+    "web_ui.view_navigationhistory",
+    "web_ui.view_screenlock",
+    "web_ui.change_screenlock"
+  ],
+
+  "channels": {
+    "websocket_routes": [
+      "ws/web_ui/navigation/",
+      "ws/web_ui/solitaire/"
+    ]
+  },
+
+  "integration": {
+    "sidebar": {
+      "enabled": true,
+      "position": 1,
+      "category": "system"
+    },
+    "dashboard_widgets": [
+      {
+        "id": "navigation_history",
+        "title": "Recent Pages",
+        "size": "small"
+      }
+    ]
+  },
+
+  "features": {
+    "terminal_interface": true,
+    "navigation_tracking": true,
+    "screen_lock": true,
+    "solitaire_game": true,
+    "sidebar_navigation": true,
+    "context_processors": true
+  },
+
+  "development": {
+    "repository": "https://github.com/berkhatira/unibos",
+    "documentation": "",
+    "maintainer": "berk@berkhatirli.com"
+  }
+}
