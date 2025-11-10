@@ -1,5 +1,7 @@
 # 🚀 UNIBOS Deployment Commands
 
+**Last Updated**: 2025-11-10 (v532+ Modular Structure)
+
 ## Quick One-Liner Deploy to Rocksteady
 
 ### 🎯 The Simplest Command (Recommended):
@@ -68,3 +70,33 @@ rsync -avz --exclude={.git,venv,__pycache__,archive,quarantine,*.sql,*.log,data_
 That's it! UNIBOS will be running on rocksteady. 🎉
 
 Access at: `http://rocksteady.local:8000`
+
+---
+
+## 📦 v532+ Modular Structure Notes
+
+Starting with v532, UNIBOS uses a modular architecture with 21 modules in `modules/*/backend/`:
+
+### Structure:
+```
+modules/
+├── core/backend/           # Core shared functionality
+├── web_ui/backend/         # Web interface
+├── documents/backend/      # OCR and document processing
+├── birlikteyiz/backend/    # Emergency response
+├── wimm/backend/           # Financial management
+└── ... (16 more modules)
+```
+
+### Deployment Impact:
+- **Same commands work** - rsync handles modules/ directory automatically
+- **Module configs** - Each module has its own `module.json`
+- **Migrations** - Django handles all module migrations together
+- **Static files** - Collected from all modules to `apps/web/backend/staticfiles/`
+
+### What Gets Deployed:
+✅ `modules/*/backend/` - All module backend code
+✅ `apps/web/backend/` - Django project settings
+✅ `apps/cli/` - CLI interface
+❌ `modules/*/mobile/build/` - Excluded (Flutter builds)
+❌ `archive/` - Excluded (protected)

@@ -1,5 +1,7 @@
 # quick deploy vs full deployment karşılaştırma
 
+**Last Updated**: 2025-11-10 (v532+ Modular Structure)
+
 ## ⚡ quick deploy (hızlı dağıtım)
 
 ### ne yapar:
@@ -162,4 +164,25 @@ full deployment
 ssh rocksteady "cd ~/unibos/backend && ./venv/bin/python manage.py collectstatic --noinput"
 ```
 
-last updated: 2025-08-27
+## 📦 v532+ modular structure
+
+### yeni yapı:
+- **21 modül** - `modules/*/backend/` dizininde
+- **her modül izole** - kendi backend/, mobile/, module.json dosyaları
+- **Django settings** - `apps/web/backend/` içinde kalıyor
+- **migrations** - Django tüm modül migration'larını otomatik buluyor
+
+### deployment etkisi:
+- **hiçbir değişiklik gerekmiyor** - mevcut deployment komutları çalışıyor
+- **modules/ otomatik sync** - rsync tüm modülleri gönderiyor
+- **static files** - tüm modüllerden toplanıyor
+- **boyut artışı** - v532+ için ~40-60MB (21 modül dahil)
+
+### ne deploy edilir:
+✅ `modules/*/backend/` - tüm modül backend kodları
+✅ `apps/web/backend/` - Django project settings
+✅ `apps/cli/` - CLI interface
+❌ `modules/*/mobile/build/` - Flutter build'ler excluded
+❌ `archive/` - korunuyor
+
+last updated: 2025-11-10

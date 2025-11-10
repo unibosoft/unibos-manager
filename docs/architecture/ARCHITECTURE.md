@@ -1,5 +1,7 @@
 # UNIBOS System Architecture
 
+**Last Updated**: 2025-11-10 (v532+ Modular Structure)
+
 ## Quick Navigation
 - [README.md](README.md) - Main project documentation
 - [DEVELOPMENT.md](DEVELOPMENT.md) - Development guide
@@ -17,7 +19,9 @@
 
 ## Overview
 
-UNIBOS (Unicorn Bodrum Operating System) is a modular, multi-purpose operating system platform that evolved from a simple Raspberry Pi-based system (v001) to a comprehensive enterprise-ready platform (v429). The system combines terminal-based UI with web interfaces, supporting both offline-first and cloud-connected operations.
+UNIBOS (Unicorn Bodrum Operating System) is a modular, multi-purpose operating system platform that evolved from a simple Raspberry Pi-based system (v001) to a comprehensive enterprise-ready platform (v532+). The system combines terminal-based UI with web interfaces, supporting both offline-first and cloud-connected operations.
+
+**v532+ Modular Migration**: Starting with v532, UNIBOS underwent a major architectural transformation, migrating 21 modules from the monolithic `backend/apps/` structure to an isolated modular architecture at `modules/*/backend/`, providing better separation of concerns and independent module development.
 
 ### Core Philosophy
 - **Modular Design**: Each functionality is a self-contained module
@@ -42,35 +46,66 @@ src/
 └── ui_architecture.py        # Terminal UI framework
 ```
 
-### 2. Backend System (`/backend`)
+### 2. Backend System (v532+ Modular Architecture)
 Django-based backend supporting web interfaces and APIs
 
+**v532+ Modular Structure** (21 modules):
 ```
-backend/
-├── manage.py                  # Django management
-├── apps/
-│   ├── authentication/       # JWT-based auth with 2FA
-│   ├── users/               # User management
-│   ├── currencies/          # Financial tracking
-│   ├── personal_inflation/  # Inflation calculation
-│   ├── documents/           # OCR and document management
-│   ├── wimm/               # Where Is My Money
-│   ├── wims/               # Where Is My Stuff
-│   ├── cctv/               # Camera monitoring
-│   └── recaria/            # Space exploration game
-└── unibos_backend/         # Core backend configuration
+modules/                       # Isolated module architecture
+├── core/backend/             # Core shared functionality
+├── web_ui/backend/           # Web interface
+├── authentication/backend/   # JWT-based auth with 2FA
+├── users/backend/            # User management
+├── currencies/backend/       # Financial tracking
+├── personal_inflation/backend/ # Inflation calculation
+├── documents/backend/        # OCR and document management
+├── wimm/backend/             # Where Is My Money
+├── wims/backend/             # Where Is My Stuff
+├── cctv/backend/             # Camera monitoring
+├── recaria/backend/          # Space exploration game
+├── birlikteyiz/              # Emergency communication
+│   ├── backend/             # Django backend
+│   ├── mobile/              # Flutter app
+│   └── module.json          # Module manifest
+└── ... (21 modules total)
+
+apps/web/backend/             # Django project settings
+├── manage.py                # Django management
+└── unibos_backend/          # Core backend configuration
+```
+
+**v528-v531 Legacy Structure** (for reference):
+```
+backend/apps/                 # Old monolithic structure
 ```
 
 ### 3. Archive System (`/archive`)
-Comprehensive versioning and backup system
+Comprehensive versioning and backup system with 6 organized categories
 
 ```
 archive/
-├── versions/               # 429 versions (v001 to v429)
-├── communication_logs/     # Development session logs
-├── backups/               # Automated backups
-└── reports/               # System analysis reports
+├── versions/                      # Version archives (v001 to v532+)
+│   └── unibos_v532_YYYYMMDD_HHMM/ # Full system snapshots
+├── database/                      # Database-related archives
+│   ├── backups/                  # PostgreSQL dumps
+│   ├── migrations/               # Migration history
+│   └── schemas/                  # Schema documentation
+├── code/                         # Code-specific archives
+│   ├── experiments/              # Experimental code
+│   └── deprecated/               # Deprecated features
+├── data/                         # Data archives
+│   ├── exports/                  # Data exports
+│   └── imports/                  # Data imports
+├── development/                  # Development artifacts
+│   ├── logs/                     # Communication logs
+│   ├── screenshots/              # UI screenshots
+│   └── reports/                  # Analysis reports
+└── documentation/                # Documentation archives
+    ├── old_versions/             # Previous docs
+    └── drafts/                   # Documentation drafts
 ```
+
+**Archive Size (v532+)**: ~40-60MB per version (excludes Flutter builds, database backups, static files)
 
 ## Technology Stack
 
@@ -282,11 +317,20 @@ systemctl start unibos.service
 - Document OCR system
 - Advanced role management
 
-### Phase 5: Optimization (v351-v429)
+### Phase 5: Optimization (v351-v531)
 - Performance improvements
 - UI/UX refinements
 - Bug fixes and stability
 - Archive system enhancement
+- OCR capabilities expanded (MiniCPM-v 2.6)
+
+### Phase 6: Modular Architecture (v532+)
+- 21 modules migrated to `modules/*/backend/` structure
+- Enhanced module isolation and independence
+- Module manifest system (module.json)
+- 6-category archive organization
+- Improved deployment workflow
+- Better separation of concerns between core and modules
 
 ## Performance Metrics
 
@@ -340,6 +384,6 @@ UNIBOS represents a unique approach to creating a comprehensive operating system
 
 ---
 
-*Last Updated: 2025-08-12*  
-*Version: Architecture Document v2.0*  
-*Current UNIBOS Version: v446+*
+*Last Updated: 2025-11-10*
+*Version: Architecture Document v3.0*
+*Current UNIBOS Version: v532+ (Modular Architecture)*

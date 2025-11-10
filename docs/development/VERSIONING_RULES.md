@@ -18,11 +18,13 @@ This document defines strict rules for version management and archiving to preve
 #### Build Artifacts & Dependencies
 - `venv/` - Python virtual environments
 - `node_modules/` - Node.js dependencies
-- `apps/mobile/*/build/` - Flutter build outputs (~1.5GB)
-- `apps/mobile/*/.dart_tool/` - Dart tooling cache
-- `apps/mobile/*/.flutter-plugins*` - Flutter plugin files
+- `modules/*/mobile/build/` - Flutter build outputs (~1.5GB)
+- `modules/*/mobile/.dart_tool/` - Dart tooling cache
+- `modules/*/mobile/.flutter-plugins*` - Flutter plugin files
+- `apps/mobile/*/build/` - Legacy Flutter builds (if any)
 - `__pycache__/` - Python bytecode cache
 - `*.pyc` - Compiled Python files
+- `modules/*/backend/staticfiles/` - Collected static files per module
 
 #### Database & Backups
 - `*.sql` - **SQL dump files (can be 50MB+ each) - STORED SEPARATELY**
@@ -30,22 +32,29 @@ This document defines strict rules for version management and archiving to preve
 - `*.sqlite3.backup` - SQLite backups
 - `data_db/` - Database data directories
 - `data_db_backup_*` - Database backup folders
-- `archive/database_backups/` - **Managed by backup_database.sh**
+- `archive/database/` - **Managed separately (database backups, old_backups)**
+- `archive/database_backups/` - **Legacy location (migrated to archive/database/backups/)**
 
 #### Logs & Temporary Files
 - `*.log` - Log files
 - `apps/web/backend/logs/` - Application logs
 - `apps/web/backend/staticfiles/` - Collected static files
+- `modules/*/backend/logs/` - Module-specific logs
 - `.DS_Store` - macOS metadata
 
 #### Media & Documents
-- `apps/web/backend/media/` - User uploaded files
-- `apps/web/backend/documents/2025/` - Processed documents
+- `apps/web/backend/media/` - Legacy user uploaded files
+- `apps/web/backend/documents/2025/` - Legacy processed documents
+- `modules/*/backend/media/` - Module-specific media files
+- `modules/*/backend/uploads/` - Module-specific uploads
+- `data/runtime/media/` - Universal Data Directory media (excluded from archives)
 
 #### Archives & Backups
-- `archive/` - Old version archives
+- `archive/` - Historical data (versions/, database/, code/, data/, development/, documentation/)
 - `archive_backup_*` - Archive backups
 - `*.zip` - Compressed archives
+
+**Note**: Only `archive/versions/` is fully excluded. Other archive categories (`database/`, `code/`, etc.) are organizational and should be managed separately.
 
 #### Development Files
 - `.git/` - Git repository (use git for history)
@@ -59,7 +68,10 @@ This document defines strict rules for version management and archiving to preve
 |---------------|---------------|-------|
 | v510-v525 | 30-70MB | Early monorepo |
 | v526-v527 | 80-90MB | Full features + docs |
-| v528+ | 30-40MB | Cleaned structure |
+| v528-v531 | 30-40MB | Cleaned structure |
+| v532+ | 40-60MB | **Modular structure (21 modules)** |
+
+**v532+ Note**: Modular structure with `modules/*/backend/` adds slight size increase but provides better organization.
 
 ### 🚨 Size Anomalies to Watch:
 
@@ -74,10 +86,11 @@ Before creating a version archive:
 
 1. ✅ Check current working directory size: `du -sh .`
 2. ✅ Verify no SQL dumps in root: `ls -lh *.sql`
-3. ✅ Check Flutter build dirs: `du -sh apps/mobile/*/build`
-4. ✅ Verify VERSION.json updated
-5. ✅ Confirm git commits are clean
-6. ✅ Test exclude patterns work
+3. ✅ Check Flutter build dirs (v532+): `du -sh modules/*/mobile/build`
+4. ✅ Check Flutter build dirs (legacy): `du -sh apps/mobile/*/build`
+5. ✅ Verify VERSION.json updated
+6. ✅ Confirm git commits are clean
+7. ✅ Test exclude patterns work
 
 ## ⚠️ KRİTİK: VERSİYONLAMA SIRALAMA KURALI
 
@@ -239,9 +252,20 @@ rm -rf archive/versions/unibos_vXXX_*/
 ```
 
 ### Issue 2: Archive Too Small (<20MB)
-**Cause**: Missing code directories (apps/cli, apps/web, apps/mobile)
+**Cause**: Missing code directories (modules/, apps/)
 
-**Check**:
+**Check (v532+)**:
+```bash
+du -sh archive/versions/unibos_vXXX_*/modules
+du -sh archive/versions/unibos_vXXX_*/apps/*
+# Should show:
+# - modules/: ~25-35MB (21 modules)
+# - apps/web: ~8-10MB (Django project settings)
+# - apps/cli: ~3-4MB (CLI tools)
+# - apps/mobile: ~5-8MB (Flutter app structure, no build/)
+```
+
+**Check (v528-v531 - Old Structure)**:
 ```bash
 du -sh archive/versions/unibos_vXXX_*/apps/*
 # Should show:
@@ -296,7 +320,12 @@ ARCHIVE="archive/versions/unibos_vXXX_YYYYMMDD_HHMM"
 SIZE=$(du -sh "$ARCHIVE" | cut -f1)
 echo "Archive size: $SIZE"
 
-# 2. Structure check
+# 2. Structure check (v532+)
+echo "Main directories:"
+ls -d "$ARCHIVE"/modules
+ls -d "$ARCHIVE"/apps/*
+
+# 2. Structure check (v528-v531 - Old Structure)
 echo "Main directories:"
 ls -d "$ARCHIVE"/apps/*
 
@@ -343,9 +372,40 @@ Contact maintainer if:
 
 ---
 
-**Last Updated**: 2025-11-07
+**Last Updated**: 2025-11-10 (Phase 2 Modular Migration Complete)
 **Maintainer**: Berk Hatırlı
-**Related**: `tools/scripts/unibos_version.sh`, `VERSION.json`
+**Related**: `tools/scripts/unibos_version.sh`, `VERSION.json`, `ROADMAP.md`
+
+## 📦 Archive Structure (v532+)
+
+After Phase 2 migration and archive reorganization, the archive directory now has a logical category structure:
+
+```
+archive/ [4.7GB total]
+├── versions/              ⭐ 3.6GB - 355 version snapshots (CRITICAL - NEVER MODIFY)
+├── database/              382MB - Database backups and old backups
+│   ├── backups/          (Current SQL backups)
+│   └── old_backups/      (Historical backups)
+├── code/                  71MB - Legacy code and prototypes
+│   ├── legacy/           (Phase 1 attempts, quarantine, prototypes)
+│   └── projects/         (Old project implementations)
+├── development/           340KB - SDK, deployment scripts, old scripts
+│   ├── sdk/
+│   ├── deployment/
+│   └── scripts/
+├── data/                  250MB - Logs, old media, reports
+│   ├── logs/
+│   ├── old_media/
+│   └── reports/
+└── documentation/         232KB - Historical documentation
+    └── historical_docs/
+```
+
+**Key Changes (v532)**:
+- Database backups: `archive/database_backups/` → `archive/database/backups/`
+- Archive organized into logical categories for better maintainability
+- All legacy code preserved with zero data loss
+- Version snapshots remain unchanged and protected
 
 ## 💾 Database Backup System
 
@@ -361,9 +421,11 @@ Contact maintainer if:
 When creating a new version, the system:
 
 1. **Creates database backup** - `./tools/scripts/backup_database.sh`
-2. **Stores in** - `archive/database_backups/unibos_vXXX_TIMESTAMP.sql`
+2. **Stores in** - `archive/database/backups/unibos_vXXX_TIMESTAMP.sql` (v532+) or `archive/database_backups/` (legacy)
 3. **Keeps last 3** - Automatically deletes older backups
 4. **Creates version archive** - Source code only (no SQL)
+
+**Note (v532+)**: Database backups moved from `archive/database_backups/` to `archive/database/backups/` as part of archive reorganization.
 
 ### Manual Backup
 
@@ -379,8 +441,10 @@ When creating a new version, the system:
 
 - **Keep**: Last 3 database backups (~30-150MB total)
 - **Automatic cleanup**: Older backups deleted automatically
-- **Not in git**: `archive/database_backups/` is in `.gitignore`
+- **Not in git**: `archive/database/` is in `.gitignore`
+  - Legacy: `archive/database_backups/` also in `.gitignore`
 - **Not in archives**: SQL files excluded from version archives
+- **Location**: `archive/database/backups/` (v532+)
 
 ### Database Restore
 
@@ -389,11 +453,16 @@ To restore from a backup:
 ```bash
 cd apps/web/backend
 
-# Restore specific backup
+# Restore specific backup (v532+)
 DJANGO_SETTINGS_MODULE=unibos_backend.settings.development \
-  python manage.py loaddata ../../archive/database_backups/unibos_vXXX_TIMESTAMP.sql
+  python manage.py loaddata ../../archive/database/backups/unibos_vXXX_TIMESTAMP.sql
 
-# Or use the latest backup
+# Or use the latest backup (v532+)
+LATEST=$(ls -t ../../archive/database/backups/*.sql | head -1)
+DJANGO_SETTINGS_MODULE=unibos_backend.settings.development \
+  python manage.py loaddata "$LATEST"
+
+# Legacy path (v528-v531)
 LATEST=$(ls -t ../../archive/database_backups/*.sql | head -1)
 DJANGO_SETTINGS_MODULE=unibos_backend.settings.development \
   python manage.py loaddata "$LATEST"
@@ -430,9 +499,10 @@ Before creating a new version:
 
 The versioning script (`unibos_version.sh`) automatically:
 1. Creates database backup before archiving
-2. Stores it separately in `archive/database_backups/`
+2. Stores it separately in `archive/database/backups/` (v532+)
 3. Excludes SQL files from version archive
 4. Maintains backup rotation (last 3)
+5. Archive directory organized: `database/`, `code/`, `data/`, `development/`, `documentation/`, `versions/`
 
 This ensures:
 - ✅ Database state preserved for each version

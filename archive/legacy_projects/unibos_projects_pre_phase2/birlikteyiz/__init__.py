@@ -1,1 +1,0 @@
-# Birlikteyiz module

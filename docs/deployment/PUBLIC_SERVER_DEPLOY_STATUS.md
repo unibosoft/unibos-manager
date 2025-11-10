@@ -1,5 +1,7 @@
 # public server deployment status
 
+**Last Updated**: 2025-11-10 (v532+ Modular Structure)
+
 ## ✅ deployment system updated
 
 ### quick deploy (⚡)
@@ -46,11 +48,13 @@ dev tools → public server → deploy to rocksteady
 ## protected files
 
 the following are **never overwritten** on remote:
-- `backend/unibos_backend/settings/production.py`
-- `backend/.env`
-- `backend/staticfiles/`
-- `backend/media/`
-- `backend/venv/`
+- `apps/web/backend/unibos_backend/settings/production.py`
+- `apps/web/backend/.env`
+- `apps/web/backend/staticfiles/`
+- `apps/web/backend/media/`
+- `apps/web/backend/venv/`
+- `modules/*/backend/media/` - Module-specific media files
+- `modules/*/mobile/build/` - Flutter build outputs (excluded)
 - `archive/` directory
 - all `.sql` files
 - all logs
@@ -112,4 +116,23 @@ ssh rocksteady "sudo systemctl restart gunicorn nginx"
 - **fast** - incremental rsync, only changed files
 - **reliable** - tested deployment pipeline
 
-last updated: 2025-08-27 17:30
+## v532+ modular structure notes
+
+### what changed:
+- **21 modules** in `modules/*/backend/` directory
+- **Django apps** remain in `apps/web/backend/`
+- **CLI tools** remain in `apps/cli/`
+- **Module isolation** - each module has own backend/, mobile/, module.json
+
+### deployment considerations:
+- **no changes needed** - rsync handles modules/ automatically
+- **migrations work** - Django discovers all module migrations
+- **static files** - collected from all modules to central staticfiles/
+- **module configs** - module.json files define module metadata
+
+### file sizes (v532+):
+- `modules/`: ~25-35MB (21 modules)
+- `apps/web/backend/`: ~8-10MB (Django settings)
+- `apps/cli/`: ~3-4MB (CLI interface)
+
+last updated: 2025-11-10

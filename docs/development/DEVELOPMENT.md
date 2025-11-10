@@ -1,5 +1,7 @@
 # UNIBOS Development Guide
 
+**Last Updated**: 2025-11-10 (v532+ Modular Structure)
+
 ## Essential References
 - [CLAUDE.md](CLAUDE.md) - Development guidelines for Claude AI
 - [DEVELOPMENT_LOG.md](DEVELOPMENT_LOG.md) - Track all changes
@@ -95,36 +97,64 @@ COINGECKO_API_KEY=your-key
 
 ## Project Structure
 
+**v532+ Modular Architecture** (21 modules):
+
 ```
 unibos/
-├── src/                    # Core terminal application
-│   ├── main.py            # Main entry point
-│   ├── VERSION.json       # Version tracking
-│   ├── translations.py    # i18n support
-│   └── modules/           # Terminal UI modules
+├── modules/              # Modular applications (v532+)
+│   ├── core/
+│   │   ├── backend/     # Core shared functionality
+│   │   └── module.json  # Module manifest
+│   ├── web_ui/backend/  # Web interface
+│   ├── documents/backend/ # OCR and document processing
+│   ├── birlikteyiz/     # Emergency response system
+│   │   ├── backend/
+│   │   ├── mobile/      # Flutter app
+│   │   └── module.json
+│   ├── wimm/backend/    # Financial management
+│   ├── wims/backend/    # Inventory management
+│   └── ... (21 modules total)
 │
-├── backend/               # Django web backend
-│   ├── manage.py         # Django management
-│   ├── apps/             # Django applications
-│   │   ├── authentication/
-│   │   ├── users/
-│   │   ├── currencies/
-│   │   ├── documents/
-│   │   ├── wimm/
-│   │   ├── wims/
-│   │   └── ...
-│   └── unibos_backend/   # Core settings
+├── apps/
+│   ├── web/backend/     # Django project settings
+│   │   ├── manage.py
+│   │   └── unibos_backend/ # Core Django settings
+│   ├── cli/             # CLI tools
+│   │   └── src/
+│   │       ├── main.py  # CLI entry point
+│   │       └── VERSION.json
+│   └── mobile/          # Legacy Flutter apps
 │
-├── archive/              # Version history
-│   ├── versions/         # Historical versions
-│   └── communication_logs/
+├── data/                # Universal Data Directory
+│   ├── logs/
+│   ├── media/
+│   └── temp/
 │
-├── tests/                # Test suites
-│   ├── unit/
-│   ├── integration/
-│   └── e2e/
+├── archive/             # Historical data (6 categories)
+│   ├── versions/        # Version snapshots (~3.6GB)
+│   ├── database/        # Database backups (~382MB)
+│   ├── code/            # Legacy code (~71MB)
+│   ├── data/            # Logs, old media (~250MB)
+│   ├── development/     # SDK, scripts (~340KB)
+│   └── documentation/   # Historical docs (~232KB)
 │
-└── docs/                 # Documentation
+├── docs/                # Documentation
+│   ├── development/
+│   ├── deployment/
+│   ├── architecture/
+│   └── features/
+│
+└── tools/               # Scripts and utilities
+    └── scripts/         # Deployment, version management
+```
+
+**Legacy Structure (v528-v531)** for reference:
+```
+backend/apps/            # Old monolithic structure
+├── authentication/
+├── documents/
+├── wimm/
+└── ...
 ```
 
 ## Development Workflow
@@ -352,18 +382,41 @@ class YourModule:
 
 #### 2. Django Backend Module
 
-```bash
-# Create Django app
-python backend/manage.py startapp your_module
+**v532+ Modular Structure:**
 
-# Move to apps directory
-mv your_module backend/apps/
+```bash
+# Create module directory structure
+mkdir -p modules/your_module/backend
+
+# Create Django app in module
+cd modules/your_module/backend
+django-admin startapp your_app_name
+
+# Create module.json manifest
+cat > ../../module.json << 'EOF'
+{
+    "id": "your_module",
+    "name": "Your Module Name",
+    "version": "1.0.0",
+    "description": "Module description",
+    "type": "backend",
+    "dependencies": []
+}
+EOF
 
 # Add to INSTALLED_APPS in settings.py
 INSTALLED_APPS = [
     ...
-    'apps.your_module',
+    'modules.your_module.backend',
 ]
+```
+
+**Legacy Structure (v528-v531):** For reference only
+```bash
+# Old approach - no longer used
+python backend/manage.py startapp your_module
+mv your_module backend/apps/
+INSTALLED_APPS = [..., 'apps.your_module']
 ```
 
 ### Module Integration Checklist
@@ -400,8 +453,15 @@ python backend/manage.py migrate app_name 0001
 ### Database Operations
 
 ```python
-# Using Django ORM
+# Import patterns:
+# - Core apps (authentication, users, common): from apps.{app}.models
+# - Module apps: from modules.{module}.backend.models
+
+# Using Django ORM - Core app example
 from apps.users.models import User
+
+# Module app example (v532+)
+# from modules.documents.backend.models import Document
 
 # Create
 user = User.objects.create(username="test", email="test@example.com")
