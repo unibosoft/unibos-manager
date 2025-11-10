@@ -11,7 +11,7 @@ class Migration(migrations.Migration):
     initial = True
 
     dependencies = [
-        ('core', '0001_initial'),
+        ('modules_core', '0001_initial'),
         migrations.swappable_dependency(settings.AUTH_USER_MODEL),
     ]
 
@@ -65,7 +65,7 @@ class Migration(migrations.Migration):
                 ('tax_amount', models.DecimalField(decimal_places=4, max_digits=20)),
                 ('total', models.DecimalField(decimal_places=4, max_digits=20)),
                 ('invoice', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='items', to='wimm.invoice')),
-                ('item', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, to='core.item')),
+                ('item', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, to='modules_core.item')),
             ],
             options={
                 'ordering': ['id'],
@@ -106,9 +106,9 @@ class Migration(migrations.Migration):
                 ('tags', models.JSONField(blank=True, default=list)),
                 ('attachments', models.JSONField(blank=True, default=list)),
                 ('metadata', models.JSONField(blank=True, default=dict)),
-                ('from_account', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, related_name='outgoing_transactions', to='core.account')),
+                ('from_account', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, related_name='outgoing_transactions', to='modules_core.account')),
                 ('invoice', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='transactions', to='wimm.invoice')),
-                ('to_account', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, related_name='incoming_transactions', to='core.account')),
+                ('to_account', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, related_name='incoming_transactions', to='modules_core.account')),
                 ('user', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='transactions', to=settings.AUTH_USER_MODEL)),
                 ('category', models.ForeignKey(null=True, on_delete=django.db.models.deletion.SET_NULL, to='wimm.transactioncategory')),
             ],
@@ -133,8 +133,8 @@ class Migration(migrations.Migration):
                 ('next_date', models.DateField()),
                 ('is_active', models.BooleanField(default=True)),
                 ('last_created', models.DateTimeField(blank=True, null=True)),
-                ('from_account', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, related_name='recurring_outgoing', to='core.account')),
-                ('to_account', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, related_name='recurring_incoming', to='core.account')),
+                ('from_account', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, related_name='recurring_outgoing', to='modules_core.account')),
+                ('to_account', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, related_name='recurring_incoming', to='modules_core.account')),
                 ('user', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='recurring_transactions', to=settings.AUTH_USER_MODEL)),
                 ('category', models.ForeignKey(null=True, on_delete=django.db.models.deletion.SET_NULL, to='wimm.transactioncategory')),
             ],

@@ -40,7 +40,7 @@ class Migration(migrations.Migration):
                 ('slug', models.SlugField(unique=True)),
                 ('description', models.TextField(blank=True)),
                 ('icon', models.CharField(blank=True, max_length=50)),
-                ('parent', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, related_name='children', to='core.itemcategory')),
+                ('parent', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, related_name='children', to='modules_core.itemcategory')),
             ],
             options={
                 'verbose_name_plural': 'Item Categories',
@@ -63,8 +63,8 @@ class Migration(migrations.Migration):
                 ('is_service', models.BooleanField(default=False)),
                 ('is_digital', models.BooleanField(default=False)),
                 ('tags', models.JSONField(blank=True, default=list)),
-                ('category', models.ForeignKey(null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='items', to='core.itemcategory')),
-                ('unit', models.ForeignKey(null=True, on_delete=django.db.models.deletion.SET_NULL, to='core.unit')),
+                ('category', models.ForeignKey(null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='items', to='modules_core.itemcategory')),
+                ('unit', models.ForeignKey(null=True, on_delete=django.db.models.deletion.SET_NULL, to='modules_core.unit')),
             ],
             options={
                 'ordering': ['name'],
@@ -106,7 +106,7 @@ class Migration(migrations.Migration):
                 ('valid_from', models.DateTimeField()),
                 ('valid_until', models.DateTimeField(blank=True, null=True)),
                 ('metadata', models.JSONField(blank=True, default=dict)),
-                ('item', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='prices', to='core.item')),
+                ('item', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='prices', to='modules_core.item')),
             ],
             options={
                 'ordering': ['-valid_from'],

@@ -11,7 +11,7 @@ class Migration(migrations.Migration):
     initial = True
 
     dependencies = [
-        ('core', '0001_initial'),
+        ('modules_core', '0001_initial'),
         ('wimm', '0001_initial'),
         migrations.swappable_dependency(settings.AUTH_USER_MODEL),
     ]
@@ -99,7 +99,7 @@ class Migration(migrations.Migration):
                 ('order_multiple', models.DecimalField(decimal_places=4, default=1, max_digits=20)),
                 ('is_preferred', models.BooleanField(default=False)),
                 ('priority', models.IntegerField(default=0)),
-                ('item', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='suppliers', to='core.item')),
+                ('item', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='suppliers', to='modules_core.item')),
             ],
             options={
                 'ordering': ['item', 'priority', 'supplier_name'],
@@ -118,7 +118,7 @@ class Migration(migrations.Migration):
                 ('batch_number', models.CharField(blank=True, max_length=50)),
                 ('serial_number', models.CharField(blank=True, max_length=100)),
                 ('notes', models.TextField(blank=True)),
-                ('item', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='core.item')),
+                ('item', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='modules_core.item')),
                 ('stock_count', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='items', to='wims.stockcount')),
                 ('location', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, to='wims.stocklocation')),
             ],
@@ -146,7 +146,7 @@ class Migration(migrations.Migration):
                 ('from_location', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='outgoing_movements', to='wims.stocklocation')),
                 ('invoice', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='stock_movements', to='wimm.invoice')),
                 ('invoice_item', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='stock_movements', to='wimm.invoiceitem')),
-                ('item', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='movements', to='core.item')),
+                ('item', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='movements', to='modules_core.item')),
                 ('to_location', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='incoming_movements', to='wims.stocklocation')),
                 ('user', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='stock_movements', to=settings.AUTH_USER_MODEL)),
                 ('from_warehouse', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, related_name='outgoing_movements', to='wims.warehouse')),
@@ -176,7 +176,7 @@ class Migration(migrations.Migration):
                 ('max_stock_level', models.DecimalField(blank=True, decimal_places=4, max_digits=20, null=True)),
                 ('reorder_point', models.DecimalField(decimal_places=4, default=0, max_digits=20)),
                 ('reorder_quantity', models.DecimalField(decimal_places=4, default=0, max_digits=20)),
-                ('item', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='stock_items', to='core.item')),
+                ('item', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='stock_items', to='modules_core.item')),
                 ('location', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='stock_items', to='wims.stocklocation')),
                 ('warehouse', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='stock_items', to='wims.warehouse')),
             ],
