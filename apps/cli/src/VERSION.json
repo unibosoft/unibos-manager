@@ -1,10 +1,10 @@
 {
-  "version": "v532",
-  "build_number": "20251109_1435",
-  "release_date": "2025-11-09 14:35:56 +0300",
+  "version": "v533",
+  "build_number": "20251110_1400",
+  "release_date": "2025-11-10 14:00:00 +0300",
   "author": "berk hatırlı",
   "location": "bitez, bodrum, muğla, türkiye, dünya, güneş sistemi, samanyolu, yerel galaksi grubu, evren",
-  "description": "Upgraded to MiniCPM-v 2.6, added document analysis UI, enforced script-only versioning workflow",
+  "description": "Fixed database backup to use native pg_dump, eliminating Django import errors",
   "features": [
     "🎬 **Movies Module**: Complete movie/series collection management with TMDB/OMDB API integration",
     "🎵 **Music Module**: Spotify-integrated music library without storing files, open source artwork",
