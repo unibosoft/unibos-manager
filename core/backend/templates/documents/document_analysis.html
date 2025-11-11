@@ -1,0 +1,1537 @@
+{% extends 'web_ui/base.html' %}
+{% load static %}
+{% load analysis_filters %}
+
+{% block title %}ocr analysis comparison - {{ document.original_filename }}{% endblock %}
+
+{% block header_title %}unibos{% endblock %}
+{% block module_name %}documents / analysis{% endblock %}
+
+{% block extra_css %}
+<style>
+    .main-layout {
+        display: grid;
+        grid-template-columns: 400px 1fr;
+        gap: 20px;
+        margin-top: 20px;
+    }
+
+    .document-viewer-section {
+        background: rgba(0, 0, 0, 0.3);
+        border: 2px solid var(--dark-gray);
+        border-radius: 8px;
+        padding: 15px;
+        height: fit-content;
+        position: sticky;
+        top: 20px;
+    }
+
+    .viewer-title {
+        color: var(--cyan);
+        font-size: 16px;
+        font-weight: bold;
+        margin-bottom: 15px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .document-image-full {
+        width: 100%;
+        border-radius: 6px;
+        border: 2px solid var(--cyan);
+        margin-bottom: 15px;
+        cursor: zoom-in;
+        transition: transform 0.3s ease;
+    }
+
+    .document-image-full:hover {
+        transform: scale(1.02);
+    }
+
+    .document-metadata {
+        background: rgba(0, 0, 0, 0.4);
+        padding: 12px;
+        border-radius: 6px;
+        border: 1px solid var(--dark-gray);
+    }
+
+    .metadata-item {
+        display: flex;
+        justify-content: space-between;
+        padding: 8px 0;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .metadata-item:last-child {
+        border-bottom: none;
+    }
+
+    .metadata-label {
+        color: var(--gray);
+        font-size: 11px;
+    }
+
+    .metadata-value {
+        color: var(--white);
+        font-weight: bold;
+        font-size: 12px;
+    }
+
+    .analysis-container {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 15px;
+    }
+
+    @media (max-width: 1400px) {
+        .analysis-container {
+            grid-template-columns: 1fr;
+        }
+    }
+
+    .analysis-method {
+        background: rgba(0, 0, 0, 0.3);
+        border: 2px solid var(--dark-gray);
+        border-radius: 8px;
+        padding: 12px;
+        transition: all 0.3s ease;
+        position: relative;
+        overflow: hidden;
+        min-height: 400px;
+        display: flex;
+        flex-direction: column;
+    }
+
+    .analysis-method:hover {
+        border-color: var(--cyan);
+        box-shadow: 0 0 20px rgba(0, 255, 255, 0.2);
+    }
+
+    .method-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 8px;
+        padding-bottom: 6px;
+        border-bottom: 2px solid var(--dark-gray);
+    }
+
+    .method-title {
+        font-size: 14px;
+        font-weight: bold;
+        color: var(--cyan);
+        display: flex;
+        align-items: flex-start;
+        flex: 1;
+    }
+
+    .method-name-wrapper {
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
+    }
+
+    .method-name-line {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        font-size: 14px;
+        font-weight: bold;
+        color: var(--cyan);
+    }
+
+    .method-name-line span:first-child {
+        font-size: 16px;
+    }
+
+    .method-description {
+        font-size: 10px;
+        font-weight: normal;
+        color: var(--gray);
+        padding-left: 22px;
+    }
+
+    .method-status {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 12px;
+    }
+
+    .status-badge {
+        padding: 4px 10px;
+        border-radius: 4px;
+        font-size: 11px;
+        font-weight: bold;
+    }
+
+    .status-success {
+        background: var(--green);
+        color: #000;
+    }
+
+    .status-processing {
+        background: var(--orange);
+        color: #000;
+        animation: pulse 1.5s ease-in-out infinite;
+    }
+
+    .status-error {
+        background: var(--red);
+        color: #fff;
+    }
+
+    .status-pending {
+        background: var(--gray);
+        color: #000;
+        animation: blink 2s ease-in-out infinite;
+    }
+
+    .status-queued {
+        background: var(--cyan);
+        color: #000;
+        animation: blink 2s ease-in-out infinite;
+    }
+
+    @keyframes pulse {
+        0%, 100% { opacity: 1; }
+        50% { opacity: 0.6; }
+    }
+
+    @keyframes blink {
+        0%, 100% { opacity: 1; }
+        50% { opacity: 0.4; }
+    }
+
+    .metrics-grid {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 6px;
+        margin-bottom: 10px;
+    }
+
+    .metric-card {
+        background: rgba(0, 0, 0, 0.5);
+        padding: 6px;
+        border-radius: 4px;
+        text-align: center;
+        border: 1px solid var(--dark-gray);
+    }
+
+    .metric-value {
+        font-size: 18px;
+        font-weight: bold;
+        color: var(--cyan);
+        margin-bottom: 2px;
+    }
+
+    .metric-label {
+        font-size: 9px;
+        color: var(--gray);
+    }
+
+    .ocr-text-preview {
+        background: rgba(0, 0, 0, 0.6);
+        padding: 8px;
+        border-radius: 4px;
+        max-height: 150px;
+        overflow-y: auto;
+        font-family: 'Courier New', monospace;
+        font-size: 9px;
+        line-height: 1.4;
+        color: var(--white);
+        border: 1px solid var(--dark-gray);
+        margin-bottom: 6px;
+    }
+
+    .ocr-text-preview::-webkit-scrollbar {
+        width: 6px;
+    }
+
+    .ocr-text-preview::-webkit-scrollbar-track {
+        background: rgba(0, 0, 0, 0.3);
+    }
+
+    .ocr-text-preview::-webkit-scrollbar-thumb {
+        background: var(--cyan);
+        border-radius: 3px;
+    }
+
+    .parsed-data-preview {
+        background: rgba(0, 0, 0, 0.6);
+        padding: 12px;
+        border-radius: 6px;
+        max-height: 200px;
+        overflow-y: auto;
+        font-family: 'Courier New', monospace;
+        font-size: 11px;
+        color: var(--green);
+        border: 1px solid var(--dark-gray);
+    }
+
+    .action-buttons {
+        display: flex;
+        gap: 6px;
+        margin-top: auto;
+        padding-top: 8px;
+    }
+
+    .btn-small {
+        padding: 6px 12px;
+        font-size: 10px;
+        flex: 1;
+    }
+
+    .comparison-summary {
+        background: rgba(0, 255, 255, 0.1);
+        border: 2px solid var(--cyan);
+        border-radius: 8px;
+        padding: 20px;
+        margin-bottom: 20px;
+    }
+
+    .summary-grid {
+        display: grid;
+        grid-template-columns: repeat(5, 1fr);
+        gap: 8px;
+        margin-top: 10px;
+    }
+
+    .summary-card {
+        background: rgba(0, 0, 0, 0.4);
+        padding: 8px;
+        border-radius: 4px;
+        text-align: center;
+        border: 1px solid var(--dark-gray);
+        transition: all 0.2s;
+    }
+
+    .summary-card:hover {
+        background: rgba(0, 200, 255, 0.1);
+        border-color: var(--cyan);
+    }
+
+    .summary-card.best {
+        border-color: var(--green);
+        background: rgba(0, 255, 0, 0.1);
+    }
+
+    .summary-rank {
+        font-size: 18px;
+        font-weight: bold;
+        margin-bottom: 4px;
+    }
+
+    .rank-1 { color: var(--green); }
+    .rank-2 { color: var(--cyan); }
+    .rank-3 { color: var(--orange); }
+    .rank-4 { color: var(--gray); }
+    .rank-5 { color: var(--dark-gray); }
+
+    .log-stream {
+        background: rgba(0, 0, 0, 0.7);
+        border: 1px solid var(--dark-gray);
+        border-radius: 4px;
+        padding: 12px;
+        max-height: 200px;
+        overflow-y: auto;
+        font-family: 'Courier New', monospace;
+        font-size: 11px;
+        line-height: 1.6;
+        color: var(--gray);
+        margin-top: 12px;
+    }
+
+    .log-stream::-webkit-scrollbar {
+        width: 6px;
+    }
+
+    .log-stream::-webkit-scrollbar-track {
+        background: rgba(0, 0, 0, 0.3);
+    }
+
+    .log-stream::-webkit-scrollbar-thumb {
+        background: var(--cyan);
+        border-radius: 3px;
+    }
+
+    .log-entry {
+        margin: 4px 0;
+        padding: 2px 0;
+    }
+
+    .log-entry.info { color: var(--cyan); }
+    .log-entry.success { color: var(--green); }
+    .log-entry.error { color: var(--red); }
+    .log-entry.warning { color: var(--orange); }
+
+    .spinner-small {
+        display: inline-block;
+        width: 16px;
+        height: 16px;
+        border: 2px solid var(--dark-gray);
+        border-top-color: var(--orange);
+        border-radius: 50%;
+        animation: spin 1s linear infinite;
+    }
+
+    @keyframes spin {
+        to { transform: rotate(360deg); }
+    }
+
+    .key-findings {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 6px;
+        margin-top: 8px;
+        flex: 1;
+    }
+
+    .finding-item {
+        background: rgba(0, 0, 0, 0.4);
+        padding: 8px 10px;
+        border-radius: 4px;
+        border-left: 2px solid var(--cyan);
+        font-size: 11px;
+    }
+
+    .finding-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 3px;
+    }
+
+    .finding-label {
+        color: var(--gray);
+        font-size: 10px;
+    }
+
+    .finding-status {
+        font-weight: bold;
+        font-size: 10px;
+    }
+
+    .finding-value {
+        color: var(--white);
+        font-weight: bold;
+        margin-top: 3px;
+        padding: 4px 6px;
+        background: rgba(0, 255, 255, 0.1);
+        border-radius: 3px;
+        font-family: 'Courier New', monospace;
+        font-size: 11px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    .found { color: var(--green); }
+    .missing { color: var(--red); }
+
+    .refresh-btn {
+        position: fixed;
+        bottom: 30px;
+        right: 30px;
+        width: 60px;
+        height: 60px;
+        border-radius: 50%;
+        background: var(--cyan);
+        color: #000;
+        border: none;
+        font-size: 24px;
+        cursor: pointer;
+        box-shadow: 0 4px 20px rgba(0, 255, 255, 0.4);
+        transition: all 0.3s ease;
+        z-index: 1000;
+    }
+
+    .refresh-btn:hover {
+        transform: scale(1.1);
+        box-shadow: 0 6px 30px rgba(0, 255, 255, 0.6);
+    }
+
+    .refresh-btn.spinning {
+        animation: spin 1s linear infinite;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="module-header">
+    <h1>🔬 ocr analysis comparison</h1>
+</div>
+
+<!-- main layout with document viewer + analysis -->
+<div class="main-layout">
+    <!-- left: document viewer -->
+    <div class="document-viewer-section">
+        <div class="viewer-title">
+            <span>📄</span>
+            <span>document viewer</span>
+        </div>
+
+        {% if document.file_path %}
+        <img src="{{ document.file_path.url }}" alt="{{ document.original_filename }}" class="document-image-full" onclick="window.open('{{ document.file_path.url }}', '_blank')">
+        {% elif document.thumbnail_path %}
+        <img src="{{ document.thumbnail_path.url }}" alt="{{ document.original_filename }}" class="document-image-full" onclick="window.open('{{ document.thumbnail_path.url }}', '_blank')">
+        {% endif %}
+
+        <div class="document-metadata">
+            <div class="metadata-item">
+                <span class="metadata-label">filename</span>
+                <span class="metadata-value">{{ document.original_filename|truncatechars:30 }}</span>
+            </div>
+            <div class="metadata-item">
+                <span class="metadata-label">type</span>
+                <span class="metadata-value">{{ document.document_type|default:"unknown" }}</span>
+            </div>
+            <div class="metadata-item">
+                <span class="metadata-label">uploaded</span>
+                <span class="metadata-value">{{ document.uploaded_at|date:"d M Y" }}</span>
+            </div>
+            <div class="metadata-item">
+                <span class="metadata-label">size</span>
+                <span class="metadata-value">{{ document.file_path.size|filesizeformat }}</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- right: analysis comparison -->
+    <div>
+        <!-- analysis controls -->
+        <div class="comparison-summary">
+            <!-- method toggles - Dynamic -->
+            <div style="padding: 16px; background: rgba(0, 200, 255, 0.03); border: 1px solid rgba(0, 200, 255, 0.3); border-radius: 8px;">
+                <!-- Collapsible method selection -->
+                <details id="method-selection-details" open>
+                    <summary style="color: var(--cyan); font-weight: bold; font-size: 13px; cursor: pointer; padding: 8px; background: rgba(0, 200, 255, 0.1); border-radius: 4px; margin-bottom: 12px;">
+                        ⚙️ select methods
+                    </summary>
+
+                    <!-- Header row -->
+                    <div style="display: grid; grid-template-columns: auto 50px 50px; gap: 8px; margin-bottom: 8px; padding: 6px 8px; background: rgba(0, 0, 0, 0.3); border-radius: 4px;">
+                        <div style="color: var(--gray); font-size: 11px; font-weight: bold;">method</div>
+                        <div onclick="toggleViewAll()" style="color: var(--gray); font-size: 16px; text-align: center; cursor: pointer; user-select: none; transition: transform 0.2s;" title="Toggle all view checkboxes" onmouseover="this.style.transform='scale(1.3)'" onmouseout="this.style.transform='scale(1)'">👁️</div>
+                        <div onclick="toggleScanAll()" style="color: var(--cyan); font-size: 16px; text-align: center; cursor: pointer; user-select: none; transition: transform 0.2s;" title="Toggle all scan checkboxes" onmouseover="this.style.transform='scale(1.3)'" onmouseout="this.style.transform='scale(1)'">✓</div>
+                    </div>
+
+                    {% for method in ocr_methods %}
+                    <div style="display: grid; grid-template-columns: auto 50px 50px; gap: 8px; align-items: center; margin-bottom: 6px; padding: 4px 8px; border-radius: 4px; background: rgba(0, 0, 0, 0.2);">
+                        <label style="color: var(--white); cursor: pointer; font-size: 12px;">
+                            {{ method.icon }} {{ method.name }} <span style="color: var(--gray); font-size: 11px;">- {{ method.description}} ({{ method.speed }})</span>
+                        </label>
+                        <div style="text-align: center;">
+                            <input type="checkbox" class="method-view-toggle" id="view-{{ method.id }}" data-method="{{ method.id }}" style="cursor: pointer; width: 16px; height: 16px;">
+                        </div>
+                        <div style="text-align: center;">
+                            <input type="checkbox" class="method-scan-toggle" id="scan-{{ method.id }}" data-method="{{ method.id }}" style="cursor: pointer; width: 16px; height: 16px;">
+                        </div>
+                    </div>
+                    {% endfor %}
+
+                    <!-- Parallel workers setting -->
+                    <div style="margin-top: 16px; padding: 12px; background: rgba(0, 0, 0, 0.3); border: 1px solid var(--dark-gray); border-radius: 6px;">
+                        <label style="display: flex; align-items: center; gap: 8px; color: var(--white); font-size: 12px; margin-bottom: 8px;">
+                            <span style="color: var(--orange);">⚡</span>
+                            <span style="flex: 1;">parallel workers (max concurrent processes)</span>
+                            <input type="number" id="max-workers" min="1" max="5" value="2" style="width: 60px; padding: 4px 8px; background: rgba(0, 0, 0, 0.5); border: 1px solid var(--cyan); border-radius: 4px; color: var(--cyan); font-weight: bold; text-align: center;">
+                        </label>
+                        <div style="color: var(--gray); font-size: 10px; margin-top: 4px;">
+                            ⚠️ dikkat: her deep learning model 1-3GB RAM kullanır. yüksek değerler sistem çökmesine neden olabilir.
+                        </div>
+                    </div>
+
+                    <button id="run-selected-btn" class="btn" onclick="runSelectedMethods('{{ document.id }}')" style="background: var(--cyan); color: #000; font-size: 14px; padding: 10px 20px; width: 100%; margin-top: 12px; margin-bottom: 12px;">
+                        🚀 run selected methods
+                    </button>
+                </details>
+
+                <!-- log stream - always visible -->
+                <details id="log-details" open style="margin-top: 12px;">
+                    <summary style="color: var(--cyan); cursor: pointer; font-size: 12px; padding: 8px; background: rgba(0, 200, 255, 0.1); border-radius: 4px;">
+                        📋 işlem logları
+                    </summary>
+                    <div id="log-stream" class="log-stream" style="display: block; margin-top: 8px;">
+                        <div id="log-content">
+                            <div class="log-entry info">[sistem] log akışı hazır</div>
+                        </div>
+                    </div>
+                </details>
+            </div>
+        </div>
+
+        <!-- analysis methods -->
+        <div class="analysis-container">
+            <!-- Dynamic method cards - generated from OCR_METHODS config -->
+            {% for method in ocr_methods %}
+                {% include "documents/partials/method_card.html" with method=method %}
+            {% endfor %}
+        </div>
+    </div>
+</div>
+
+<!-- floating refresh button -->
+<button class="refresh-btn" onclick="refreshAnalysis('{{ document.id }}')" title="refresh analysis">
+    🔄
+</button>
+
+<script>
+// Global method configuration - dynamically generated from OCR_METHODS
+const METHOD_CONFIG = {
+    {% for method in ocr_methods %}
+    '{{ method.id }}': {
+        name: '{{ method.icon }} {{ method.name }}',
+        icon: '{{ method.icon }}',
+        title: '{{ method.title }}',
+        description: '{{ method.description }}'
+    }{% if not forloop.last %},{% endif %}
+    {% endfor %}
+};
+
+// log stream helper functions - defined first so they're available on page load
+function addLog(message, type = 'info', temporary = false) {
+    const logDetails = document.getElementById('log-details');
+    const logContent = document.getElementById('log-content');
+    const logStream = document.getElementById('log-stream');
+
+    if (!logDetails || !logContent || !logStream) {
+        console.warn('Log elements not found yet');
+        return;
+    }
+
+    // Open details if closed
+    if (!logDetails.open) {
+        logDetails.open = true;
+    }
+
+    const timestamp = new Date().toLocaleTimeString('tr-TR', { hour12: false });
+    const entry = document.createElement('div');
+    entry.className = `log-entry ${type}`;
+    entry.textContent = `[${timestamp}] ${message}`;
+
+    // Mark temporary logs (status updates) - they won't be persisted
+    if (temporary) {
+        entry.setAttribute('data-temporary', 'true');
+    }
+
+    logContent.appendChild(entry);
+    logStream.scrollTop = logStream.scrollHeight; // auto-scroll to bottom
+
+    // Persist logs to localStorage (skip temporary logs)
+    if (!temporary) {
+        const documentId = '{{ document.id }}';
+        const logsKey = `ocr_logs_${documentId}`;
+        try {
+            const logs = JSON.parse(localStorage.getItem(logsKey) || '[]');
+            logs.push({ timestamp, message, type });
+            // Keep only last 100 log entries to avoid localStorage bloat
+            if (logs.length > 100) {
+                logs.shift();
+            }
+            localStorage.setItem(logsKey, JSON.stringify(logs));
+        } catch (e) {
+            console.error('Failed to persist log:', e);
+        }
+    }
+}
+
+function clearLogs() {
+    const logContent = document.getElementById('log-content');
+    if (!logContent) return;
+    // Keep initial message
+    logContent.innerHTML = '<div class="log-entry info">[sistem] yeni tarama başlıyor...</div>';
+
+    // Clear localStorage logs for this document
+    const documentId = '{{ document.id }}';
+    const logsKey = `ocr_logs_${documentId}`;
+    try {
+        localStorage.removeItem(logsKey);
+    } catch (e) {
+        console.error('Failed to clear localStorage logs:', e);
+    }
+}
+
+// Clear old logs on page load - each page load starts fresh
+function clearOldLogs() {
+    const documentId = '{{ document.id }}';
+    const logsKey = `ocr_logs_${documentId}`;
+
+    try {
+        // Remove old logs from localStorage
+        localStorage.removeItem(logsKey);
+        console.log('Cleared old logs from localStorage');
+    } catch (e) {
+        console.error('Failed to clear old logs:', e);
+    }
+}
+
+// Resume polling if background analysis is still running
+async function resumePollingIfNeeded() {
+    const documentId = '{{ document.id }}';
+
+    try {
+        // Check if there's ongoing analysis by fetching current status
+        const response = await fetch(`/documents/api/analysis/${documentId}/`);
+        if (!response.ok) return;
+
+        const data = await response.json();
+        if (!data.success) return;
+
+        // Check if analysis is currently processing
+        const hasProcessing = data.has_processing;
+        const hasRecentAnalysis = data.last_analysis_at;
+
+        if (hasProcessing && hasRecentAnalysis) {
+            const lastAnalysisTime = new Date(hasRecentAnalysis);
+            const now = new Date();
+            const minutesAgo = (now - lastAnalysisTime) / 1000 / 60;
+
+            // If analysis is processing and was started within last 10 minutes
+            if (minutesAgo < 10) {
+                // Find which methods are selected (checkboxes checked)
+                const scanToggles = document.querySelectorAll('.method-scan-toggle');
+                const selectedMethods = Array.from(scanToggles)
+                    .filter(toggle => toggle.checked)
+                    .map(toggle => toggle.dataset.method);
+
+                if (selectedMethods.length > 0) {
+                    // Disable button and show processing state
+                    const btn = document.getElementById('run-selected-btn');
+                    if (btn) {
+                        btn.disabled = true;
+                        btn.innerHTML = '⏳ tarama yapılıyor...';
+                    }
+
+                    // Reconstruct logs showing what happened
+                    addLog('🔄 arka plan işlemi devam ediyor, loglar yeniden oluşturuluyor...', 'info');
+
+                    // Initialize methodStatus from backend data and reconstruct logs
+                    selectedMethods.forEach(method => {
+                        const backendData = data.results?.[method];
+                        if (backendData && backendData.status === 'success') {
+                            // Method completed - show queued and completed logs
+                            methodStatus[method] = {
+                                status: 'completed',
+                                startTime: null,
+                                endTime: null
+                            };
+                            logMethodStateChange(method, 'queued');
+                            logMethodStateChange(method, 'completed', { duration: backendData.processing_time || 0 });
+                        } else if (backendData && backendData.status === 'error') {
+                            // Method failed - show queued and error logs
+                            methodStatus[method] = {
+                                status: 'error',
+                                startTime: null,
+                                endTime: null
+                            };
+                            logMethodStateChange(method, 'queued');
+                            logMethodStateChange(method, 'error', { error: backendData.error || 'unknown error' });
+                        } else {
+                            // Assume still running if selected but not completed
+                            methodStatus[method] = {
+                                status: 'running',
+                                startTime: Date.now() - (minutesAgo * 60 * 1000),
+                                endTime: null
+                            };
+                            logMethodStateChange(method, 'queued');
+                            logMethodStateChange(method, 'running');
+                        }
+                    });
+
+                    // Update cards with current data
+                    if (data.results) {
+                        updateMethodCards(data.results);
+                    }
+
+                    // WebSocket will handle real-time updates for ongoing analysis
+                    addLog('🔗 WebSocket üzerinden güncellemeler alınacak', 'info');
+                }
+            }
+        }
+    } catch (e) {
+        console.error('Failed to check analysis status:', e);
+    }
+}
+
+// initialize checkbox toggles for card visibility
+document.addEventListener('DOMContentLoaded', function() {
+    // Clear old logs first - fresh start on every page load
+    clearOldLogs();
+
+    // Check if we need to resume polling for background analysis
+    resumePollingIfNeeded();
+
+    // Restore method selection details open/closed state from localStorage
+    const methodSelectionDetails = document.getElementById('method-selection-details');
+    const savedMethodSelectionState = localStorage.getItem('ocr_method_selection_open');
+    if (savedMethodSelectionState !== null) {
+        methodSelectionDetails.open = savedMethodSelectionState === 'true';
+    }
+
+    // Save method selection details state when toggled
+    methodSelectionDetails.addEventListener('toggle', function() {
+        localStorage.setItem('ocr_method_selection_open', this.open ? 'true' : 'false');
+    });
+
+    // Restore log details open/closed state from localStorage
+    const logDetails = document.getElementById('log-details');
+    const savedLogState = localStorage.getItem('ocr_log_details_open');
+    if (savedLogState !== null) {
+        logDetails.open = savedLogState === 'true';
+    }
+
+    // Save log details state when toggled
+    logDetails.addEventListener('toggle', function() {
+        localStorage.setItem('ocr_log_details_open', this.open ? 'true' : 'false');
+    });
+
+    // Restore max_workers from localStorage (default: 2)
+    const savedMaxWorkers = localStorage.getItem('ocr_max_workers');
+    const maxWorkersInput = document.getElementById('max-workers');
+    if (savedMaxWorkers) {
+        maxWorkersInput.value = savedMaxWorkers;
+    }
+
+    // Save max_workers to localStorage on both change and input events
+    maxWorkersInput.addEventListener('input', function() {
+        localStorage.setItem('ocr_max_workers', this.value);
+    });
+    maxWorkersInput.addEventListener('change', function() {
+        localStorage.setItem('ocr_max_workers', this.value);
+    });
+
+    // Setup VIEW checkboxes (card visibility) with localStorage persistence
+    const viewToggles = document.querySelectorAll('.method-view-toggle');
+    viewToggles.forEach(checkbox => {
+        const method = checkbox.dataset.method;
+        const card = document.getElementById(`card-${method}`);
+
+        // Restore saved state (default: unchecked)
+        const savedViewState = localStorage.getItem(`ocr_view_${method}`);
+        if (savedViewState === 'true') {
+            checkbox.checked = true;
+            card.style.display = 'block';
+        }
+
+        // Add change event listener with localStorage save
+        checkbox.addEventListener('change', function() {
+            if (this.checked) {
+                card.style.display = 'block';
+                localStorage.setItem(`ocr_view_${method}`, 'true');
+            } else {
+                card.style.display = 'none';
+                localStorage.setItem(`ocr_view_${method}`, 'false');
+            }
+        });
+    });
+
+    // Setup SCAN checkboxes (method selection) with localStorage persistence
+    const scanToggles = document.querySelectorAll('.method-scan-toggle');
+    scanToggles.forEach(checkbox => {
+        const method = checkbox.dataset.method;
+
+        // Restore saved state (default: unchecked)
+        const savedScanState = localStorage.getItem(`ocr_scan_${method}`);
+        if (savedScanState === 'true') {
+            checkbox.checked = true;
+        }
+
+        // Add change event listener with localStorage save
+        checkbox.addEventListener('change', function() {
+            localStorage.setItem(`ocr_scan_${method}`, this.checked ? 'true' : 'false');
+        });
+    });
+});
+
+async function retryMethod(method, documentId) {
+    const btn = event.target;
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spinner-small"></span> retrying...';
+
+    try {
+        // Use the new run-methods API to run a single method
+        // IMPORTANT: force_refresh: true to bypass cache and re-run analysis
+        const response = await fetch(`/documents/api/analysis/${documentId}/run-methods/`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': '{{ csrf_token }}'
+            },
+            body: JSON.stringify({
+                methods: [method],
+                force_refresh: true  // Force fresh analysis, don't use cached error results
+            })
+        });
+
+        const data = await response.json();
+
+        if (response.ok && data.success) {
+            // Update the card with new results
+            const result = data.results[method];
+            if (result) {
+                updateMethodCards({[method]: result});
+            }
+
+            btn.disabled = false;
+            btn.innerHTML = '🔄 retry';
+
+            // Log success message (no popup)
+            addLog(`✅ ${method} başarıyla yenilendi`, 'success');
+        } else {
+            // Log error (no popup)
+            addLog(`❌ ${method} yenileme başarısız`, 'error');
+            btn.disabled = false;
+            btn.innerHTML = '🔄 retry';
+        }
+    } catch (error) {
+        console.error('retry error:', error);
+        // Log error (no popup)
+        addLog(`❌ ${method} hatası: ${error.message}`, 'error');
+        btn.disabled = false;
+        btn.innerHTML = '🔄 retry';
+    }
+}
+
+async function selectMethod(method, documentId) {
+    if (!confirm(`use ${method} results for this document?`)) {
+        return;
+    }
+
+    const btn = event.target;
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spinner-small"></span> applying...';
+
+    try {
+        const response = await fetch(`/documents/api/analysis/${documentId}/select/${method}/`, {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': '{{ csrf_token }}'
+            }
+        });
+
+        if (response.ok) {
+            alert('method selected successfully!');
+            window.location.href = `/documents/document/${documentId}/`;
+        } else {
+            alert('selection failed. please try again.');
+            btn.disabled = false;
+            btn.innerHTML = '✓ use this';
+        }
+    } catch (error) {
+        console.error('selection error:', error);
+        alert('error: ' + error.message);
+        btn.disabled = false;
+        btn.innerHTML = '✓ use this';
+    }
+}
+
+async function refreshAnalysis(documentId) {
+    const btn = event.target;
+    btn.classList.add('spinning');
+    btn.disabled = true;
+
+    setTimeout(() => {
+        window.location.reload();
+    }, 500);
+}
+
+function updateMethodCards(results) {
+    /**
+     * Update method cards with new AJAX results without page reload
+     * Updates: status, confidence, processing time, character count, word count, text, key findings
+     * Also checks methodStatus to show "processing" state in real-time
+     */
+    for (const [methodName, data] of Object.entries(results)) {
+        const methodCard = document.querySelector(`[data-method="${methodName}"]`);
+        if (!methodCard) continue;
+
+        // Update status badge - prioritize frontend methodStatus for "processing" state
+        const statusBadge = methodCard.querySelector('.status-badge');
+        if (statusBadge) {
+            // Check if method is currently running in frontend tracker
+            if (methodStatus[methodName] && methodStatus[methodName].status === 'running') {
+                // Show processing badge while method is running
+                statusBadge.textContent = 'processing';
+                statusBadge.className = 'status-badge status-processing';
+            } else if (methodStatus[methodName] && methodStatus[methodName].status === 'queued') {
+                // Show queued badge
+                statusBadge.textContent = 'queued';
+                statusBadge.className = 'status-badge status-queued';
+            } else {
+                // Use backend status (success, error, pending)
+                statusBadge.textContent = data.status || 'pending';
+                statusBadge.className = `status-badge status-${data.status || 'pending'}`;
+            }
+        }
+
+        // Update processing time
+        const timeDisplay = methodCard.querySelector('.method-status span:last-child');
+        if (timeDisplay && data.processing_time !== undefined) {
+            timeDisplay.textContent = `${data.processing_time.toFixed(2)}s`;
+        }
+
+        // Update confidence
+        const confidenceValue = methodCard.querySelector('.metric-card:nth-child(1) .metric-value');
+        if (confidenceValue && data.confidence !== undefined) {
+            confidenceValue.textContent = `${data.confidence.toFixed(1)}%`;
+        }
+
+        // Update character count
+        const charValue = methodCard.querySelector('.metric-card:nth-child(2) .metric-value');
+        if (charValue && data.char_count !== undefined) {
+            charValue.textContent = data.char_count;
+        }
+
+        // Update word count or fields (donut uses fields_extracted)
+        const wordValue = methodCard.querySelector('.metric-card:nth-child(3) .metric-value');
+        if (wordValue) {
+            if (data.fields_extracted !== undefined) {
+                // Donut uses fields_extracted
+                wordValue.textContent = data.fields_extracted;
+            } else if (data.word_count !== undefined) {
+                // Other methods use word_count
+                wordValue.textContent = data.word_count;
+            }
+        }
+
+        // Update OCR text in details section
+        const ocrTextPreview = methodCard.querySelector('.ocr-text-preview');
+        if (ocrTextPreview && data.text) {
+            ocrTextPreview.textContent = data.text;
+        }
+
+        // Update key findings (store, total, date, bottom)
+        updateFinding(methodCard, 'store', data.store_name, data.found_store);
+        updateFinding(methodCard, 'total', data.total_amount, data.found_total);
+        updateFinding(methodCard, 'date', data.date_time, data.found_date);
+        updateFinding(methodCard, 'bottom', data.bottom_info, data.found_bottom);
+
+        // Update timestamp if provided
+        if (data.analyzed_at) {
+            updateTimestamp(methodCard, data.analyzed_at);
+        }
+
+        // Note: State transition logging is handled in polling interval, not here
+        // This keeps the code cleaner and prevents duplicate logs
+    }
+}
+
+function updateFinding(methodCard, findingType, value, found) {
+    /**
+     * Update a specific finding in a method card
+     */
+    // Map finding types to their selector patterns
+    const selectorMap = {
+        'store': 'store name',
+        'total': 'total amount',
+        'date': 'date/time',
+        'bottom': 'bottom info'
+    };
+
+    const labelText = selectorMap[findingType];
+    if (!labelText) return;
+
+    // Find the finding item by label text
+    const findingItems = methodCard.querySelectorAll('.finding-item');
+    for (const item of findingItems) {
+        const label = item.querySelector('.finding-label');
+        if (label && label.textContent.includes(labelText)) {
+            // Update status badge
+            const statusBadge = item.querySelector('.finding-status');
+            if (statusBadge) {
+                statusBadge.textContent = found ? '✓ found' : '✗ missing';
+                statusBadge.className = `finding-status ${found ? 'found' : 'missing'}`;
+            }
+
+            // Update value
+            let valueDiv = item.querySelector('.finding-value');
+            if (found && value) {
+                if (!valueDiv) {
+                    valueDiv = document.createElement('div');
+                    valueDiv.className = 'finding-value';
+                    item.appendChild(valueDiv);
+                }
+                valueDiv.textContent = value;
+            } else if (valueDiv) {
+                valueDiv.remove();
+            }
+
+            break;
+        }
+    }
+}
+
+function updateTimestamp(methodCard, isoTimestamp) {
+    /**
+     * Update the timestamp display in a method card with relative time
+     */
+    // Convert ISO timestamp to relative time (e.g., "5 minutes ago")
+    const timestamp = new Date(isoTimestamp);
+    const now = new Date();
+    const diffMs = now - timestamp;
+    const diffSec = Math.floor(diffMs / 1000);
+
+    let relativeTime;
+    if (diffSec < 60) {
+        relativeTime = 'just now';
+    } else if (diffSec < 3600) {
+        const minutes = Math.floor(diffSec / 60);
+        relativeTime = `${minutes} minute${minutes !== 1 ? 's' : ''} ago`;
+    } else if (diffSec < 86400) {
+        const hours = Math.floor(diffSec / 3600);
+        relativeTime = `${hours} hour${hours !== 1 ? 's' : ''} ago`;
+    } else if (diffSec < 604800) {
+        const days = Math.floor(diffSec / 86400);
+        relativeTime = `${days} day${days !== 1 ? 's' : ''} ago`;
+    } else if (diffSec < 2592000) {
+        const weeks = Math.floor(diffSec / 604800);
+        relativeTime = `${weeks} week${weeks !== 1 ? 's' : ''} ago`;
+    } else {
+        const months = Math.floor(diffSec / 2592000);
+        relativeTime = `${months} month${months !== 1 ? 's' : ''} ago`;
+    }
+
+    // Format exact timestamp (e.g., "9 Nov 2025, 10:30")
+    const options = { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' };
+    const exactTime = timestamp.toLocaleDateString('en-GB', options);
+
+    // Find or create timestamp container
+    const actionButtons = methodCard.querySelector('.action-buttons');
+    let timestampDiv = actionButtons?.nextElementSibling;
+
+    if (!timestampDiv || !timestampDiv.querySelector('.timeago-relative')) {
+        // Create new timestamp display
+        timestampDiv = document.createElement('div');
+        timestampDiv.style.cssText = 'margin-top: 10px; padding-top: 8px; border-top: 1px solid var(--dark-gray); font-size: 10px; color: var(--gray); text-align: center;';
+        timestampDiv.innerHTML = `
+            <div style="margin-bottom: 2px;" class="timeago-relative">
+                🕒 <span style="color: var(--cyan);">${relativeTime}</span>
+            </div>
+            <div style="font-size: 9px; opacity: 0.7;" class="timeago-exact">
+                ${exactTime}
+            </div>
+        `;
+        if (actionButtons) {
+            actionButtons.insertAdjacentElement('afterend', timestampDiv);
+        }
+    } else {
+        // Update existing timestamp
+        const relativeSpan = timestampDiv.querySelector('.timeago-relative span');
+        const exactDiv = timestampDiv.querySelector('.timeago-exact');
+        if (relativeSpan) relativeSpan.textContent = relativeTime;
+        if (exactDiv) exactDiv.textContent = exactTime;
+    }
+}
+
+// Toggle VIEW checkboxes (card visibility)
+function toggleViewAll() {
+    const checkboxes = document.querySelectorAll('.method-view-toggle');
+    const allSelected = Array.from(checkboxes).every(cb => cb.checked);
+
+    checkboxes.forEach(cb => {
+        cb.checked = !allSelected;
+        // Trigger change event to update card visibility AND localStorage
+        cb.dispatchEvent(new Event('change'));
+    });
+}
+
+// Toggle SCAN checkboxes (method selection)
+function toggleScanAll() {
+    const checkboxes = document.querySelectorAll('.method-scan-toggle');
+    const allSelected = Array.from(checkboxes).every(cb => cb.checked);
+
+    checkboxes.forEach(cb => {
+        cb.checked = !allSelected;
+        // Trigger change event to save to localStorage
+        cb.dispatchEvent(new Event('change'));
+    });
+}
+
+// Global method status tracker - tracks which events have been logged
+const methodStatus = {};
+const loggedEvents = {};  // Track which events (queued, processing, completed) have been logged for each method
+
+// Log method state changes ONCE (chronological order)
+function logMethodStateChange(methodName, newState, additionalInfo = {}) {
+    const methodDisplayName = METHOD_CONFIG[methodName]?.name || methodName;
+    const eventKey = `${methodName}_${newState}`;
+
+    // Only log each state change once
+    if (loggedEvents[eventKey]) return;
+    loggedEvents[eventKey] = true;
+
+    let logMessage = '';
+    let logType = 'info';
+
+    if (newState === 'queued') {
+        logMessage = `⏳ ${methodDisplayName} - kuyruğa alındı`;
+        logType = 'info';
+    } else if (newState === 'running') {
+        logMessage = `🔄 ${methodDisplayName} - işleniyor`;
+        logType = 'info';
+    } else if (newState === 'completed') {
+        const duration = additionalInfo.duration || 0;
+        logMessage = `✅ ${methodDisplayName} - tamamlandı (${duration.toFixed(1)}s)`;
+        logType = 'success';
+    } else if (newState === 'error') {
+        const error = additionalInfo.error || 'unknown error';
+        logMessage = `❌ ${methodDisplayName} - hata: ${error}`;
+        logType = 'error';
+    }
+
+    if (logMessage) {
+        addLog(logMessage, logType);
+    }
+}
+
+async function runSelectedMethods(documentId) {
+    const btn = document.getElementById('run-selected-btn');
+
+    // Collect selected methods from SCAN checkboxes (not view checkboxes!)
+    const selectedMethods = [];
+    const scanToggles = document.querySelectorAll('.method-scan-toggle');
+    scanToggles.forEach(toggle => {
+        if (toggle.checked) {
+            selectedMethods.push(toggle.dataset.method);
+        }
+    });
+
+    if (selectedMethods.length === 0) {
+        alert('lütfen taranacak en az bir yöntem seçin (✓ kolonundan)');
+        return;
+    }
+
+    // Get max workers value from input
+    const maxWorkersInput = document.getElementById('max-workers');
+    const maxWorkers = parseInt(maxWorkersInput.value) || 2;
+
+    // Validate max workers
+    if (maxWorkers < 1 || maxWorkers > 5) {
+        alert('parallel workers 1-5 arasında olmalıdır');
+        return;
+    }
+
+    // Clear previous logs and initialize
+    clearLogs();
+
+    // Clear logged events tracker for fresh start
+    Object.keys(loggedEvents).forEach(key => delete loggedEvents[key]);
+
+    // Initialize method status tracker and log "queued" events
+    selectedMethods.forEach(method => {
+        methodStatus[method] = {
+            status: 'queued',
+            startTime: null,
+            endTime: null
+        };
+        // Log that method was queued
+        logMethodStateChange(method, 'queued');
+
+        // Auto-show cards for selected methods so user can see processing status
+        const viewCheckbox = document.getElementById(`view-${method}`);
+        if (viewCheckbox && !viewCheckbox.checked) {
+            viewCheckbox.checked = true;
+            viewCheckbox.dispatchEvent(new Event('change'));  // Trigger visibility update
+        }
+    });
+
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spinner-small"></span> tarama yapılıyor...';
+
+    // Open log details automatically
+    const logDetails = document.getElementById('log-details');
+    logDetails.open = true;
+
+    // Add initial log
+    addLog(`🔄 tarama başlatılıyor (max ${maxWorkers} paralel process)`, 'info');
+    addLog('', 'info');
+
+    // Mark first batch as running and log "running" events
+    const activeCount = Math.min(selectedMethods.length, maxWorkers);
+    selectedMethods.slice(0, activeCount).forEach(method => {
+        methodStatus[method].status = 'running';
+        methodStatus[method].startTime = Date.now();
+        // Log that method started processing
+        logMethodStateChange(method, 'running');
+    });
+
+    const startTime = Date.now();
+
+    // Create abort controller with 5 minute timeout
+    const abortController = new AbortController();
+    const timeoutId = setTimeout(() => {
+        abortController.abort();
+        addLog('❌ işlem zaman aşımına uğradı (5 dakika)', 'error');
+    }, 300000);
+
+    try {
+        const response = await fetch(`/documents/api/analysis/${documentId}/run-methods/`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': '{{ csrf_token }}'
+            },
+            body: JSON.stringify({
+                methods: selectedMethods,
+                force_refresh: true,  // Always run fresh analysis when button is clicked
+                max_workers: maxWorkers  // User-defined parallel workers
+            }),
+            signal: abortController.signal  // Add abort signal for timeout control
+        });
+
+        const data = await response.json();
+
+        if (response.ok && data.success) {
+            // Backend started analysis in background thread - WebSocket will handle real-time updates
+            addLog(`🚀 ${data.message}`, 'info');
+
+            // Clear the initial timeout since analysis is now running in background
+            clearTimeout(timeoutId);
+
+        } else {
+            // Failed to start analysis
+            addLog(`❌ hata: ${data.error || 'bilinmeyen hata'}`, 'error');
+
+            // Stop timeout on error
+            clearTimeout(timeoutId);
+
+            btn.disabled = false;
+            btn.innerHTML = '🚀 run selected methods';
+        }
+    } catch (error) {
+        // Stop timeout on error
+        clearTimeout(timeoutId);
+
+        console.error('run methods error:', error);
+        const elapsed = ((Date.now() - startTime) / 1000).toFixed(1);
+
+        if (error.name === 'AbortError') {
+            addLog(`❌ zaman aşımı: işlem 5 dakikadan uzun sürdü`, 'error');
+            addLog(`💡 ipucu: daha az yöntem seçmeyi deneyin`, 'info');
+        } else {
+            addLog(`❌ bağlantı hatası: ${error.message}`, 'error');
+            addLog(`⚠️  ${elapsed}s sonra başarısız oldu`, 'warning');
+        }
+
+        btn.disabled = false;
+        btn.innerHTML = '🚀 run selected methods';
+    }
+}
+
+async function runAllMethods(documentId) {
+    const btn = document.getElementById('run-all-btn');
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spinner-small"></span> running all methods...';
+
+    try {
+        const response = await fetch(`/documents/api/analysis/${documentId}/run-all/`, {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': '{{ csrf_token }}'
+            }
+        });
+
+        const data = await response.json();
+
+        if (response.ok && data.success) {
+            alert(`success! ${data.message}\npage will reload to show results.`);
+            setTimeout(() => window.location.reload(), 1000);
+        } else {
+            alert(`error: ${data.error || 'unknown error'}`);
+            btn.disabled = false;
+            btn.innerHTML = '🚀 run all ocr methods';
+        }
+    } catch (error) {
+        console.error('run all error:', error);
+        alert('error: ' + error.message);
+        btn.disabled = false;
+        btn.innerHTML = '🚀 run all ocr methods';
+    }
+}
+
+// WebSocket connection for real-time updates
+let ws = null;
+
+function connectWebSocket() {
+    const documentId = '{{ document.id }}';
+    const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+    const wsUrl = `${protocol}//${window.location.host}/ws/ocr/analysis/${documentId}/`;
+
+    console.log('Connecting to WebSocket:', wsUrl);
+    ws = new WebSocket(wsUrl);
+
+    ws.onopen = function() {
+        console.log('✅ WebSocket connected');
+        addLog('🔗 Gerçek zamanlı bağlantı kuruldu', 'success');
+    };
+
+    ws.onmessage = function(e) {
+        const data = JSON.parse(e.data);
+        console.log('WebSocket message:', data);
+
+        switch(data.type) {
+            case 'log':
+                // Add log entry
+                addLog(data.message, data.level || 'info');
+                break;
+
+            case 'status':
+                // Update method status
+                if (methodStatus[data.method]) {
+                    methodStatus[data.method].status = data.status;
+
+                    // Update badge - Use ID selector to target the card div, not checkbox
+                    const methodCard = document.getElementById(`card-${data.method}`);
+                    if (methodCard) {
+                        // Make card visible if it's hidden
+                        if (methodCard.style.display === 'none') {
+                            methodCard.style.display = 'block';
+                            console.log(`✅ Made card visible for ${data.method} (status update)`);
+                        }
+
+                        const statusBadge = methodCard.querySelector('.status-badge');
+                        if (statusBadge) {
+                            if (data.status === 'running') {
+                                statusBadge.textContent = 'processing';
+                                statusBadge.className = 'status-badge status-processing';
+                            } else if (data.status === 'queued') {
+                                statusBadge.textContent = 'queued';
+                                statusBadge.className = 'status-badge status-queued';
+                            }
+                        }
+                    }
+                }
+                break;
+
+            case 'result':
+                // Update card with result data - Use ID selector to target the card div, not checkbox
+                const resultCard = document.getElementById(`card-${data.method}`);
+                if (resultCard && data.data) {
+                    // Update all metrics
+                    updateMethodCardData(resultCard, data.method, data.data);
+                }
+                break;
+
+            case 'complete':
+                addLog('✅ ' + data.message, 'success');
+                // Reset the button to normal state
+                const btn = document.getElementById('run-selected-btn');
+                if (btn) {
+                    btn.disabled = false;
+                    btn.innerHTML = '🚀 run selected methods';
+                }
+                break;
+        }
+    };
+
+    ws.onerror = function(error) {
+        console.error('WebSocket error:', error);
+        addLog('⚠️ WebSocket bağlantı hatası', 'warning');
+    };
+
+    ws.onclose = function() {
+        console.log('WebSocket disconnected');
+        addLog('🔌 WebSocket bağlantısı kapandı', 'info');
+    };
+}
+
+function updateMethodCardData(card, methodName, data) {
+    /**
+     * Update all data in a method card with real-time WebSocket data
+     */
+    console.log(`Updating card for ${methodName}:`, data);
+
+    // Make card visible if it's hidden
+    if (card.style.display === 'none') {
+        card.style.display = 'block';
+        console.log(`✅ Made card visible for ${methodName}`);
+    }
+
+    // Update status badge
+    const statusBadge = card.querySelector('.status-badge');
+    if (statusBadge) {
+        if (data.status === 'error') {
+            statusBadge.textContent = 'error';
+            statusBadge.className = 'status-badge status-error';
+        } else if (data.status === 'success') {
+            statusBadge.textContent = 'success';
+            statusBadge.className = 'status-badge status-success';
+        } else if (data.status) {
+            statusBadge.textContent = data.status;
+            statusBadge.className = `status-badge status-${data.status}`;
+        }
+    }
+
+    // Update metrics
+    const metricCards = card.querySelectorAll('.metric-card');
+    metricCards.forEach(metricCard => {
+        const label = metricCard.querySelector('.metric-label')?.textContent.toLowerCase();
+        const valueEl = metricCard.querySelector('.metric-value');
+
+        if (!valueEl) return;
+
+        if (label === 'confidence' && data.confidence !== undefined) {
+            valueEl.textContent = `${parseFloat(data.confidence).toFixed(1)}%`;
+        } else if (label === 'characters' && data.char_count !== undefined) {
+            valueEl.textContent = data.char_count;
+        } else if (label === 'words' && data.word_count !== undefined) {
+            valueEl.textContent = data.word_count;
+        } else if (label === 'processing time' && data.processing_time !== undefined) {
+            valueEl.textContent = `${parseFloat(data.processing_time).toFixed(2)}s`;
+        }
+    });
+
+    // Update OCR text
+    const ocrTextEl = card.querySelector('.ocr-text-preview');
+    if (ocrTextEl && data.text) {
+        ocrTextEl.innerHTML = data.text.replace(/\n/g, '<br>');
+    }
+
+    // Update all key findings
+    const updateFinding = (label, value, foundFlag) => {
+        const findingItem = Array.from(card.querySelectorAll('.finding-item')).find(el =>
+            el.querySelector('.finding-label')?.textContent === label
+        );
+        if (findingItem) {
+            const valueEl = findingItem.querySelector('.finding-value');
+            const statusEl = findingItem.querySelector('.finding-status');
+
+            if (valueEl) valueEl.textContent = value || '';
+            if (statusEl) {
+                statusEl.textContent = foundFlag ? '✓ found' : '✗ missing';
+                statusEl.className = `finding-status ${foundFlag ? 'found' : 'missing'}`;
+            }
+        }
+    };
+
+    // Update store name
+    if (data.store_name !== undefined) {
+        updateFinding('store name', data.store_name, data.found_store);
+    }
+
+    // Update total amount
+    if (data.total_amount !== undefined) {
+        updateFinding('total amount', data.total_amount, data.found_total);
+    }
+
+    // Update date/time
+    if (data.date_time !== undefined) {
+        updateFinding('date/time', data.date_time, data.found_date);
+    }
+
+    // Update bottom info
+    if (data.bottom_info !== undefined) {
+        updateFinding('bottom info', data.bottom_info, data.found_bottom);
+    }
+}
+
+// Initialize WebSocket on page load
+document.addEventListener('DOMContentLoaded', function() {
+    connectWebSocket();
+    clearOldLogs();
+    resumePollingIfNeeded();
+});
+</script>
+{% endblock %}

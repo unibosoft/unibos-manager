@@ -1,0 +1,891 @@
+{% extends 'web_ui/base.html' %}
+{% load static %}
+
+{% block title %}Receipt Hub - UNIBOS{% endblock %}
+
+{% block header_title %}unibos{% endblock %}
+{% block module_name %}documents{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* Terminal Style Receipt Hub */
+    .receipt-hub {
+        background: var(--bg-dark);
+        border: 1px solid var(--orange);
+        padding: 20px;
+        border-radius: 5px;
+        color: var(--white);
+        margin-bottom: 20px;
+        position: relative;
+        overflow: hidden;
+    }
+    
+    .receipt-hub::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 2px;
+        background: linear-gradient(90deg, var(--orange), var(--cyan), var(--orange));
+        animation: scan 3s linear infinite;
+    }
+    
+    @keyframes scan {
+        0% { transform: translateX(-100%); }
+        100% { transform: translateX(100%); }
+    }
+    
+    .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+        gap: 15px;
+        margin: 20px 0;
+    }
+    
+    .stat-card {
+        background: var(--bg-black);
+        border: 1px solid var(--dark-gray);
+        border-radius: 3px;
+        padding: 15px;
+        transition: all 0.3s;
+        position: relative;
+    }
+    
+    .stat-card:hover {
+        border-color: var(--orange);
+        transform: translateY(-2px);
+        box-shadow: 0 4px 8px rgba(255, 140, 0, 0.2);
+    }
+    
+    .stat-value {
+        font-size: 24px;
+        font-weight: bold;
+        color: var(--cyan);
+        margin-bottom: 5px;
+        font-family: 'JetBrains Mono', monospace;
+    }
+    
+    .stat-label {
+        color: var(--gray);
+        font-size: 11px;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+    }
+    
+    .level-badge {
+        display: inline-flex;
+        align-items: center;
+        background: var(--orange);
+        color: var(--bg-black);
+        padding: 6px 12px;
+        border-radius: 3px;
+        font-weight: bold;
+        font-size: 12px;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+    }
+    
+    .progress-bar {
+        background: var(--bg-black);
+        border: 1px solid var(--dark-gray);
+        height: 20px;
+        overflow: hidden;
+        margin: 10px 0;
+        position: relative;
+    }
+    
+    .progress-fill {
+        background: var(--green);
+        height: 100%;
+        transition: width 0.5s ease;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: var(--bg-black);
+        font-size: 11px;
+        font-weight: bold;
+        position: relative;
+    }
+    
+    .progress-fill::after {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+        animation: shimmer 2s infinite;
+    }
+    
+    @keyframes shimmer {
+        0% { transform: translateX(-100%); }
+        100% { transform: translateX(100%); }
+    }
+    
+    .achievement-carousel {
+        display: flex;
+        gap: 1rem;
+        overflow-x: auto;
+        padding: 1rem 0;
+    }
+    
+    .achievement-card {
+        min-width: 150px;
+        background: white;
+        border-radius: 0.75rem;
+        padding: 1rem;
+        text-align: center;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+    
+    .achievement-icon {
+        font-size: 2rem;
+        margin-bottom: 0.5rem;
+    }
+    
+    .challenge-card {
+        background: var(--bg-dark);
+        border: 1px solid var(--dark-gray);
+        border-radius: 3px;
+        padding: 15px;
+        margin-bottom: 10px;
+        transition: border-color 0.3s;
+    }
+    
+    .challenge-card:hover {
+        border-color: var(--orange);
+    }
+    
+    .challenge-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 1rem;
+    }
+    
+    .challenge-progress {
+        background: #e2e8f0;
+        border-radius: 0.5rem;
+        height: 0.75rem;
+        overflow: hidden;
+    }
+    
+    .challenge-progress-fill {
+        background: #4299e1;
+        height: 100%;
+        transition: width 0.3s ease;
+    }
+    
+    .leaderboard-table {
+        background: var(--bg-black);
+        border: 1px solid var(--dark-gray);
+        border-radius: 3px;
+        overflow: hidden;
+    }
+    
+    .leaderboard-row {
+        display: flex;
+        align-items: center;
+        padding: 12px;
+        border-bottom: 1px solid var(--dark-gray);
+        transition: all 0.2s;
+        color: var(--white);
+    }
+    
+    .leaderboard-row:hover {
+        background: var(--bg-dark);
+        padding-left: 16px;
+    }
+    
+    .leaderboard-row.current-user {
+        background: rgba(255, 140, 0, 0.1);
+        border-left: 3px solid var(--orange);
+    }
+    
+    .rank-badge {
+        width: 30px;
+        height: 30px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: bold;
+        margin-right: 12px;
+        font-size: 12px;
+        border: 1px solid;
+    }
+    
+    .rank-1 { background: var(--yellow); color: var(--bg-black); border-color: var(--yellow); }
+    .rank-2 { background: var(--gray); color: var(--bg-black); border-color: var(--gray); }
+    .rank-3 { background: #cd7f32; color: var(--bg-black); border-color: #cd7f32; }
+    .rank-other { background: transparent; color: var(--gray); border-color: var(--dark-gray); }
+    
+    .action-buttons {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 15px;
+        margin: 20px 0;
+    }
+    
+    .action-btn {
+        background: var(--bg-dark);
+        border: 1px solid var(--dark-gray);
+        padding: 15px;
+        text-align: center;
+        text-decoration: none;
+        color: var(--white);
+        font-weight: bold;
+        transition: all 0.3s;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 8px;
+        position: relative;
+        overflow: hidden;
+    }
+    
+    .action-btn:hover {
+        border-color: var(--orange);
+        transform: translateY(-2px);
+        background: var(--bg-black);
+    }
+    
+    .action-btn::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: -100%;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(90deg, transparent, rgba(255,140,0,0.1), transparent);
+        transition: left 0.5s;
+    }
+    
+    .action-btn:hover::before {
+        left: 100%;
+    }
+    
+    .btn-upload { border-left: 3px solid var(--green); }
+    .btn-validate { border-left: 3px solid var(--cyan); }
+    .btn-challenges { border-left: 3px solid var(--yellow); }
+    
+    .action-icon {
+        font-size: 24px;
+        margin-bottom: 5px;
+    }
+    
+    .action-title {
+        font-size: 14px;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        color: var(--orange);
+    }
+    
+    .action-points {
+        font-size: 10px;
+        color: var(--green);
+        margin-top: 5px;
+    }
+    
+    .streak-fire {
+        color: var(--orange);
+        animation: flicker 1.5s infinite;
+        display: inline-block;
+    }
+    
+    @keyframes flicker {
+        0%, 100% { opacity: 1; transform: scale(1); }
+        50% { opacity: 0.7; transform: scale(1.1); }
+    }
+    
+    /* Points Display */
+    .points-display {
+        background: var(--bg-black);
+        border: 1px solid var(--orange);
+        padding: 15px;
+        border-radius: 3px;
+        text-align: center;
+    }
+    
+    .points-value {
+        font-size: 32px;
+        color: var(--green);
+        font-weight: bold;
+        font-family: 'JetBrains Mono', monospace;
+        text-shadow: 0 0 10px rgba(0, 255, 0, 0.5);
+    }
+    
+    .points-label {
+        color: var(--gray);
+        font-size: 10px;
+        text-transform: uppercase;
+        letter-spacing: 2px;
+        margin-top: 5px;
+    }
+    
+    /* Detailed Points Breakdown */
+    .points-breakdown {
+        background: var(--bg-dark);
+        border: 1px solid var(--dark-gray);
+        padding: 15px;
+        margin-top: 20px;
+        border-radius: 3px;
+    }
+    
+    .points-breakdown-title {
+        color: var(--orange);
+        font-size: 14px;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        margin-bottom: 15px;
+        padding-bottom: 8px;
+        border-bottom: 1px solid var(--dark-gray);
+    }
+    
+    .points-item {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 8px 0;
+        border-bottom: 1px solid rgba(64, 64, 64, 0.3);
+        color: var(--white);
+        font-size: 12px;
+    }
+    
+    .points-item:last-child {
+        border-bottom: none;
+    }
+    
+    .points-action {
+        color: var(--gray);
+    }
+    
+    .points-amount {
+        color: var(--green);
+        font-weight: bold;
+        font-family: 'JetBrains Mono', monospace;
+    }
+    
+    .points-amount.bonus {
+        color: var(--yellow);
+    }
+    
+    .points-amount.streak {
+        color: var(--orange);
+    }
+    
+    .tutorial-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(0, 0, 0, 0.95);
+        z-index: 9999;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+    
+    .tutorial-modal {
+        background: var(--bg-dark);
+        border: 2px solid var(--orange);
+        border-radius: 5px;
+        padding: 30px;
+        max-width: 600px;
+        max-height: 80vh;
+        overflow-y: auto;
+        color: var(--white);
+        box-shadow: 0 0 30px rgba(255, 140, 0, 0.3);
+    }
+    
+    .tutorial-modal h2 {
+        color: var(--orange);
+        text-transform: uppercase;
+        letter-spacing: 2px;
+        margin-bottom: 20px;
+        font-size: 18px;
+    }
+    
+    .tutorial-steps {
+        margin: 20px 0;
+    }
+    
+    .tutorial-step {
+        margin-bottom: 20px;
+        padding-left: 20px;
+        position: relative;
+    }
+    
+    .tutorial-step::before {
+        content: '>';
+        position: absolute;
+        left: 0;
+        color: var(--green);
+    }
+    
+    .tutorial-step strong {
+        color: var(--cyan);
+        display: block;
+        margin-bottom: 5px;
+    }
+    
+    .points-animation {
+        animation: pointsPulse 0.5s ease;
+    }
+    
+    @keyframes pointsPulse {
+        0% { transform: scale(1); color: var(--green); }
+        50% { transform: scale(1.2); color: var(--cyan); }
+        100% { transform: scale(1); color: var(--green); }
+    }
+    
+    /* Receipt Cards */
+    .receipt-card {
+        background: var(--bg-dark);
+        border: 1px solid var(--dark-gray);
+        border-radius: 3px;
+        padding: 15px;
+        transition: all 0.3s;
+    }
+    
+    .receipt-card:hover {
+        border-color: var(--orange);
+        transform: translateY(-2px);
+    }
+    
+    .receipt-card-title {
+        color: var(--orange);
+        font-size: 14px;
+        margin-bottom: 8px;
+        text-transform: uppercase;
+    }
+    
+    .receipt-card-meta {
+        color: var(--gray);
+        font-size: 11px;
+        margin-bottom: 10px;
+    }
+    
+    .receipt-card-amount {
+        color: var(--green);
+        font-size: 18px;
+        font-weight: bold;
+        font-family: 'JetBrains Mono', monospace;
+    }
+    
+    .receipt-status {
+        display: inline-block;
+        padding: 3px 8px;
+        border-radius: 2px;
+        font-size: 10px;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        margin-top: 8px;
+    }
+    
+    .receipt-status.completed {
+        background: rgba(0, 255, 0, 0.1);
+        color: var(--green);
+        border: 1px solid var(--green);
+    }
+    
+    .receipt-status.processing {
+        background: rgba(255, 255, 0, 0.1);
+        color: var(--yellow);
+        border: 1px solid var(--yellow);
+    }
+    
+    .receipt-status.manual_review {
+        background: rgba(255, 140, 0, 0.1);
+        color: var(--orange);
+        border: 1px solid var(--orange);
+    }
+    
+    /* Section Headers */
+    .section-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 15px;
+        padding-bottom: 8px;
+        border-bottom: 1px solid var(--dark-gray);
+    }
+    
+    .section-title {
+        color: var(--orange);
+        font-size: 16px;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+    }
+    
+    .section-link {
+        color: var(--cyan);
+        text-decoration: none;
+        font-size: 12px;
+        transition: color 0.3s;
+    }
+    
+    .section-link:hover {
+        color: var(--orange);
+        text-decoration: underline;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="content-box">
+    <!-- Tutorial Overlay -->
+    {% if show_tutorial %}
+    <div class="tutorial-overlay" id="tutorialOverlay">
+        <div class="tutorial-modal">
+            <h2>RECEIPT PROCESSING HUB</h2>
+            <p>Turn your receipts into rewards. System initialized.</p>
+            
+            <div class="tutorial-steps">
+                <div class="tutorial-step">
+                    <strong>UPLOAD_RECEIPTS</strong>
+                    Scan or upload receipt images [🥕 +5 carrots per upload]
+                </div>
+                <div class="tutorial-step">
+                    <strong>VALIDATE_DATA</strong>
+                    Verify and correct OCR results [🥕 +3-15 carrots per field]
+                </div>
+                <div class="tutorial-step">
+                    <strong>EARN_REWARDS</strong>
+                    Accumulate carrots 🥕, level up, unlock achievements
+                </div>
+                <div class="tutorial-step">
+                    <strong>COMPETE_COLLABORATE</strong>
+                    Complete challenges, validate community receipts
+                </div>
+            </div>
+            
+            <button class="btn" onclick="closeTutorial()">
+                INITIALIZE SYSTEM
+            </button>
+        </div>
+    </div>
+    {% endif %}
+    
+    <!-- Main Dashboard Header -->
+    <div class="receipt-hub">
+        <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+            <div style="flex: 1;">
+                <h1 style="color: var(--orange); font-size: 24px; margin-bottom: 15px; text-transform: uppercase; letter-spacing: 2px;">
+                    RECEIPT PROCESSING HUB
+                </h1>
+                <div style="display: flex; gap: 15px; align-items: center; margin-bottom: 15px;">
+                    <span class="level-badge">
+                        LEVEL {{ stats.current_level }}
+                    </span>
+                    <span style="color: var(--cyan); font-size: 14px;">
+                        🥕 {{ stats.total_points }} CARROTS
+                    </span>
+                    {% if stats.streak_days > 0 %}
+                    <span style="color: var(--white); font-size: 14px;">
+                        <span class="streak-fire">🔥</span> {{ stats.streak_days }} DAY STREAK
+                    </span>
+                    {% endif %}
+                </div>
+                <div class="progress-bar">
+                    <div class="progress-fill" style="width: {{ stats.level_progress }}%">
+                        {{ stats.experience_points }} / {{ stats.next_level_points }} XP
+                    </div>
+                </div>
+            </div>
+            <div class="points-display">
+                <div class="points-label">TODAY'S CARROTS 🥕</div>
+                <div class="points-value points-animation">🥕 +{{ today_points }}</div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Detailed Carrot System -->
+    <div class="points-breakdown">
+        <div class="points-breakdown-title">🥕 CARROT REWARDS SYSTEM</div>
+        <div class="points-item">
+            <span class="points-action">Receipt Upload</span>
+            <span class="points-amount">🥕 +5</span>
+        </div>
+        <div class="points-item">
+            <span class="points-action">Successful OCR</span>
+            <span class="points-amount">🥕 +10</span>
+        </div>
+        <div class="points-item">
+            <span class="points-action">Complete Data Extraction</span>
+            <span class="points-amount">🥕 +15</span>
+        </div>
+        <div class="points-item">
+            <span class="points-action">Store Name Validation</span>
+            <span class="points-amount">🥕 +3</span>
+        </div>
+        <div class="points-item">
+            <span class="points-action">Date Validation</span>
+            <span class="points-amount">🥕 +3</span>
+        </div>
+        <div class="points-item">
+            <span class="points-action">Total Amount Validation</span>
+            <span class="points-amount">🥕 +5</span>
+        </div>
+        <div class="points-item">
+            <span class="points-action">Each Product Validation</span>
+            <span class="points-amount">🥕 +2</span>
+        </div>
+        <div class="points-item">
+            <span class="points-action">Missing Info Addition</span>
+            <span class="points-amount">🥕 +5</span>
+        </div>
+        <div class="points-item">
+            <span class="points-action">Error Correction</span>
+            <span class="points-amount">🥕 +7</span>
+        </div>
+        <div class="points-item">
+            <span class="points-action">Perfect Receipt (100% Accuracy)</span>
+            <span class="points-amount bonus">🥕 +20</span>
+        </div>
+        <div class="points-item">
+            <span class="points-action">5 Correct Receipt Streak</span>
+            <span class="points-amount streak">🥕 +30</span>
+        </div>
+        <div class="points-item">
+            <span class="points-action">10 Correct Receipt Streak</span>
+            <span class="points-amount streak">🥕 +70</span>
+        </div>
+        <div class="points-item">
+            <span class="points-action">Daily Bonus (10 receipts)</span>
+            <span class="points-amount bonus">🥕 +50</span>
+        </div>
+        <div class="points-item">
+            <span class="points-action">Weekly Bonus (50 receipts)</span>
+            <span class="points-amount bonus">🥕 +200</span>
+        </div>
+        <div class="points-item">
+            <span class="points-action">Monthly Bonus (100 receipts)</span>
+            <span class="points-amount bonus">🥕 +500</span>
+        </div>
+        <div class="points-item">
+            <span class="points-action">Community Validation</span>
+            <span class="points-amount">🥕 +3</span>
+        </div>
+        <div class="points-item">
+            <span class="points-action">Accurate Validation</span>
+            <span class="points-amount">🥕 +5</span>
+        </div>
+        <div class="points-item">
+            <span class="points-action">Expert Validator Status</span>
+            <span class="points-amount bonus">🥕 x2</span>
+        </div>
+    </div>
+    
+    <!-- Quick Actions -->
+    <div class="action-buttons">
+        <a href="{% url 'documents:upload_receipt' %}" class="action-btn btn-upload">
+            <span class="action-icon">📸</span>
+            <span class="action-title">Upload Receipt</span>
+            <span class="action-points">🥕 +10 carrots</span>
+        </a>
+        <a href="{% url 'documents:document_validation' %}" class="action-btn btn-validate">
+            <span class="action-icon">✓</span>
+            <span class="action-title">Validate Others</span>
+            <span class="action-points">🥕 +10 each</span>
+        </a>
+        <a href="{% url 'documents:challenges' %}" class="action-btn btn-challenges">
+            <span class="action-icon">🏆</span>
+            <span class="action-title">View Challenges</span>
+            <span class="action-points">🥕 Bonus carrots</span>
+        </a>
+    </div>
+    
+    <!-- Stats Grid -->
+    <div class="stats-grid">
+        <div class="stat-card">
+            <div class="stat-value">{{ stats.receipts_processed|default:0 }}</div>
+            <div class="stat-label">RECEIPTS PROCESSED</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-value">{{ stats.accuracy_score|default:0|floatformat:1 }}%</div>
+            <div class="stat-label">ACCURACY SCORE</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-value">{{ stats.receipts_validated|default:0 }}</div>
+            <div class="stat-label">VALIDATED</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-value">#{{ profile.weekly_rank|default:"--" }}</div>
+            <div class="stat-label">WEEKLY RANK</div>
+        </div>
+    </div>
+    
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-top: 20px;">
+        <!-- Active Challenges -->
+        <div>
+            <div class="section-header">
+                <h3 class="section-title">ACTIVE CHALLENGES</h3>
+                <a href="{% url 'documents:challenges' %}" class="section-link">View All →</a>
+            </div>
+            {% for uc in active_challenges %}
+            <div class="challenge-card">
+                <div style="display: flex; justify-content: space-between; margin-bottom: 10px;">
+                    <div>
+                        <strong style="color: var(--orange); text-transform: uppercase;">{{ uc.challenge.title }}</strong>
+                        <div style="color: var(--gray); font-size: 11px; margin-top: 3px;">
+                            PROGRESS: {{ uc.current_progress }}/{{ uc.challenge.target_count }}
+                        </div>
+                    </div>
+                    <div style="text-align: right;">
+                        <div style="color: var(--green); font-weight: bold;">🥕 +{{ uc.challenge.points_reward }}</div>
+                        <div style="color: var(--gray); font-size: 10px;">
+                            {{ uc.challenge.end_date|timeuntil }} LEFT
+                        </div>
+                    </div>
+                </div>
+                <div class="progress-bar" style="height: 10px;">
+                    <div class="progress-fill" 
+                         style="width: {% widthratio uc.current_progress uc.challenge.target_count 100 %}%; background: var(--cyan);">
+                    </div>
+                </div>
+            </div>
+            {% empty %}
+            <p style="color: var(--gray); font-size: 12px;">NO ACTIVE CHALLENGES. CHECK BACK SOON.</p>
+            {% endfor %}
+        </div>
+        
+        <!-- Weekly Leaderboard -->
+        <div>
+            <div class="section-header">
+                <h3 class="section-title">WEEKLY LEADERBOARD</h3>
+                <a href="{% url 'documents:leaderboard' %}" class="section-link">View All →</a>
+            </div>
+            <div class="leaderboard-table">
+                {% for leader in weekly_leaders|slice:":5" %}
+                <div class="leaderboard-row {% if leader.user == request.user %}current-user{% endif %}">
+                    <div class="rank-badge {% if forloop.counter == 1 %}rank-1{% elif forloop.counter == 2 %}rank-2{% elif forloop.counter == 3 %}rank-3{% else %}rank-other{% endif %}">
+                        {{ forloop.counter }}
+                    </div>
+                    <div style="flex: 1;">
+                        <div style="font-weight: bold; color: var(--white);">
+                            {{ leader.user.username|upper }}
+                            {% if leader.user == request.user %}<span style="color: var(--orange);">[YOU]</span>{% endif %}
+                        </div>
+                        <div style="color: var(--gray); font-size: 10px;">LEVEL {{ leader.current_level }}</div>
+                    </div>
+                    <div style="text-align: right;">
+                        <div style="font-weight: bold; color: var(--green); font-size: 16px;">🥕 {{ leader.total_points }}</div>
+                        <div style="color: var(--gray); font-size: 10px; text-transform: uppercase;">carrots</div>
+                    </div>
+                </div>
+                {% empty %}
+                <p style="color: var(--gray); padding: 15px; font-size: 12px;">NO LEADERBOARD DATA YET.</p>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+    
+    <!-- Recent Achievements -->
+    {% if recent_achievements %}
+    <div style="margin-top: 20px;">
+        <div class="section-header">
+            <h3 class="section-title">RECENT ACHIEVEMENTS</h3>
+            <a href="{% url 'documents:achievements' %}" class="section-link">View All →</a>
+        </div>
+        <div style="display: flex; gap: 15px; overflow-x: auto; padding: 10px 0;">
+            {% for achievement in recent_achievements %}
+            <div style="min-width: 150px; background: var(--bg-dark); border: 1px solid var(--dark-gray); border-radius: 3px; padding: 15px; text-align: center;">
+                <div style="font-size: 24px; margin-bottom: 8px;">{{ achievement.icon|default:"🏆" }}</div>
+                <div style="font-weight: bold; color: var(--orange); font-size: 12px; text-transform: uppercase;">{{ achievement.name }}</div>
+                <div style="color: var(--gray); font-size: 10px; margin-top: 5px;">{{ achievement.unlocked_at|timesince }} AGO</div>
+                <div style="color: var(--green); font-size: 11px; margin-top: 5px;">🥕 +{{ achievement.points_awarded }}</div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+    
+    <!-- Recent Receipts -->
+    {% if recent_receipts %}
+    <div style="margin-top: 20px;">
+        <div class="section-header">
+            <h3 class="section-title">RECENT RECEIPTS</h3>
+            <a href="{% url 'documents:document_list' %}" class="section-link">View All →</a>
+        </div>
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 15px;">
+            {% for receipt in recent_receipts %}
+            <div class="receipt-card">
+                <div class="receipt-card-title">
+                    {% if receipt.parsed_receipt %}
+                        {{ receipt.parsed_receipt.store_name|default:"UNKNOWN STORE"|upper }}
+                    {% else %}
+                        {{ receipt.original_filename|truncatechars:30|upper }}
+                    {% endif %}
+                </div>
+                <div class="receipt-card-meta">
+                    {{ receipt.uploaded_at|timesince|upper }} AGO
+                </div>
+                {% if receipt.parsed_receipt %}
+                <div class="receipt-card-amount">
+                    {{ receipt.parsed_receipt.total_amount|floatformat:2 }} TRY
+                </div>
+                {% endif %}
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                    <span class="receipt-status {{ receipt.processing_status }}">
+                        {{ receipt.get_processing_status_display|upper }}
+                    </span>
+                    {% if receipt.ocr_confidence %}
+                    <span style="color: var(--gray); font-size: 10px;">
+                        {{ receipt.ocr_confidence|floatformat:0 }}% CONF
+                    </span>
+                    {% endif %}
+                </div>
+                {% if receipt.processing_status == 'manual_review' %}
+                <a href="{% url 'documents:validate_receipt' receipt.id %}" 
+                   class="btn btn-secondary" style="width: 100%; margin-top: 10px; font-size: 11px;">
+                    VALIDATE NOW
+                </a>
+                {% endif %}
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+</div>
+
+<script>
+    function closeTutorial() {
+        document.getElementById('tutorialOverlay').style.display = 'none';
+        // Mark tutorial as completed
+        fetch('/documents/api/tutorial-complete/', {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': '{{ csrf_token }}',
+                'Content-Type': 'application/json'
+            }
+        });
+    }
+    
+    // Auto-refresh stats every 30 seconds
+    setInterval(function() {
+        fetch('/documents/api/user-stats/')
+            .then(response => response.json())
+            .then(data => {
+                // Update stats dynamically
+                document.querySelectorAll('.stat-value').forEach((el, index) => {
+                    if (index === 0) el.textContent = data.receipts_processed;
+                    if (index === 1) el.textContent = data.accuracy_score.toFixed(1) + '%';
+                    if (index === 2) el.textContent = data.receipts_validated || 0;
+                    if (index === 3) el.textContent = '#' + (data.rank || '--');
+                });
+            });
+    }, 30000);
+    
+    // Points animation on page load
+    document.addEventListener('DOMContentLoaded', function() {
+        const pointsElements = document.querySelectorAll('.points-animation');
+        pointsElements.forEach(el => {
+            el.classList.add('bounce');
+            setTimeout(() => el.classList.remove('bounce'), 500);
+        });
+    });
+</script>
+{% endblock %}

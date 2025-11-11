@@ -1,0 +1,177 @@
+{% extends 'web_ui/base.html' %}
+
+{% block title %}{{ page_title }}{% endblock %}
+
+{% block header_title %}unibos{% endblock %}
+{% block module_name %}dashboard{% endblock %}
+
+{% block content %}
+<div class="content-box">
+    <h1 class="content-title">welcome to unibos web interface</h1>
+    
+    
+    <div class="terminal-text">
+        <p class="terminal-prompt">system initialized successfully</p>
+        <p class="terminal-prompt">all modules loaded</p>
+        <p class="terminal-prompt">ready for commands...</p>
+    </div>
+</div>
+
+<!-- Module Grid -->
+<div class="content-box">
+    <h2 class="content-title">available modules</h2>
+    
+    <div class="module-grid">
+        {% for module in modules %}
+        <div class="module-card" 
+             onclick="window.location.href='{% url 'web_ui:module' module.id %}'"
+             hx-get="{% url 'web_ui:module' module.id %}"
+             hx-target="#main-content"
+             hx-push-url="true">
+            <div class="module-header">
+                <span class="module-icon">{{ module.icon }}</span>
+                <span class="module-name">{{ module.name }}</span>
+            </div>
+            <div class="module-desc">
+                    {% if module.id == 'recaria' %}
+                        ultima online inspired system
+                    {% elif module.id == 'birlikteyiz' %}
+                        community emergency response
+                    {% elif module.id == 'kisisel_enflasyon' %}
+                        personal inflation tracking
+                    {% elif module.id == 'currencies' %}
+                        real-time currency exchange
+                    {% elif module.id == 'wimm' %}
+                        where is my money tracker
+                    {% elif module.id == 'wims' %}
+                        where is my stuff inventory
+                    {% elif module.id == 'store' %}
+                        e-commerce marketplace
+                    {% elif module.id == 'cctv' %}
+                        camera monitoring system
+                    {% elif module.id == 'documents' %}
+                        ocr document management
+                    {% elif module.id == 'movies' %}
+                        movie collection manager
+                    {% elif module.id == 'music' %}
+                        spotify music library
+                    {% elif module.id == 'restopos' %}
+                        restaurant pos system
+                    {% endif %}
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+
+<!-- System Status -->
+<div class="content-box">
+    <h2 class="content-title">system status</h2>
+    
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px;">
+        <div>
+            <span style="color: var(--gray);">version:</span>
+            <span style="color: var(--green);">{{ version }}</span>
+        </div>
+        <div>
+            <span style="color: var(--gray);">build:</span>
+            <span style="color: var(--green);">{{ build_number }}</span>
+        </div>
+        <div>
+            <span style="color: var(--gray);">status:</span>
+            <span style="color: var(--green);">{% if online_status %}online{% else %}offline{% endif %}</span>
+        </div>
+        <div>
+            <span style="color: var(--gray);">location:</span>
+            <span style="color: var(--green);">{{ location }}</span>
+        </div>
+        <div>
+            <span style="color: var(--gray);">time:</span>
+            <span style="color: var(--green);">{{ current_time }}</span>
+        </div>
+        <div>
+            <span style="color: var(--gray);">date:</span>
+            <span style="color: var(--green);">{{ current_date }}</span>
+        </div>
+    </div>
+</div>
+
+<!-- Quick Actions -->
+<div class="content-box">
+    <h2 class="content-title">quick actions</h2>
+    
+    <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+        <button class="btn" onclick="window.location.href='{% url 'web_ui:tool' 'web_forge' %}'">
+            launch web forge
+        </button>
+        <button class="btn" onclick="window.location.href='{% url 'web_ui:tool' 'database_setup' %}'">
+            database setup
+        </button>
+        <button class="btn btn-secondary" onclick="checkSystemStatus()">
+            check status
+        </button>
+        <button class="btn btn-secondary" onclick="viewLogs()">
+            view logs
+        </button>
+    </div>
+</div>
+
+<script>
+    function checkSystemStatus() {
+        fetch('{% url 'web_ui:api_status' %}')
+            .then(response => response.json())
+            .then(data => {
+                alert('system status:\n' + JSON.stringify(data, null, 2));
+            });
+    }
+    
+    function viewLogs() {
+        alert('log viewer will be implemented soon');
+    }
+    
+    // Keyboard shortcuts for unibos main screen
+    let keysPressed = {};
+    let exitDialogShowing = false;
+    
+    document.addEventListener('keydown', function(e) {
+        const key = e.key.toLowerCase();
+        keysPressed[key] = true;
+        
+        // Check if typing in an input field
+        const isTypingInInput = document.activeElement.tagName === 'INPUT' || 
+                               document.activeElement.tagName === 'TEXTAREA';
+        
+        if (isTypingInInput) return;
+        
+        // Q+W combination to go to solitaire (play solitaire)
+        if (keysPressed['q'] && keysPressed['w'] && !keysPressed['e'] && !exitDialogShowing) {
+            console.log('Q+W combination detected, going to solitaire');
+            keysPressed = {};
+            e.preventDefault();
+            window.location.href = '{% url "web_ui:solitaire" %}';
+        }
+        
+        // Q+W+E combination to exit unibos completely
+        if (keysPressed['q'] && keysPressed['w'] && keysPressed['e'] && !exitDialogShowing) {
+            console.log('Q+W+E combination detected, exiting unibos');
+            keysPressed = {};
+            e.preventDefault();
+            showExitDialog();
+        }
+    });
+    
+    document.addEventListener('keyup', function(e) {
+        const key = e.key.toLowerCase();
+        delete keysPressed[key];
+    });
+    
+    function showExitDialog() {
+        exitDialogShowing = true;
+        if (confirm('are you sure you want to exit unibos?')) {
+            // Log out the user
+            window.location.href = '{% url "web_ui:logout" %}';
+        }
+        exitDialogShowing = false;
+    }
+</script>
+{% endblock %}

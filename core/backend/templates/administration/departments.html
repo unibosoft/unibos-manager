@@ -1,0 +1,55 @@
+{% extends "administration/base_admin.html" %}
+
+{% block title %}departments - unibos administration{% endblock %}
+
+{% block admin_content %}
+<!-- Departments List -->
+<div class="section">
+    <div class="section-header">
+        <h2>all departments</h2>
+        <button class="btn-primary" onclick="window.location.href='#'">
+            + create new department
+        </button>
+    </div>
+    <div class="content-box">
+        <div class="data-table-container">
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>name</th>
+                            <th>code</th>
+                            <th>parent</th>
+                            <th>manager</th>
+                            <th>members</th>
+                            <th>sub-departments</th>
+                            <th>status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for dept in departments %}
+                        <tr>
+                            <td>{{ dept.name|lower }}</td>
+                            <td>{{ dept.code }}</td>
+                            <td>{{ dept.parent.name|default:"-"|lower }}</td>
+                            <td>{{ dept.manager.username|default:"-" }}</td>
+                            <td>{{ dept.member_count|default:0 }}</td>
+                            <td>{{ dept.subdept_count|default:0 }}</td>
+                            <td>
+                                {% if dept.is_active %}
+                                <span class="badge badge-success">active</span>
+                                {% else %}
+                                <span class="badge badge-danger">inactive</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="7" class="text-center">no departments found</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

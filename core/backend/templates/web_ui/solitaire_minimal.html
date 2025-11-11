@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Solitaire Minimal</title>
+    <style>
+        body {
+            margin: 0;
+            background: #1e5620;
+            font-family: Arial;
+        }
+        .game-board {
+            padding: 20px;
+        }
+        .game-area {
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+        .card-slot {
+            width: 110px;
+            min-height: 148px;
+            background: rgba(0,0,0,0.2);
+            border: 2px solid rgba(255,255,255,0.1);
+            border-radius: 8px;
+            position: relative;
+        }
+        .card {
+            position: absolute;
+            width: 110px;
+            height: 148px;
+            background: white;
+            border: 1px solid #999;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            font-weight: bold;
+        }
+        .card.face-down {
+            background: #2d3d2d;
+            color: white;
+        }
+        .card.red { color: red; }
+        .card.black { color: black; }
+        .toolbar {
+            background: #333;
+            color: white;
+            padding: 10px 20px;
+            display: flex;
+            justify-content: space-between;
+        }
+    </style>
+</head>
+<body>
+    <div class="toolbar">
+        <div>Solitaire Minimal Test</div>
+        <div>
+            <span>Score: <span id="score">0</span></span> | 
+            <span>Moves: <span id="moves">0</span></span> | 
+            <span>Time: <span id="timer">0:00</span></span>
+        </div>
+    </div>
+    
+    <div class="game-board" id="gameBoard">
+        <div class="game-area">
+            <!-- Stock and Waste -->
+            <div class="card-slot" id="stock"></div>
+            <div class="card-slot" id="waste"></div>
+            
+            <!-- Foundations -->
+            <div class="card-slot" id="foundation-0"></div>
+            <div class="card-slot" id="foundation-1"></div>
+            <div class="card-slot" id="foundation-2"></div>
+            <div class="card-slot" id="foundation-3"></div>
+            
+            <!-- Tableau -->
+            <div class="card-slot" id="tableau-0"></div>
+            <div class="card-slot" id="tableau-1"></div>
+            <div class="card-slot" id="tableau-2"></div>
+            <div class="card-slot" id="tableau-3"></div>
+            <div class="card-slot" id="tableau-4"></div>
+            <div class="card-slot" id="tableau-5"></div>
+            <div class="card-slot" id="tableau-6"></div>
+        </div>
+    </div>
+    
+    <script>
+        console.log('Starting Solitaire Minimal...');
+        
+        const suits = ['♠', '♥', '♦', '♣'];
+        const ranks = ['A', '2', '3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K'];
+        const values = { A: 1, J: 11, Q: 12, K: 13 };
+        
+        let game = {
+            deck: [],
+            stock: [],
+            waste: [],
+            foundations: [[], [], [], []],
+            tableau: [[], [], [], [], [], [], []],
+            score: 0,
+            moves: 0
+        };
+        
+        function createCard(card, faceUp) {
+            const div = document.createElement('div');
+            div.className = 'card ' + (faceUp ? card.color : 'face-down');
+            if (faceUp) {
+                div.innerHTML = card.rank + suits[card.suit];
+            } else {
+                div.innerHTML = '🦄';
+            }
+            return div;
+        }
+        
+        function render() {
+            console.log('Rendering game...');
+            
+            // Clear all cards
+            document.querySelectorAll('.card').forEach(c => c.remove());
+            
+            // Render stock
+            if (game.stock.length > 0) {
+                const stockEl = document.getElementById('stock');
+                const card = createCard(game.stock[game.stock.length - 1], false);
+                card.style.top = '0';
+                card.style.left = '0';
+                stockEl.appendChild(card);
+            }
+            
+            // Render tableau
+            for (let col = 0; col < 7; col++) {
+                const tableau = document.getElementById('tableau-' + col);
+                const pile = game.tableau[col];
+                
+                pile.forEach((card, row) => {
+                    const cardEl = createCard(card, card.faceUp);
+                    cardEl.style.top = (row * 25) + 'px';
+                    cardEl.style.left = '0';
+                    cardEl.style.zIndex = row;
+                    tableau.appendChild(cardEl);
+                });
+            }
+            
+            console.log('Render complete');
+        }
+        
+        function initGame() {
+            console.log('Initializing game...');
+            
+            // Create deck
+            for (let s = 0; s < 4; s++) {
+                for (let r = 0; r < 13; r++) {
+                    game.deck.push({
+                        suit: s,
+                        rank: ranks[r],
+                        value: values[ranks[r]] || parseInt(ranks[r]),
+                        color: (s === 1 || s === 2) ? 'red' : 'black',
+                        faceUp: false
+                    });
+                }
+            }
+            
+            // Shuffle
+            for (let i = game.deck.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [game.deck[i], game.deck[j]] = [game.deck[j], game.deck[i]];
+            }
+            
+            // Deal cards
+            let cardIndex = 0;
+            for (let col = 0; col < 7; col++) {
+                for (let row = 0; row <= col; row++) {
+                    const card = game.deck[cardIndex++];
+                    card.faceUp = (row === col);
+                    game.tableau[col].push(card);
+                }
+            }
+            
+            // Rest to stock
+            while (cardIndex < game.deck.length) {
+                game.stock.push(game.deck[cardIndex++]);
+            }
+            
+            console.log('Game initialized. Stock:', game.stock.length, 'Tableau:', game.tableau.map(p => p.length));
+            
+            render();
+        }
+        
+        // Start the game
+        initGame();
+    </script>
+</body>
+</html>

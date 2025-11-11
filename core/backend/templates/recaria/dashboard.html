@@ -1,0 +1,189 @@
+{% extends 'web_ui/base.html' %}
+{% load static %}
+
+{% block title %}recaria - ultima online inspired mmorpg{% endblock %}
+
+{% block header_title %}unibos{% endblock %}
+{% block module_name %}recaria - ultima online inspired mmorpg{% endblock %}
+
+{% block content %}
+<div class="module-container">
+    <div class="module-header">
+        <h1>🪐 recaria</h1>
+        <p class="module-subtitle">ultima online tabanlı çevrimiçi rol yapma oyunu</p>
+    </div>
+    
+    <div class="module-content">
+        <div class="info-box">
+            <p>{{ description }}</p>
+        </div>
+        
+        <div class="features-grid">
+            <h2>planned features</h2>
+            <div class="feature-cards">
+                {% for feature in features %}
+                <div class="feature-card">
+                    <span class="feature-icon">⚔️</span>
+                    <span class="feature-name">{{ feature }}</span>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        
+        <div class="stats-grid">
+            <h2>world statistics</h2>
+            <div class="stat-cards">
+                <div class="stat-card">
+                    <div class="stat-value">{{ stats.total_characters }}</div>
+                    <div class="stat-label">characters created</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value">{{ stats.active_guilds }}</div>
+                    <div class="stat-label">active guilds</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value">{{ stats.ongoing_battles }}</div>
+                    <div class="stat-label">ongoing battles</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value">{{ stats.trade_listings }}</div>
+                    <div class="stat-label">trade listings</div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="coming-soon-notice">
+            <h3>🚧 under development</h3>
+            <p>the recaria mmorpg system is currently being developed. check back soon for updates!</p>
+            <p class="sub-text">expected features: character creation, skill system, pvp battles, trading, guilds, and more!</p>
+        </div>
+    </div>
+</div>
+
+<style>
+.module-container {
+    max-width: 100%;
+    margin: 0;
+    padding: 0;
+}
+
+.module-header {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    margin-bottom: 30px;
+    padding-bottom: 15px;
+    border-bottom: 2px solid var(--orange);
+}
+
+.module-header h1 {
+    display: block;
+    color: var(--orange);
+    margin: 0;
+    margin-bottom: 8px;
+    font-size: 24px;
+    font-weight: bold;
+    text-transform: lowercase;
+    line-height: 1.2;
+}
+
+.module-subtitle {
+    display: block;
+    font-size: 14px;
+    color: var(--gray);
+    text-transform: lowercase;
+    margin: 0;
+    line-height: 1.4;
+}
+
+.info-box {
+    background: rgba(255, 107, 53, 0.1);
+    border: 1px solid rgba(255, 107, 53, 0.3);
+    padding: 15px;
+    border-radius: 5px;
+    margin-bottom: 30px;
+}
+
+.features-grid h2,
+.stats-grid h2 {
+    color: var(--orange);
+    margin-bottom: 20px;
+    text-transform: lowercase;
+    font-size: 18px;
+}
+
+.feature-cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+    gap: 15px;
+    margin-bottom: 30px;
+}
+
+.feature-card {
+    background: rgba(0, 0, 0, 0.3);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    padding: 15px;
+    border-radius: 5px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.feature-icon {
+    font-size: 20px;
+}
+
+.stat-cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 15px;
+    margin-bottom: 30px;
+}
+
+.stat-card {
+    background: rgba(0, 0, 0, 0.3);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    padding: 20px;
+    border-radius: 5px;
+    text-align: center;
+}
+
+.stat-value {
+    font-size: 32px;
+    font-weight: bold;
+    color: #4caf50;
+    margin-bottom: 5px;
+}
+
+.stat-label {
+    color: #999;
+    font-size: 12px;
+    text-transform: lowercase;
+}
+
+.coming-soon-notice {
+    background: rgba(255, 165, 0, 0.1);
+    border: 2px solid rgba(255, 165, 0, 0.3);
+    padding: 30px;
+    border-radius: 10px;
+    text-align: center;
+    margin-top: 30px;
+}
+
+.coming-soon-notice h3 {
+    color: #ffa500;
+    margin-bottom: 15px;
+}
+
+.coming-soon-notice p {
+    color: #ccc;
+    margin-bottom: 10px;
+}
+
+.coming-soon-notice .sub-text {
+    color: #999;
+    font-size: 14px;
+    font-style: italic;
+}
+</style>
+{% endblock %}

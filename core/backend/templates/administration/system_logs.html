@@ -1,0 +1,527 @@
+{% extends 'administration/base_admin.html' %}
+{% load static %}
+
+{% block title %}system logs - unibos administration{% endblock %}
+
+{% block extra_css %}
+<style>
+    .logs-container {
+        background: #1a1a1a;
+        border-radius: 8px;
+        padding: 20px;
+        margin-top: 20px;
+    }
+    
+    .log-filters {
+        background: #0d0d0d;
+        padding: 15px;
+        border-radius: 8px;
+        margin-bottom: 20px;
+        display: flex;
+        gap: 15px;
+        flex-wrap: wrap;
+        align-items: center;
+    }
+    
+    .filter-group {
+        display: flex;
+        flex-direction: column;
+        gap: 5px;
+    }
+    
+    .filter-group label {
+        color: #ff8c00;
+        font-size: 12px;
+        text-transform: lowercase;
+    }
+    
+    .filter-group select,
+    .filter-group input {
+        background: #1a1a1a;
+        border: 1px solid #333;
+        color: #f0f0f0;
+        padding: 8px 12px;
+        border-radius: 4px;
+        font-family: 'Courier New', monospace;
+        min-width: 150px;
+    }
+    
+    .filter-group input[type="text"] {
+        min-width: 250px;
+    }
+    
+    .filter-group button {
+        background: #ff8c00;
+        color: #0a0a0a;
+        border: none;
+        padding: 8px 20px;
+        border-radius: 4px;
+        cursor: pointer;
+        font-weight: bold;
+        transition: all 0.3s;
+        margin-top: 19px;
+    }
+    
+    .filter-group button:hover {
+        background: #ff9d1f;
+        transform: translateY(-1px);
+    }
+    
+    .log-stats {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 15px;
+        margin-bottom: 20px;
+    }
+    
+    .stat-card {
+        background: #0d0d0d;
+        padding: 15px;
+        border-radius: 8px;
+        border: 1px solid #333;
+    }
+    
+    .stat-card h4 {
+        color: #ff8c00;
+        margin: 0 0 10px 0;
+        font-size: 12px;
+        text-transform: lowercase;
+    }
+    
+    .stat-card .value {
+        font-size: 24px;
+        font-weight: bold;
+        color: #f0f0f0;
+    }
+    
+    .stat-card .label {
+        font-size: 11px;
+        color: #808080;
+        margin-top: 5px;
+    }
+    
+    .logs-table-wrapper {
+        overflow-x: auto;
+        background: #0d0d0d;
+        border-radius: 8px;
+        padding: 15px;
+    }
+    
+    .logs-table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+    
+    .logs-table th {
+        background: #1a1a1a;
+        color: #ff8c00;
+        padding: 12px;
+        text-align: left;
+        font-size: 12px;
+        text-transform: lowercase;
+        border-bottom: 2px solid #ff8c00;
+        position: sticky;
+        top: 0;
+        z-index: 10;
+    }
+    
+    .logs-table td {
+        padding: 10px 12px;
+        border-bottom: 1px solid #1a1a1a;
+        font-size: 13px;
+        color: #f0f0f0;
+    }
+    
+    .logs-table tr:hover {
+        background: #1a1a1a;
+    }
+    
+    .log-level {
+        padding: 3px 8px;
+        border-radius: 3px;
+        font-size: 11px;
+        font-weight: bold;
+        text-transform: uppercase;
+        display: inline-block;
+    }
+    
+    .log-level.debug { background: #4a4a4a; color: #fff; }
+    .log-level.info { background: #2196F3; color: #fff; }
+    .log-level.warning { background: #ff9800; color: #000; }
+    .log-level.error { background: #f44336; color: #fff; }
+    .log-level.critical { background: #d32f2f; color: #fff; }
+    
+    .log-category {
+        color: #4CAF50;
+        font-weight: bold;
+    }
+    
+    .log-path {
+        color: #03A9F4;
+        font-family: monospace;
+        font-size: 12px;
+    }
+    
+    .log-user {
+        color: #ff8c00;
+    }
+    
+    .log-ip {
+        color: #9C27B0;
+        font-family: monospace;
+    }
+    
+    .log-duration {
+        color: #00BCD4;
+        font-weight: bold;
+    }
+    
+    .log-details {
+        max-width: 300px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        cursor: pointer;
+    }
+    
+    .log-details:hover {
+        overflow: visible;
+        white-space: normal;
+        background: #1a1a1a;
+        padding: 5px;
+        border-radius: 4px;
+        position: relative;
+        z-index: 100;
+    }
+    
+    .pagination {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        gap: 10px;
+        margin-top: 20px;
+        padding: 15px;
+        background: #0d0d0d;
+        border-radius: 8px;
+    }
+    
+    .pagination a,
+    .pagination span {
+        padding: 8px 12px;
+        background: #1a1a1a;
+        color: #f0f0f0;
+        text-decoration: none;
+        border-radius: 4px;
+        border: 1px solid #333;
+        transition: all 0.3s;
+    }
+    
+    .pagination a:hover {
+        background: #ff8c00;
+        color: #0a0a0a;
+        border-color: #ff8c00;
+    }
+    
+    .pagination .current {
+        background: #ff8c00;
+        color: #0a0a0a;
+        font-weight: bold;
+    }
+    
+    .export-buttons {
+        display: flex;
+        gap: 10px;
+        margin-left: auto;
+    }
+    
+    .export-btn {
+        background: #4CAF50;
+        color: white;
+        border: none;
+        padding: 8px 15px;
+        border-radius: 4px;
+        cursor: pointer;
+        font-size: 12px;
+        transition: all 0.3s;
+        text-decoration: none;
+        display: inline-block;
+    }
+    
+    .export-btn:hover {
+        background: #45a049;
+        transform: translateY(-1px);
+    }
+    
+    .chart-container {
+        background: #0d0d0d;
+        padding: 20px;
+        border-radius: 8px;
+        margin-bottom: 20px;
+        height: 300px;
+    }
+    
+    .realtime-indicator {
+        display: inline-block;
+        width: 8px;
+        height: 8px;
+        background: #4CAF50;
+        border-radius: 50%;
+        margin-right: 5px;
+        animation: pulse 1.5s infinite;
+    }
+    
+    @keyframes pulse {
+        0% { opacity: 1; }
+        50% { opacity: 0.5; }
+        100% { opacity: 1; }
+    }
+    
+    .timestamp-relative {
+        color: #808080;
+        font-size: 11px;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="admin-header">
+    <h1>system logs</h1>
+    <div class="header-actions">
+        <a href="{% url 'administration:dashboard' %}" class="btn-secondary">← back to dashboard</a>
+    </div>
+</div>
+
+<div class="logs-container">
+    <!-- Statistics -->
+    <div class="log-stats">
+        <div class="stat-card">
+            <h4>total logs</h4>
+            <div class="value">{{ total_logs|default:"0" }}</div>
+            <div class="label">in last 24 hours</div>
+        </div>
+        <div class="stat-card">
+            <h4>error rate</h4>
+            <div class="value">{{ error_rate|default:"0.0" }}%</div>
+            <div class="label">errors / total</div>
+        </div>
+        <div class="stat-card">
+            <h4>active users</h4>
+            <div class="value">{{ active_users|default:"0" }}</div>
+            <div class="label">in last hour</div>
+        </div>
+        <div class="stat-card">
+            <h4>avg response time</h4>
+            <div class="value">{{ avg_response_time|default:"0" }}ms</div>
+            <div class="label">last 100 requests</div>
+        </div>
+    </div>
+    
+    <!-- Filters -->
+    <div class="log-filters">
+        <form method="get" action="" id="filterForm">
+            <div class="filter-group">
+                <label>level</label>
+                <select name="level" onchange="document.getElementById('filterForm').submit()">
+                    <option value="">all levels</option>
+                    <option value="debug" {% if request.GET.level == 'debug' %}selected{% endif %}>debug</option>
+                    <option value="info" {% if request.GET.level == 'info' %}selected{% endif %}>info</option>
+                    <option value="warning" {% if request.GET.level == 'warning' %}selected{% endif %}>warning</option>
+                    <option value="error" {% if request.GET.level == 'error' %}selected{% endif %}>error</option>
+                    <option value="critical" {% if request.GET.level == 'critical' %}selected{% endif %}>critical</option>
+                </select>
+            </div>
+            
+            <div class="filter-group">
+                <label>category</label>
+                <select name="category" onchange="document.getElementById('filterForm').submit()">
+                    <option value="">all categories</option>
+                    <option value="api" {% if request.GET.category == 'api' %}selected{% endif %}>api</option>
+                    <option value="user" {% if request.GET.category == 'user' %}selected{% endif %}>user</option>
+                    <option value="system" {% if request.GET.category == 'system' %}selected{% endif %}>system</option>
+                    <option value="security" {% if request.GET.category == 'security' %}selected{% endif %}>security</option>
+                    <option value="database" {% if request.GET.category == 'database' %}selected{% endif %}>database</option>
+                </select>
+            </div>
+            
+            <div class="filter-group">
+                <label>search</label>
+                <input type="text" name="search" placeholder="search in logs..." 
+                       value="{{ request.GET.search }}" />
+            </div>
+            
+            <div class="filter-group">
+                <label>time range</label>
+                <select name="timerange" onchange="document.getElementById('filterForm').submit()">
+                    <option value="1h" {% if request.GET.timerange == '1h' or not request.GET.timerange %}selected{% endif %}>last hour</option>
+                    <option value="24h" {% if request.GET.timerange == '24h' %}selected{% endif %}>last 24 hours</option>
+                    <option value="7d" {% if request.GET.timerange == '7d' %}selected{% endif %}>last 7 days</option>
+                    <option value="30d" {% if request.GET.timerange == '30d' %}selected{% endif %}>last 30 days</option>
+                    <option value="all" {% if request.GET.timerange == 'all' %}selected{% endif %}>all time</option>
+                </select>
+            </div>
+            
+            <div class="filter-group">
+                <button type="submit">apply filters</button>
+            </div>
+        </form>
+        
+        <div class="export-buttons">
+            <a href="?export=csv&{{ request.GET.urlencode }}" class="export-btn">export csv</a>
+            <a href="?export=json&{{ request.GET.urlencode }}" class="export-btn">export json</a>
+        </div>
+    </div>
+    
+    <!-- Activity Chart -->
+    <div class="chart-container" id="activityChart">
+        <canvas id="logChart"></canvas>
+    </div>
+    
+    <!-- Logs Table -->
+    <div class="logs-table-wrapper">
+        <table class="logs-table">
+            <thead>
+                <tr>
+                    <th width="150">timestamp</th>
+                    <th width="80">level</th>
+                    <th width="100">category</th>
+                    <th>message</th>
+                    <th width="120">user</th>
+                    <th width="120">ip address</th>
+                    <th width="150">path</th>
+                    <th width="80">duration</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for log in logs %}
+                <tr>
+                    <td>
+                        <div>{{ log.timestamp|date:"Y-m-d H:i:s" }}</div>
+                        <div class="timestamp-relative">{{ log.timestamp|timesince }} ago</div>
+                    </td>
+                    <td>
+                        <span class="log-level {{ log.level|lower }}">{{ log.level }}</span>
+                    </td>
+                    <td>
+                        <span class="log-category">{{ log.category }}</span>
+                    </td>
+                    <td>
+                        <div class="log-details" title="{{ log.message }}">
+                            {{ log.message|truncatechars:100 }}
+                        </div>
+                    </td>
+                    <td>
+                        {% if log.user %}
+                            <span class="log-user">{{ log.user }}</span>
+                        {% else %}
+                            <span style="color: #666;">anonymous</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        <span class="log-ip">{{ log.ip_address|default:"-" }}</span>
+                    </td>
+                    <td>
+                        <span class="log-path">{{ log.path|default:"-" }}</span>
+                    </td>
+                    <td>
+                        {% if log.duration_ms %}
+                            <span class="log-duration">{{ log.duration_ms }}ms</span>
+                        {% else %}
+                            -
+                        {% endif %}
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="8" style="text-align: center; padding: 40px; color: #808080;">
+                        no logs found matching your criteria
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    
+    <!-- Pagination -->
+    {% if page_obj.has_other_pages %}
+    <div class="pagination">
+        {% if page_obj.has_previous %}
+            <a href="?page=1&{{ request.GET.urlencode }}">« first</a>
+            <a href="?page={{ page_obj.previous_page_number }}&{{ request.GET.urlencode }}">‹ prev</a>
+        {% endif %}
+        
+        <span class="current">
+            page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}
+        </span>
+        
+        {% if page_obj.has_next %}
+            <a href="?page={{ page_obj.next_page_number }}&{{ request.GET.urlencode }}">next ›</a>
+            <a href="?page={{ page_obj.paginator.num_pages }}&{{ request.GET.urlencode }}">last »</a>
+        {% endif %}
+    </div>
+    {% endif %}
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+// Real-time updates
+setInterval(function() {
+    // Update relative timestamps
+    document.querySelectorAll('.timestamp-relative').forEach(function(el) {
+        // This would need backend support for real relative times
+    });
+}, 60000); // Update every minute
+
+// Activity Chart
+const ctx = document.getElementById('logChart');
+if (ctx) {
+    new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: {{ chart_labels|safe|default:"[]" }},
+            datasets: [{
+                label: 'requests',
+                data: {{ chart_data|safe|default:"[]" }},
+                borderColor: '#ff8c00',
+                backgroundColor: 'rgba(255, 140, 0, 0.1)',
+                tension: 0.4
+            }, {
+                label: 'errors',
+                data: {{ error_data|safe|default:"[]" }},
+                borderColor: '#f44336',
+                backgroundColor: 'rgba(244, 67, 54, 0.1)',
+                tension: 0.4
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    labels: {
+                        color: '#f0f0f0'
+                    }
+                }
+            },
+            scales: {
+                y: {
+                    grid: {
+                        color: '#333'
+                    },
+                    ticks: {
+                        color: '#f0f0f0'
+                    }
+                },
+                x: {
+                    grid: {
+                        color: '#333'
+                    },
+                    ticks: {
+                        color: '#f0f0f0'
+                    }
+                }
+            }
+        }
+    });
+}
+</script>
+{% endblock %}

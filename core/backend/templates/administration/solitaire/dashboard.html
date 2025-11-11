@@ -1,0 +1,763 @@
+{% extends 'administration/base_admin.html' %}
+
+{% block admin_content %}
+<div class="section">
+    <!-- Statistics Overview -->
+    <div class="section-header">
+        <h2>🃏 solitaire dashboard - real-time monitoring</h2>
+        <div class="section-controls">
+            <a href="{{ realtime_dashboard_url }}" class="btn-primary">📊 advanced dashboard</a>
+            <a href="{% url 'administration:solitaire_players' %}" class="btn-secondary">view all players</a>
+            <a href="{% url 'administration:solitaire_sessions' %}" class="btn-secondary">view all sessions</a>
+        </div>
+    </div>
+    
+    <!-- Statistics Grid with Today's Stats -->
+    <div class="stats-grid">
+        <div class="stat-card">
+            <div class="stat-value">{{ total_players }}</div>
+            <div class="stat-label">total players</div>
+            <div class="stat-sublabel">{{ today_players }} today</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-value positive">{{ active_players }}</div>
+            <div class="stat-label">active this week</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-value">{{ total_games }}</div>
+            <div class="stat-label">games played</div>
+            <div class="stat-sublabel">{{ today_games }} today</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-value positive">{{ games_won }}</div>
+            <div class="stat-label">games won</div>
+            <div class="stat-sublabel">{{ today_won }} today</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-value">{{ win_rate }}%</div>
+            <div class="stat-label">overall win rate</div>
+            <div class="stat-sublabel">{{ today_win_rate }}% today</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-value active-games-count">{{ active_sessions_count }}</div>
+            <div class="stat-label">active games now</div>
+            <div class="stat-sublabel moves-today">{{ total_moves_today }} moves today</div>
+        </div>
+    </div>
+</div>
+
+<!-- Auto-refresh notice -->
+{% if auto_refresh %}
+<div class="info-message">
+    <span class="live-indicator"></span> auto-refresh every 5 seconds
+    <span class="refresh-time" style="margin-left: auto; font-size: 11px; color: #666;"></span>
+</div>
+{% endif %}
+
+<!-- Active Sessions -->
+<div class="section">
+    <div class="section-header">
+        <h2>🎮 active games <span class="active-games-count badge badge-pending" style="margin-left: 10px;">{{ active_count }}</span></h2>
+        <button id="deleteActiveSelected" class="btn-danger" style="margin-left: auto; display: none;">
+            delete selected
+        </button>
+    </div>
+    <div class="content-box">
+        <table class="data-table active-games">
+            <thead>
+                <tr>
+                    <th width="30">
+                        <input type="checkbox" id="selectAllActive" />
+                    </th>
+                    <th>player</th>
+                    <th>ip address</th>
+                    <th>started</th>
+                    <th>score</th>
+                    <th>moves</th>
+                    <th>actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for session in active_sessions %}
+                <tr>
+                    <td>
+                        <input type="checkbox" class="session-checkbox active-checkbox" data-session-id="{{ session.session_id }}" />
+                    </td>
+                    <td>
+                        {% if session.player.user %}
+                            <span class="badge badge-user">{{ session.player.user.username }}</span>
+                        {% else %}
+                            <span class="badge badge-inactive">anonymous</span>
+                        {% endif %}
+                    </td>
+                    <td>{{ session.player.ip_address }}</td>
+                    <td class="active-duration-cell" data-started="{{ session.started_at|date:'c' }}" data-time-played="{{ session.time_played|default:0 }}">
+                        {% if session.time_played %}
+                            {{ session.time_played|floatformat:0 }}s
+                        {% else %}
+                            calculating...
+                        {% endif %}
+                    </td>
+                    <td>{{ session.score }}</td>
+                    <td>{{ session.moves_count }}</td>
+                    <td>
+                        <a href="{% url 'administration:live_game' session.session_id %}" class="action-link">view details</a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Recent Sessions -->
+<div class="section">
+    <div class="section-header">
+        <h2>📊 recent sessions</h2>
+        <button id="deleteRecentSelected" class="btn-danger" style="margin-left: auto; display: none;">
+            delete selected
+        </button>
+        <button id="deleteAllSessions" class="btn-danger" style="margin-left: 10px;">
+            delete all sessions
+        </button>
+    </div>
+    <div class="content-box">
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th width="30">
+                        <input type="checkbox" id="selectAllRecent" />
+                    </th>
+                    <th>player</th>
+                    <th>ip address</th>
+                    <th>started</th>
+                    <th>duration</th>
+                    <th>score</th>
+                    <th>result</th>
+                    <th>actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for session in recent_sessions %}
+                <tr>
+                    <td>
+                        <input type="checkbox" class="session-checkbox recent-checkbox" data-session-id="{{ session.session_id }}" />
+                    </td>
+                    <td>
+                        {% if session.player.user %}
+                            <span class="badge badge-user">{{ session.player.user.username }}</span>
+                        {% else %}
+                            <span class="badge badge-inactive">anonymous</span>
+                        {% endif %}
+                    </td>
+                    <td>{{ session.player.ip_address }}</td>
+                    <td>{{ session.started_at|date:"Y-m-d H:i" }}</td>
+                    <td class="duration-cell" data-duration="{{ session.time_played|default:0 }}">
+                        {% if session.time_played %}
+                            {{ session.time_played|floatformat:0 }}s
+                        {% else %}
+                            -
+                        {% endif %}
+                    </td>
+                    <td>{{ session.score }}</td>
+                    <td>
+                        {% if session.is_won %}
+                            <span class="badge badge-approved">won</span>
+                        {% elif session.is_abandoned %}
+                            <span class="badge badge-rejected">abandoned</span>
+                        {% elif session.is_completed %}
+                            <span class="badge badge-inactive">lost</span>
+                        {% else %}
+                            <span class="badge badge-pending">in progress</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        <a href="{% url 'administration:live_game' session.session_id %}" class="action-link">view details</a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Top Players -->
+{% if top_players %}
+<div class="section">
+    <div class="section-header">
+        <h2>🏆 top players</h2>
+    </div>
+    <div class="content-box">
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th>rank</th>
+                    <th>player</th>
+                    <th>wins</th>
+                    <th>total score</th>
+                    <th>avg score</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for player in top_players %}
+                <tr>
+                    <td>#{{ forloop.counter }}</td>
+                    <td>
+                        {% if player.player__user__username %}
+                            <span class="badge badge-user">{{ player.player__user__username }}</span>
+                        {% else %}
+                            <span class="badge badge-inactive">{{ player.player__display_name|default:"anonymous" }}</span>
+                        {% endif %}
+                    </td>
+                    <td>{{ player.wins }}</td>
+                    <td>{{ player.total_score }}</td>
+                    <td>{{ player.avg_score|floatformat:0 }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endif %}
+
+<!-- Auto-refresh Script -->
+{% if auto_refresh %}
+<script>
+    setTimeout(function() {
+        location.reload();
+    }, {{ refresh_interval }} * 1000);
+</script>
+<style>
+    .live-indicator {
+        display: inline-block;
+        width: 8px;
+        height: 8px;
+        background: #4CAF50;
+        border-radius: 50%;
+        animation: pulse 2s infinite;
+        margin-right: 5px;
+    }
+    
+    @keyframes pulse {
+        0% { opacity: 1; }
+        50% { opacity: 0.3; }
+        100% { opacity: 1; }
+    }
+    
+    .stat-sublabel {
+        font-size: 11px;
+        color: #666;
+        margin-top: 5px;
+    }
+    
+    .info-message {
+        background: #E8F5E9;
+        color: #2E7D32;
+        padding: 10px 15px;
+        border-radius: 4px;
+        margin: 10px 0;
+        font-size: 13px;
+        display: flex;
+        align-items: center;
+    }
+    
+    .updating {
+        opacity: 0.6;
+        transition: opacity 0.3s;
+    }
+</style>
+
+<script>
+// Global function for formatting durations
+function formatDurationCompact(seconds) {
+    if (!seconds || seconds === '-' || seconds === 0) {
+        return '-';
+    }
+    
+    seconds = parseInt(seconds);
+    if (isNaN(seconds) || seconds < 0) {
+        return '-';
+    }
+    
+    const minute = 60;
+    const hour = 60 * minute;
+    const day = 24 * hour;
+    const week = 7 * day;
+    const month = 30 * day;
+    const year = 365 * day;
+    
+    if (seconds >= year) {
+        const years = Math.floor(seconds / year);
+        const remaining = seconds % year;
+        if (remaining >= month) {
+            const months = Math.floor(remaining / month);
+            return `${years}y ${months}mo`;
+        }
+        return `${years}y`;
+    } else if (seconds >= month) {
+        const months = Math.floor(seconds / month);
+        const remaining = seconds % month;
+        if (remaining >= week) {
+            const weeks = Math.floor(remaining / week);
+            return `${months}mo ${weeks}w`;
+        } else if (remaining >= day) {
+            const days = Math.floor(remaining / day);
+            return `${months}mo ${days}d`;
+        }
+        return `${months}mo`;
+    } else if (seconds >= week) {
+        const weeks = Math.floor(seconds / week);
+        const remaining = seconds % week;
+        if (remaining >= day) {
+            const days = Math.floor(remaining / day);
+            return `${weeks}w ${days}d`;
+        }
+        return `${weeks}w`;
+    } else if (seconds >= day) {
+        const days = Math.floor(seconds / day);
+        const remaining = seconds % day;
+        if (remaining >= hour) {
+            const hours = Math.floor(remaining / hour);
+            return `${days}d ${hours}h`;
+        }
+        return `${days}d`;
+    } else if (seconds >= hour) {
+        const hours = Math.floor(seconds / hour);
+        const remaining = seconds % hour;
+        if (remaining >= minute) {
+            const minutes = Math.floor(remaining / minute);
+            return `${hours}h ${minutes}m`;
+        }
+        return `${hours}h`;
+    } else if (seconds >= minute) {
+        const minutes = Math.floor(seconds / minute);
+        const remaining = seconds % minute;
+        if (remaining > 0) {
+            return `${minutes}m ${remaining}s`;
+        }
+        return `${minutes}m`;
+    } else {
+        return `${seconds}s`;
+    }
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+    let updateInterval;
+    
+    function updateLiveData() {
+        // Add updating class to show it's refreshing
+        document.querySelectorAll('.module-content').forEach(el => el.classList.add('updating'));
+        
+        fetch('/administration/solitaire/realtime/api/live-data/')
+            .then(response => response.json())
+            .then(data => {
+                // Update active games
+                updateActiveGames(data.active_games);
+                
+                // Update stats
+                updateStats(data.stats);
+                
+                // Remove updating class
+                document.querySelectorAll('.module-content').forEach(el => el.classList.remove('updating'));
+                
+                // Update timestamp
+                const now = new Date();
+                const timeStr = now.toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+                const timestampEl = document.querySelector('.refresh-time');
+                if (timestampEl) {
+                    timestampEl.textContent = `last updated: ${timeStr}`;
+                }
+            })
+            .catch(error => {
+                console.error('Error updating live data:', error);
+                document.querySelectorAll('.module-content').forEach(el => el.classList.remove('updating'));
+            });
+    }
+    
+    // Format duration for display with proper units
+    function formatDuration(seconds) {
+        if (seconds < 60) {
+            return `${seconds} second${seconds !== 1 ? 's' : ''} ago`;
+        }
+        
+        const minute = 60;
+        const hour = 60 * minute;
+        const day = 24 * hour;
+        const week = 7 * day;
+        const month = 30 * day;
+        const year = 365 * day;
+        
+        if (seconds >= year) {
+            const years = Math.floor(seconds / year);
+            const remaining = seconds % year;
+            if (remaining >= month) {
+                const months = Math.floor(remaining / month);
+                return `${years} year${years !== 1 ? 's' : ''} ${months} month${months !== 1 ? 's' : ''} ago`;
+            }
+            return `${years} year${years !== 1 ? 's' : ''} ago`;
+        } else if (seconds >= month) {
+            const months = Math.floor(seconds / month);
+            const remaining = seconds % month;
+            if (remaining >= week) {
+                const weeks = Math.floor(remaining / week);
+                return `${months} month${months !== 1 ? 's' : ''} ${weeks} week${weeks !== 1 ? 's' : ''} ago`;
+            } else if (remaining >= day) {
+                const days = Math.floor(remaining / day);
+                return `${months} month${months !== 1 ? 's' : ''} ${days} day${days !== 1 ? 's' : ''} ago`;
+            }
+            return `${months} month${months !== 1 ? 's' : ''} ago`;
+        } else if (seconds >= week) {
+            const weeks = Math.floor(seconds / week);
+            const remaining = seconds % week;
+            if (remaining >= day) {
+                const days = Math.floor(remaining / day);
+                return `${weeks} week${weeks !== 1 ? 's' : ''} ${days} day${days !== 1 ? 's' : ''} ago`;
+            }
+            return `${weeks} week${weeks !== 1 ? 's' : ''} ago`;
+        } else if (seconds >= day) {
+            const days = Math.floor(seconds / day);
+            const remaining = seconds % day;
+            if (remaining >= hour) {
+                const hours = Math.floor(remaining / hour);
+                return `${days} day${days !== 1 ? 's' : ''} ${hours} hour${hours !== 1 ? 's' : ''} ago`;
+            }
+            return `${days} day${days !== 1 ? 's' : ''} ago`;
+        } else if (seconds >= hour) {
+            const hours = Math.floor(seconds / hour);
+            const remaining = seconds % hour;
+            if (remaining >= minute) {
+                const minutes = Math.floor(remaining / minute);
+                return `${hours} hour${hours !== 1 ? 's' : ''} ${minutes} minute${minutes !== 1 ? 's' : ''} ago`;
+            }
+            return `${hours} hour${hours !== 1 ? 's' : ''} ago`;
+        } else {
+            const minutes = Math.floor(seconds / minute);
+            return `${minutes} minute${minutes !== 1 ? 's' : ''} ago`;
+        }
+    }
+    
+    function updateActiveGames(games) {
+        const tbody = document.querySelector('.active-games tbody');
+        if (!tbody) return;
+        
+        // Clear existing rows except header
+        while (tbody.rows.length > 0) {
+            tbody.deleteRow(0);
+        }
+        
+        // Add new rows
+        games.forEach(game => {
+            const row = tbody.insertRow();
+            // Use the actual time_played value from backend, or calculate from start time
+            let durationText;
+            if (game.time_played !== undefined && game.time_played > 0) {
+                durationText = formatDurationCompact(game.time_played);
+            } else {
+                const startTime = new Date(game.started);
+                const now = new Date();
+                const durationSeconds = Math.floor((now - startTime) / 1000);
+                durationText = formatDurationCompact(durationSeconds);
+            }
+            
+            row.innerHTML = `
+                <td><input type="checkbox" class="session-checkbox active-checkbox" data-session-id="${game.session_id}" /></td>
+                <td>${game.player}</td>
+                <td>${game.ip_address}</td>
+                <td>${durationText}</td>
+                <td><strong>${game.score}</strong></td>
+                <td><strong>${game.moves}</strong></td>
+                <td><a href="/administration/solitaire/realtime/live/${game.session_id}/">view details</a></td>
+            `;
+        });
+        
+        if (games.length === 0) {
+            const row = tbody.insertRow();
+            row.innerHTML = '<td colspan="7" style="text-align: center; color: #999;">no active games</td>';
+        }
+        
+        // Re-attach event listeners to new checkboxes
+        document.querySelectorAll('.active-checkbox').forEach(cb => {
+            cb.addEventListener('change', toggleDeleteButton);
+        });
+    }
+    
+    function updateStats(stats) {
+        // Update moves today
+        const movesEl = document.querySelector('.moves-today');
+        if (movesEl) {
+            movesEl.textContent = stats.total_moves_today.toLocaleString() + ' moves today';
+        }
+        
+        // Update active games count
+        const activeCountEl = document.querySelector('.active-games-count');
+        if (activeCountEl) {
+            activeCountEl.textContent = stats.active_games_now;
+        }
+    }
+    
+    // Initial update
+    updateLiveData();
+    
+    // Update every 5 seconds for real-time feel
+    updateInterval = setInterval(updateLiveData, 5000);
+    
+    // Clean up on page unload
+    window.addEventListener('beforeunload', () => {
+        if (updateInterval) clearInterval(updateInterval);
+    });
+});
+</script>
+{% endif %}
+<!-- Delete Confirmation Modal -->
+<div id="deleteModal" class="modal" style="display: none;">
+    <div class="modal-content">
+        <h3>confirm deletion</h3>
+        <p id="deleteMessage"></p>
+        <div class="modal-actions">
+            <button id="confirmDelete" class="btn-danger">delete</button>
+            <button id="cancelDelete" class="btn-secondary">cancel</button>
+        </div>
+    </div>
+</div>
+
+<style>
+.modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.7);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+}
+
+.modal-content {
+    background: var(--bg-secondary);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 30px;
+    max-width: 400px;
+    width: 90%;
+}
+
+.modal-content h3 {
+    color: var(--orange);
+    margin-bottom: 15px;
+}
+
+.modal-content p {
+    color: #ccc;
+    margin-bottom: 20px;
+}
+
+.modal-actions {
+    display: flex;
+    gap: 10px;
+    justify-content: flex-end;
+}
+
+.btn-danger {
+    background: #d32f2f;
+    color: white;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+.btn-danger:hover {
+    background: #b71c1c;
+}
+
+.btn-secondary {
+    background: #666;
+    color: white;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 4px;
+    cursor: pointer;
+}
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Format all duration cells on page load for recent sessions
+    document.querySelectorAll('.duration-cell').forEach(cell => {
+        const duration = parseFloat(cell.dataset.duration);
+        if (!isNaN(duration) && duration > 0) {
+            cell.textContent = formatDurationCompact(duration);
+        }
+    });
+    
+    // Format active games duration on page load
+    document.querySelectorAll('.active-duration-cell').forEach(cell => {
+        const timePlayed = parseFloat(cell.dataset.timePlayed);
+        if (!isNaN(timePlayed) && timePlayed > 0) {
+            // Use the stored time_played value if available
+            cell.textContent = formatDurationCompact(timePlayed);
+        } else {
+            // Calculate from started time
+            const started = cell.dataset.started;
+            if (started) {
+                const startTime = new Date(started).getTime();
+                const now = Date.now();
+                const duration = Math.floor((now - startTime) / 1000);
+                cell.textContent = formatDurationCompact(duration);
+            }
+        }
+    });
+    
+    // Select all checkboxes
+    const selectAllActive = document.getElementById('selectAllActive');
+    const selectAllRecent = document.getElementById('selectAllRecent');
+    const deleteActiveBtn = document.getElementById('deleteActiveSelected');
+    const deleteRecentBtn = document.getElementById('deleteRecentSelected');
+    const deleteAllBtn = document.getElementById('deleteAllSessions');
+    const modal = document.getElementById('deleteModal');
+    const confirmBtn = document.getElementById('confirmDelete');
+    const cancelBtn = document.getElementById('cancelDelete');
+    const deleteMessage = document.getElementById('deleteMessage');
+    
+    let pendingAction = null;
+    
+    // Toggle select all for active games
+    if (selectAllActive) {
+        selectAllActive.addEventListener('change', function() {
+            const checkboxes = document.querySelectorAll('.active-checkbox');
+            checkboxes.forEach(cb => cb.checked = this.checked);
+            toggleDeleteButton();
+        });
+    }
+    
+    // Toggle select all for recent sessions
+    if (selectAllRecent) {
+        selectAllRecent.addEventListener('change', function() {
+            const checkboxes = document.querySelectorAll('.recent-checkbox');
+            checkboxes.forEach(cb => cb.checked = this.checked);
+            toggleDeleteButton();
+        });
+    }
+    
+    // Toggle delete button visibility
+    function toggleDeleteButton() {
+        const activeChecked = document.querySelectorAll('.active-checkbox:checked').length;
+        const recentChecked = document.querySelectorAll('.recent-checkbox:checked').length;
+        
+        if (deleteActiveBtn) {
+            deleteActiveBtn.style.display = activeChecked > 0 ? 'block' : 'none';
+        }
+        if (deleteRecentBtn) {
+            deleteRecentBtn.style.display = recentChecked > 0 ? 'block' : 'none';
+        }
+    }
+    
+    // Listen to individual checkbox changes
+    document.querySelectorAll('.session-checkbox').forEach(cb => {
+        cb.addEventListener('change', toggleDeleteButton);
+    });
+    
+    // Delete selected active sessions
+    if (deleteActiveBtn) {
+        deleteActiveBtn.addEventListener('click', function() {
+            const selected = Array.from(document.querySelectorAll('.active-checkbox:checked'))
+                .map(cb => cb.dataset.sessionId);
+            
+            if (selected.length > 0) {
+                deleteMessage.textContent = `Are you sure you want to delete ${selected.length} active game(s)?`;
+                pendingAction = () => deleteSessions(selected);
+                modal.style.display = 'flex';
+            }
+        });
+    }
+    
+    // Delete selected recent sessions
+    if (deleteRecentBtn) {
+        deleteRecentBtn.addEventListener('click', function() {
+            const selected = Array.from(document.querySelectorAll('.recent-checkbox:checked'))
+                .map(cb => cb.dataset.sessionId);
+            
+            if (selected.length > 0) {
+                deleteMessage.textContent = `Are you sure you want to delete ${selected.length} session(s)?`;
+                pendingAction = () => deleteSessions(selected);
+                modal.style.display = 'flex';
+            }
+        });
+    }
+    
+    // Delete all sessions
+    if (deleteAllBtn) {
+        deleteAllBtn.addEventListener('click', function() {
+            const allSessions = Array.from(document.querySelectorAll('.session-checkbox'))
+                .map(cb => cb.dataset.sessionId);
+            
+            if (allSessions.length > 0) {
+                deleteMessage.textContent = `Are you sure you want to delete ALL ${allSessions.length} sessions? This cannot be undone!`;
+                pendingAction = () => deleteSessions(allSessions);
+                modal.style.display = 'flex';
+            } else {
+                alert('No sessions to delete');
+            }
+        });
+    }
+    
+    // Confirm deletion
+    confirmBtn.addEventListener('click', function() {
+        if (pendingAction) {
+            pendingAction();
+            pendingAction = null;
+        }
+        modal.style.display = 'none';
+    });
+    
+    // Cancel deletion
+    cancelBtn.addEventListener('click', function() {
+        pendingAction = null;
+        modal.style.display = 'none';
+    });
+    
+    // Delete sessions function
+    function deleteSessions(sessionIds) {
+        fetch('/administration/solitaire/realtime/api/bulk-delete/', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': getCookie('csrftoken')
+            },
+            body: JSON.stringify({ session_ids: sessionIds })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                alert(`Deleted ${data.deleted.sessions} session(s), ${data.deleted.moves} move(s), ${data.deleted.activities} activity records`);
+                location.reload();
+            } else {
+                alert('Error: ' + data.error);
+            }
+        })
+        .catch(error => {
+            alert('Error deleting sessions: ' + error);
+        });
+    }
+    
+    // Get CSRF token
+    function getCookie(name) {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            const cookies = document.cookie.split(';');
+            for (let i = 0; i < cookies.length; i++) {
+                const cookie = cookies[i].trim();
+                if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+    }
+});
+</script>
+
+{% endblock %}

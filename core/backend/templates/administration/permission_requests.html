@@ -1,0 +1,91 @@
+{% extends "administration/base_admin.html" %}
+
+{% block title %}permission requests - unibos administration{% endblock %}
+
+{% block admin_content %}
+<div class="module-container">
+    <div class="module-header">
+        <h1>permission requests</h1>
+        <p>review and approve permission requests</p>
+    </div>
+
+    <!-- Admin Navigation -->
+    <div class="admin-nav">
+        <a href="{% url 'administration:dashboard' %}" class="admin-nav-item">
+            <span class="nav-icon">📊</span>
+            <span>dashboard</span>
+        </a>
+        <a href="{% url 'administration:users' %}" class="admin-nav-item">
+            <span class="nav-icon">👥</span>
+            <span>users</span>
+        </a>
+        <a href="{% url 'administration:roles' %}" class="admin-nav-item">
+            <span class="nav-icon">🔐</span>
+            <span>roles & permissions</span>
+        </a>
+        <a href="{% url 'administration:permission_requests' %}" class="admin-nav-item active">
+            <span class="nav-icon">📝</span>
+            <span>requests</span>
+            {% if pending_count > 0 %}
+            <span class="badge">{{ pending_count }}</span>
+            {% endif %}
+        </a>
+    </div>
+
+    <!-- Requests List -->
+    <div class="content-box">
+        <div class="section">
+            <h2>pending requests ({{ pending_count }})</h2>
+            <div class="data-table-container">
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>user</th>
+                            <th>requested role</th>
+                            <th>reason</th>
+                            <th>duration</th>
+                            <th>requested at</th>
+                            <th>status</th>
+                            <th>actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for request in requests %}
+                        {% if request.status == 'pending' %}
+                        <tr>
+                            <td>{{ request.user.username }}</td>
+                            <td>{{ request.role.name|default:"custom permission" }}</td>
+                            <td>{{ request.reason|truncatewords:10 }}</td>
+                            <td>{% if request.duration_days %}{{ request.duration_days }} days{% else %}permanent{% endif %}</td>
+                            <td>{{ request.requested_at|date:"Y-m-d H:i" }}</td>
+                            <td>
+                                <span class="badge badge-warning">{{ request.status }}</span>
+                            </td>
+                            <td>
+                                <form method="post" style="display: inline;">
+                                    {% csrf_token %}
+                                    <input type="hidden" name="request_id" value="{{ request.id }}">
+                                    <input type="hidden" name="action" value="approve">
+                                    <button type="submit" class="btn btn-success btn-sm">approve</button>
+                                </form>
+                                <form method="post" style="display: inline;">
+                                    {% csrf_token %}
+                                    <input type="hidden" name="request_id" value="{{ request.id }}">
+                                    <input type="hidden" name="action" value="reject">
+                                    <button type="submit" class="btn btn-danger btn-sm">reject</button>
+                                </form>
+                            </td>
+                        </tr>
+                        {% endif %}
+                        {% empty %}
+                        <tr>
+                            <td colspan="7" class="text-center">no pending requests</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

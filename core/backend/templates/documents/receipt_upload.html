@@ -1,0 +1,425 @@
+{% extends 'web_ui/base.html' %}
+
+{% block module_name %}documents - receipt upload{% endblock %}
+
+{% block content %}
+<div class="module-container">
+    <style>
+        .upload-container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 40px 20px;
+        }
+        
+        .upload-header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+        
+        .upload-title {
+            color: var(--orange);
+            font-size: 28px;
+            margin-bottom: 10px;
+            text-transform: lowercase;
+        }
+        
+        .upload-subtitle {
+            color: var(--gray);
+            font-size: 14px;
+        }
+        
+        .upload-zone {
+            border: 2px dashed var(--orange);
+            border-radius: 0;
+            padding: 60px 40px;
+            text-align: center;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            background: rgba(255, 102, 0, 0.02);
+        }
+        
+        .upload-zone:hover,
+        .upload-zone.dragover {
+            background: rgba(255, 102, 0, 0.08);
+            border-color: var(--yellow);
+        }
+        
+        .upload-icon {
+            font-size: 48px;
+            margin-bottom: 20px;
+            opacity: 0.8;
+        }
+        
+        .upload-text {
+            color: var(--text);
+            font-size: 16px;
+            margin-bottom: 10px;
+        }
+        
+        .upload-hint {
+            color: var(--gray);
+            font-size: 12px;
+        }
+        
+        .file-input {
+            display: none;
+        }
+        
+        .selected-file {
+            margin-top: 30px;
+            padding: 20px;
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid var(--border);
+        }
+        
+        .selected-file-name {
+            color: var(--orange);
+            font-size: 14px;
+            margin-bottom: 10px;
+        }
+        
+        .selected-file-info {
+            color: var(--gray);
+            font-size: 12px;
+        }
+        
+        .upload-actions {
+            margin-top: 30px;
+            text-align: center;
+        }
+        
+        .btn-upload {
+            background: var(--orange);
+            color: var(--bg-black);
+            border: none;
+            padding: 12px 40px;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-transform: lowercase;
+        }
+        
+        .btn-upload:hover:not(:disabled) {
+            background: var(--yellow);
+        }
+        
+        .btn-upload:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        
+        .btn-cancel {
+            background: transparent;
+            color: var(--gray);
+            border: 1px solid var(--gray);
+            padding: 12px 30px;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.2s;
+            margin-left: 10px;
+            text-transform: lowercase;
+        }
+        
+        .btn-cancel:hover {
+            color: var(--orange);
+            border-color: var(--orange);
+        }
+        
+        .upload-progress {
+            margin-top: 30px;
+            display: none;
+        }
+        
+        .progress-bar {
+            height: 4px;
+            background: var(--border);
+            overflow: hidden;
+            margin-bottom: 10px;
+        }
+        
+        .progress-fill {
+            height: 100%;
+            background: var(--orange);
+            width: 0%;
+            transition: width 0.3s ease;
+        }
+        
+        .progress-text {
+            color: var(--gray);
+            font-size: 12px;
+            text-align: center;
+        }
+        
+        .recent-uploads {
+            margin-top: 60px;
+        }
+        
+        .recent-uploads-title {
+            color: var(--orange);
+            font-size: 18px;
+            margin-bottom: 20px;
+            text-transform: lowercase;
+        }
+        
+        .recent-list {
+            border: 1px solid var(--border);
+        }
+        
+        .recent-item {
+            padding: 15px;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: background 0.2s;
+        }
+        
+        .recent-item:last-child {
+            border-bottom: none;
+        }
+        
+        .recent-item:hover {
+            background: rgba(255, 255, 255, 0.02);
+        }
+        
+        .recent-item-name {
+            color: var(--text);
+            font-size: 14px;
+        }
+        
+        .recent-item-date {
+            color: var(--gray);
+            font-size: 12px;
+        }
+        
+        .recent-item-status {
+            padding: 4px 8px;
+            font-size: 11px;
+            text-transform: lowercase;
+        }
+        
+        .status-processing {
+            background: rgba(255, 193, 7, 0.1);
+            color: var(--yellow);
+            border: 1px solid var(--yellow);
+        }
+        
+        .status-completed {
+            background: rgba(40, 167, 69, 0.1);
+            color: #28a745;
+            border: 1px solid #28a745;
+        }
+        
+        .status-failed {
+            background: rgba(220, 53, 69, 0.1);
+            color: #dc3545;
+            border: 1px solid #dc3545;
+        }
+    </style>
+    
+    <div class="upload-container">
+        <div class="upload-header">
+            <h1 class="upload-title">receipt upload</h1>
+            <p class="upload-subtitle">upload and process your receipts with ai-powered extraction</p>
+        </div>
+        
+        <form id="uploadForm" method="post" enctype="multipart/form-data">
+            {% csrf_token %}
+            
+            <div class="upload-zone" id="uploadZone">
+                <div class="upload-icon">📄</div>
+                <div class="upload-text">drag & drop your receipt here</div>
+                <div class="upload-hint">or click to browse files (jpg, png, pdf)</div>
+                <input type="file" id="fileInput" name="receipt" class="file-input" accept="image/*,.pdf">
+            </div>
+            
+            <div class="selected-file" id="selectedFile" style="display: none;">
+                <div class="selected-file-name" id="fileName"></div>
+                <div class="selected-file-info" id="fileInfo"></div>
+            </div>
+            
+            <div class="upload-progress" id="uploadProgress">
+                <div class="progress-bar">
+                    <div class="progress-fill" id="progressFill"></div>
+                </div>
+                <div class="progress-text" id="progressText">uploading...</div>
+            </div>
+            
+            <div class="upload-actions">
+                <button type="submit" class="btn-upload" id="uploadBtn" disabled>upload receipt</button>
+                <button type="button" class="btn-cancel" id="cancelBtn" style="display: none;">cancel</button>
+            </div>
+        </form>
+        
+        {% if recent_uploads %}
+        <div class="recent-uploads">
+            <h2 class="recent-uploads-title">recent uploads</h2>
+            <div class="recent-list">
+                {% for upload in recent_uploads %}
+                <div class="recent-item">
+                    <div>
+                        <div class="recent-item-name">{{ upload.original_filename }}</div>
+                        <div class="recent-item-date">{{ upload.created_at|date:"Y-m-d H:i" }}</div>
+                    </div>
+                    <span class="recent-item-status status-{{ upload.processing_status }}">
+                        {{ upload.get_processing_status_display|lower }}
+                    </span>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const uploadZone = document.getElementById('uploadZone');
+    const fileInput = document.getElementById('fileInput');
+    const selectedFile = document.getElementById('selectedFile');
+    const fileName = document.getElementById('fileName');
+    const fileInfo = document.getElementById('fileInfo');
+    const uploadBtn = document.getElementById('uploadBtn');
+    const cancelBtn = document.getElementById('cancelBtn');
+    const uploadForm = document.getElementById('uploadForm');
+    const uploadProgress = document.getElementById('uploadProgress');
+    const progressFill = document.getElementById('progressFill');
+    const progressText = document.getElementById('progressText');
+    
+    let selectedFileObj = null;
+    
+    // Click to browse
+    uploadZone.addEventListener('click', () => {
+        fileInput.click();
+    });
+    
+    // File selection
+    fileInput.addEventListener('change', (e) => {
+        handleFile(e.target.files[0]);
+    });
+    
+    // Drag and drop
+    uploadZone.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        uploadZone.classList.add('dragover');
+    });
+    
+    uploadZone.addEventListener('dragleave', () => {
+        uploadZone.classList.remove('dragover');
+    });
+    
+    uploadZone.addEventListener('drop', (e) => {
+        e.preventDefault();
+        uploadZone.classList.remove('dragover');
+        
+        const files = e.dataTransfer.files;
+        if (files.length > 0) {
+            handleFile(files[0]);
+        }
+    });
+    
+    function handleFile(file) {
+        if (!file) return;
+        
+        // Validate file type
+        const validTypes = ['image/jpeg', 'image/png', 'image/gif', 'application/pdf'];
+        if (!validTypes.includes(file.type)) {
+            alert('please upload a valid image or pdf file');
+            return;
+        }
+        
+        // Validate file size (max 10MB)
+        const maxSize = 10 * 1024 * 1024;
+        if (file.size > maxSize) {
+            alert('file size must be less than 10mb');
+            return;
+        }
+        
+        selectedFileObj = file;
+        fileName.textContent = file.name;
+        fileInfo.textContent = `${(file.size / 1024).toFixed(2)} kb • ${file.type.split('/')[1]}`;
+        
+        selectedFile.style.display = 'block';
+        uploadBtn.disabled = false;
+        cancelBtn.style.display = 'inline-block';
+    }
+    
+    // Cancel selection
+    cancelBtn.addEventListener('click', () => {
+        selectedFileObj = null;
+        fileInput.value = '';
+        selectedFile.style.display = 'none';
+        uploadBtn.disabled = true;
+        cancelBtn.style.display = 'none';
+    });
+    
+    // Form submission
+    uploadForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        
+        if (!selectedFileObj) return;
+        
+        const formData = new FormData();
+        formData.append('receipt', selectedFileObj);
+        formData.append('csrfmiddlewaretoken', '{{ csrf_token }}');
+        
+        uploadBtn.disabled = true;
+        cancelBtn.style.display = 'none';
+        uploadProgress.style.display = 'block';
+        
+        try {
+            const xhr = new XMLHttpRequest();
+            
+            xhr.upload.addEventListener('progress', (e) => {
+                if (e.lengthComputable) {
+                    const percentComplete = (e.loaded / e.total) * 100;
+                    progressFill.style.width = percentComplete + '%';
+                    progressText.textContent = `uploading... ${Math.round(percentComplete)}%`;
+                }
+            });
+            
+            xhr.addEventListener('load', () => {
+                if (xhr.status === 200) {
+                    const response = JSON.parse(xhr.responseText);
+                    progressText.textContent = 'upload complete! processing...';
+                    
+                    // Redirect to processing view
+                    setTimeout(() => {
+                        if (response.document_id) {
+                            window.location.href = `/documents/process/${response.document_id}/`;
+                        } else {
+                            window.location.href = '/documents/dashboard/';
+                        }
+                    }, 1000);
+                } else {
+                    throw new Error('upload failed');
+                }
+            });
+            
+            xhr.addEventListener('error', () => {
+                alert('upload failed. please try again.');
+                resetForm();
+            });
+            
+            xhr.open('POST', uploadForm.action || window.location.href);
+            xhr.send(formData);
+            
+        } catch (error) {
+            console.error('upload error:', error);
+            alert('an error occurred. please try again.');
+            resetForm();
+        }
+    });
+    
+    function resetForm() {
+        uploadBtn.disabled = false;
+        cancelBtn.style.display = 'inline-block';
+        uploadProgress.style.display = 'none';
+        progressFill.style.width = '0%';
+        progressText.textContent = 'uploading...';
+    }
+});
+</script>
+{% endblock %}

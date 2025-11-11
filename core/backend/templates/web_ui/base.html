@@ -1,0 +1,1133 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}UNIBOS - Universal Basic Operating System{% endblock %}</title>
+    
+    <!-- Terminal Font -->
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+    
+    <!-- HTMX for interactivity -->
+    <script src="https://unpkg.com/htmx.org@1.9.10"></script>
+    
+    <!-- WebSocket support -->
+    <script src="https://cdn.jsdelivr.net/npm/reconnecting-websocket@4.4.0/dist/reconnecting-websocket-iife.min.js"></script>
+    
+    <!-- Load Static Files -->
+    {% load static %}
+    
+    <!-- Base UNIBOS CSS Framework -->
+    <link rel="stylesheet" href="{% static 'web_ui/css/base.css' %}">
+    
+    <!-- Terminal Effect Styles -->
+    <link rel="stylesheet" href="{% static 'web_ui/css/terminal.css' %}">
+    
+    <!-- Module-specific CSS block (before base styles) -->
+    {% block module_css %}{% endblock %}
+    
+    <!-- Base UNIBOS Styles -->
+    <style>
+        :root {
+            --bg-black: #000000;
+            --bg-dark: #0a0a0a;
+            --orange: #ff8c00;
+            --orange-bright: #ffa500;
+            --green: #00ff00;
+            --cyan: #00ffff;
+            --yellow: #ffff00;
+            --magenta: #ff00ff;
+            --white: #ffffff;
+            --gray: #808080;
+            --dark-gray: #404040;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'JetBrains Mono', 'Courier New', monospace;
+            background: var(--bg-black);
+            color: var(--white);
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            font-size: 14px;
+            line-height: 1.4;
+        }
+        
+        /* Main Header Bar - Centralized Component */
+        .main-header {
+            background: var(--orange);
+            color: var(--bg-black);
+            padding: 6px 20px;  /* Reduced by 5% more */
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            font-weight: bold;
+            font-size: 14px;
+            letter-spacing: 1px;
+            border-bottom: 2px solid var(--orange-bright);
+            min-height: 34px;  /* Reduced by 5% from 36px */
+            position: relative;
+            z-index: 999;
+        }
+        
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex: 1;
+        }
+        
+        .header-title {
+            display: flex;
+            align-items: center;
+            text-transform: lowercase;
+            font-size: 15.4px;  /* Increased by 10% from 14px */
+            font-weight: bold;
+        }
+        
+        .header-title span:first-child {
+            font-size: 17.6px;  /* Emoji size increased by 10% from 16px */
+        }
+        
+        .header-breadcrumb {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 13.2px;  /* Increased by 10% from 12px */
+            opacity: 0.7;
+            font-weight: normal;
+            margin-left: 10px;
+            padding-left: 10px;
+            border-left: 1px solid rgba(0, 0, 0, 0.2);
+        }
+        
+        .header-language {
+            margin-right: 15px;
+        }
+        
+        .header-language select {
+            background: rgba(0, 0, 0, 0.1);
+            border: 1px solid rgba(0, 0, 0, 0.3);
+            color: var(--bg-black);
+            padding: 4px 8px;
+            border-radius: 3px;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 12px;
+            cursor: pointer;
+        }
+        
+        .header-language select:hover {
+            background: rgba(0, 0, 0, 0.2);
+        }
+        
+        .header-controls {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        
+        .header-control-btn {
+            background: transparent;
+            border: 1px solid rgba(0, 0, 0, 0.3);
+            color: var(--bg-black);
+            width: 32px;
+            height: 32px;
+            border-radius: 3px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
+            font-size: 16px;
+            font-weight: bold;
+            text-decoration: none;
+        }
+        
+        .header-control-btn:hover {
+            background: rgba(0, 0, 0, 0.1);
+            border-color: rgba(0, 0, 0, 0.5);
+            transform: translateY(-1px);
+        }
+        
+        .header-control-btn.minimize-btn::before {
+            content: '_';
+            display: block;
+            margin-top: -8px;
+        }
+        
+        .header-control-btn.fullscreen-btn::before {
+            content: '⛶';
+        }
+        
+        .header-control-btn.close-btn {
+            border-color: rgba(139, 0, 0, 0.3);
+            color: darkred;
+        }
+        
+        .header-control-btn.close-btn:hover {
+            background: rgba(255, 0, 0, 0.2);
+            border-color: darkred;
+        }
+        
+        .header-control-btn.close-btn::before {
+            content: '✕';
+        }
+        
+        /* Second Bar - Profile and Search */
+        .second-bar {
+            width: 100%;
+            background: linear-gradient(135deg, #1a1a1a 0%, #2a2a2a 100%);
+            border-bottom: 1px solid var(--dark-gray);
+            min-height: 31px;
+            display: flex;
+            align-items: stretch;
+        }
+        
+        /* Profile Section in Second Bar */
+        .profile-section {
+            width: 280px; /* Same width as sidebar */
+            border-right: 1px solid var(--dark-gray);
+            display: flex;
+            align-items: center;
+            padding: 0 15px;
+            gap: 8px;
+        }
+        
+        .profile-section-left {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex: 1;
+        }
+        
+        /* Search Section in Second Bar */
+        .search-section {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            padding: 0 20px;
+            position: relative;
+        }
+        
+        .global-search-container {
+            flex: 1;
+            max-width: 600px;
+            margin: 0;
+            position: relative;
+        }
+        
+        .global-search-input {
+            width: 100%;
+            background: rgba(60, 60, 60, 0.4);
+            border: 1px solid rgba(255, 140, 0, 0.2);
+            color: var(--white);
+            padding: 5px 35px 5px 12px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-family: 'JetBrains Mono', monospace;
+            transition: all 0.2s;
+        }
+        
+        .global-search-input::placeholder {
+            color: var(--gray);
+            opacity: 0.6;
+        }
+        
+        .global-search-input:focus {
+            outline: none;
+            border-color: var(--orange);
+            background: rgba(70, 70, 70, 0.5);
+            box-shadow: 0 0 0 2px rgba(255, 140, 0, 0.1);
+        }
+        
+        .search-icon {
+            position: absolute;
+            right: 10px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--gray);
+            font-size: 14px;
+            pointer-events: none;
+        }
+        
+        /* Search Results Dropdown */
+        .search-results-dropdown {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            right: 0;
+            margin-top: 5px;
+            background: linear-gradient(135deg, #0d0d0d 0%, #1a1a1a 100%);
+            border: 1px solid var(--orange);
+            border-radius: 4px;
+            max-height: 400px;
+            overflow-y: auto;
+            display: none;
+            z-index: 1000;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.8);
+        }
+        
+        .search-results-dropdown.active {
+            display: block;
+        }
+        
+        .search-category {
+            padding: 8px 12px;
+            background: rgba(255, 140, 0, 0.1);
+            border-bottom: 1px solid rgba(255, 140, 0, 0.2);
+            color: var(--orange);
+            font-size: 11px;
+            font-weight: bold;
+            text-transform: lowercase;
+        }
+        
+        .search-result-item {
+            padding: 10px 12px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .search-result-item:hover {
+            background: rgba(255, 140, 0, 0.1);
+            padding-left: 18px;
+        }
+        
+        .search-result-icon {
+            color: var(--orange);
+            font-size: 14px;
+        }
+        
+        .search-result-content {
+            flex: 1;
+        }
+        
+        .search-result-title {
+            color: var(--white);
+            font-size: 13px;
+            margin-bottom: 2px;
+        }
+        
+        .search-result-description {
+            color: var(--gray);
+            font-size: 11px;
+        }
+        
+        .search-result-meta {
+            color: var(--gray);
+            font-size: 10px;
+        }
+        
+        .search-no-results {
+            padding: 20px;
+            text-align: center;
+            color: var(--gray);
+            font-size: 12px;
+        }
+        
+        /* Main Container */
+        .main-container {
+            display: flex;
+            flex: 1;
+            overflow: hidden;
+            padding-bottom: 30px; /* Space for fixed footer - exact footer height */
+        }
+        
+        /* Sidebar - CLI Style */
+        .sidebar {
+            width: 280px;
+            background: linear-gradient(135deg, #1a1a1a 0%, #2a2a2a 100%);
+            border-right: 1px solid var(--dark-gray);
+            overflow-y: auto;
+            padding: 15px;
+            transition: margin-left 0.3s ease;
+        }
+        
+        /* Profile buttons styling for second bar */
+        .profile-username {
+            background: transparent;
+            border: 1px solid rgba(255, 140, 0, 0.3);
+            color: var(--orange);
+            padding: 4px 9px;
+            border-radius: 3px;
+            text-decoration: none;
+            font-size: 12px;
+            font-weight: bold;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+        
+        .profile-username:hover {
+            background: rgba(255, 140, 0, 0.1);
+            border-color: var(--orange);
+            transform: translateY(-1px);
+        }
+        
+        .profile-settings {
+            background: transparent;
+            border: 1px solid rgba(255, 140, 0, 0.3);
+            color: var(--orange);
+            width: 25px;
+            height: 25px;
+            border-radius: 3px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
+            font-size: 14px;
+            text-decoration: none;
+        }
+        
+        .profile-settings:hover {
+            background: rgba(255, 140, 0, 0.1);
+            border-color: var(--orange);
+            transform: translateY(-1px);
+        }
+        
+        .profile-logout {
+            background: transparent;
+            border: 1px solid rgba(255, 100, 100, 0.3);
+            color: #ff6666;
+            width: 25px;
+            height: 25px;
+            border-radius: 3px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
+            font-size: 14px;
+            font-weight: bold;
+            text-decoration: none;
+        }
+        
+        .profile-logout:hover {
+            background: rgba(255, 0, 0, 0.1);
+            border-color: #ff6666;
+            transform: translateY(-1px);
+        }
+        
+        .profile-logout::before {
+            content: '✕';
+        }
+        
+        .sidebar.minimized {
+            margin-left: -280px;
+        }
+        
+        .sidebar-section {
+            margin-bottom: 25px;
+        }
+        
+        .sidebar-title {
+            color: var(--orange);
+            font-size: 12px;
+            /* text-transform: uppercase; removed for lowercase */
+            letter-spacing: 1px;
+            margin-bottom: 10px;
+            padding-bottom: 5px;
+            border-bottom: 1px solid var(--dark-gray);
+        }
+        
+        .sidebar-item {
+            display: flex;
+            align-items: center;
+            padding: 8px 10px;
+            margin: 3px 0;
+            color: var(--white);
+            text-decoration: none;
+            border-radius: 3px;
+            transition: all 0.2s;
+            cursor: pointer;
+        }
+        
+        .sidebar-item:hover {
+            background: var(--dark-gray);
+            color: var(--cyan);
+            transform: translateX(5px);
+        }
+        
+        .sidebar-item.active {
+            background: var(--orange);
+            color: var(--bg-black);
+            font-weight: bold;
+        }
+        
+        .sidebar-icon {
+            margin-right: 10px;
+            font-size: 16px;
+        }
+        
+        /* Main Content Area */
+        .content {
+            flex: 1;
+            padding: 20px;
+            overflow-y: auto;
+            overflow-x: hidden;
+            background: linear-gradient(135deg, #1a1a1a 0%, #2a2a2a 100%);
+            min-width: 0;
+            max-width: 100%;
+            position: relative;
+        }
+        
+        /* Content wrapper for modules */
+        .content-wrapper {
+            width: 100%;
+            height: 100%;
+            position: relative;
+        }
+        
+        .content.sidebar-minimized {
+            margin-left: 0;
+        }
+        
+        /* Footer Status Bar */
+        .footer {
+            background: var(--bg-dark);
+            border-top: 1px solid var(--dark-gray);
+            padding: 0 15px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 13px;
+            height: 30px;
+            line-height: 30px;
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            z-index: 100;
+            box-sizing: border-box;
+            font-family: 'Courier New', monospace;
+        }
+        
+        .footer-left {
+            color: #666;
+            flex: 1;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        
+        .footer-right {
+            color: #fff;
+            flex-shrink: 0;
+            white-space: nowrap;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        
+        .status-indicator {
+            display: inline-flex;
+            align-items: center;
+            margin-left: 5px;
+        }
+        
+        .status-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: #0f0;
+            display: inline-block;
+        }
+        
+        .status-dot.offline {
+            background: #ff6600;
+        }
+        
+        /* Fullscreen Mode Styles */
+        body.fullscreen-mode .main-header,
+        body.fullscreen-mode .sidebar,
+        body.fullscreen-mode .footer {
+            display: none !important;
+        }
+        
+        body.fullscreen-mode .main-container {
+            height: 100vh;
+        }
+        
+        body.fullscreen-mode .content {
+            max-width: 100%;
+            width: 100%;
+            padding: 0;
+        }
+        
+        /* Minimized Mode Styles */
+        body.minimized-mode .sidebar {
+            margin-left: -280px;
+        }
+        
+        body.minimized-mode .content {
+            margin-left: 0;
+        }
+        
+        /* Scrollbar Styling */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        
+        ::-webkit-scrollbar-track {
+            background: var(--bg-dark);
+        }
+        
+        ::-webkit-scrollbar-thumb {
+            background: var(--dark-gray);
+            border-radius: 4px;
+        }
+        
+        ::-webkit-scrollbar-thumb:hover {
+            background: var(--gray);
+        }
+        
+        /* Module-specific container defaults */
+        .module-container {
+            width: 100%;
+            height: 100%;
+            position: relative;
+        }
+        
+        /* Section defaults */
+        .section {
+            margin-bottom: 30px;
+        }
+        
+        /* Content box defaults */
+        .content-box {
+            background: var(--bg-dark);
+            border: 1px solid var(--dark-gray);
+            border-radius: 5px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        
+        /* Responsive */
+        @media (max-width: 768px) {
+            .sidebar {
+                width: 200px;
+            }
+            
+            .header-subtitle {
+                display: none;
+            }
+        }
+        
+        @media (max-width: 600px) {
+            .main-container {
+                flex-direction: column;
+            }
+            
+            .sidebar {
+                width: 100%;
+                border-right: none;
+                border-bottom: 1px solid var(--dark-gray);
+                max-height: 200px;
+            }
+            
+            .header-user-info {
+                display: none;
+            }
+        }
+    </style>
+    
+    <!-- Additional CSS customization block (after base styles) -->
+    {% block extra_css %}{% endblock %}
+    
+    <!-- Additional head content -->
+    {% block extra_head %}{% endblock %}
+</head>
+<body>
+    <!-- Centralized Header Bar -->
+    <div class="main-header">
+        <div class="header-left">
+            <div class="header-title">
+                <span style="margin-right: 8px;">🦄</span>
+                <span>unibos {{ version }}{% if build_number %} (build {{ build_number }}){% endif %}</span>
+            </div>
+            <div class="header-breadcrumb">
+                {% block breadcrumb %}
+                {% block module_name %}{% endblock %}
+                {% endblock %}
+            </div>
+        </div>
+        
+        <div class="header-controls">
+            <div class="header-language">
+                <select id="language-selector" onchange="changeLanguage(this.value)">
+                    <option value="en">🇬🇧 en</option>
+                    <option value="tr">🇹🇷 tr</option>
+                    <option value="es">🇪🇸 es</option>
+                    <option value="fr">🇫🇷 fr</option>
+                    <option value="de">🇩🇪 de</option>
+                    <option value="zh">🇨🇳 zh</option>
+                    <option value="ja">🇯🇵 ja</option>
+                    <option value="pt">🇵🇹 pt</option>
+                    <option value="ru">🇷🇺 ru</option>
+                    <option value="ar">🇸🇦 ar</option>
+                </select>
+            </div>
+            <button class="header-control-btn minimize-btn" 
+                    onclick="toggleMinimize()" 
+                    title="play solitaire"></button>
+            
+            <button class="header-control-btn fullscreen-btn" 
+                    onclick="toggleFullscreen()" 
+                    title="toggle fullscreen"></button>
+        </div>
+    </div>
+    
+    <!-- Second Bar with Profile and Search -->
+    {% if user.is_authenticated %}
+    <div class="second-bar">
+        <!-- Profile Section (Left) -->
+        <div class="profile-section">
+            <div class="profile-section-left">
+                <a href="{% url 'web_ui:profile' %}" class="profile-username">
+                    <span>👤</span>
+                    <span>{{ user.username }}</span>
+                </a>
+                <a href="{% url 'web_ui:settings' %}" class="profile-settings" title="settings">
+                    <span>⚙️</span>
+                </a>
+            </div>
+            <a href="{% url 'web_ui:logout' %}" class="profile-logout" title="logout"></a>
+        </div>
+        
+        <!-- Search Section (Right) -->
+        <div class="search-section">
+            <div class="global-search-container">
+                <input type="text" 
+                       class="global-search-input" 
+                       id="globalSearch"
+                       placeholder="search modules, documents, settings..."
+                       autocomplete="off">
+                <span class="search-icon">🔍</span>
+                
+                <!-- Search Results Dropdown -->
+                <div class="search-results-dropdown" id="searchResults">
+                    <!-- Results will be populated here via JavaScript -->
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+    
+    <!-- Main Container -->
+    <div class="main-container">
+        <!-- Sidebar -->
+        <div class="sidebar" id="main-sidebar">
+            {% block sidebar %}
+            <!-- Modules Section -->
+            <div class="sidebar-section">
+                    <div class="sidebar-title">modules</div>
+                    {% for module in modules %}
+                    <a href="{% url 'web_ui:module' module.id %}" 
+                       class="sidebar-item {% if current_module == module.id %}active{% endif %}">
+                        <span class="sidebar-icon">{{ module.icon }}</span>
+                        <span>{{ module.name }}</span>
+                    </a>
+                    {% endfor %}
+                </div>
+                
+                <!-- Tools Section -->
+                <div class="sidebar-section">
+                    <div class="sidebar-title">tools</div>
+                    {% for tool in tools %}
+                    <a href="{% url 'web_ui:tool' tool.id %}" 
+                       class="sidebar-item">
+                        <span class="sidebar-icon">{{ tool.icon }}</span>
+                        <span>{{ tool.name }}</span>
+                    </a>
+                    {% endfor %}
+                </div>
+                
+                <!-- Dev Tools Section -->
+                <div class="sidebar-section">
+                    <div class="sidebar-title">dev tools</div>
+                    {% for tool in dev_tools %}
+                    <a href="{% if tool.url %}{{ tool.url }}{% else %}{% url 'web_ui:tool' tool.id %}{% endif %}" 
+                       class="sidebar-item">
+                        <span class="sidebar-icon">{{ tool.icon }}</span>
+                        <span>{{ tool.name }}</span>
+                    </a>
+                    {% endfor %}
+                </div>
+            {% endblock %}
+        </div>
+        
+        <!-- Main Content -->
+        <div class="content" id="main-content">
+            <div class="content-wrapper">
+                {% block content %}{% endblock %}
+            </div>
+        </div>
+    </div>
+    
+    <!-- Footer Status Bar -->
+    <div class="footer">
+        <div class="footer-left">{{ footer_nav }}</div>
+        <div class="footer-right">
+            {{ hostname }} | {{ location }} | <span id="footer-date">{{ current_date }}</span> | <span id="footer-time">{{ current_time }}</span> | {% if online_status %}online{% else %}offline{% endif %} 
+            <span class="status-indicator">
+                <span class="status-dot {% if not online_status %}offline{% endif %}"></span>
+            </span>
+        </div>
+    </div>
+    
+    <script>
+        // Centralized Header Control Functions
+        let isMinimized = false;
+        let isFullscreen = false;
+        
+        async function toggleMinimize() {
+            // If we're in solitaire page, save the game first
+            if (window.location.pathname.includes('/solitaire/')) {
+                // Check if saveGameStateSync function exists (from solitaire page)
+                if (typeof saveGameStateSync === 'function') {
+                    console.log('Saving solitaire game before minimize...');
+                    await saveGameStateSync();
+                }
+            } else {
+                // Save current page URL to session storage before going to solitaire
+                const currentUrl = window.location.href;
+                sessionStorage.setItem('pre_solitaire_url', currentUrl);
+                console.log('Saved current page for return:', currentUrl);
+            }
+            // Redirect to solitaire game (screen saver mode)
+            window.location.href = '{% url "web_ui:solitaire" %}';
+        }
+        
+        function toggleFullscreen() {
+            if (!document.fullscreenElement) {
+                document.documentElement.requestFullscreen().then(() => {
+                    document.body.classList.add('fullscreen-mode');
+                    isFullscreen = true;
+                    updateFullscreenButton(true);
+                }).catch(err => {
+                    console.error('Error attempting to enable fullscreen:', err);
+                });
+            } else {
+                document.exitFullscreen().then(() => {
+                    document.body.classList.remove('fullscreen-mode');
+                    isFullscreen = false;
+                    updateFullscreenButton(false);
+                });
+            }
+        }
+        
+        function updateFullscreenButton(isFullscreen) {
+            const btn = document.querySelector('.fullscreen-btn');
+            if (btn) {
+                btn.title = isFullscreen ? 'exit fullscreen' : 'toggle fullscreen';
+            }
+        }
+        
+        // Apply saved preferences on load
+        document.addEventListener('DOMContentLoaded', function() {
+            // Check if sidebar was minimized
+            const wasMinimized = localStorage.getItem('sidebarMinimized') === 'true';
+            if (wasMinimized) {
+                toggleMinimize();
+            }
+            
+            // Apply saved theme
+            const savedTheme = localStorage.getItem('preferredTheme') || 'dark';
+            const savedLang = localStorage.getItem('preferredLanguage') || navigator.language.split('-')[0];
+            
+            // Apply theme
+            if (savedTheme === 'light') {
+                document.documentElement.style.setProperty('--bg-black', '#ffffff');
+                document.documentElement.style.setProperty('--bg-dark', '#f5f5f5');
+                document.documentElement.style.setProperty('--orange', '#ff6600');
+                document.documentElement.style.setProperty('--white', '#000000');
+                document.documentElement.style.setProperty('--gray', '#606060');
+                document.documentElement.style.setProperty('--dark-gray', '#cccccc');
+                document.body.style.background = '#ffffff';
+                document.body.style.color = '#000000';
+            } else if (savedTheme === 'auto') {
+                const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+                if (!prefersDark) {
+                    // Apply light theme
+                    document.documentElement.style.setProperty('--bg-black', '#ffffff');
+                    document.documentElement.style.setProperty('--bg-dark', '#f5f5f5');
+                    document.documentElement.style.setProperty('--orange', '#ff6600');
+                    document.documentElement.style.setProperty('--white', '#000000');
+                    document.documentElement.style.setProperty('--gray', '#606060');
+                    document.documentElement.style.setProperty('--dark-gray', '#cccccc');
+                    document.body.style.background = '#ffffff';
+                    document.body.style.color = '#000000';
+                }
+            }
+            
+            // Set language
+            document.documentElement.lang = savedLang;
+        });
+        
+        // Global keyboard shortcuts
+        let globalKeysPressed = {};
+        
+        // Keyboard navigation
+        document.addEventListener('keydown', function(e) {
+            const key = e.key.toLowerCase();
+            globalKeysPressed[key] = true;
+            
+            // Check if typing in an input field
+            const isTypingInInput = document.activeElement.tagName === 'INPUT' || 
+                                   document.activeElement.tagName === 'TEXTAREA';
+            
+            // Q+W combination for solitaire toggle/minimize from ANY screen
+            if (!isTypingInInput && globalKeysPressed['q'] && globalKeysPressed['w'] && !globalKeysPressed['e']) {
+                console.log('Q+W combination detected, toggling solitaire/minimize');
+                e.preventDefault();
+                toggleMinimize();
+                return;
+            }
+            
+            // Q+W+E combination to exit unibos from ANY screen
+            if (!isTypingInInput && globalKeysPressed['q'] && globalKeysPressed['w'] && globalKeysPressed['e']) {
+                console.log('Q+W+E combination detected, exiting unibos completely');
+                globalKeysPressed = {};
+                e.preventDefault();
+                if (confirm('are you sure you want to exit unibos?')) {
+                    window.location.href = '{% url "web_ui:logout" %}';
+                }
+                return;
+            }
+            
+            // ESC key - go back or exit fullscreen
+            if (e.key === 'Escape') {
+                if (document.fullscreenElement) {
+                    toggleFullscreen();
+                } else {
+                    window.history.back();
+                }
+            }
+            
+            // F11 key for fullscreen toggle
+            if (e.key === 'F11') {
+                e.preventDefault();
+                toggleFullscreen();
+            }
+            
+            // Tab navigation through sidebar items
+            if (e.key === 'Tab') {
+                e.preventDefault();
+                navigateSidebar(e.shiftKey ? -1 : 1);
+            }
+        });
+        
+        document.addEventListener('keyup', function(e) {
+            const key = e.key.toLowerCase();
+            delete globalKeysPressed[key];
+        });
+        
+        function navigateSidebar(direction) {
+            const items = document.querySelectorAll('.sidebar-item');
+            const active = document.querySelector('.sidebar-item.active');
+            
+            if (!active) {
+                items[0].classList.add('active');
+                return;
+            }
+            
+            const currentIndex = Array.from(items).indexOf(active);
+            const nextIndex = (currentIndex + direction + items.length) % items.length;
+            
+            active.classList.remove('active');
+            items[nextIndex].classList.add('active');
+            items[nextIndex].focus();
+        }
+        
+        // Exit fullscreen on ESC
+        document.addEventListener('fullscreenchange', function() {
+            if (!document.fullscreenElement) {
+                document.body.classList.remove('fullscreen-mode');
+                isFullscreen = false;
+                updateFullscreenButton(false);
+            }
+        });
+        
+        // Auto-update time every second
+        setInterval(function() {
+            const now = new Date();
+            const timeStr = now.toTimeString().split(' ')[0];
+            const dateStr = now.toISOString().split('T')[0];
+            
+            // Update footer date and time separately, location stays static
+            const footerDate = document.getElementById('footer-date');
+            const footerTime = document.getElementById('footer-time');
+            if (footerDate) {
+                footerDate.textContent = dateStr;
+            }
+            if (footerTime) {
+                footerTime.textContent = timeStr;
+            }
+        }, 1000);
+        
+        // Language change function
+        function changeLanguage(lang) {
+            localStorage.setItem('preferredLanguage', lang);
+            // Here you would typically reload the page with the new language
+            // or make an AJAX call to update the language preference
+            window.location.reload();
+        }
+        
+        // Set current language on load
+        document.addEventListener('DOMContentLoaded', function() {
+            const savedLang = localStorage.getItem('preferredLanguage') || 'en';
+            const selector = document.getElementById('language-selector');
+            if (selector) {
+                selector.value = savedLang;
+            }
+        });
+        
+        // Global Search Functionality
+        const globalSearch = document.getElementById('globalSearch');
+        const searchResults = document.getElementById('searchResults');
+        let searchTimeout;
+        
+        if (globalSearch) {
+            // Mock search data - replace with AJAX call later
+            const searchData = {
+                modules: [
+                    { icon: '📄', title: 'documents', description: 'manage and organize documents', url: '/module/documents/' },
+                    { icon: '🎬', title: 'movies', description: 'movie collection management', url: '/module/movies/' },
+                    { icon: '💰', title: 'currencies', description: 'exchange rates and crypto', url: '/module/currencies/' },
+                    { icon: '📸', title: 'cctv', description: 'camera monitoring system', url: '/module/cctv/' }
+                ],
+                settings: [
+                    { icon: '🎨', title: 'appearance', description: 'theme and display settings', url: '/settings/#appearance' },
+                    { icon: '🔔', title: 'notifications', description: 'alerts and notifications', url: '/settings/#notifications' },
+                    { icon: '🔐', title: 'security', description: 'privacy and security options', url: '/settings/#security' }
+                ],
+                recent: [
+                    { icon: '📁', title: 'last document', description: 'invoice_2025.pdf', meta: '2 hours ago' },
+                    { icon: '🎯', title: 'last action', description: 'uploaded receipt', meta: '5 hours ago' }
+                ]
+            };
+            
+            function performSearch(query) {
+                if (!query) {
+                    searchResults.classList.remove('active');
+                    return;
+                }
+                
+                const lowerQuery = query.toLowerCase();
+                let resultsHTML = '';
+                let hasResults = false;
+                
+                // Search in modules
+                const moduleResults = searchData.modules.filter(item => 
+                    item.title.includes(lowerQuery) || item.description.includes(lowerQuery)
+                );
+                
+                if (moduleResults.length > 0) {
+                    hasResults = true;
+                    resultsHTML += '<div class="search-category">modules</div>';
+                    moduleResults.forEach(item => {
+                        resultsHTML += `
+                            <div class="search-result-item" onclick="window.location.href='${item.url}'">
+                                <span class="search-result-icon">${item.icon}</span>
+                                <div class="search-result-content">
+                                    <div class="search-result-title">${item.title}</div>
+                                    <div class="search-result-description">${item.description}</div>
+                                </div>
+                            </div>
+                        `;
+                    });
+                }
+                
+                // Search in settings
+                const settingsResults = searchData.settings.filter(item => 
+                    item.title.includes(lowerQuery) || item.description.includes(lowerQuery)
+                );
+                
+                if (settingsResults.length > 0) {
+                    hasResults = true;
+                    resultsHTML += '<div class="search-category">settings</div>';
+                    settingsResults.forEach(item => {
+                        resultsHTML += `
+                            <div class="search-result-item" onclick="window.location.href='${item.url}'">
+                                <span class="search-result-icon">${item.icon}</span>
+                                <div class="search-result-content">
+                                    <div class="search-result-title">${item.title}</div>
+                                    <div class="search-result-description">${item.description}</div>
+                                </div>
+                            </div>
+                        `;
+                    });
+                }
+                
+                // Show recent if query is short
+                if (query.length <= 2 && searchData.recent.length > 0) {
+                    hasResults = true;
+                    resultsHTML += '<div class="search-category">recent</div>';
+                    searchData.recent.forEach(item => {
+                        resultsHTML += `
+                            <div class="search-result-item">
+                                <span class="search-result-icon">${item.icon}</span>
+                                <div class="search-result-content">
+                                    <div class="search-result-title">${item.title}</div>
+                                    <div class="search-result-description">${item.description}</div>
+                                </div>
+                                <span class="search-result-meta">${item.meta}</span>
+                            </div>
+                        `;
+                    });
+                }
+                
+                if (!hasResults) {
+                    resultsHTML = '<div class="search-no-results">no results found for "' + query + '"</div>';
+                }
+                
+                searchResults.innerHTML = resultsHTML;
+                searchResults.classList.add('active');
+            }
+            
+            globalSearch.addEventListener('input', function(e) {
+                clearTimeout(searchTimeout);
+                searchTimeout = setTimeout(() => {
+                    performSearch(e.target.value);
+                }, 300);
+            });
+            
+            globalSearch.addEventListener('focus', function() {
+                if (this.value) {
+                    performSearch(this.value);
+                }
+            });
+            
+            // Close search results when clicking outside
+            document.addEventListener('click', function(e) {
+                if (!globalSearch.contains(e.target) && !searchResults.contains(e.target)) {
+                    searchResults.classList.remove('active');
+                }
+            });
+            
+            // Keyboard navigation for search
+            globalSearch.addEventListener('keydown', function(e) {
+                if (e.key === 'Escape') {
+                    this.blur();
+                    searchResults.classList.remove('active');
+                }
+            });
+        }
+    </script>
+    
+    {% block extra_js %}{% endblock %}
+</body>
+</html>

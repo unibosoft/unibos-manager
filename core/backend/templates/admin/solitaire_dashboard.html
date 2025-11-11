@@ -1,0 +1,422 @@
+{% extends "admin/base_site.html" %}
+{% load static %}
+
+{% block title %}solitaire dashboard - real-time monitoring{% endblock %}
+
+{% block extrastyle %}
+{{ block.super }}
+<style>
+    .dashboard-container {
+        padding: 20px;
+        background: #f5f5f5;
+    }
+    
+    .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 15px;
+        margin-bottom: 25px;
+    }
+    
+    .stat-card {
+        background: white;
+        padding: 20px;
+        border-radius: 8px;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    
+    .stat-value {
+        font-size: 28px;
+        font-weight: bold;
+        color: #333;
+        margin: 10px 0;
+    }
+    
+    .stat-label {
+        font-size: 12px;
+        color: #666;
+        text-transform: lowercase;
+    }
+    
+    .section {
+        background: white;
+        padding: 20px;
+        border-radius: 8px;
+        margin-bottom: 20px;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    
+    .section-title {
+        font-size: 18px;
+        font-weight: bold;
+        margin-bottom: 15px;
+        color: #333;
+        text-transform: lowercase;
+    }
+    
+    .live-indicator {
+        display: inline-block;
+        width: 10px;
+        height: 10px;
+        background: #4CAF50;
+        border-radius: 50%;
+        animation: pulse 2s infinite;
+        margin-right: 8px;
+    }
+    
+    @keyframes pulse {
+        0% { opacity: 1; }
+        50% { opacity: 0.5; }
+        100% { opacity: 1; }
+    }
+    
+    .game-row {
+        display: flex;
+        justify-content: space-between;
+        padding: 10px;
+        border-bottom: 1px solid #eee;
+        transition: background 0.2s;
+    }
+    
+    .game-row:hover {
+        background: #f8f8f8;
+    }
+    
+    .player-name {
+        font-weight: bold;
+        color: #2196F3;
+    }
+    
+    .score {
+        color: #4CAF50;
+        font-weight: bold;
+    }
+    
+    .moves {
+        color: #FF9800;
+    }
+    
+    .time {
+        color: #9C27B0;
+    }
+    
+    .chart-container {
+        height: 300px;
+        margin: 20px 0;
+    }
+    
+    .active-game {
+        background: #E8F5E9;
+        border-left: 4px solid #4CAF50;
+    }
+    
+    .won-game {
+        background: #FFF3E0;
+        border-left: 4px solid #FF9800;
+    }
+    
+    .top-player {
+        display: flex;
+        justify-content: space-between;
+        padding: 8px;
+        margin: 5px 0;
+        background: #f5f5f5;
+        border-radius: 4px;
+    }
+    
+    .funnel-bar {
+        background: #2196F3;
+        height: 30px;
+        margin: 5px 0;
+        border-radius: 4px;
+        display: flex;
+        align-items: center;
+        padding: 0 10px;
+        color: white;
+        font-weight: bold;
+        transition: width 0.5s;
+    }
+    
+    .refresh-info {
+        position: fixed;
+        bottom: 20px;
+        right: 20px;
+        background: #333;
+        color: white;
+        padding: 10px 15px;
+        border-radius: 20px;
+        font-size: 12px;
+    }
+    
+    .activity-item {
+        padding: 8px;
+        border-left: 3px solid #2196F3;
+        margin: 5px 0;
+        background: #f8f8f8;
+        font-size: 12px;
+    }
+    
+    .grid-2 {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 20px;
+    }
+    
+    .grid-3 {
+        display: grid;
+        grid-template-columns: 1fr 1fr 1fr;
+        gap: 20px;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="dashboard-container">
+    <h1><span class="live-indicator"></span>solitaire dashboard - live monitoring</h1>
+    
+    <!-- Today's Statistics -->
+    <div class="stats-grid">
+        <div class="stat-card">
+            <div class="stat-label">total games today</div>
+            <div class="stat-value">{{ today_stats.total_games }}</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-label">active players</div>
+            <div class="stat-value">{{ today_stats.active_players }}</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-label">games won</div>
+            <div class="stat-value">{{ today_stats.won_games }}</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-label">win rate</div>
+            <div class="stat-value">{{ today_stats.win_rate }}%</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-label">total moves</div>
+            <div class="stat-value">{{ today_stats.total_moves|floatformat:0 }}</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-label">avg score</div>
+            <div class="stat-value">{{ today_stats.avg_score|floatformat:0 }}</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-label">avg time</div>
+            <div class="stat-value">{{ today_stats.avg_time|floatformat:0 }}s</div>
+        </div>
+    </div>
+    
+    <div class="grid-2">
+        <!-- Active Games -->
+        <div class="section">
+            <h2 class="section-title">active games ({{ active_games|length }})</h2>
+            {% for game in active_games %}
+            <div class="game-row active-game">
+                <span class="player-name">{{ game.player.display_name }}</span>
+                <span>moves: <span class="moves">{{ game.moves_count }}</span></span>
+                <span>score: <span class="score">{{ game.score }}</span></span>
+                <span class="time">{{ game.time_played }}s</span>
+                <a href="/admin/solitaire/live/{{ game.session_id }}/" target="_blank">watch →</a>
+            </div>
+            {% empty %}
+            <p style="color: #999;">no active games right now</p>
+            {% endfor %}
+        </div>
+        
+        <!-- Top Players Today -->
+        <div class="section">
+            <h2 class="section-title">top players today</h2>
+            {% for player in top_players_today %}
+            <div class="top-player">
+                <span class="player-name">{{ player.player__display_name }}</span>
+                <span>
+                    games: {{ player.games_played }} | 
+                    won: {{ player.games_won }} | 
+                    score: <span class="score">{{ player.total_score }}</span>
+                </span>
+            </div>
+            {% empty %}
+            <p style="color: #999;">no games completed today</p>
+            {% endfor %}
+        </div>
+    </div>
+    
+    <!-- Hourly Activity Chart -->
+    <div class="section">
+        <h2 class="section-title">24-hour activity</h2>
+        <canvas id="hourlyChart" class="chart-container"></canvas>
+    </div>
+    
+    <!-- Game Completion Funnel -->
+    <div class="section">
+        <h2 class="section-title">game completion funnel (today)</h2>
+        <div class="funnel-bar" style="width: 100%;">
+            started: {{ funnel.started }}
+        </div>
+        <div class="funnel-bar" style="width: {% widthratio funnel.played_10_moves funnel.started 100 %}%;">
+            10+ moves: {{ funnel.played_10_moves }}
+        </div>
+        <div class="funnel-bar" style="width: {% widthratio funnel.played_50_moves funnel.started 100 %}%;">
+            50+ moves: {{ funnel.played_50_moves }}
+        </div>
+        <div class="funnel-bar" style="width: {% widthratio funnel.completed funnel.started 100 %}%; background: #FF9800;">
+            completed: {{ funnel.completed }}
+        </div>
+        <div class="funnel-bar" style="width: {% widthratio funnel.won funnel.started 100 %}%; background: #4CAF50;">
+            won: {{ funnel.won }}
+        </div>
+    </div>
+    
+    <div class="grid-3">
+        <!-- Best Games -->
+        <div class="section">
+            <h2 class="section-title">highest scores</h2>
+            {% for game in best_games|slice:":5" %}
+            <div class="game-row">
+                <span>{{ game.player.display_name }}</span>
+                <span class="score">{{ game.score }}</span>
+            </div>
+            {% endfor %}
+        </div>
+        
+        <!-- Fastest Wins -->
+        <div class="section">
+            <h2 class="section-title">fastest wins</h2>
+            {% for game in fastest_wins|slice:":5" %}
+            <div class="game-row">
+                <span>{{ game.player.display_name }}</span>
+                <span class="time">{{ game.time_played }}s</span>
+            </div>
+            {% endfor %}
+        </div>
+        
+        <!-- Most Efficient -->
+        <div class="section">
+            <h2 class="section-title">fewest moves wins</h2>
+            {% for game in efficient_wins|slice:":5" %}
+            <div class="game-row">
+                <span>{{ game.player.display_name }}</span>
+                <span class="moves">{{ game.moves_count }} moves</span>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    
+    <!-- Recent Games -->
+    <div class="section">
+        <h2 class="section-title">recent games</h2>
+        <table style="width: 100%;">
+            <thead>
+                <tr>
+                    <th>player</th>
+                    <th>started</th>
+                    <th>moves</th>
+                    <th>score</th>
+                    <th>time</th>
+                    <th>status</th>
+                    <th>action</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for game in recent_games %}
+                <tr>
+                    <td class="player-name">{{ game.player.display_name }}</td>
+                    <td>{{ game.started_at|timesince }} ago</td>
+                    <td class="moves">{{ game.moves_count }}</td>
+                    <td class="score">{{ game.score }}</td>
+                    <td class="time">{{ game.time_played }}s</td>
+                    <td>
+                        {% if game.is_won %}
+                            <span style="color: #4CAF50;">won</span>
+                        {% elif game.is_completed %}
+                            <span style="color: #FF5722;">lost</span>
+                        {% elif game.is_abandoned %}
+                            <span style="color: #999;">abandoned</span>
+                        {% else %}
+                            <span style="color: #2196F3;">active</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        <a href="/admin/solitaire/solitairegamesession/{{ game.id }}/change/">view</a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    
+    <!-- Player Retention -->
+    <div class="section">
+        <h2 class="section-title">player retention (last 7 days)</h2>
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-label">played once</div>
+                <div class="stat-value">{{ retention_stats.played_once }}</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">played 2 days</div>
+                <div class="stat-value">{{ retention_stats.played_2_days }}</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">played 3+ days</div>
+                <div class="stat-value">{{ retention_stats.played_3_plus }}</div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="refresh-info">
+        auto-refresh: {{ refresh_interval }}s
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    // Hourly activity chart
+    const hourlyData = {{ hourly_activity|safe }};
+    const ctx = document.getElementById('hourlyChart').getContext('2d');
+    new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: hourlyData.map(d => d.hour),
+            datasets: [{
+                label: 'games',
+                data: hourlyData.map(d => d.games),
+                borderColor: '#2196F3',
+                backgroundColor: 'rgba(33, 150, 243, 0.1)',
+                tension: 0.4
+            }, {
+                label: 'moves',
+                data: hourlyData.map(d => d.moves),
+                borderColor: '#FF9800',
+                backgroundColor: 'rgba(255, 152, 0, 0.1)',
+                tension: 0.4,
+                yAxisID: 'y1',
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+                y: {
+                    type: 'linear',
+                    display: true,
+                    position: 'left',
+                },
+                y1: {
+                    type: 'linear',
+                    display: true,
+                    position: 'right',
+                    grid: {
+                        drawOnChartArea: false,
+                    },
+                },
+            },
+        }
+    });
+    
+    // Auto-refresh
+    setTimeout(() => {
+        location.reload();
+    }, {{ refresh_interval }} * 1000);
+</script>
+{% endblock %}

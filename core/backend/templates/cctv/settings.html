@@ -1,0 +1,663 @@
+{% extends "web_ui/base.html" %}
+{% load static %}
+
+{% block title %}cctv settings - unibos{% endblock %}
+
+{% block header_title %}unibos{% endblock %}
+{% block module_name %}cctv - settings{% endblock %}
+
+{% block extra_css %}
+<style>
+    .settings-container {
+        padding: 20px;
+        background: #0a0a0a;
+        min-height: calc(100vh - 120px);
+    }
+    
+    .settings-tabs {
+        display: flex;
+        gap: 10px;
+        margin-bottom: 30px;
+        border-bottom: 2px solid #333;
+    }
+    
+    .tab-btn {
+        padding: 10px 20px;
+        background: transparent;
+        border: none;
+        color: #888;
+        cursor: pointer;
+        font-size: 1em;
+        text-transform: lowercase;
+        transition: all 0.2s ease;
+        border-bottom: 3px solid transparent;
+        margin-bottom: -2px;
+    }
+    
+    .tab-btn:hover {
+        color: #ff8c00;
+    }
+    
+    .tab-btn.active {
+        color: #ff8c00;
+        border-bottom-color: #ff8c00;
+    }
+    
+    .tab-content {
+        display: none;
+    }
+    
+    .tab-content.active {
+        display: block;
+    }
+    
+    .settings-section {
+        background: #1a1a1a;
+        border: 1px solid #333;
+        border-radius: 8px;
+        padding: 20px;
+        margin-bottom: 20px;
+    }
+    
+    .section-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 20px;
+        padding-bottom: 10px;
+        border-bottom: 1px solid #333;
+    }
+    
+    .section-title {
+        color: #ff8c00;
+        font-size: 1.2em;
+        text-transform: lowercase;
+    }
+    
+    .camera-list {
+        display: grid;
+        gap: 15px;
+    }
+    
+    .camera-item {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 15px;
+        background: #222;
+        border: 1px solid #444;
+        border-radius: 8px;
+        transition: all 0.2s ease;
+    }
+    
+    .camera-item:hover {
+        border-color: #ff8c00;
+    }
+    
+    .camera-info {
+        flex: 1;
+    }
+    
+    .camera-name {
+        color: #ff8c00;
+        font-weight: bold;
+        margin-bottom: 5px;
+    }
+    
+    .camera-details {
+        color: #888;
+        font-size: 0.9em;
+    }
+    
+    .camera-actions {
+        display: flex;
+        gap: 10px;
+    }
+    
+    .btn-edit, .btn-delete {
+        padding: 6px 12px;
+        background: #333;
+        border: 1px solid #444;
+        color: #ff8c00;
+        border-radius: 4px;
+        cursor: pointer;
+        transition: all 0.2s ease;
+    }
+    
+    .btn-edit:hover {
+        background: #ff8c00;
+        color: #000;
+        border-color: #ff8c00;
+    }
+    
+    .btn-delete {
+        color: #ff4444;
+        border-color: #ff4444;
+    }
+    
+    .btn-delete:hover {
+        background: #ff4444;
+        color: #fff;
+    }
+    
+    .btn-add {
+        padding: 10px 20px;
+        background: #ff8c00;
+        color: #000;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+        font-weight: bold;
+        text-transform: lowercase;
+        transition: all 0.2s ease;
+    }
+    
+    .btn-add:hover {
+        background: #ffa500;
+    }
+    
+    .form-group {
+        margin-bottom: 20px;
+    }
+    
+    .form-label {
+        display: block;
+        color: #888;
+        margin-bottom: 8px;
+        text-transform: lowercase;
+    }
+    
+    .form-input, .form-select {
+        width: 100%;
+        padding: 10px;
+        background: #222;
+        border: 1px solid #444;
+        color: #ff8c00;
+        border-radius: 4px;
+        font-size: 1em;
+    }
+    
+    .form-input:focus, .form-select:focus {
+        outline: none;
+        border-color: #ff8c00;
+    }
+    
+    .form-row {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 20px;
+    }
+    
+    .checkbox-group {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        margin: 10px 0;
+    }
+    
+    .checkbox-input {
+        width: 20px;
+        height: 20px;
+        accent-color: #ff8c00;
+    }
+    
+    .storage-info {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 15px;
+        margin-top: 20px;
+    }
+    
+    .storage-stat {
+        padding: 15px;
+        background: #222;
+        border: 1px solid #444;
+        border-radius: 8px;
+        text-align: center;
+    }
+    
+    .storage-value {
+        font-size: 1.8em;
+        color: #ff8c00;
+        font-weight: bold;
+    }
+    
+    .storage-label {
+        color: #888;
+        font-size: 0.9em;
+        margin-top: 5px;
+        text-transform: lowercase;
+    }
+    
+    .storage-bar {
+        width: 100%;
+        height: 30px;
+        background: #222;
+        border: 1px solid #444;
+        border-radius: 15px;
+        overflow: hidden;
+        margin-top: 20px;
+    }
+    
+    .storage-fill {
+        height: 100%;
+        background: linear-gradient(90deg, #00ff00, #ff8c00);
+        transition: width 0.3s ease;
+    }
+    
+    .storage-fill.warning {
+        background: linear-gradient(90deg, #ff8c00, #ff0000);
+    }
+    
+    .modal {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.8);
+        z-index: 1000;
+        align-items: center;
+        justify-content: center;
+    }
+    
+    .modal.active {
+        display: flex;
+    }
+    
+    .modal-content {
+        background: #1a1a1a;
+        border: 2px solid #ff8c00;
+        border-radius: 8px;
+        padding: 30px;
+        max-width: 600px;
+        width: 90%;
+        max-height: 80vh;
+        overflow-y: auto;
+    }
+    
+    .modal-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 20px;
+        padding-bottom: 10px;
+        border-bottom: 1px solid #333;
+    }
+    
+    .modal-title {
+        color: #ff8c00;
+        font-size: 1.3em;
+        text-transform: lowercase;
+    }
+    
+    .modal-close {
+        background: none;
+        border: none;
+        color: #888;
+        font-size: 1.5em;
+        cursor: pointer;
+    }
+    
+    .modal-close:hover {
+        color: #ff8c00;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="settings-container">
+    <h1 style="color: #ff8c00; margin-bottom: 30px;">⚙️ cctv settings</h1>
+    
+    <!-- Tabs -->
+    <div class="settings-tabs">
+        <button class="tab-btn active" onclick="switchTab('cameras')">cameras</button>
+        <button class="tab-btn" onclick="switchTab('groups')">camera groups</button>
+        <button class="tab-btn" onclick="switchTab('storage')">storage</button>
+        <button class="tab-btn" onclick="switchTab('schedules')">schedules</button>
+        <button class="tab-btn" onclick="switchTab('alerts')">alert settings</button>
+    </div>
+    
+    <!-- Cameras Tab -->
+    <div id="cameras-tab" class="tab-content active">
+        <div class="settings-section">
+            <div class="section-header">
+                <h2 class="section-title">📹 configured cameras</h2>
+                <button class="btn-add" onclick="showAddCameraModal()">+ add camera</button>
+            </div>
+            
+            <div class="camera-list">
+                {% for camera in cameras %}
+                <div class="camera-item">
+                    <div class="camera-info">
+                        <div class="camera-name">{{ camera.name }}</div>
+                        <div class="camera-details">
+                            {{ camera.model|upper }} • {{ camera.ip_address }}:{{ camera.port }} • {{ camera.location }}
+                            {% if camera.status == 'online' %}
+                            <span style="color: #00ff00;">● online</span>
+                            {% elif camera.status == 'recording' %}
+                            <span style="color: #ff0000;">● recording</span>
+                            {% else %}
+                            <span style="color: #666;">● offline</span>
+                            {% endif %}
+                        </div>
+                    </div>
+                    <div class="camera-actions">
+                        <button class="btn-edit" onclick="editCamera('{{ camera.id }}')">edit</button>
+                        <button class="btn-delete" onclick="deleteCamera('{{ camera.id }}')">delete</button>
+                    </div>
+                </div>
+                {% empty %}
+                <div style="text-align: center; color: #666; padding: 40px;">
+                    no cameras configured yet
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+    
+    <!-- Camera Groups Tab -->
+    <div id="groups-tab" class="tab-content">
+        <div class="settings-section">
+            <div class="section-header">
+                <h2 class="section-title">👥 camera groups</h2>
+                <button class="btn-add" onclick="showAddGroupModal()">+ create group</button>
+            </div>
+            
+            <div class="camera-list">
+                {% for group in camera_groups %}
+                <div class="camera-item">
+                    <div class="camera-info">
+                        <div class="camera-name">{{ group.name }}</div>
+                        <div class="camera-details">
+                            {{ group.cameras.count }} cameras • {{ group.grid_layout }} layout
+                            {% if group.auto_cycle %}• auto-cycle enabled{% endif %}
+                        </div>
+                    </div>
+                    <div class="camera-actions">
+                        <button class="btn-edit" onclick="editGroup('{{ group.id }}')">edit</button>
+                        <button class="btn-delete" onclick="deleteGroup('{{ group.id }}')">delete</button>
+                    </div>
+                </div>
+                {% empty %}
+                <div style="text-align: center; color: #666; padding: 40px;">
+                    no camera groups created yet
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+    
+    <!-- Storage Tab -->
+    <div id="storage-tab" class="tab-content">
+        <div class="settings-section">
+            <div class="section-header">
+                <h2 class="section-title">💾 storage configuration</h2>
+            </div>
+            
+            {% if storage %}
+            <div class="storage-info">
+                <div class="storage-stat">
+                    <div class="storage-value">{{ storage.current_usage_gb|floatformat:1 }}gb</div>
+                    <div class="storage-label">used</div>
+                </div>
+                <div class="storage-stat">
+                    <div class="storage-value">{{ storage.max_storage_gb }}gb</div>
+                    <div class="storage-label">total</div>
+                </div>
+                <div class="storage-stat">
+                    <div class="storage-value">{{ storage.get_usage_percent|floatformat:0 }}%</div>
+                    <div class="storage-label">usage</div>
+                </div>
+                <div class="storage-stat">
+                    <div class="storage-value">{{ storage.default_retention_days }} days</div>
+                    <div class="storage-label">retention</div>
+                </div>
+            </div>
+            
+            <div class="storage-bar">
+                <div class="storage-fill {% if storage.get_usage_percent > 80 %}warning{% endif %}" 
+                     style="width: {{ storage.get_usage_percent }}%;"></div>
+            </div>
+            
+            <div style="margin-top: 30px;">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label">recording path</label>
+                        <input type="text" class="form-input" value="{{ storage.recording_path }}" readonly>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">snapshot path</label>
+                        <input type="text" class="form-input" value="{{ storage.snapshot_path }}" readonly>
+                    </div>
+                </div>
+                
+                <div class="checkbox-group">
+                    <input type="checkbox" class="checkbox-input" id="auto-delete" 
+                           {% if storage.auto_delete_old %}checked{% endif %}>
+                    <label for="auto-delete">automatically delete old recordings</label>
+                </div>
+            </div>
+            {% else %}
+            <div style="text-align: center; color: #666; padding: 40px;">
+                storage configuration not set up
+            </div>
+            {% endif %}
+        </div>
+    </div>
+    
+    <!-- Schedules Tab -->
+    <div id="schedules-tab" class="tab-content">
+        <div class="settings-section">
+            <div class="section-header">
+                <h2 class="section-title">📅 recording schedules</h2>
+                <button class="btn-add" onclick="showAddScheduleModal()">+ add schedule</button>
+            </div>
+            
+            <div style="color: #666; text-align: center; padding: 40px;">
+                recording schedules will be configured here
+            </div>
+        </div>
+    </div>
+    
+    <!-- Alert Settings Tab -->
+    <div id="alerts-tab" class="tab-content">
+        <div class="settings-section">
+            <div class="section-header">
+                <h2 class="section-title">🚨 alert configuration</h2>
+            </div>
+            
+            <div class="form-group">
+                <label class="form-label">motion detection sensitivity</label>
+                <input type="range" class="form-input" min="1" max="10" value="5">
+            </div>
+            
+            <div class="checkbox-group">
+                <input type="checkbox" class="checkbox-input" id="alert-motion" checked>
+                <label for="alert-motion">motion detection alerts</label>
+            </div>
+            
+            <div class="checkbox-group">
+                <input type="checkbox" class="checkbox-input" id="alert-person">
+                <label for="alert-person">person detection alerts</label>
+            </div>
+            
+            <div class="checkbox-group">
+                <input type="checkbox" class="checkbox-input" id="alert-vehicle">
+                <label for="alert-vehicle">vehicle detection alerts</label>
+            </div>
+            
+            <div class="checkbox-group">
+                <input type="checkbox" class="checkbox-input" id="alert-sound">
+                <label for="alert-sound">sound detection alerts</label>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Add Camera Modal -->
+<div id="add-camera-modal" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h2 class="modal-title">📹 add new camera</h2>
+            <button class="modal-close" onclick="closeModal('add-camera-modal')">×</button>
+        </div>
+        
+        <form id="add-camera-form">
+            <div class="form-group">
+                <label class="form-label">camera name</label>
+                <input type="text" class="form-input" name="name" required>
+            </div>
+            
+            <div class="form-row">
+                <div class="form-group">
+                    <label class="form-label">model</label>
+                    <select class="form-select" name="model">
+                        <option value="tapo_c200">tp-link tapo c200</option>
+                        <option value="tapo_c210">tp-link tapo c210</option>
+                        <option value="tapo_c310">tp-link tapo c310</option>
+                        <option value="tapo_c320ws">tp-link tapo c320ws</option>
+                        <option value="generic_rtsp">generic rtsp</option>
+                        <option value="onvif">onvif compatible</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">location</label>
+                    <input type="text" class="form-input" name="location" required>
+                </div>
+            </div>
+            
+            <div class="form-row">
+                <div class="form-group">
+                    <label class="form-label">ip address</label>
+                    <input type="text" class="form-input" name="ip_address" required>
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">port</label>
+                    <input type="number" class="form-input" name="port" value="554" required>
+                </div>
+            </div>
+            
+            <div class="form-row">
+                <div class="form-group">
+                    <label class="form-label">username</label>
+                    <input type="text" class="form-input" name="username" required>
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">password</label>
+                    <input type="password" class="form-input" name="password" required>
+                </div>
+            </div>
+            
+            <div class="checkbox-group">
+                <input type="checkbox" class="checkbox-input" name="motion_detection" checked>
+                <label>enable motion detection</label>
+            </div>
+            
+            <div class="checkbox-group">
+                <input type="checkbox" class="checkbox-input" name="recording_enabled">
+                <label>enable continuous recording</label>
+            </div>
+            
+            <div style="display: flex; gap: 10px; margin-top: 30px;">
+                <button type="submit" class="btn-add" style="flex: 1;">add camera</button>
+                <button type="button" class="btn-edit" style="flex: 1;" onclick="closeModal('add-camera-modal')">cancel</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+function switchTab(tabName) {
+    // Hide all tabs
+    document.querySelectorAll('.tab-content').forEach(tab => {
+        tab.classList.remove('active');
+    });
+    
+    // Remove active from all buttons
+    document.querySelectorAll('.tab-btn').forEach(btn => {
+        btn.classList.remove('active');
+    });
+    
+    // Show selected tab
+    document.getElementById(tabName + '-tab').classList.add('active');
+    
+    // Mark button as active
+    event.target.classList.add('active');
+}
+
+function showAddCameraModal() {
+    document.getElementById('add-camera-modal').classList.add('active');
+}
+
+function closeModal(modalId) {
+    document.getElementById(modalId).classList.remove('active');
+}
+
+function editCamera(cameraId) {
+    // Implement edit functionality
+    console.log('Edit camera:', cameraId);
+}
+
+function deleteCamera(cameraId) {
+    if (confirm('are you sure you want to delete this camera?')) {
+        // Implement delete functionality
+        console.log('Delete camera:', cameraId);
+    }
+}
+
+function showAddGroupModal() {
+    // Implement add group modal
+    console.log('Show add group modal');
+}
+
+function editGroup(groupId) {
+    // Implement edit group functionality
+    console.log('Edit group:', groupId);
+}
+
+function deleteGroup(groupId) {
+    if (confirm('are you sure you want to delete this group?')) {
+        // Implement delete functionality
+        console.log('Delete group:', groupId);
+    }
+}
+
+function showAddScheduleModal() {
+    // Implement add schedule modal
+    console.log('Show add schedule modal');
+}
+
+// Handle form submission
+document.getElementById('add-camera-form').addEventListener('submit', (e) => {
+    e.preventDefault();
+    
+    const formData = new FormData(e.target);
+    const data = Object.fromEntries(formData);
+    
+    // Convert checkboxes
+    data.motion_detection = formData.has('motion_detection');
+    data.recording_enabled = formData.has('recording_enabled');
+    
+    // Submit to API
+    fetch('/api/v1/cctv/cameras/', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': '{{ csrf_token }}'
+        },
+        body: JSON.stringify(data)
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.id) {
+            location.reload();
+        }
+    });
+});
+</script>
+{% endblock %}

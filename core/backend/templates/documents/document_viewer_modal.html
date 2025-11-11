@@ -1,0 +1,282 @@
+<!-- Document Viewer Modal for including in pages -->
+<style>
+    /* Document Viewer Modal Styles */
+    .document-modal {
+        display: none;
+        position: fixed;
+        z-index: 10000;
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0, 0, 0, 0.95);
+        overflow: auto;
+        animation: fadeIn 0.3s;
+    }
+    
+    @keyframes fadeIn {
+        from { opacity: 0; }
+        to { opacity: 1; }
+    }
+    
+    .document-modal-content {
+        margin: 2% auto;
+        display: block;
+        max-width: 90%;
+        max-height: 90vh;
+        object-fit: contain;
+        border: 2px solid #ff8c00;
+        border-radius: 5px;
+        box-shadow: 0 0 20px rgba(255, 140, 0, 0.5);
+    }
+    
+    .document-modal-close {
+        position: absolute;
+        top: 20px;
+        right: 35px;
+        color: #ff8c00;
+        font-size: 40px;
+        font-weight: bold;
+        cursor: pointer;
+        transition: 0.3s;
+        z-index: 10001;
+    }
+    
+    .document-modal-close:hover,
+    .document-modal-close:focus {
+        color: #fff;
+        text-decoration: none;
+    }
+    
+    .document-modal-caption {
+        margin: auto;
+        display: block;
+        width: 80%;
+        max-width: 700px;
+        text-align: center;
+        color: #ccc;
+        padding: 10px 0;
+        font-size: 14px;
+    }
+    
+    .document-modal-nav {
+        position: absolute;
+        top: 50%;
+        transform: translateY(-50%);
+        color: #ff8c00;
+        font-size: 30px;
+        padding: 10px 20px;
+        cursor: pointer;
+        user-select: none;
+        transition: 0.3s;
+        background: rgba(0, 0, 0, 0.5);
+        border-radius: 5px;
+    }
+    
+    .document-modal-nav:hover {
+        background: rgba(255, 140, 0, 0.2);
+        color: #fff;
+    }
+    
+    .document-modal-prev {
+        left: 20px;
+    }
+    
+    .document-modal-next {
+        right: 20px;
+    }
+    
+    .document-modal-loading {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        color: #ff8c00;
+        font-size: 24px;
+    }
+    
+    /* Enhanced document card for click */
+    .document-card-clickable {
+        cursor: pointer;
+        position: relative;
+    }
+    
+    .document-card-clickable::after {
+        content: '🔍';
+        position: absolute;
+        top: 5px;
+        right: 5px;
+        font-size: 16px;
+        opacity: 0;
+        transition: opacity 0.3s;
+    }
+    
+    .document-card-clickable:hover::after {
+        opacity: 1;
+    }
+</style>
+
+<!-- Modal HTML -->
+<div id="documentModal" class="document-modal">
+    <span class="document-modal-close">&times;</span>
+    <div class="document-modal-loading">Loading...</div>
+    <img class="document-modal-content" id="modalImage" style="display: none;">
+    <div class="document-modal-caption" id="modalCaption"></div>
+    <div class="document-modal-nav document-modal-prev" id="modalPrev">&#10094;</div>
+    <div class="document-modal-nav document-modal-next" id="modalNext">&#10095;</div>
+</div>
+
+<script>
+// Document Viewer Modal JavaScript
+(function() {
+    let currentDocuments = [];
+    let currentIndex = 0;
+    
+    // Initialize modal functionality
+    function initDocumentModal() {
+        const modal = document.getElementById('documentModal');
+        const modalImg = document.getElementById('modalImage');
+        const modalCaption = document.getElementById('modalCaption');
+        const modalClose = document.querySelector('.document-modal-close');
+        const modalPrev = document.getElementById('modalPrev');
+        const modalNext = document.getElementById('modalNext');
+        const loadingIndicator = document.querySelector('.document-modal-loading');
+        
+        // Close modal
+        modalClose.onclick = function() {
+            modal.style.display = 'none';
+        }
+        
+        // Close on escape key
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape' && modal.style.display === 'block') {
+                modal.style.display = 'none';
+            }
+            if (e.key === 'ArrowLeft' && modal.style.display === 'block') {
+                showPrevDocument();
+            }
+            if (e.key === 'ArrowRight' && modal.style.display === 'block') {
+                showNextDocument();
+            }
+        });
+        
+        // Close on background click
+        modal.onclick = function(e) {
+            if (e.target === modal) {
+                modal.style.display = 'none';
+            }
+        }
+        
+        // Navigation
+        modalPrev.onclick = showPrevDocument;
+        modalNext.onclick = showNextDocument;
+        
+        // Add click handlers to all document cards
+        document.querySelectorAll('.document-card').forEach(function(card, index) {
+            // Make cards clickable for modal
+            card.classList.add('document-card-clickable');
+            
+            // Override the onclick to show modal instead
+            card.onclick = function(e) {
+                e.preventDefault();
+                
+                // Get document data
+                const docId = card.dataset.docId || extractDocIdFromUrl(card);
+                const docUrl = card.dataset.docUrl;
+                const docName = card.dataset.docName || card.querySelector('.document-filename')?.textContent || 'Document';
+                const thumbnailImg = card.querySelector('.document-thumbnail');
+                
+                if (docUrl || thumbnailImg?.src) {
+                    // Collect all documents for navigation
+                    currentDocuments = Array.from(document.querySelectorAll('.document-card')).map(c => ({
+                        url: c.dataset.docUrl || c.querySelector('.document-thumbnail')?.src,
+                        name: c.dataset.docName || c.querySelector('.document-filename')?.textContent || 'Document',
+                        id: c.dataset.docId || extractDocIdFromUrl(c)
+                    }));
+                    
+                    currentIndex = index;
+                    showDocument(currentIndex);
+                }
+            };
+        });
+    }
+    
+    function extractDocIdFromUrl(card) {
+        // Try to extract document ID from the onclick URL
+        const onclickAttr = card.getAttribute('onclick');
+        if (onclickAttr) {
+            const match = onclickAttr.match(/document\/([a-f0-9-]+)\//);
+            if (match) return match[1];
+        }
+        return null;
+    }
+    
+    function showDocument(index) {
+        const modal = document.getElementById('documentModal');
+        const modalImg = document.getElementById('modalImage');
+        const modalCaption = document.getElementById('modalCaption');
+        const loadingIndicator = document.querySelector('.document-modal-loading');
+        
+        if (index < 0 || index >= currentDocuments.length) return;
+        
+        currentIndex = index;
+        const doc = currentDocuments[index];
+        
+        modal.style.display = 'block';
+        loadingIndicator.style.display = 'block';
+        modalImg.style.display = 'none';
+        
+        // Construct the full document URL if we have an ID
+        let fullDocUrl = doc.url;
+        if (doc.id && !fullDocUrl) {
+            fullDocUrl = `/documents/document/${doc.id}/view/`;
+        }
+        
+        // Load the full-size image
+        const tempImg = new Image();
+        tempImg.onload = function() {
+            modalImg.src = this.src;
+            modalImg.style.display = 'block';
+            loadingIndicator.style.display = 'none';
+            modalCaption.textContent = doc.name + ' (' + (index + 1) + '/' + currentDocuments.length + ')';
+        };
+        
+        tempImg.onerror = function() {
+            // If direct image fails, try the view URL
+            if (doc.id) {
+                modalImg.src = `/documents/document/${doc.id}/view/`;
+                modalImg.style.display = 'block';
+                loadingIndicator.style.display = 'none';
+                modalCaption.textContent = doc.name + ' (' + (index + 1) + '/' + currentDocuments.length + ')';
+            } else {
+                loadingIndicator.textContent = 'Failed to load image';
+            }
+        };
+        
+        tempImg.src = fullDocUrl;
+        
+        // Update navigation buttons visibility
+        document.getElementById('modalPrev').style.display = index > 0 ? 'block' : 'none';
+        document.getElementById('modalNext').style.display = index < currentDocuments.length - 1 ? 'block' : 'none';
+    }
+    
+    function showPrevDocument() {
+        if (currentIndex > 0) {
+            showDocument(currentIndex - 1);
+        }
+    }
+    
+    function showNextDocument() {
+        if (currentIndex < currentDocuments.length - 1) {
+            showDocument(currentIndex + 1);
+        }
+    }
+    
+    // Initialize when DOM is ready
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', initDocumentModal);
+    } else {
+        initDocumentModal();
+    }
+})();
+</script>

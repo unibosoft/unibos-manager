@@ -1,0 +1,640 @@
+{% extends 'web_ui/base.html' %}
+
+{% block title %}settings - unibos{% endblock %}
+
+{% block module_name %}settings{% endblock %}
+
+{% block content %}
+<style>
+    .settings-container {
+        padding: 20px;
+        max-width: 900px;
+        margin: 0 auto;
+    }
+    
+    .settings-header {
+        margin-bottom: 30px;
+    }
+    
+    .settings-header h1 {
+        color: var(--orange);
+        font-size: 24px;
+        margin-bottom: 10px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+    
+    .settings-header p {
+        color: var(--gray);
+        font-size: 13px;
+    }
+    
+    .settings-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+        gap: 20px;
+    }
+    
+    .settings-section {
+        background: linear-gradient(135deg, #0d0d0d 0%, #1a1a1a 100%);
+        border: 1px solid var(--dark-gray);
+        border-radius: 8px;
+        padding: 20px;
+        transition: all 0.3s;
+    }
+    
+    .settings-section:hover {
+        border-color: rgba(255, 140, 0, 0.3);
+        box-shadow: 0 4px 12px rgba(255, 140, 0, 0.1);
+    }
+    
+    .settings-title {
+        color: var(--orange);
+        font-size: 16px;
+        margin-bottom: 20px;
+        padding-bottom: 10px;
+        border-bottom: 1px solid rgba(255, 140, 0, 0.2);
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+    
+    .setting-item {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 12px 0;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        transition: all 0.2s;
+    }
+    
+    .setting-item:hover {
+        background: rgba(255, 140, 0, 0.02);
+        padding-left: 10px;
+        margin-left: -10px;
+        margin-right: -10px;
+        padding-right: 10px;
+    }
+    
+    .setting-item:last-child {
+        border-bottom: none;
+    }
+    
+    .setting-label {
+        color: var(--white);
+        font-size: 13px;
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
+    }
+    
+    .setting-label small {
+        color: var(--gray);
+        font-size: 11px;
+    }
+    
+    .setting-value {
+        color: var(--gray);
+        font-size: 13px;
+    }
+    
+    .setting-control {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+    
+    .btn-small {
+        background: linear-gradient(135deg, var(--orange) 0%, #ff9a00 100%);
+        color: var(--bg-black);
+        border: none;
+        padding: 6px 14px;
+        border-radius: 4px;
+        cursor: pointer;
+        font-size: 12px;
+        font-weight: bold;
+        transition: all 0.2s;
+        text-transform: lowercase;
+    }
+    
+    .btn-small:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 8px rgba(255, 140, 0, 0.3);
+    }
+    
+    .btn-danger {
+        background: linear-gradient(135deg, #ff4444 0%, #ff6666 100%);
+    }
+    
+    .toggle-switch {
+        width: 48px;
+        height: 24px;
+        background: #2a2a2a;
+        border: 1px solid var(--dark-gray);
+        border-radius: 12px;
+        position: relative;
+        cursor: pointer;
+        transition: all 0.3s;
+    }
+    
+    .toggle-switch.active {
+        background: var(--orange);
+        border-color: var(--orange-bright);
+    }
+    
+    .toggle-switch::after {
+        content: '';
+        position: absolute;
+        width: 18px;
+        height: 18px;
+        background: var(--white);
+        border-radius: 50%;
+        top: 2px;
+        left: 2px;
+        transition: all 0.3s;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+    }
+    
+    .toggle-switch.active::after {
+        transform: translateX(24px);
+        background: var(--bg-black);
+    }
+    
+    .select-control {
+        background: #1a1a1a;
+        border: 1px solid var(--dark-gray);
+        color: var(--white);
+        padding: 6px 10px;
+        border-radius: 4px;
+        font-size: 12px;
+        cursor: pointer;
+        transition: all 0.2s;
+        min-width: 120px;
+    }
+    
+    .select-control:hover {
+        border-color: var(--orange);
+    }
+    
+    .select-control:focus {
+        outline: none;
+        border-color: var(--orange);
+        box-shadow: 0 0 0 2px rgba(255, 140, 0, 0.1);
+    }
+    
+    .user-info-card {
+        background: linear-gradient(135deg, #1a1a1a 0%, #2a2a2a 100%);
+        border: 1px solid var(--orange);
+        border-radius: 8px;
+        padding: 20px;
+        margin-bottom: 30px;
+        display: flex;
+        align-items: center;
+        gap: 20px;
+    }
+    
+    .user-avatar {
+        width: 60px;
+        height: 60px;
+        background: var(--orange);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 24px;
+        color: var(--bg-black);
+        font-weight: bold;
+    }
+    
+    .user-details {
+        flex: 1;
+    }
+    
+    .user-details h2 {
+        color: var(--white);
+        font-size: 18px;
+        margin-bottom: 5px;
+    }
+    
+    .user-details p {
+        color: var(--gray);
+        font-size: 13px;
+    }
+    
+    .save-notification {
+        position: fixed;
+        bottom: 20px;
+        right: 20px;
+        background: var(--orange);
+        color: var(--bg-black);
+        padding: 12px 20px;
+        border-radius: 4px;
+        font-weight: bold;
+        font-size: 13px;
+        opacity: 0;
+        transition: opacity 0.3s;
+        pointer-events: none;
+    }
+    
+    .save-notification.show {
+        opacity: 1;
+    }
+</style>
+
+<div class="settings-container">
+    <!-- User Info Card -->
+    <div class="user-info-card">
+        <div class="user-avatar">
+            {{ user.username|first|upper }}
+        </div>
+        <div class="user-details">
+            <h2>{{ user.username }}</h2>
+            <p>{{ user.email|default:"no email set" }} • member since {{ user.date_joined|date:"F Y" }}</p>
+        </div>
+        <div>
+            <a href="{% url 'web_ui:profile' %}" class="btn-small" style="text-decoration: none;">view profile</a>
+        </div>
+    </div>
+    
+    <!-- Settings Header -->
+    <div class="settings-header">
+        <h1>⚙️ settings</h1>
+        <p>manage your account preferences and privacy</p>
+    </div>
+    
+    <!-- Settings Grid -->
+    <div class="settings-grid">
+        <!-- Appearance Section -->
+        <div class="settings-section">
+            <h2 class="settings-title">🎨 appearance</h2>
+            <div class="setting-item">
+                <div class="setting-label">
+                    <span>theme</span>
+                    <small>choose your preferred color scheme</small>
+                </div>
+                <div class="setting-control">
+                    <select id="theme-select" class="select-control">
+                        <option value="dark">dark</option>
+                        <option value="light">light</option>
+                        <option value="auto">auto</option>
+                    </select>
+                </div>
+            </div>
+            <div class="setting-item">
+                <div class="setting-label">
+                    <span>font size</span>
+                    <small>adjust text size for readability</small>
+                </div>
+                <div class="setting-control">
+                    <select id="font-size-select" class="select-control">
+                        <option value="small">small</option>
+                        <option value="medium" selected>medium</option>
+                        <option value="large">large</option>
+                    </select>
+                </div>
+            </div>
+            <div class="setting-item">
+                <div class="setting-label">
+                    <span>sidebar auto-hide</span>
+                    <small>automatically hide sidebar when not in use</small>
+                </div>
+                <div class="setting-control">
+                    <div class="toggle-switch" id="sidebar-toggle"></div>
+                </div>
+            </div>
+            <div class="setting-item">
+                <div class="setting-label">
+                    <span>animations</span>
+                    <small>enable smooth transitions and effects</small>
+                </div>
+                <div class="setting-control">
+                    <div class="toggle-switch active" id="animations-toggle"></div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Notifications Section -->
+        <div class="settings-section">
+            <h2 class="settings-title">🔔 notifications</h2>
+            <div class="setting-item">
+                <div class="setting-label">
+                    <span>desktop notifications</span>
+                    <small>show system notifications for important events</small>
+                </div>
+                <div class="setting-control">
+                    <div class="toggle-switch active" id="desktop-notif-toggle"></div>
+                </div>
+            </div>
+            <div class="setting-item">
+                <div class="setting-label">
+                    <span>sound alerts</span>
+                    <small>play sounds for notifications</small>
+                </div>
+                <div class="setting-control">
+                    <div class="toggle-switch" id="sound-toggle"></div>
+                </div>
+            </div>
+            <div class="setting-item">
+                <div class="setting-label">
+                    <span>email notifications</span>
+                    <small>receive updates via email</small>
+                </div>
+                <div class="setting-control">
+                    <div class="toggle-switch active" id="email-toggle"></div>
+                </div>
+            </div>
+            <div class="setting-item">
+                <div class="setting-label">
+                    <span>module updates</span>
+                    <small>notify when modules are updated</small>
+                </div>
+                <div class="setting-control">
+                    <div class="toggle-switch active" id="module-updates-toggle"></div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Privacy Section -->
+        <div class="settings-section">
+            <h2 class="settings-title">🔐 privacy & security</h2>
+            <div class="setting-item">
+                <div class="setting-label">
+                    <span>activity tracking</span>
+                    <small>allow system to track usage for improvements</small>
+                </div>
+                <div class="setting-control">
+                    <div class="toggle-switch active" id="tracking-toggle"></div>
+                </div>
+            </div>
+            <div class="setting-item">
+                <div class="setting-label">
+                    <span>screen lock timeout</span>
+                    <small>auto-lock screen after inactivity</small>
+                </div>
+                <div class="setting-control">
+                    <select class="select-control" id="lock-timeout">
+                        <option value="5">5 minutes</option>
+                        <option value="10" selected>10 minutes</option>
+                        <option value="15">15 minutes</option>
+                        <option value="30">30 minutes</option>
+                        <option value="never">never</option>
+                    </select>
+                </div>
+            </div>
+            <div class="setting-item">
+                <div class="setting-label">
+                    <span>session timeout</span>
+                    <small>auto-logout after extended inactivity</small>
+                </div>
+                <div class="setting-control">
+                    <select class="select-control" id="session-timeout">
+                        <option value="30">30 minutes</option>
+                        <option value="60" selected>1 hour</option>
+                        <option value="120">2 hours</option>
+                        <option value="never">never</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Account Section -->
+        <div class="settings-section">
+            <h2 class="settings-title">👤 account</h2>
+            <div class="setting-item">
+                <div class="setting-label">
+                    <span>username</span>
+                    <small>{{ user.username }}</small>
+                </div>
+                <div class="setting-control">
+                    <button class="btn-small" onclick="alert('contact admin to change username')">change</button>
+                </div>
+            </div>
+            <div class="setting-item">
+                <div class="setting-label">
+                    <span>email address</span>
+                    <small>{{ user.email|default:"not set" }}</small>
+                </div>
+                <div class="setting-control">
+                    <button class="btn-small" onclick="window.location.href='{% url 'web_ui:profile' %}'">update</button>
+                </div>
+            </div>
+            <div class="setting-item">
+                <div class="setting-label">
+                    <span>password</span>
+                    <small>last changed {{ user.last_login|timesince }} ago</small>
+                </div>
+                <div class="setting-control">
+                    <button class="btn-small">change password</button>
+                </div>
+            </div>
+            <div class="setting-item">
+                <div class="setting-label">
+                    <span>two-factor authentication</span>
+                    <small>add extra security to your account</small>
+                </div>
+                <div class="setting-control">
+                    <button class="btn-small">enable 2fa</button>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Data Management Section -->
+        <div class="settings-section">
+            <h2 class="settings-title">💾 data management</h2>
+            <div class="setting-item">
+                <div class="setting-label">
+                    <span>export data</span>
+                    <small>download all your data</small>
+                </div>
+                <div class="setting-control">
+                    <button class="btn-small">export</button>
+                </div>
+            </div>
+            <div class="setting-item">
+                <div class="setting-label">
+                    <span>clear cache</span>
+                    <small>remove temporary files</small>
+                </div>
+                <div class="setting-control">
+                    <button class="btn-small" onclick="clearCache()">clear</button>
+                </div>
+            </div>
+            <div class="setting-item">
+                <div class="setting-label">
+                    <span>reset preferences</span>
+                    <small>restore default settings</small>
+                </div>
+                <div class="setting-control">
+                    <button class="btn-small btn-danger" onclick="confirmReset()">reset</button>
+                </div>
+            </div>
+            <div class="setting-item">
+                <div class="setting-label">
+                    <span>delete account</span>
+                    <small>permanently remove your account</small>
+                </div>
+                <div class="setting-control">
+                    <button class="btn-small btn-danger" onclick="alert('contact admin to delete account')">delete</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Save Notification -->
+<div class="save-notification" id="saveNotification">
+    settings saved successfully
+</div>
+
+<script>
+    // Show notification function
+    function showNotification(message) {
+        const notification = document.getElementById('saveNotification');
+        if (message) {
+            notification.textContent = message;
+        }
+        notification.classList.add('show');
+        setTimeout(() => {
+            notification.classList.remove('show');
+        }, 2000);
+    }
+    
+    // Save setting to server
+    function saveSetting(type, value) {
+        fetch('{% url "web_ui:settings" %}', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+                'X-CSRFToken': '{{ csrf_token }}'
+            },
+            body: `type=${type}&value=${value}`
+        }).then(response => {
+            if (response.ok) {
+                showNotification();
+            }
+        });
+    }
+    
+    // Toggle switches
+    document.querySelectorAll('.toggle-switch').forEach(toggle => {
+        toggle.addEventListener('click', function() {
+            this.classList.toggle('active');
+            const preference = this.classList.contains('active');
+            const settingId = this.id;
+            localStorage.setItem(settingId, preference);
+            saveSetting(settingId, preference);
+        });
+    });
+    
+    // Theme selector
+    document.getElementById('theme-select').addEventListener('change', function() {
+        localStorage.setItem('preferredTheme', this.value);
+        saveSetting('theme', this.value);
+        showNotification('theme changed');
+        
+        // Apply theme immediately
+        if (this.value === 'light') {
+            document.documentElement.style.setProperty('--bg-black', '#ffffff');
+            document.documentElement.style.setProperty('--bg-dark', '#f5f5f5');
+            document.documentElement.style.setProperty('--white', '#000000');
+            document.documentElement.style.setProperty('--gray', '#606060');
+            document.documentElement.style.setProperty('--dark-gray', '#cccccc');
+        } else if (this.value === 'dark') {
+            document.documentElement.style.setProperty('--bg-black', '#000000');
+            document.documentElement.style.setProperty('--bg-dark', '#0a0a0a');
+            document.documentElement.style.setProperty('--white', '#ffffff');
+            document.documentElement.style.setProperty('--gray', '#808080');
+            document.documentElement.style.setProperty('--dark-gray', '#404040');
+        } else if (this.value === 'auto') {
+            const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+            if (prefersDark) {
+                document.documentElement.style.setProperty('--bg-black', '#000000');
+                document.documentElement.style.setProperty('--bg-dark', '#0a0a0a');
+                document.documentElement.style.setProperty('--white', '#ffffff');
+                document.documentElement.style.setProperty('--gray', '#808080');
+                document.documentElement.style.setProperty('--dark-gray', '#404040');
+            } else {
+                document.documentElement.style.setProperty('--bg-black', '#ffffff');
+                document.documentElement.style.setProperty('--bg-dark', '#f5f5f5');
+                document.documentElement.style.setProperty('--white', '#000000');
+                document.documentElement.style.setProperty('--gray', '#606060');
+                document.documentElement.style.setProperty('--dark-gray', '#cccccc');
+            }
+        }
+    });
+    
+    // Font size selector
+    document.getElementById('font-size-select').addEventListener('change', function() {
+        localStorage.setItem('fontSize', this.value);
+        saveSetting('font_size', this.value);
+        showNotification('font size changed');
+        
+        // Apply font size
+        if (this.value === 'small') {
+            document.body.style.fontSize = '12px';
+        } else if (this.value === 'medium') {
+            document.body.style.fontSize = '14px';
+        } else if (this.value === 'large') {
+            document.body.style.fontSize = '16px';
+        }
+    });
+    
+    // Other select controls
+    document.querySelectorAll('.select-control').forEach(select => {
+        select.addEventListener('change', function() {
+            localStorage.setItem(this.id, this.value);
+            saveSetting(this.id, this.value);
+            showNotification();
+        });
+    });
+    
+    // Clear cache function
+    function clearCache() {
+        localStorage.clear();
+        sessionStorage.clear();
+        showNotification('cache cleared');
+        setTimeout(() => {
+            window.location.reload();
+        }, 2000);
+    }
+    
+    // Reset preferences
+    function confirmReset() {
+        if (confirm('are you sure you want to reset all settings to default?')) {
+            localStorage.clear();
+            showNotification('settings reset');
+            setTimeout(() => {
+                window.location.reload();
+            }, 2000);
+        }
+    }
+    
+    // Load saved preferences on page load
+    document.addEventListener('DOMContentLoaded', function() {
+        // Load theme
+        const savedTheme = localStorage.getItem('preferredTheme') || 'dark';
+        document.getElementById('theme-select').value = savedTheme;
+        
+        // Load font size
+        const savedFontSize = localStorage.getItem('fontSize') || 'medium';
+        document.getElementById('font-size-select').value = savedFontSize;
+        
+        // Load toggle states
+        document.querySelectorAll('.toggle-switch').forEach(toggle => {
+            const saved = localStorage.getItem(toggle.id);
+            if (saved === 'false') {
+                toggle.classList.remove('active');
+            }
+        });
+        
+        // Load select values
+        document.querySelectorAll('.select-control').forEach(select => {
+            const saved = localStorage.getItem(select.id);
+            if (saved) {
+                select.value = saved;
+            }
+        });
+    });
+</script>
+{% endblock %}

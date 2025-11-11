@@ -1,0 +1,407 @@
+{% extends 'administration/base_admin.html' %}
+{% load static %}
+
+{% block title %}screen lock settings{% endblock %}
+
+{% block admin_content %}
+<div class="admin-content">
+    <h1 class="page-title">🔒 screen lock settings</h1>
+    
+    <div class="screen-lock-container">
+        {% if messages %}
+            {% for message in messages %}
+                <div class="alert alert-{{ message.tags }}">
+                    {{ message }}
+                </div>
+            {% endfor %}
+        {% endif %}
+        
+        {% if not screen_lock.is_enabled %}
+        <!-- Enable Screen Lock -->
+        <div class="section">
+            <h2>enable screen lock</h2>
+            <p class="muted">protect your session with a password when away from keyboard</p>
+            
+            <form method="POST" class="screen-lock-form">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="enable">
+                
+                <div class="form-group">
+                    <label for="password">new password:</label>
+                    <input type="password" id="password" name="password" required 
+                           class="form-control" minlength="4" maxlength="20">
+                    <small>minimum 4 characters</small>
+                </div>
+                
+                <div class="form-group">
+                    <label for="confirm_password">confirm password:</label>
+                    <input type="password" id="confirm_password" name="confirm_password" required 
+                           class="form-control" minlength="4" maxlength="20">
+                </div>
+                
+                <div class="form-group">
+                    <label for="lock_timeout">auto-lock timeout:</label>
+                    <select id="lock_timeout" name="lock_timeout" class="form-control">
+                        {% for seconds, label in timeout_options %}
+                        <option value="{{ seconds }}" {% if seconds == 300 %}selected{% endif %}>
+                            {{ label|lower }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label class="checkbox-label">
+                        <input type="checkbox" name="auto_lock" checked>
+                        enable auto-lock on inactivity
+                    </label>
+                </div>
+                
+                <div class="form-group">
+                    <label class="checkbox-label">
+                        <input type="checkbox" name="require_on_startup">
+                        require password on startup
+                    </label>
+                </div>
+                
+                <button type="submit" class="btn btn-primary">
+                    🔐 enable screen lock
+                </button>
+            </form>
+        </div>
+        
+        {% else %}
+        <!-- Screen Lock Enabled -->
+        <div class="section">
+            <h2>screen lock status</h2>
+            <div class="status-box">
+                <p><strong>status:</strong> <span class="badge badge-success">enabled</span></p>
+                <p><strong>auto-lock:</strong> {{ screen_lock.auto_lock|yesno:"enabled,disabled" }}</p>
+                <p><strong>timeout:</strong> 
+                    {% for seconds, label in timeout_options %}
+                        {% if seconds == screen_lock.lock_timeout %}{{ label|lower }}{% endif %}
+                    {% endfor %}
+                </p>
+                <p><strong>require on startup:</strong> {{ screen_lock.require_on_startup|yesno:"yes,no" }}</p>
+                <p><strong>failed attempts:</strong> {{ screen_lock.failed_attempts }}/{{ screen_lock.max_failed_attempts }}</p>
+                {% if screen_lock.last_locked %}
+                <p><strong>last locked:</strong> {{ screen_lock.last_locked|date:"Y-m-d H:i:s" }}</p>
+                {% endif %}
+                {% if screen_lock.last_unlocked %}
+                <p><strong>last unlocked:</strong> {{ screen_lock.last_unlocked|date:"Y-m-d H:i:s" }}</p>
+                {% endif %}
+            </div>
+        </div>
+        
+        <!-- Update Settings -->
+        <div class="section">
+            <h2>update settings</h2>
+            <form method="POST" class="screen-lock-form">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="update">
+                
+                <div class="form-group">
+                    <label for="current_password_update">current password:</label>
+                    <input type="password" id="current_password_update" name="current_password" required 
+                           class="form-control">
+                </div>
+                
+                <div class="form-group">
+                    <label for="lock_timeout_update">auto-lock timeout:</label>
+                    <select id="lock_timeout_update" name="lock_timeout" class="form-control">
+                        {% for seconds, label in timeout_options %}
+                        <option value="{{ seconds }}" {% if seconds == screen_lock.lock_timeout %}selected{% endif %}>
+                            {{ label|lower }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label class="checkbox-label">
+                        <input type="checkbox" name="auto_lock" {% if screen_lock.auto_lock %}checked{% endif %}>
+                        enable auto-lock on inactivity
+                    </label>
+                </div>
+                
+                <div class="form-group">
+                    <label class="checkbox-label">
+                        <input type="checkbox" name="require_on_startup" {% if screen_lock.require_on_startup %}checked{% endif %}>
+                        require password on startup
+                    </label>
+                </div>
+                
+                <button type="submit" class="btn btn-primary">
+                    💾 update settings
+                </button>
+            </form>
+        </div>
+        
+        <!-- Change Password -->
+        <div class="section">
+            <h2>change password</h2>
+            <form method="POST" class="screen-lock-form">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="change_password">
+                
+                <div class="form-group">
+                    <label for="current_password_change">current password:</label>
+                    <input type="password" id="current_password_change" name="current_password" required 
+                           class="form-control">
+                </div>
+                
+                <div class="form-group">
+                    <label for="new_password">new password:</label>
+                    <input type="password" id="new_password" name="new_password" required 
+                           class="form-control" minlength="4" maxlength="20">
+                </div>
+                
+                <div class="form-group">
+                    <label for="confirm_new_password">confirm new password:</label>
+                    <input type="password" id="confirm_new_password" name="confirm_password" required 
+                           class="form-control" minlength="4" maxlength="20">
+                </div>
+                
+                <button type="submit" class="btn btn-warning">
+                    🔑 change password
+                </button>
+            </form>
+        </div>
+        
+        <!-- Disable Screen Lock -->
+        <div class="section danger-zone">
+            <h2>danger zone</h2>
+            <form method="POST" class="screen-lock-form" onsubmit="return confirm('are you sure you want to disable screen lock?');">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="disable">
+                
+                <div class="form-group">
+                    <label for="current_password_disable">current password:</label>
+                    <input type="password" id="current_password_disable" name="current_password" required 
+                           class="form-control">
+                </div>
+                
+                <button type="submit" class="btn btn-danger">
+                    🔓 disable screen lock
+                </button>
+            </form>
+        </div>
+        {% endif %}
+        
+        <!-- Quick Actions -->
+        <div class="section">
+            <h2>quick actions</h2>
+            <div class="quick-actions">
+                {% if screen_lock.is_enabled %}
+                <a href="{% url 'administration:lock_screen' %}" class="btn btn-secondary">
+                    🔒 lock screen now
+                </a>
+                {% endif %}
+                <a href="{% url 'administration:dashboard' %}" class="btn btn-secondary">
+                    ← back to dashboard
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.screen-lock-container {
+    max-width: 800px;
+    margin: 0 auto;
+}
+
+.section {
+    background: #1a1a1a;
+    border: 1px solid #333;
+    border-radius: 8px;
+    padding: 20px;
+    margin-bottom: 20px;
+}
+
+.section h2 {
+    color: #ff8800;
+    font-size: 1.2rem;
+    margin-bottom: 15px;
+    text-transform: lowercase;
+}
+
+.status-box {
+    background: #0d0d0d;
+    padding: 15px;
+    border-radius: 4px;
+    font-family: monospace;
+}
+
+.status-box p {
+    margin: 5px 0;
+}
+
+.form-group {
+    margin-bottom: 15px;
+}
+
+.form-group label {
+    display: block;
+    color: #ccc;
+    margin-bottom: 5px;
+    font-size: 0.9rem;
+}
+
+.form-control {
+    width: 100%;
+    padding: 8px 12px;
+    background: #0d0d0d;
+    border: 1px solid #333;
+    color: #fff;
+    border-radius: 4px;
+    font-family: monospace;
+}
+
+.form-control:focus {
+    outline: none;
+    border-color: #ff8800;
+    box-shadow: 0 0 0 2px rgba(255, 136, 0, 0.2);
+}
+
+.checkbox-label {
+    display: flex;
+    align-items: center;
+    cursor: pointer;
+}
+
+.checkbox-label input[type="checkbox"] {
+    margin-right: 8px;
+}
+
+.btn {
+    padding: 10px 20px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-family: monospace;
+    text-decoration: none;
+    display: inline-block;
+    margin-right: 10px;
+    transition: all 0.2s;
+}
+
+.btn-primary {
+    background: #ff8800;
+    color: #000;
+}
+
+.btn-primary:hover {
+    background: #ff9911;
+}
+
+.btn-warning {
+    background: #ffaa00;
+    color: #000;
+}
+
+.btn-warning:hover {
+    background: #ffbb11;
+}
+
+.btn-danger {
+    background: #cc3333;
+    color: #fff;
+}
+
+.btn-danger:hover {
+    background: #dd4444;
+}
+
+.btn-secondary {
+    background: #333;
+    color: #fff;
+}
+
+.btn-secondary:hover {
+    background: #444;
+}
+
+.danger-zone {
+    border-color: #cc3333;
+}
+
+.danger-zone h2 {
+    color: #cc3333;
+}
+
+.quick-actions {
+    display: flex;
+    gap: 10px;
+}
+
+.alert {
+    padding: 10px 15px;
+    border-radius: 4px;
+    margin-bottom: 20px;
+}
+
+.alert-success {
+    background: #2a4d2a;
+    color: #90ee90;
+    border: 1px solid #3a5d3a;
+}
+
+.alert-error {
+    background: #4d2a2a;
+    color: #ff9090;
+    border: 1px solid #5d3a3a;
+}
+
+.badge {
+    padding: 3px 8px;
+    border-radius: 3px;
+    font-size: 0.85rem;
+}
+
+.badge-success {
+    background: #2a4d2a;
+    color: #90ee90;
+}
+
+small {
+    color: #666;
+    font-size: 0.85rem;
+}
+
+.muted {
+    color: #666;
+    margin-bottom: 20px;
+}
+</style>
+
+<script>
+// Password match validation
+document.addEventListener('DOMContentLoaded', function() {
+    const forms = document.querySelectorAll('.screen-lock-form');
+    
+    forms.forEach(form => {
+        const password = form.querySelector('input[name="password"], input[name="new_password"]');
+        const confirm = form.querySelector('input[name="confirm_password"]');
+        
+        if (password && confirm) {
+            confirm.addEventListener('input', function() {
+                if (password.value !== confirm.value) {
+                    confirm.setCustomValidity('passwords do not match');
+                } else {
+                    confirm.setCustomValidity('');
+                }
+            });
+            
+            password.addEventListener('input', function() {
+                if (confirm.value && password.value !== confirm.value) {
+                    confirm.setCustomValidity('passwords do not match');
+                } else {
+                    confirm.setCustomValidity('');
+                }
+            });
+        }
+    });
+});
+</script>
+{% endblock %}

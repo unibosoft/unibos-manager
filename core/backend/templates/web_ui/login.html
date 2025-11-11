@@ -1,0 +1,320 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>UNIBOS Login</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: #0a0a0a;
+            color: #f0f0f0;
+            font-family: 'Courier New', monospace;
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+        }
+
+        .terminal-container {
+            width: 90%;
+            max-width: 450px;
+            background: rgba(20, 20, 20, 0.95);
+            border: 1px solid #ff8c00;
+            border-radius: 8px;
+            padding: 30px;
+            box-shadow: 0 0 30px rgba(255, 140, 0, 0.2);
+            animation: none;
+        }
+
+        @keyframes flicker {
+            0% { opacity: 0.97; }
+            100% { opacity: 1; }
+        }
+
+
+        h1 {
+            text-align: center;
+            color: #ff8c00;
+            margin-bottom: 10px;
+            font-size: 28px;
+            text-shadow: 0 0 10px rgba(255, 140, 0, 0.3);
+        }
+
+        .version {
+            text-align: center;
+            color: #808080;
+            margin-bottom: 30px;
+            font-size: 12px;
+        }
+
+        .login-form {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .input-group {
+            position: relative;
+        }
+
+        .input-group label {
+            display: block;
+            margin-bottom: 5px;
+            color: #ff8c00;
+            font-size: 14px;
+            text-transform: lowercase;
+        }
+
+        .input-group input {
+            width: 100%;
+            padding: 12px;
+            background: rgba(255, 140, 0, 0.05);
+            border: 1px solid #404040;
+            color: #ffffff;
+            font-family: 'Courier New', monospace;
+            font-size: 16px;
+            outline: none;
+            transition: all 0.3s;
+            border-radius: 4px;
+        }
+
+        .input-group input:focus {
+            background: rgba(255, 140, 0, 0.1);
+            border-color: #ff8c00;
+            box-shadow: 0 0 10px rgba(255, 140, 0, 0.2);
+        }
+
+        .input-group input::placeholder {
+            color: #606060;
+        }
+
+        .login-button {
+            padding: 15px;
+            background: #ff8c00;
+            border: none;
+            color: #000;
+            font-weight: bold;
+            font-size: 16px;
+            text-transform: lowercase;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-family: 'Courier New', monospace;
+            letter-spacing: 2px;
+            margin-top: 10px;
+            border-radius: 4px;
+        }
+
+        .login-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(255, 140, 0, 0.4);
+            background: #ffa500;
+        }
+
+        .login-button:active {
+            transform: translateY(0);
+        }
+
+        .error-message {
+            color: #ff0000;
+            text-align: center;
+            margin-top: 10px;
+            font-size: 14px;
+            display: none;
+        }
+
+        .error-message.show {
+            display: block;
+            animation: blink 0.5s ease-in-out 3;
+        }
+
+        @keyframes blink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0; }
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            margin-top: 10px;
+            color: #ff8c00;
+        }
+
+        .loading.show {
+            display: block;
+        }
+
+        .loading::after {
+            content: '';
+            animation: dots 1.5s steps(4, end) infinite;
+        }
+
+        @keyframes dots {
+            0% { content: ''; }
+            25% { content: '.'; }
+            50% { content: '..'; }
+            75% { content: '...'; }
+            100% { content: ''; }
+        }
+
+        .footer {
+            text-align: center;
+            margin-top: 30px;
+            color: #606060;
+            font-size: 12px;
+        }
+
+        /* Subtle scanlines effect */
+        .terminal-container::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(
+                rgba(255, 140, 0, 0.01) 50%,
+                transparent 50%
+            );
+            background-size: 100% 2px;
+            pointer-events: none;
+            animation: scanlines 8s linear infinite;
+        }
+
+        @keyframes scanlines {
+            0% { background-position: 0 0; }
+            100% { background-position: 0 10px; }
+        }
+    </style>
+</head>
+<body>
+    <div class="terminal-container">
+        <div style="text-align: center; margin-bottom: 40px;">
+            <h1 style="font-size: 48px; color: #ff8c00; margin-bottom: 10px; letter-spacing: 8px; text-shadow: 0 0 20px rgba(255, 140, 0, 0.5);">recaria</h1>
+            <div style="color: #808080; font-size: 14px; margin-bottom: 5px;">universal data processing system</div>
+            <div style="color: #a0a0a0; font-size: 16px; font-weight: 500;">unibos {{ version }}</div>
+        </div>
+        
+        <div class="version">build {{ build_number }} | {{ server_location|default:"local" }}</div>
+        
+        <form class="login-form" id="loginForm">
+            {% csrf_token %}
+            {% if next %}
+            <input type="hidden" name="next" value="{{ next }}">
+            {% endif %}
+            <div class="input-group">
+                <label for="username">username</label>
+                <input 
+                    type="text" 
+                    id="username" 
+                    name="username" 
+                    placeholder="enter username"
+                    autocomplete="username"
+                    required
+                >
+            </div>
+            
+            <div class="input-group">
+                <label for="password">password</label>
+                <input 
+                    type="password" 
+                    id="password" 
+                    name="password" 
+                    placeholder="enter password"
+                    autocomplete="current-password"
+                    required
+                >
+            </div>
+            
+            <button type="submit" class="login-button">login</button>
+            
+            <div class="error-message" id="errorMessage"></div>
+            <div class="loading" id="loading">logging in</div>
+        </form>
+        
+        <div class="footer">
+            secure connection | bitez, bodrum<br>
+            © 2025 unibos | all rights reserved
+        </div>
+    </div>
+
+    <script>
+        document.getElementById('loginForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+            const nextInput = document.querySelector('input[name="next"]');
+            const next = nextInput ? nextInput.value : '';
+            const errorMsg = document.getElementById('errorMessage');
+            const loading = document.getElementById('loading');
+
+            // Hide error and show loading
+            errorMsg.classList.remove('show');
+            loading.classList.add('show');
+
+            try {
+                // Use Django session-based login instead of JWT
+                const response = await fetch('/login/', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': getCookie('csrftoken')
+                    },
+                    credentials: 'same-origin',
+                    body: JSON.stringify({ username, password, next }),
+                });
+
+                const data = await response.json();
+
+                if (response.ok && data.success) {
+                    // Store user info if needed
+                    if (data.user) {
+                        localStorage.setItem('user', JSON.stringify(data.user));
+                    }
+
+                    // Redirect to next URL or main app
+                    const redirectUrl = data.redirect_url || next || '/';
+                    window.location.href = redirectUrl;
+                } else {
+                    // Show error
+                    errorMsg.textContent = data.error || 'invalid credentials';
+                    errorMsg.classList.add('show');
+                }
+            } catch (error) {
+                errorMsg.textContent = 'connection failed. please try again.';
+                errorMsg.classList.add('show');
+            } finally {
+                loading.classList.remove('show');
+            }
+        });
+        
+        // Function to get CSRF cookie
+        function getCookie(name) {
+            let cookieValue = null;
+            if (document.cookie && document.cookie !== '') {
+                const cookies = document.cookie.split(';');
+                for (let i = 0; i < cookies.length; i++) {
+                    const cookie = cookies[i].trim();
+                    if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                        break;
+                    }
+                }
+            }
+            return cookieValue;
+        }
+        
+        // Auto-focus username field
+        window.onload = () => {
+            document.getElementById('username').focus();
+        };
+    </script>
+</body>
+</html>

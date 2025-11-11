@@ -1,0 +1,1197 @@
+{% extends 'web_ui/base.html' %}
+{% load static %}
+
+{% block title %}Advanced Currencies - UNIBOS{% endblock %}
+
+{% block header_title %}unibos{% endblock %}
+{% block module_name %}currencies{% endblock %}
+
+{% block extra_head %}
+<!-- Chart Libraries -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chartjs-chart-financial@0.1.1/dist/chartjs-chart-financial.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns@3.0.0/dist/chartjs-adapter-date-fns.bundle.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/hammerjs@2.0.8/hammer.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-zoom@2.0.1/dist/chartjs-plugin-zoom.min.js"></script>
+
+<style>
+    :root {
+        --chart-bg: #0a0e17;
+        --chart-grid: #1a1e2e;
+        --chart-text: #9ca3af;
+        --chart-green: #10b981;
+        --chart-red: #ef4444;
+        --chart-blue: #3b82f6;
+        --chart-orange: #f59e0b;
+        --chart-purple: #8b5cf6;
+    }
+
+    .trading-container {
+        max-width: 100%;
+        margin: 0;
+        padding: 0;
+        background: var(--bg-black);
+        min-height: 100vh;
+    }
+
+    /* TradingView Style Header */
+    .trading-header {
+        background: var(--chart-bg);
+        border-bottom: 1px solid var(--chart-grid);
+        padding: 10px 20px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+    }
+
+    .symbol-selector {
+        display: flex;
+        align-items: center;
+        gap: 20px;
+    }
+
+    .symbol-dropdown {
+        background: var(--bg-dark);
+        border: 1px solid var(--chart-grid);
+        padding: 8px 15px;
+        border-radius: 4px;
+        color: var(--white);
+        font-size: 16px;
+        font-weight: bold;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .symbol-dropdown:hover {
+        border-color: var(--chart-blue);
+    }
+
+    .price-display {
+        display: flex;
+        align-items: baseline;
+        gap: 15px;
+    }
+
+    .current-price {
+        font-size: 24px;
+        font-weight: bold;
+        color: var(--white);
+    }
+
+    .price-change {
+        font-size: 14px;
+        padding: 4px 8px;
+        border-radius: 4px;
+    }
+
+    .price-change.positive {
+        color: var(--chart-green);
+        background: rgba(16, 185, 129, 0.1);
+    }
+
+    .price-change.negative {
+        color: var(--chart-red);
+        background: rgba(239, 68, 68, 0.1);
+    }
+
+    /* Timeframe Selector */
+    .timeframe-bar {
+        background: var(--chart-bg);
+        border-bottom: 1px solid var(--chart-grid);
+        padding: 5px 20px;
+        display: flex;
+        gap: 5px;
+    }
+
+    .timeframe-btn {
+        background: transparent;
+        border: 1px solid transparent;
+        color: var(--chart-text);
+        padding: 6px 12px;
+        cursor: pointer;
+        border-radius: 4px;
+        font-size: 13px;
+        transition: all 0.2s;
+    }
+
+    .timeframe-btn:hover {
+        background: rgba(255, 255, 255, 0.05);
+    }
+
+    .timeframe-btn.active {
+        background: var(--chart-blue);
+        color: white;
+        border-color: var(--chart-blue);
+    }
+
+    /* Chart Controls */
+    .chart-controls {
+        background: var(--chart-bg);
+        border-bottom: 1px solid var(--chart-grid);
+        padding: 8px 20px;
+        display: flex;
+        align-items: center;
+        gap: 20px;
+    }
+
+    .chart-type-selector {
+        display: flex;
+        gap: 5px;
+        border: 1px solid var(--chart-grid);
+        border-radius: 4px;
+        padding: 2px;
+    }
+
+    .chart-type-btn {
+        background: transparent;
+        border: none;
+        color: var(--chart-text);
+        padding: 4px 8px;
+        cursor: pointer;
+        border-radius: 3px;
+        display: flex;
+        align-items: center;
+        gap: 5px;
+        font-size: 12px;
+    }
+
+    .chart-type-btn.active {
+        background: var(--chart-blue);
+        color: white;
+    }
+
+    /* Indicator Buttons */
+    .indicator-btn {
+        background: transparent;
+        border: 1px solid var(--chart-grid);
+        color: var(--chart-text);
+        padding: 6px 12px;
+        cursor: pointer;
+        border-radius: 4px;
+        font-size: 12px;
+        transition: all 0.2s;
+    }
+
+    .indicator-btn:hover {
+        border-color: var(--chart-blue);
+        color: var(--chart-blue);
+    }
+
+    .indicator-btn.active {
+        background: var(--chart-purple);
+        color: white;
+        border-color: var(--chart-purple);
+    }
+
+    /* Main Chart Area */
+    .chart-main {
+        background: var(--chart-bg);
+        height: 500px;
+        position: relative;
+        border-bottom: 1px solid var(--chart-grid);
+    }
+
+    .chart-canvas-container {
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        padding: 10px;
+    }
+
+    /* Bank Comparison Panel */
+    .bank-panel {
+        background: var(--chart-bg);
+        border: 1px solid var(--chart-grid);
+        border-radius: 4px;
+        padding: 15px;
+        margin-top: 20px;
+    }
+
+    .bank-tabs {
+        display: flex;
+        gap: 10px;
+        margin-bottom: 15px;
+        border-bottom: 1px solid var(--chart-grid);
+        padding-bottom: 10px;
+    }
+
+    .bank-tab {
+        background: transparent;
+        border: none;
+        color: var(--chart-text);
+        padding: 8px 16px;
+        cursor: pointer;
+        font-size: 14px;
+        position: relative;
+        transition: all 0.2s;
+    }
+
+    .bank-tab:hover {
+        color: var(--white);
+    }
+
+    .bank-tab.active {
+        color: var(--chart-blue);
+    }
+
+    .bank-tab.active::after {
+        content: '';
+        position: absolute;
+        bottom: -11px;
+        left: 0;
+        right: 0;
+        height: 2px;
+        background: var(--chart-blue);
+    }
+
+    /* Rate Cards Grid */
+    .rates-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+        gap: 15px;
+        margin-top: 20px;
+    }
+
+    .rate-card {
+        background: var(--bg-dark);
+        border: 1px solid var(--chart-grid);
+        border-radius: 6px;
+        padding: 15px;
+        transition: all 0.2s;
+    }
+
+    .rate-card:hover {
+        border-color: var(--chart-blue);
+        transform: translateY(-2px);
+    }
+
+    .rate-card-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 12px;
+    }
+
+    .bank-logo {
+        height: 24px;
+        width: auto;
+    }
+
+    .best-badge {
+        background: var(--chart-green);
+        color: white;
+        padding: 2px 6px;
+        border-radius: 3px;
+        font-size: 10px;
+        font-weight: bold;
+    }
+
+    .rate-values {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 10px;
+    }
+
+    .rate-item {
+        padding: 8px;
+        background: var(--chart-bg);
+        border-radius: 4px;
+    }
+
+    .rate-label {
+        font-size: 11px;
+        color: var(--chart-text);
+        margin-bottom: 4px;
+    }
+
+    .rate-value {
+        font-size: 18px;
+        font-weight: bold;
+        color: var(--white);
+    }
+
+    .rate-item.buy .rate-value {
+        color: var(--chart-green);
+    }
+
+    .rate-item.sell .rate-value {
+        color: var(--chart-red);
+    }
+
+    /* Volume Chart */
+    .volume-chart {
+        height: 120px;
+        background: var(--chart-bg);
+        border-top: 1px solid var(--chart-grid);
+        position: relative;
+    }
+
+    /* Status Bar */
+    .status-bar {
+        background: var(--chart-bg);
+        border-top: 1px solid var(--chart-grid);
+        padding: 8px 20px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        font-size: 12px;
+        color: var(--chart-text);
+    }
+
+    .status-item {
+        display: flex;
+        align-items: center;
+        gap: 5px;
+    }
+
+    .status-indicator {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background: var(--chart-green);
+        animation: pulse 2s infinite;
+    }
+
+    @keyframes pulse {
+        0% { opacity: 1; }
+        50% { opacity: 0.5; }
+        100% { opacity: 1; }
+    }
+
+    /* Loading Overlay */
+    .loading-overlay {
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(0, 0, 0, 0.7);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 1000;
+    }
+
+    .loading-spinner {
+        width: 50px;
+        height: 50px;
+        border: 3px solid var(--chart-grid);
+        border-top: 3px solid var(--chart-blue);
+        border-radius: 50%;
+        animation: spin 1s linear infinite;
+    }
+
+    @keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+    }
+
+    /* Tooltip */
+    .custom-tooltip {
+        background: rgba(0, 0, 0, 0.9);
+        border: 1px solid var(--chart-blue);
+        border-radius: 4px;
+        padding: 10px;
+        color: white;
+        font-size: 12px;
+        position: absolute;
+        pointer-events: none;
+        z-index: 1000;
+    }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+        .trading-header {
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .timeframe-bar {
+            overflow-x: auto;
+        }
+
+        .chart-main {
+            height: 300px;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="trading-container">
+    <!-- Trading Header -->
+    <div class="trading-header">
+        <div class="symbol-selector">
+            <div class="symbol-dropdown" onclick="toggleSymbolMenu()">
+                <span id="current-symbol">USD/TRY</span>
+                <span>▼</span>
+            </div>
+            <div class="price-display">
+                <span class="current-price" id="current-price">32.4567</span>
+                <span class="price-change positive" id="price-change">
+                    +0.25 (+0.78%)
+                </span>
+            </div>
+        </div>
+        
+        <div style="display: flex; gap: 10px;">
+            <button class="indicator-btn" onclick="toggleIndicator('volume')">
+                Volume
+            </button>
+            <button class="indicator-btn" onclick="toggleIndicator('sma')">
+                SMA
+            </button>
+            <button class="indicator-btn" onclick="toggleIndicator('ema')">
+                EMA
+            </button>
+            <button class="indicator-btn" onclick="toggleIndicator('rsi')">
+                RSI
+            </button>
+            <button class="indicator-btn" onclick="toggleIndicator('macd')">
+                MACD
+            </button>
+        </div>
+    </div>
+
+    <!-- Timeframe Bar -->
+    <div class="timeframe-bar">
+        <button class="timeframe-btn" onclick="selectTimeframe('1H')">1H</button>
+        <button class="timeframe-btn" onclick="selectTimeframe('4H')">4H</button>
+        <button class="timeframe-btn active" onclick="selectTimeframe('1D')">1D</button>
+        <button class="timeframe-btn" onclick="selectTimeframe('1W')">1W</button>
+        <button class="timeframe-btn" onclick="selectTimeframe('1M')">1M</button>
+        <button class="timeframe-btn" onclick="selectTimeframe('3M')">3M</button>
+        <button class="timeframe-btn" onclick="selectTimeframe('6M')">6M</button>
+        <button class="timeframe-btn" onclick="selectTimeframe('1Y')">1Y</button>
+        <button class="timeframe-btn" onclick="selectTimeframe('ALL')">all</button>
+    </div>
+
+    <!-- Chart Controls -->
+    <div class="chart-controls">
+        <div class="chart-type-selector">
+            <button class="chart-type-btn active" onclick="setChartType('line')">
+                📈 line
+            </button>
+            <button class="chart-type-btn" onclick="setChartType('candlestick')">
+                🕯️ candle
+            </button>
+            <button class="chart-type-btn" onclick="setChartType('area')">
+                📊 area
+            </button>
+            <button class="chart-type-btn" onclick="setChartType('bar')">
+                📊 bar
+            </button>
+        </div>
+        
+        <div style="display: flex; gap: 10px;">
+            <select id="bank-filter" class="indicator-btn" onchange="filterByBank()">
+                <option value="all">all banks</option>
+                <option value="Akbank">Akbank</option>
+                <option value="Garanti">Garanti</option>
+                <option value="YKB">Yapı Kredi</option>
+                <option value="Ziraat">Ziraat</option>
+                <option value="Halkbank">Halkbank</option>
+                <option value="Vakıfbank">Vakıfbank</option>
+                <option value="İşbank">İş Bankası</option>
+                <option value="ING">ING</option>
+                <option value="QNB">QNB Finansbank</option>
+                <option value="Denizbank">Denizbank</option>
+                <option value="TEB">TEB</option>
+            </select>
+            
+            <button class="indicator-btn" onclick="toggleComparisonMode()">
+                🏦 compare banks
+            </button>
+            
+            <button class="indicator-btn" onclick="toggleAutoRefresh()">
+                🔄 auto refresh: <span id="auto-refresh-status">on</span>
+            </button>
+        </div>
+    </div>
+
+    <!-- Main Chart Area -->
+    <div class="chart-main" id="chart-main">
+        <div class="loading-overlay" id="chart-loading" style="display: none;">
+            <div class="loading-spinner"></div>
+        </div>
+        <div class="chart-canvas-container">
+            <canvas id="main-chart"></canvas>
+        </div>
+    </div>
+
+    <!-- Volume Chart -->
+    <div class="volume-chart" id="volume-chart" style="display: none;">
+        <canvas id="volume-canvas"></canvas>
+    </div>
+
+    <!-- Bank Comparison Panel -->
+    <div class="bank-panel">
+        <div class="bank-tabs">
+            <button class="bank-tab active" onclick="selectBankTab('rates')">
+                Current Rates
+            </button>
+            <button class="bank-tab" onclick="selectBankTab('comparison')">
+                Bank Comparison
+            </button>
+            <button class="bank-tab" onclick="selectBankTab('spreads')">
+                Spread Analysis
+            </button>
+            <button class="bank-tab" onclick="selectBankTab('alerts')">
+                Price Alerts
+            </button>
+        </div>
+
+        <!-- Rates Grid -->
+        <div id="rates-content" class="rates-grid">
+            <!-- Dynamically populated -->
+        </div>
+    </div>
+
+    <!-- Status Bar -->
+    <div class="status-bar">
+        <div class="status-item">
+            <span class="status-indicator"></span>
+            <span>Connected</span>
+        </div>
+        <div class="status-item">
+            <span>Last Update: <span id="last-update">--:--:--</span></span>
+        </div>
+        <div class="status-item">
+            <span>Data Points: <span id="data-points">0</span></span>
+        </div>
+        <div class="status-item">
+            <span>WebSocket: <span id="ws-status">Disconnected</span></span>
+        </div>
+    </div>
+</div>
+
+<script>
+// Global Configuration
+const CONFIG = {
+    API_BASE: '/api/currencies',
+    WS_BASE: 'ws://localhost:8000/ws/currencies',
+    UPDATE_INTERVAL: 5000, // 5 seconds
+    CHART_COLORS: {
+        green: '#10b981',
+        red: '#ef4444',
+        blue: '#3b82f6',
+        orange: '#f59e0b',
+        purple: '#8b5cf6',
+        gray: '#6b7280'
+    }
+};
+
+// Global State
+let state = {
+    currentSymbol: 'USDTRY',
+    currentTimeframe: '1D',
+    currentChartType: 'line',
+    currentBank: 'all',
+    autoRefresh: true,
+    indicators: {
+        volume: false,
+        sma: false,
+        ema: false,
+        rsi: false,
+        macd: false
+    },
+    websocket: null,
+    charts: {
+        main: null,
+        volume: null
+    },
+    data: {
+        ohlc: [],
+        volume: [],
+        rates: []
+    }
+};
+
+// Initialize on page load
+document.addEventListener('DOMContentLoaded', function() {
+    initializeCharts();
+    connectWebSocket();
+    loadInitialData();
+    startAutoRefresh();
+});
+
+// Initialize Charts
+function initializeCharts() {
+    // Main Chart
+    const mainCtx = document.getElementById('main-chart').getContext('2d');
+    state.charts.main = new Chart(mainCtx, {
+        type: 'line',
+        data: {
+            labels: [],
+            datasets: []
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            interaction: {
+                mode: 'index',
+                intersect: false
+            },
+            plugins: {
+                legend: {
+                    display: true,
+                    position: 'top',
+                    labels: {
+                        color: CONFIG.CHART_COLORS.gray,
+                        font: { size: 11 }
+                    }
+                },
+                tooltip: {
+                    enabled: true,
+                    backgroundColor: 'rgba(0, 0, 0, 0.9)',
+                    borderColor: CONFIG.CHART_COLORS.blue,
+                    borderWidth: 1,
+                    titleColor: '#fff',
+                    bodyColor: '#fff',
+                    padding: 10,
+                    displayColors: true,
+                    callbacks: {
+                        label: function(context) {
+                            let label = context.dataset.label || '';
+                            if (label) {
+                                label += ': ';
+                            }
+                            if (context.parsed.y !== null) {
+                                label += '₺' + context.parsed.y.toFixed(4);
+                            }
+                            return label;
+                        }
+                    }
+                },
+                zoom: {
+                    zoom: {
+                        wheel: {
+                            enabled: true,
+                        },
+                        pinch: {
+                            enabled: true
+                        },
+                        mode: 'x',
+                    },
+                    pan: {
+                        enabled: true,
+                        mode: 'x',
+                    }
+                }
+            },
+            scales: {
+                x: {
+                    type: 'time',
+                    time: {
+                        unit: 'day',
+                        displayFormats: {
+                            hour: 'HH:mm',
+                            day: 'dd MMM',
+                            week: 'dd MMM',
+                            month: 'MMM yyyy'
+                        }
+                    },
+                    grid: {
+                        color: '#1a1e2e',
+                        drawBorder: false
+                    },
+                    ticks: {
+                        color: CONFIG.CHART_COLORS.gray,
+                        font: { size: 10 }
+                    }
+                },
+                y: {
+                    position: 'right',
+                    grid: {
+                        color: '#1a1e2e',
+                        drawBorder: false
+                    },
+                    ticks: {
+                        color: CONFIG.CHART_COLORS.gray,
+                        font: { size: 10 },
+                        callback: function(value) {
+                            return '₺' + value.toFixed(2);
+                        }
+                    }
+                }
+            }
+        }
+    });
+
+    // Volume Chart
+    const volumeCtx = document.getElementById('volume-canvas').getContext('2d');
+    state.charts.volume = new Chart(volumeCtx, {
+        type: 'bar',
+        data: {
+            labels: [],
+            datasets: [{
+                label: 'Volume',
+                data: [],
+                backgroundColor: CONFIG.CHART_COLORS.blue + '40',
+                borderColor: CONFIG.CHART_COLORS.blue,
+                borderWidth: 1
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: { display: false },
+                tooltip: { enabled: true }
+            },
+            scales: {
+                x: {
+                    type: 'time',
+                    grid: { display: false },
+                    ticks: { display: false }
+                },
+                y: {
+                    position: 'right',
+                    grid: {
+                        color: '#1a1e2e',
+                        drawBorder: false
+                    },
+                    ticks: {
+                        color: CONFIG.CHART_COLORS.gray,
+                        font: { size: 10 }
+                    }
+                }
+            }
+        }
+    });
+}
+
+// WebSocket Connection
+function connectWebSocket() {
+    if (state.websocket) {
+        state.websocket.close();
+    }
+
+    const wsUrl = `${CONFIG.WS_BASE}/rates/`;
+    state.websocket = new WebSocket(wsUrl);
+
+    state.websocket.onopen = function(e) {
+        console.log('WebSocket connected');
+        document.getElementById('ws-status').textContent = 'Connected';
+        document.getElementById('ws-status').style.color = CONFIG.CHART_COLORS.green;
+        
+        // Subscribe to updates
+        state.websocket.send(JSON.stringify({
+            type: 'subscribe',
+            symbol: state.currentSymbol,
+            bank: state.currentBank
+        }));
+    };
+
+    state.websocket.onmessage = function(e) {
+        const data = JSON.parse(e.data);
+        handleRealtimeUpdate(data);
+    };
+
+    state.websocket.onclose = function(e) {
+        console.log('WebSocket disconnected');
+        document.getElementById('ws-status').textContent = 'Disconnected';
+        document.getElementById('ws-status').style.color = CONFIG.CHART_COLORS.red;
+        
+        // Reconnect after 5 seconds
+        setTimeout(connectWebSocket, 5000);
+    };
+
+    state.websocket.onerror = function(e) {
+        console.error('WebSocket error:', e);
+    };
+}
+
+// Handle Realtime Updates
+function handleRealtimeUpdate(data) {
+    if (data.type === 'rate_update') {
+        // Update current price
+        updateCurrentPrice(data.rate);
+        
+        // Add to chart if it's for current symbol
+        if (data.symbol === state.currentSymbol) {
+            addChartDataPoint(data);
+        }
+        
+        // Update rates grid
+        updateRatesGrid(data);
+    }
+    
+    // Update last update time
+    const now = new Date();
+    document.getElementById('last-update').textContent = 
+        now.toLocaleTimeString('tr-TR');
+}
+
+// Load Initial Data
+async function loadInitialData() {
+    showLoading(true);
+    
+    try {
+        // Load OHLC data
+        await loadOHLCData();
+        
+        // Load current rates
+        await loadCurrentRates();
+        
+        // Update UI
+        updateDataPoints();
+    } catch (error) {
+        console.error('Error loading initial data:', error);
+    } finally {
+        showLoading(false);
+    }
+}
+
+// Load OHLC Data
+async function loadOHLCData() {
+    const url = `${CONFIG.API_BASE}/chart-data/ohlc/${state.currentSymbol}/${state.currentTimeframe}/`;
+    const params = new URLSearchParams();
+    
+    if (state.currentBank !== 'all') {
+        params.append('bank', state.currentBank);
+    }
+    
+    try {
+        const response = await fetch(url + '?' + params);
+        const data = await response.json();
+        
+        if (data.data) {
+            state.data.ohlc = data.data;
+            updateMainChart();
+        }
+    } catch (error) {
+        console.error('Error loading OHLC data:', error);
+    }
+}
+
+// Load Current Rates
+async function loadCurrentRates() {
+    const url = `${CONFIG.API_BASE}/bank-rates/latest/`;
+    
+    try {
+        const response = await fetch(url);
+        const data = await response.json();
+        
+        if (data.rates) {
+            state.data.rates = data.rates;
+            updateRatesDisplay();
+        }
+    } catch (error) {
+        console.error('Error loading current rates:', error);
+    }
+}
+
+// Update Main Chart
+function updateMainChart() {
+    const chart = state.charts.main;
+    const data = state.data.ohlc;
+    
+    if (!chart || !data) return;
+    
+    // Prepare data based on chart type
+    let datasets = [];
+    
+    if (state.currentChartType === 'candlestick') {
+        // Candlestick data
+        datasets.push({
+            label: state.currentSymbol,
+            data: data.map(d => ({
+                x: new Date(d.time),
+                o: d.open,
+                h: d.high,
+                l: d.low,
+                c: d.close
+            })),
+            borderColor: CONFIG.CHART_COLORS.green,
+            backgroundColor: CONFIG.CHART_COLORS.green + '20'
+        });
+        
+        chart.config.type = 'candlestick';
+    } else if (state.currentChartType === 'line' || state.currentChartType === 'area') {
+        // Line/Area chart
+        datasets.push({
+            label: 'Buy Rate',
+            data: data.map(d => ({
+                x: new Date(d.time),
+                y: d.close
+            })),
+            borderColor: CONFIG.CHART_COLORS.green,
+            backgroundColor: state.currentChartType === 'area' ? 
+                CONFIG.CHART_COLORS.green + '20' : 'transparent',
+            fill: state.currentChartType === 'area',
+            tension: 0.1,
+            borderWidth: 2
+        });
+        
+        chart.config.type = 'line';
+    }
+    
+    // Add indicators if enabled
+    if (state.indicators.sma) {
+        const smaData = calculateSMA(data.map(d => d.close), 20);
+        datasets.push({
+            label: 'SMA (20)',
+            data: data.map((d, i) => ({
+                x: new Date(d.time),
+                y: smaData[i]
+            })),
+            borderColor: CONFIG.CHART_COLORS.orange,
+            backgroundColor: 'transparent',
+            borderWidth: 1,
+            tension: 0
+        });
+    }
+    
+    if (state.indicators.ema) {
+        const emaData = calculateEMA(data.map(d => d.close), 20);
+        datasets.push({
+            label: 'EMA (20)',
+            data: data.map((d, i) => ({
+                x: new Date(d.time),
+                y: emaData[i]
+            })),
+            borderColor: CONFIG.CHART_COLORS.purple,
+            backgroundColor: 'transparent',
+            borderWidth: 1,
+            tension: 0
+        });
+    }
+    
+    // Update chart
+    chart.data.datasets = datasets;
+    chart.update('none');
+    
+    // Update volume chart if enabled
+    if (state.indicators.volume) {
+        updateVolumeChart();
+    }
+}
+
+// Update Volume Chart
+function updateVolumeChart() {
+    const chart = state.charts.volume;
+    const data = state.data.ohlc;
+    
+    if (!chart || !data) return;
+    
+    document.getElementById('volume-chart').style.display = 'block';
+    
+    chart.data.labels = data.map(d => new Date(d.time));
+    chart.data.datasets[0].data = data.map(d => d.volume || 0);
+    chart.update('none');
+}
+
+// Update Rates Display
+function updateRatesDisplay() {
+    const container = document.getElementById('rates-content');
+    const rates = state.data.rates.filter(r => r.currency_pair === state.currentSymbol);
+    
+    // Find best rates
+    const buyRates = rates.map(r => parseFloat(r.buy_rate));
+    const sellRates = rates.map(r => parseFloat(r.sell_rate));
+    const bestBuy = Math.min(...buyRates);
+    const bestSell = Math.max(...sellRates);
+    
+    let html = '';
+    
+    rates.forEach(rate => {
+        const isBestBuy = parseFloat(rate.buy_rate) === bestBuy;
+        const isBestSell = parseFloat(rate.sell_rate) === bestSell;
+        
+        html += `
+            <div class="rate-card">
+                <div class="rate-card-header">
+                    <span style="color: ${CONFIG.CHART_COLORS.blue}; font-weight: bold;">
+                        ${rate.bank}
+                    </span>
+                    ${isBestBuy || isBestSell ? `<span class="best-badge">best</span>` : ''}
+                </div>
+                <div class="rate-values">
+                    <div class="rate-item buy">
+                        <div class="rate-label">buy</div>
+                        <div class="rate-value">₺${parseFloat(rate.buy_rate).toFixed(4)}</div>
+                    </div>
+                    <div class="rate-item sell">
+                        <div class="rate-label">sell</div>
+                        <div class="rate-value">₺${parseFloat(rate.sell_rate).toFixed(4)}</div>
+                    </div>
+                </div>
+                <div style="margin-top: 10px; padding-top: 10px; border-top: 1px solid #1a1e2e;">
+                    <div style="display: flex; justify-content: space-between; font-size: 11px;">
+                        <span style="color: ${CONFIG.CHART_COLORS.gray};">spread</span>
+                        <span style="color: white;">₺${(rate.spread || 0).toFixed(4)}</span>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; font-size: 11px; margin-top: 4px;">
+                        <span style="color: ${CONFIG.CHART_COLORS.gray};">Spread %</span>
+                        <span style="color: white;">${(rate.spread_percentage || 0).toFixed(2)}%</span>
+                    </div>
+                </div>
+            </div>
+        `;
+    });
+    
+    container.innerHTML = html;
+}
+
+// Technical Indicators Calculations
+function calculateSMA(data, period) {
+    const sma = [];
+    for (let i = 0; i < data.length; i++) {
+        if (i < period - 1) {
+            sma.push(null);
+        } else {
+            const sum = data.slice(i - period + 1, i + 1).reduce((a, b) => a + b, 0);
+            sma.push(sum / period);
+        }
+    }
+    return sma;
+}
+
+function calculateEMA(data, period) {
+    const ema = [];
+    const multiplier = 2 / (period + 1);
+    
+    // Start with SMA
+    const sma = data.slice(0, period).reduce((a, b) => a + b, 0) / period;
+    ema.push(sma);
+    
+    // Calculate EMA
+    for (let i = period; i < data.length; i++) {
+        const currentEMA = (data[i] * multiplier) + (ema[ema.length - 1] * (1 - multiplier));
+        ema.push(currentEMA);
+    }
+    
+    // Pad beginning with nulls
+    return Array(period - 1).fill(null).concat(ema);
+}
+
+// UI Event Handlers
+function selectTimeframe(timeframe) {
+    state.currentTimeframe = timeframe;
+    
+    // Update UI
+    document.querySelectorAll('.timeframe-btn').forEach(btn => {
+        btn.classList.remove('active');
+    });
+    event.target.classList.add('active');
+    
+    // Reload data
+    loadOHLCData();
+}
+
+function setChartType(type) {
+    state.currentChartType = type;
+    
+    // Update UI
+    document.querySelectorAll('.chart-type-btn').forEach(btn => {
+        btn.classList.remove('active');
+    });
+    event.target.classList.add('active');
+    
+    // Update chart
+    updateMainChart();
+}
+
+function toggleIndicator(indicator) {
+    state.indicators[indicator] = !state.indicators[indicator];
+    
+    // Update UI
+    if (state.indicators[indicator]) {
+        event.target.classList.add('active');
+    } else {
+        event.target.classList.remove('active');
+    }
+    
+    // Update chart
+    if (indicator === 'volume') {
+        if (state.indicators.volume) {
+            updateVolumeChart();
+        } else {
+            document.getElementById('volume-chart').style.display = 'none';
+        }
+    } else {
+        updateMainChart();
+    }
+}
+
+function filterByBank() {
+    state.currentBank = document.getElementById('bank-filter').value;
+    loadInitialData();
+}
+
+function toggleAutoRefresh() {
+    state.autoRefresh = !state.autoRefresh;
+    document.getElementById('auto-refresh-status').textContent = 
+        state.autoRefresh ? 'ON' : 'OFF';
+    
+    if (state.autoRefresh) {
+        startAutoRefresh();
+    } else {
+        stopAutoRefresh();
+    }
+}
+
+// Auto Refresh
+let refreshInterval;
+
+function startAutoRefresh() {
+    if (refreshInterval) clearInterval(refreshInterval);
+    
+    refreshInterval = setInterval(() => {
+        if (state.autoRefresh) {
+            loadCurrentRates();
+        }
+    }, CONFIG.UPDATE_INTERVAL);
+}
+
+function stopAutoRefresh() {
+    if (refreshInterval) {
+        clearInterval(refreshInterval);
+    }
+}
+
+// Utility Functions
+function showLoading(show) {
+    document.getElementById('chart-loading').style.display = 
+        show ? 'flex' : 'none';
+}
+
+function updateDataPoints() {
+    document.getElementById('data-points').textContent = 
+        state.data.ohlc.length;
+}
+
+function updateCurrentPrice(price) {
+    const priceElement = document.getElementById('current-price');
+    const changeElement = document.getElementById('price-change');
+    
+    const currentPrice = parseFloat(priceElement.textContent);
+    const newPrice = parseFloat(price);
+    const change = newPrice - currentPrice;
+    const changePercent = (change / currentPrice * 100).toFixed(2);
+    
+    priceElement.textContent = newPrice.toFixed(4);
+    
+    if (change > 0) {
+        changeElement.className = 'price-change positive';
+        changeElement.textContent = `+${change.toFixed(2)} (+${changePercent}%)`;
+    } else {
+        changeElement.className = 'price-change negative';
+        changeElement.textContent = `${change.toFixed(2)} (${changePercent}%)`;
+    }
+}
+
+// Cleanup on page unload
+window.addEventListener('beforeunload', () => {
+    if (state.websocket) {
+        state.websocket.close();
+    }
+    stopAutoRefresh();
+});
+</script>
+{% endblock %}

@@ -1,0 +1,492 @@
+{% extends "web_ui/base.html" %}
+{% load static %}
+
+{% block title %}camera grid - unibos{% endblock %}
+
+{% block header_title %}unibos{% endblock %}
+{% block module_name %}cctv - camera grid view{% endblock %}
+
+{% block extra_css %}
+<style>
+    .grid-container {
+        padding: 10px;
+        background: #0a0a0a;
+        min-height: calc(100vh - 120px);
+    }
+    
+    .grid-controls {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 15px;
+        padding: 10px;
+        background: #1a1a1a;
+        border: 1px solid #333;
+        border-radius: 8px;
+    }
+    
+    .layout-selector {
+        display: flex;
+        gap: 10px;
+        align-items: center;
+    }
+    
+    .layout-btn {
+        padding: 8px 15px;
+        background: #222;
+        border: 1px solid #444;
+        color: #888;
+        border-radius: 4px;
+        cursor: pointer;
+        transition: all 0.2s ease;
+    }
+    
+    .layout-btn.active {
+        background: #ff8c00;
+        color: #000;
+        border-color: #ff8c00;
+    }
+    
+    .layout-btn:hover:not(.active) {
+        border-color: #ff8c00;
+        color: #ff8c00;
+    }
+    
+    .camera-grid-view {
+        display: grid;
+        gap: 2px;
+        background: #000;
+        border: 2px solid #333;
+        border-radius: 8px;
+        overflow: hidden;
+        aspect-ratio: 16/9;
+        max-height: calc(100vh - 200px);
+    }
+    
+    .grid-1x1 { grid-template-columns: 1fr; grid-template-rows: 1fr; }
+    .grid-2x2 { grid-template-columns: repeat(2, 1fr); grid-template-rows: repeat(2, 1fr); }
+    .grid-2x3 { grid-template-columns: repeat(3, 1fr); grid-template-rows: repeat(2, 1fr); }
+    .grid-3x2 { grid-template-columns: repeat(2, 1fr); grid-template-rows: repeat(3, 1fr); }
+    .grid-3x3 { grid-template-columns: repeat(3, 1fr); grid-template-rows: repeat(3, 1fr); }
+    .grid-4x4 { grid-template-columns: repeat(4, 1fr); grid-template-rows: repeat(4, 1fr); }
+    .grid-4x5 { grid-template-columns: repeat(5, 1fr); grid-template-rows: repeat(4, 1fr); }
+    .grid-5x4 { grid-template-columns: repeat(4, 1fr); grid-template-rows: repeat(5, 1fr); }
+    .grid-5x5 { grid-template-columns: repeat(5, 1fr); grid-template-rows: repeat(5, 1fr); }
+    .grid-6x6 { grid-template-columns: repeat(6, 1fr); grid-template-rows: repeat(6, 1fr); }
+    .grid-8x4 { grid-template-columns: repeat(4, 1fr); grid-template-rows: repeat(8, 1fr); }
+    
+    .camera-cell {
+        position: relative;
+        background: #1a1a1a;
+        overflow: hidden;
+        cursor: pointer;
+        transition: all 0.2s ease;
+    }
+    
+    .camera-cell:hover .camera-controls {
+        opacity: 1;
+    }
+    
+    .camera-stream {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        background: #000;
+    }
+    
+    .camera-overlay-info {
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        background: linear-gradient(to bottom, rgba(0,0,0,0.8), transparent);
+        color: #fff;
+        padding: 10px;
+        font-size: 0.9em;
+    }
+    
+    .camera-label {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+    
+    .camera-name-label {
+        font-weight: bold;
+        color: #ff8c00;
+    }
+    
+    .camera-status-indicator {
+        display: inline-block;
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        margin-left: 10px;
+    }
+    
+    .status-indicator-online {
+        background: #00ff00;
+        animation: pulse-green 2s infinite;
+    }
+    
+    .status-indicator-recording {
+        background: #ff0000;
+        animation: pulse-red 1.5s infinite;
+    }
+    
+    .status-indicator-offline {
+        background: #666;
+    }
+    
+    @keyframes pulse-green {
+        0%, 100% { box-shadow: 0 0 0 0 rgba(0, 255, 0, 0.7); }
+        50% { box-shadow: 0 0 0 5px rgba(0, 255, 0, 0); }
+    }
+    
+    @keyframes pulse-red {
+        0%, 100% { box-shadow: 0 0 0 0 rgba(255, 0, 0, 0.7); }
+        50% { box-shadow: 0 0 0 5px rgba(255, 0, 0, 0); }
+    }
+    
+    .camera-controls {
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        background: linear-gradient(to top, rgba(0,0,0,0.9), transparent);
+        padding: 10px;
+        opacity: 0;
+        transition: opacity 0.3s ease;
+        display: flex;
+        justify-content: center;
+        gap: 10px;
+    }
+    
+    .control-btn {
+        padding: 5px 10px;
+        background: rgba(255, 140, 0, 0.2);
+        border: 1px solid #ff8c00;
+        color: #ff8c00;
+        border-radius: 4px;
+        cursor: pointer;
+        font-size: 0.8em;
+        transition: all 0.2s ease;
+    }
+    
+    .control-btn:hover {
+        background: #ff8c00;
+        color: #000;
+    }
+    
+    .no-signal {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 100%;
+        height: 100%;
+        background: #0a0a0a;
+        color: #666;
+        font-size: 1.2em;
+        text-transform: lowercase;
+    }
+    
+    /* Removed fullscreen button styles - now handled by centralized header */
+    
+    .group-selector {
+        background: #222;
+        border: 1px solid #444;
+        color: #ff8c00;
+        padding: 8px;
+        border-radius: 4px;
+        cursor: pointer;
+    }
+    
+    .group-selector option {
+        background: #222;
+        color: #ff8c00;
+    }
+    
+    .ptz-controls {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        display: none;
+        background: rgba(0, 0, 0, 0.8);
+        border: 1px solid #ff8c00;
+        border-radius: 8px;
+        padding: 10px;
+    }
+    
+    .camera-cell.ptz-active .ptz-controls {
+        display: block;
+    }
+    
+    .ptz-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 40px);
+        grid-template-rows: repeat(3, 40px);
+        gap: 5px;
+    }
+    
+    .ptz-btn {
+        background: rgba(255, 140, 0, 0.2);
+        border: 1px solid #ff8c00;
+        color: #ff8c00;
+        border-radius: 4px;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        font-size: 1.2em;
+    }
+    
+    .ptz-btn:hover {
+        background: #ff8c00;
+        color: #000;
+    }
+    
+    .ptz-btn:nth-child(2) { grid-column: 2; } /* Up */
+    .ptz-btn:nth-child(4) { grid-column: 1; grid-row: 2; } /* Left */
+    .ptz-btn:nth-child(5) { grid-column: 2; grid-row: 2; } /* Center/Home */
+    .ptz-btn:nth-child(6) { grid-column: 3; grid-row: 2; } /* Right */
+    .ptz-btn:nth-child(8) { grid-column: 2; grid-row: 3; } /* Down */
+    
+    .auto-cycle-indicator {
+        display: inline-block;
+        padding: 4px 8px;
+        background: rgba(0, 255, 0, 0.2);
+        border: 1px solid #00ff00;
+        color: #00ff00;
+        border-radius: 4px;
+        font-size: 0.8em;
+        margin-left: 10px;
+        animation: blink 2s infinite;
+    }
+    
+    @keyframes blink {
+        0%, 100% { opacity: 1; }
+        50% { opacity: 0.5; }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="grid-container">
+    <!-- Grid Controls -->
+    <div class="grid-controls">
+        <div class="layout-selector">
+            <span style="color: #888;">cameras:</span>
+            <button class="layout-btn {% if layout == '1x1' %}active{% endif %}" onclick="changeLayout('1x1')">1</button>
+            <button class="layout-btn {% if layout == '2x2' %}active{% endif %}" onclick="changeLayout('2x2')">4</button>
+            <button class="layout-btn {% if layout == '2x3' %}active{% endif %}" onclick="changeLayout('2x3')">6</button>
+            <button class="layout-btn {% if layout == '3x3' %}active{% endif %}" onclick="changeLayout('3x3')">9</button>
+            <button class="layout-btn {% if layout == '4x4' %}active{% endif %}" onclick="changeLayout('4x4')">16</button>
+            <button class="layout-btn {% if layout == '4x5' %}active{% endif %}" onclick="changeLayout('4x5')">20</button>
+            <button class="layout-btn {% if layout == '5x5' %}active{% endif %}" onclick="changeLayout('5x5')">25</button>
+            <button class="layout-btn {% if layout == '8x4' %}active{% endif %}" onclick="changeLayout('8x4')">32</button>
+        </div>
+        
+        <div style="display: flex; gap: 15px; align-items: center;">
+            {% if camera_groups %}
+            <select class="group-selector" onchange="changeGroup(this.value)">
+                <option value="">all cameras</option>
+                {% for group in camera_groups %}
+                <option value="{{ group.id }}" {% if selected_group == group.id|stringformat:"s" %}selected{% endif %}>
+                    {{ group.name }}
+                </option>
+                {% endfor %}
+            </select>
+            {% endif %}
+            
+            <button class="layout-btn" onclick="toggleAutoCycle()">
+                <span id="auto-cycle-status">▶ auto cycle</span>
+            </button>
+            
+            <a href="{% url 'cctv:dashboard' %}" class="layout-btn">← back</a>
+        </div>
+    </div>
+    
+    <!-- Camera Grid -->
+    <div class="camera-grid-view grid-{{ layout }}">
+        {% for camera in cameras %}
+        <div class="camera-cell" data-camera-id="{{ camera.id }}">
+            <img class="camera-stream" 
+                 src="{% url 'cctv:stream_proxy' camera.id %}"
+                 alt="{{ camera.name }}"
+                 onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+            <div class="no-signal" style="display: none;">
+                <span>📹 {{ camera.name }} - no signal</span>
+            </div>
+            
+            <div class="camera-overlay-info">
+                <div class="camera-label">
+                    <span class="camera-name-label">{{ camera.name }}</span>
+                    <span class="camera-status-indicator status-indicator-{{ camera.status }}"></span>
+                </div>
+                <div style="font-size: 0.8em; color: #888; margin-top: 2px;">
+                    {{ camera.location }}
+                </div>
+            </div>
+            
+            <div class="camera-controls">
+                <button class="control-btn" onclick="viewCamera('{{ camera.id }}')">👁 view</button>
+                {% if camera.has_ptz %}
+                <button class="control-btn" onclick="togglePTZ('{{ camera.id }}')">🎮 ptz</button>
+                {% endif %}
+                <button class="control-btn" onclick="takeSnapshot('{{ camera.id }}')">📸 snapshot</button>
+                {% if camera.status == 'online' %}
+                <button class="control-btn" onclick="startRecording('{{ camera.id }}')">⬤ record</button>
+                {% elif camera.status == 'recording' %}
+                <button class="control-btn" onclick="stopRecording('{{ camera.id }}')">◼ stop</button>
+                {% endif %}
+            </div>
+            
+            {% if camera.has_ptz %}
+            <div class="ptz-controls" id="ptz-{{ camera.id }}">
+                <div class="ptz-grid">
+                    <div></div>
+                    <button class="ptz-btn" onclick="ptzControl('{{ camera.id }}', 'up')">↑</button>
+                    <div></div>
+                    <button class="ptz-btn" onclick="ptzControl('{{ camera.id }}', 'left')">←</button>
+                    <button class="ptz-btn" onclick="ptzControl('{{ camera.id }}', 'home')">⌂</button>
+                    <button class="ptz-btn" onclick="ptzControl('{{ camera.id }}', 'right')">→</button>
+                    <div></div>
+                    <button class="ptz-btn" onclick="ptzControl('{{ camera.id }}', 'down')">↓</button>
+                    <div></div>
+                </div>
+                <div style="display: flex; gap: 5px; margin-top: 10px;">
+                    <button class="control-btn" onclick="ptzControl('{{ camera.id }}', 'zoom_in')">🔍+</button>
+                    <button class="control-btn" onclick="ptzControl('{{ camera.id }}', 'zoom_out')">🔍-</button>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+        {% endfor %}
+        
+        {% if not cameras %}
+        <div class="no-signal">
+            <span>no cameras available</span>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<script>
+let autoCycleInterval = null;
+let currentCameraIndex = 0;
+
+function changeLayout(layout) {
+    const params = new URLSearchParams(window.location.search);
+    params.set('layout', layout);
+    window.location.search = params.toString();
+}
+
+function changeGroup(groupId) {
+    const params = new URLSearchParams(window.location.search);
+    if (groupId) {
+        params.set('group', groupId);
+    } else {
+        params.delete('group');
+    }
+    window.location.search = params.toString();
+}
+
+function viewCamera(cameraId) {
+    window.location.href = `/cctv/camera/${cameraId}/`;
+}
+
+function togglePTZ(cameraId) {
+    const cell = document.querySelector(`[data-camera-id="${cameraId}"]`);
+    cell.classList.toggle('ptz-active');
+}
+
+function ptzControl(cameraId, command) {
+    fetch(`/cctv/api/ptz/${cameraId}/?command=${command}`)
+        .then(response => response.json())
+        .then(data => {
+            console.log('PTZ command sent:', data);
+        });
+}
+
+function takeSnapshot(cameraId) {
+    window.open(`/cctv/snapshot/${cameraId}/`, '_blank');
+}
+
+function startRecording(cameraId) {
+    fetch(`/cctv/record/start/${cameraId}/`, {
+        method: 'POST',
+        headers: {
+            'X-CSRFToken': '{{ csrf_token }}',
+            'Content-Type': 'application/json'
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            location.reload();
+        }
+    });
+}
+
+function stopRecording(cameraId) {
+    fetch(`/cctv/record/stop/${cameraId}/`, {
+        method: 'POST',
+        headers: {
+            'X-CSRFToken': '{{ csrf_token }}',
+            'Content-Type': 'application/json'
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            location.reload();
+        }
+    });
+}
+
+// Fullscreen function removed - now handled by centralized header
+
+function toggleAutoCycle() {
+    const statusElement = document.getElementById('auto-cycle-status');
+    
+    if (autoCycleInterval) {
+        clearInterval(autoCycleInterval);
+        autoCycleInterval = null;
+        statusElement.textContent = '▶ auto cycle';
+        statusElement.parentElement.classList.remove('active');
+    } else {
+        statusElement.textContent = '◼ stop cycle';
+        statusElement.parentElement.classList.add('active');
+        
+        const cells = document.querySelectorAll('.camera-cell');
+        if (cells.length > 1) {
+            autoCycleInterval = setInterval(() => {
+                // Hide all cells
+                cells.forEach(cell => cell.style.display = 'none');
+                
+                // Show next camera
+                currentCameraIndex = (currentCameraIndex + 1) % cells.length;
+                cells[currentCameraIndex].style.display = 'block';
+                cells[currentCameraIndex].style.gridColumn = '1 / -1';
+                cells[currentCameraIndex].style.gridRow = '1 / -1';
+            }, 10000); // Cycle every 10 seconds
+        }
+    }
+}
+
+// Auto-refresh streams every 60 seconds
+setInterval(() => {
+    document.querySelectorAll('.camera-stream').forEach(img => {
+        const src = img.src;
+        img.src = '';
+        img.src = src;
+    });
+}, 60000);
+
+// Keyboard shortcuts for camera-specific functions
+document.addEventListener('keydown', (e) => {
+    // Camera-specific keyboard shortcuts can be added here
+    // Fullscreen is now handled by the base template
+});
+</script>
+
+{% endblock %}

@@ -1,0 +1,253 @@
+{% extends 'web_ui/base.html' %}
+
+{% block title %}Receipt Processing Hub{% endblock %}
+
+{% block header_title %}unibos{% endblock %}
+{% block module_name %}documents{% endblock %}
+
+{% block content %}
+<style>
+    .receipt-container {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 20px;
+        font-family: monospace;
+    }
+    
+    .status-card {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 20px;
+        border-radius: 10px;
+        margin-bottom: 20px;
+    }
+    
+    .ollama-status {
+        display: inline-block;
+        padding: 5px 10px;
+        border-radius: 5px;
+        background: rgba(255,255,255,0.2);
+    }
+    
+    .processing-area {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 20px;
+        margin-top: 20px;
+    }
+    
+    .input-section, .output-section {
+        background: white;
+        border: 2px solid #e2e8f0;
+        border-radius: 10px;
+        padding: 20px;
+    }
+    
+    .section-title {
+        font-size: 18px;
+        font-weight: bold;
+        margin-bottom: 15px;
+        color: #2d3748;
+    }
+    
+    textarea {
+        width: 100%;
+        min-height: 300px;
+        padding: 10px;
+        border: 1px solid #cbd5e0;
+        border-radius: 5px;
+        font-family: monospace;
+        font-size: 14px;
+    }
+    
+    .process-btn {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        border: none;
+        padding: 12px 30px;
+        border-radius: 5px;
+        font-size: 16px;
+        cursor: pointer;
+        margin-top: 10px;
+        width: 100%;
+    }
+    
+    .process-btn:hover {
+        opacity: 0.9;
+    }
+    
+    .process-btn:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+    }
+    
+    .result-box {
+        background: #f7fafc;
+        border: 1px solid #e2e8f0;
+        border-radius: 5px;
+        padding: 15px;
+        min-height: 300px;
+        white-space: pre-wrap;
+        font-family: monospace;
+        font-size: 14px;
+    }
+    
+    .loading {
+        text-align: center;
+        padding: 50px;
+        color: #718096;
+    }
+    
+    .model-selector {
+        margin: 10px 0;
+    }
+    
+    select {
+        padding: 8px;
+        border: 1px solid #cbd5e0;
+        border-radius: 5px;
+        width: 100%;
+    }
+</style>
+
+<div class="receipt-container">
+    <div class="status-card">
+        <h1>🧾 Receipt Processing Hub with AI</h1>
+        <p>Process receipts using local Ollama models</p>
+        
+        <div style="margin-top: 15px;">
+            <strong>Ollama Status:</strong>
+            {% if ollama_status.running %}
+                <span class="ollama-status" style="background: #48bb78;">
+                    ✅ Running
+                </span>
+                <br>
+                <small>Available models: {{ ollama_status.models|join:", " }}</small>
+            {% else %}
+                <span class="ollama-status" style="background: #f56565;">
+                    ❌ Not Running
+                </span>
+                <br>
+                <small>Start Ollama: ollama serve</small>
+            {% endif %}
+        </div>
+    </div>
+    
+    <div class="processing-area">
+        <div class="input-section">
+            <div class="section-title">📝 Input Receipt Text</div>
+            
+            <textarea id="receipt-text" placeholder="Paste receipt OCR text here...">MIGROS
+BODRUM TURGUTREIS
+VERGİ NO: 123456789
+TARİH: 30-05-2025
+SAAT: 14:35
+
+DOMATES KG      2.5  x  12.99  =  32.48
+SALATALIK       1    x   8.99  =   8.99
+BEYAZ PEYNİR    1    x  45.90  =  45.90
+EKMEK           2    x   5.00  =  10.00
+
+ARA TOPLAM                        97.37
+KDV %8                            7.79
+TOPLAM                          105.16
+
+KREDİ KARTI ****1234
+ONAY KODU: 123456</textarea>
+            
+            {% if ollama_status.models %}
+            <div class="model-selector">
+                <label>Select Model:</label>
+                <select id="model-select">
+                    {% for model in ollama_status.models %}
+                    <option value="{{ model }}">{{ model }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            {% endif %}
+            
+            <button class="process-btn" onclick="processReceipt()" {% if not ollama_status.running %}disabled{% endif %}>
+                🤖 Process with AI
+            </button>
+        </div>
+        
+        <div class="output-section">
+            <div class="section-title">📊 Extracted Data</div>
+            <div id="result-box" class="result-box">
+                Results will appear here...
+            </div>
+        </div>
+    </div>
+    
+    <div style="margin-top: 30px; padding: 20px; background: #f7fafc; border-radius: 10px;">
+        <h3>📌 Quick Guide</h3>
+        <ol>
+            <li>Paste receipt text in the left box</li>
+            <li>Select an Ollama model (Gemma3 or Llama2)</li>
+            <li>Click "Process with AI"</li>
+            <li>View extracted structured data on the right</li>
+        </ol>
+        
+        <h3 style="margin-top: 20px;">🎯 Extracted Fields</h3>
+        <ul>
+            <li>Store name and details</li>
+            <li>Transaction date and time</li>
+            <li>Product list with prices</li>
+            <li>Total amount and tax</li>
+            <li>Payment method</li>
+        </ul>
+    </div>
+</div>
+
+<script>
+function processReceipt() {
+    const text = document.getElementById('receipt-text').value;
+    const resultBox = document.getElementById('result-box');
+    const modelSelect = document.getElementById('model-select');
+    const model = modelSelect ? modelSelect.value : 'gemma3:latest';
+    
+    if (!text.trim()) {
+        alert('Please enter receipt text');
+        return;
+    }
+    
+    // Show loading
+    resultBox.innerHTML = '<div class="loading">🔄 Processing with ' + model + '...</div>';
+    
+    // Send to backend
+    fetch('/module/documents/process-receipt-ollama/', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': '{{ csrf_token }}'
+        },
+        body: JSON.stringify({
+            text: text,
+            model: model
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            // Try to parse and format JSON
+            try {
+                const jsonMatch = data.result.match(/\{[\s\S]*\}/);
+                if (jsonMatch) {
+                    const parsed = JSON.parse(jsonMatch[0]);
+                    resultBox.innerHTML = '✅ Extracted Data:\n\n' + JSON.stringify(parsed, null, 2);
+                } else {
+                    resultBox.innerHTML = data.result;
+                }
+            } catch (e) {
+                resultBox.innerHTML = data.result;
+            }
+        } else {
+            resultBox.innerHTML = '❌ Error: ' + (data.error || 'Processing failed');
+        }
+    })
+    .catch(error => {
+        resultBox.innerHTML = '❌ Error: ' + error;
+    });
+}
+</script>
+{% endblock %}

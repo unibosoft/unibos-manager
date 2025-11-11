@@ -1,0 +1,145 @@
+{% extends 'administration/base_admin.html' %}
+
+{% block admin_content %}
+<div class="section">
+    <!-- Section Header -->
+    <div class="section-header">
+        <h2>🎮 solitaire players</h2>
+        <div class="section-controls">
+            <a href="{% url 'administration:solitaire_dashboard' %}" class="btn-secondary">back to dashboard</a>
+        </div>
+    </div>
+    
+    <!-- Filters -->
+    <div class="content-box">
+        <form method="get" style="display: flex; gap: 15px; align-items: flex-end;">
+            <div class="form-group" style="flex: 1; margin: 0;">
+                <label class="form-label">search</label>
+                <input type="text" name="search" value="{{ request.GET.search }}" class="form-input" placeholder="ip, username, city...">
+            </div>
+            <div class="form-group" style="margin: 0;">
+                <label class="form-label">status</label>
+                <select name="status" class="form-select">
+                    <option value="">all</option>
+                    <option value="active" {% if request.GET.status == 'active' %}selected{% endif %}>active</option>
+                    <option value="banned" {% if request.GET.status == 'banned' %}selected{% endif %}>banned</option>
+                    <option value="anonymous" {% if request.GET.status == 'anonymous' %}selected{% endif %}>anonymous</option>
+                    <option value="registered" {% if request.GET.status == 'registered' %}selected{% endif %}>registered</option>
+                </select>
+            </div>
+            <button type="submit" class="btn-primary">filter</button>
+            {% if request.GET.search or request.GET.status %}
+            <a href="{% url 'administration:solitaire_players' %}" class="btn-secondary">clear</a>
+            {% endif %}
+        </form>
+    </div>
+    
+    <!-- Statistics -->
+    <div class="stats-grid">
+        <div class="stat-card">
+            <div class="stat-value">{{ total_count }}</div>
+            <div class="stat-label">total players</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-value positive">{{ active_count }}</div>
+            <div class="stat-label">active players</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-value negative">{{ banned_count }}</div>
+            <div class="stat-label">banned players</div>
+        </div>
+    </div>
+</div>
+
+<!-- Players Table -->
+<div class="section">
+    <div class="content-box">
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th>player</th>
+                    <th>ip address</th>
+                    <th>location</th>
+                    <th>first seen</th>
+                    <th>last seen</th>
+                    <th>games</th>
+                    <th>wins</th>
+                    <th>avg score</th>
+                    <th>status</th>
+                    <th>actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for player in players %}
+                <tr>
+                    <td>
+                        {% if player.user %}
+                            <span class="badge badge-user">{{ player.user.username }}</span>
+                        {% else %}
+                            <span class="badge badge-inactive">{{ player.display_name|default:"anonymous" }}</span>
+                        {% endif %}
+                    </td>
+                    <td>{{ player.ip_address }}</td>
+                    <td>
+                        {% if player.city or player.country %}
+                            {{ player.city }}{% if player.city and player.country %}, {% endif %}{{ player.country }}
+                        {% else %}
+                            -
+                        {% endif %}
+                    </td>
+                    <td>{{ player.first_seen|date:"Y-m-d" }}</td>
+                    <td>{{ player.last_seen|timesince }} ago</td>
+                    <td>{{ player.games_count|default:0 }}</td>
+                    <td>
+                        {% if player.wins_count %}
+                            <span class="badge badge-approved">{{ player.wins_count }}</span>
+                        {% else %}
+                            0
+                        {% endif %}
+                    </td>
+                    <td>{{ player.avg_score|floatformat:0|default:"-" }}</td>
+                    <td>
+                        {% if player.is_banned %}
+                            <span class="badge badge-rejected">banned</span>
+                        {% elif player.is_active %}
+                            <span class="badge badge-active">active</span>
+                        {% else %}
+                            <span class="badge badge-inactive">inactive</span>
+                        {% endif %}
+                    </td>
+                    <td class="actions">
+                        <a href="#" class="action-link">view</a>
+                        {% if not player.is_banned %}
+                            <a href="#" class="action-link" onclick="return confirm('ban this player?')">ban</a>
+                        {% else %}
+                            <a href="#" class="action-link">unban</a>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="10" class="text-center text-muted">no players found</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        
+        <!-- Pagination -->
+        {% if players.has_other_pages %}
+        <div style="margin-top: 20px; text-align: center;">
+            {% if players.has_previous %}
+                <a href="?page={{ players.previous_page_number }}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}{% if request.GET.status %}&status={{ request.GET.status }}{% endif %}" class="btn-secondary">previous</a>
+            {% endif %}
+            
+            <span style="margin: 0 15px; color: var(--gray);">
+                page {{ players.number }} of {{ players.paginator.num_pages }}
+            </span>
+            
+            {% if players.has_next %}
+                <a href="?page={{ players.next_page_number }}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}{% if request.GET.status %}&status={{ request.GET.status }}{% endif %}" class="btn-secondary">next</a>
+            {% endif %}
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

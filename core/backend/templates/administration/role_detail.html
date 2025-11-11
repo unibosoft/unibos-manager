@@ -1,0 +1,56 @@
+{% extends "administration/base_admin.html" %}
+
+{% block title %}{{ role.name }} - role details{% endblock %}
+
+{% block admin_content %}
+<div class="module-container">
+    <div class="module-header">
+        <h1>role: {{ role.name|lower }}</h1>
+        <p>manage role permissions and assignments</p>
+    </div>
+
+    <!-- Admin Navigation -->
+    <div class="admin-nav">
+        <a href="{% url 'administration:dashboard' %}" class="admin-nav-item">
+            <span class="nav-icon">📊</span>
+            <span>dashboard</span>
+        </a>
+        <a href="{% url 'administration:users' %}" class="admin-nav-item">
+            <span class="nav-icon">👥</span>
+            <span>users</span>
+        </a>
+        <a href="{% url 'administration:roles' %}" class="admin-nav-item active">
+            <span class="nav-icon">🔐</span>
+            <span>roles & permissions</span>
+        </a>
+    </div>
+
+    <!-- Role Details -->
+    <div class="content-box">
+        <div class="section">
+            <h2>role information</h2>
+            <div class="form-group">
+                <label>name:</label>
+                <span>{{ role.name }}</span>
+            </div>
+            <div class="form-group">
+                <label>code:</label>
+                <span>{{ role.code }}</span>
+            </div>
+            <div class="form-group">
+                <label>priority:</label>
+                <span>{{ role.priority }}</span>
+            </div>
+            <div class="form-group">
+                <label>system role:</label>
+                <span>{% if role.is_system %}yes{% else %}no{% endif %}</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Back Button -->
+    <div class="content-box">
+        <a href="{% url 'administration:roles' %}" class="btn btn-secondary">← back to roles</a>
+    </div>
+</div>
+{% endblock %}

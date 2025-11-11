@@ -1,0 +1,77 @@
+# OCR and Document Processing Requirements
+# Open-source libraries for OCR functionality
+
+# Core OCR library - Tesseract Python wrapper
+pytesseract==0.3.10
+
+# Image processing libraries
+Pillow==10.2.0
+opencv-python==4.9.0.80
+numpy==1.26.3
+
+# PDF processing
+PyPDF2==3.0.1
+pdf2image==1.17.0
+pypdfium2==4.30.0
+
+# Text processing and extraction
+python-dateutil==2.8.2
+
+# Advanced OCR with machine learning (all open-source)
+# PaddleOCR for multilingual OCR support (80+ languages)
+paddleocr==3.3.1
+paddlepaddle==2.6.2  # ARM64 compatible - 3.x has segfault issues on ARM64
+
+# PyTorch for transformer-based OCR models
+torch==2.9.0
+torchvision==0.21.0
+
+# Transformer models for OCR (TrOCR, Donut, LayoutLMv3)
+transformers==4.57.1
+sentencepiece==0.2.0
+protobuf==5.29.3
+
+# Additional OCR engines
+easyocr==1.7.2
+surya-ocr==0.9.0
+python-doctr[torch]==0.9.0
+
+# ============================================================================
+# PRODUCTION-SPECIFIC NOTES
+# ============================================================================
+#
+# ARM64 Architecture Compatibility:
+# ----------------------------------
+# On ARM64 servers (e.g., AWS Graviton, Oracle Cloud ARM):
+# - PaddlePaddle 2.6.2 is stable and tested
+# - PaddlePaddle 3.x causes segmentation faults on ARM64
+# - Do NOT upgrade paddlepaddle beyond 2.6.2 on ARM64
+#
+# System Dependencies Required:
+# -----------------------------
+# Ubuntu/Debian:
+#   sudo apt-get update
+#   sudo apt-get install -y tesseract-ocr tesseract-ocr-tur tesseract-ocr-eng
+#   sudo apt-get install -y poppler-utils
+#   sudo apt-get install -y libgl1 libglib2.0-0  # For headless OpenCV
+#
+# macOS:
+#   brew install tesseract tesseract-lang poppler
+#
+# Windows:
+#   - Tesseract: https://github.com/UB-Mannheim/tesseract/wiki
+#   - Poppler: http://blog.alivate.com.au/poppler-windows/
+#
+# Memory Requirements:
+# --------------------
+# - Minimum: 4GB RAM
+# - Recommended: 8GB+ RAM for large document processing
+# - PaddleOCR + PyTorch models can use 2-3GB during inference
+#
+# Installation Notes:
+# -------------------
+# 1. Install system dependencies first (tesseract, poppler, libgl1)
+# 2. Create virtual environment: python3 -m venv venv
+# 3. Upgrade pip: ./venv/bin/pip install --upgrade pip
+# 4. Install requirements: ./venv/bin/pip install -r requirements_ocr.txt
+# 5. Test imports: python -c "import paddleocr; import transformers; print('OK')"

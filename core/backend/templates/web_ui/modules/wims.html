@@ -1,0 +1,477 @@
+{% extends "web_ui/base.html" %}
+
+{% block title %}wims - where is my stuff{% endblock %}
+
+{% block header_title %}unibos{% endblock %}
+{% block module_name %}wims - inventory management{% endblock %}
+
+{% block content %}
+<div class="module-container">
+    <div class="module-header">
+        <h1>📦 wims - where is my stuff</h1>
+        <p>envanter ve stok yönetim sistemi</p>
+    </div>
+
+    {% if user.is_authenticated %}
+    <!-- Overview Section -->
+    <div class="section">
+        <h2>inventory overview</h2>
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-label">warehouses</div>
+                <div class="stat-value">{{ warehouses.count|default:"0" }}</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">total items</div>
+                <div class="stat-value">{{ total_items|default:"0" }}</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">total stock</div>
+                <div class="stat-value">{{ total_stock_value|floatformat:0|default:"0" }}</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">low stock alerts</div>
+                <div class="stat-value {% if low_stock_items > 0 %}negative{% endif %}">
+                    {{ low_stock_items|default:"0" }}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Alerts Section -->
+    {% if expiring_items > 0 or low_stock_items > 0 %}
+    <div class="section alert">
+        <h2>⚠️ alerts</h2>
+        {% if expiring_items > 0 %}
+        <div class="alert-item">
+            <span class="alert-icon">⏰</span>
+            <span>{{ expiring_items }} item{{ expiring_items|pluralize }} expiring soon</span>
+            <button class="btn btn-sm" onclick="viewExpiringItems()">view</button>
+        </div>
+        {% endif %}
+        {% if low_stock_items > 0 %}
+        <div class="alert-item">
+            <span class="alert-icon">📉</span>
+            <span>{{ low_stock_items }} item{{ low_stock_items|pluralize }} below reorder point</span>
+            <button class="btn btn-sm" onclick="viewLowStock()">view</button>
+        </div>
+        {% endif %}
+    </div>
+    {% endif %}
+
+    <!-- Quick Actions -->
+    <div class="section">
+        <h2>quick actions</h2>
+        <div class="button-group">
+            <button class="btn btn-primary" onclick="addReceipt()">+ receive stock</button>
+            <button class="btn btn-secondary" onclick="issueStock()">- issue stock</button>
+            <button class="btn btn-secondary" onclick="transferStock()">↔ transfer</button>
+            <button class="btn btn-secondary" onclick="stockCount()">📊 stock count</button>
+            <button class="btn btn-secondary" onclick="addItem()">+ add item</button>
+        </div>
+    </div>
+
+    <!-- Warehouses -->
+    <div class="section">
+        <h2>warehouses</h2>
+        <div class="warehouse-grid">
+            {% for warehouse in warehouses %}
+            <div class="warehouse-card">
+                <div class="warehouse-header">
+                    <span class="warehouse-code">{{ warehouse.code }}</span>
+                    <span class="warehouse-type">{{ warehouse.get_warehouse_type_display|lower }}</span>
+                </div>
+                <div class="warehouse-name">{{ warehouse.name }}</div>
+                <div class="warehouse-location">
+                    {% if warehouse.city %}{{ warehouse.city }}, {% endif %}{{ warehouse.country }}
+                </div>
+                <div class="warehouse-stats">
+                    <span>items: {{ warehouse.stock_items.count }}</span>
+                    <span>value: ₺{{ warehouse.total_value|default:"0"|floatformat:2 }}</span>
+                </div>
+            </div>
+            {% empty %}
+            <div class="empty-state">
+                <p>no warehouses configured</p>
+                <button class="btn btn-sm" onclick="addWarehouse()">+ add warehouse</button>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <!-- Recent Movements -->
+    <div class="section">
+        <h2>recent stock movements</h2>
+        <div class="movement-list">
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>date</th>
+                        <th>type</th>
+                        <th>item</th>
+                        <th>quantity</th>
+                        <th>from</th>
+                        <th>to</th>
+                        <th>reference</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for movement in recent_movements %}
+                    <tr>
+                        <td>{{ movement.movement_date|date:"Y-m-d H:i" }}</td>
+                        <td>
+                            <span class="badge badge-{{ movement.movement_type }}">
+                                {{ movement.get_movement_type_display|lower }}
+                            </span>
+                        </td>
+                        <td>{{ movement.item.name }}</td>
+                        <td class="quantity">{{ movement.quantity|floatformat:2 }}</td>
+                        <td>{{ movement.from_warehouse.code|default:"-" }}</td>
+                        <td>{{ movement.to_warehouse.code|default:"-" }}</td>
+                        <td>{{ movement.reference_number|default:"-" }}</td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="7" class="text-center">no recent movements</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Stock Levels -->
+    <div class="section">
+        <h2>current stock levels</h2>
+        <div class="stock-search">
+            <input type="text" id="stockSearch" placeholder="search items..." onkeyup="searchStock()">
+        </div>
+        <div class="stock-list">
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>code</th>
+                        <th>item</th>
+                        <th>warehouse</th>
+                        <th>available</th>
+                        <th>reserved</th>
+                        <th>total</th>
+                        <th>unit cost</th>
+                        <th>value</th>
+                        <th>status</th>
+                    </tr>
+                </thead>
+                <tbody id="stockTableBody">
+                    <!-- Stock items will be loaded dynamically -->
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    {% else %}
+    <div class="login-prompt">
+        <p>please login to use wims</p>
+        <a href="/login/" class="btn btn-primary">login</a>
+    </div>
+    {% endif %}
+</div>
+
+<style>
+.module-container {
+    padding: 0;
+    max-width: 100%;
+    margin: 0;
+}
+
+.module-header {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    margin-bottom: 30px;
+    padding-bottom: 15px;
+    border-bottom: 2px solid var(--orange);
+}
+
+.module-header h1 {
+    display: block;
+    color: var(--orange);
+    font-size: 24px;
+    font-weight: bold;
+    text-transform: lowercase;
+    margin: 0;
+    margin-bottom: 8px;
+    line-height: 1.2;
+}
+
+.module-header p {
+    display: block;
+    color: var(--gray);
+    font-size: 14px;
+    text-transform: lowercase;
+    margin: 0;
+    line-height: 1.4;
+}
+
+.section {
+    margin-bottom: 30px;
+    background: rgba(20, 20, 20, 0.5);
+    border: 1px solid #333;
+    padding: 15px;
+    border-radius: 4px;
+}
+
+.section h2 {
+    color: #ff8c00;
+    font-size: 18px;
+    margin: 0 0 15px 0;
+    text-transform: lowercase;
+}
+
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 15px;
+}
+
+.stat-card {
+    background: #000;
+    border: 1px solid #333;
+    padding: 15px;
+}
+
+.stat-label {
+    color: #888;
+    font-size: 12px;
+    text-transform: lowercase;
+}
+
+.stat-value {
+    color: #fff;
+    font-size: 24px;
+    font-weight: bold;
+    margin-top: 5px;
+}
+
+.stat-value.negative { color: #f44336; }
+
+.alert {
+    background: rgba(255, 204, 0, 0.1);
+    border-color: #ffcc00;
+}
+
+.alert-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 5px 0;
+}
+
+.alert-icon {
+    font-size: 20px;
+}
+
+.button-group {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.btn {
+    background: transparent;
+    color: #ff8c00;
+    border: 1px solid #ff8c00;
+    padding: 8px 16px;
+    cursor: pointer;
+    text-transform: lowercase;
+    border-radius: 4px;
+    transition: all 0.3s;
+}
+
+.btn:hover {
+    background: #ff8c00;
+    color: #000;
+    transform: translateY(-2px);
+}
+
+.btn-primary {
+    background: #ff8c00;
+    color: #000;
+}
+
+.btn-secondary {
+    background: #000;
+    color: #ff8c00;
+}
+
+.btn-sm {
+    padding: 4px 8px;
+    font-size: 12px;
+}
+
+.warehouse-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 15px;
+}
+
+.warehouse-card {
+    background: #000;
+    border: 1px solid #333;
+    padding: 15px;
+}
+
+.warehouse-header {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 5px;
+}
+
+.warehouse-code {
+    color: #ff8c00;
+    font-weight: bold;
+}
+
+.warehouse-type {
+    color: #888;
+    font-size: 12px;
+}
+
+.warehouse-name {
+    color: #fff;
+    font-size: 16px;
+    margin: 5px 0;
+}
+
+.warehouse-location {
+    color: #666;
+    font-size: 12px;
+}
+
+.warehouse-stats {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 10px;
+    padding-top: 10px;
+    border-top: 1px solid #222;
+    font-size: 12px;
+    color: #888;
+}
+
+.data-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.data-table th {
+    background: rgba(255, 140, 0, 0.1);
+    color: #ff8c00;
+    padding: 8px;
+    text-align: left;
+    border: 1px solid #333;
+    text-transform: lowercase;
+}
+
+.data-table td {
+    padding: 8px;
+    border: 1px solid #333;
+    color: #ccc;
+}
+
+.badge {
+    padding: 2px 8px;
+    border-radius: 3px;
+    font-size: 12px;
+    text-transform: lowercase;
+}
+
+.badge-receipt { background: #0f0; color: #000; }
+.badge-issue { background: #f00; color: #fff; }
+.badge-transfer { background: #00f; color: #fff; }
+.badge-adjustment { background: #ff0; color: #000; }
+.badge-production { background: #0ff; color: #000; }
+.badge-consumption { background: #f0f; color: #fff; }
+
+.stock-search {
+    margin-bottom: 15px;
+}
+
+.stock-search input {
+    width: 100%;
+    padding: 8px;
+    background: #000;
+    border: 1px solid #333;
+    color: #ff8c00;
+}
+
+.empty-state {
+    text-align: center;
+    padding: 20px;
+    color: #666;
+}
+
+.login-prompt {
+    text-align: center;
+    padding: 50px;
+    color: #888;
+}
+
+.text-center {
+    text-align: center;
+}
+</style>
+
+<script>
+function addReceipt() {
+    window.location.href = '/module/wims/receipt/';
+}
+
+function issueStock() {
+    window.location.href = '/module/wims/issue/';
+}
+
+function transferStock() {
+    window.location.href = '/module/wims/transfer/';
+}
+
+function stockCount() {
+    window.location.href = '/module/wims/count/';
+}
+
+function addItem() {
+    window.location.href = '/module/wims/items/add/';
+}
+
+function addWarehouse() {
+    window.location.href = '/module/wims/warehouses/add/';
+}
+
+function viewExpiringItems() {
+    window.location.href = '/module/wims/alerts/expiring/';
+}
+
+function viewLowStock() {
+    window.location.href = '/module/wims/alerts/lowstock/';
+}
+
+function searchStock() {
+    const searchValue = document.getElementById('stockSearch').value.toLowerCase();
+    const rows = document.getElementById('stockTableBody').getElementsByTagName('tr');
+    
+    for (let row of rows) {
+        const text = row.textContent.toLowerCase();
+        if (text.includes(searchValue)) {
+            row.style.display = '';
+        } else {
+            row.style.display = 'none';
+        }
+    }
+}
+
+// Load stock data
+document.addEventListener('DOMContentLoaded', function() {
+    // This would normally fetch from API
+    // For now, using dummy data
+});
+</script>
+
+{% endblock %}

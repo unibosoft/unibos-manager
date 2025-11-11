@@ -1,0 +1,662 @@
+{% extends "administration/base_admin.html" %}
+
+{% block title %}User Management - UNIBOS Administration{% endblock %}
+
+{% block admin_content %}
+<!-- Search and Filter Bar -->
+<div class="section">
+    <div class="content-box">
+        <form method="get" class="filter-form">
+            <div style="display: flex; gap: 10px; align-items: center;">
+                <input type="text" name="search" placeholder="search users..." value="{{ request.GET.search }}" class="form-input" style="flex: 1;">
+
+                <select name="dept" class="form-select">
+                    <option value="">all departments</option>
+                    {% for dept in departments %}
+                    <option value="{{ dept.id }}" {% if request.GET.dept == dept.id|stringformat:"s" %}selected{% endif %}>
+                        {{ dept.name }}
+                    </option>
+                    {% endfor %}
+                </select>
+
+                <select name="role" class="form-select">
+                    <option value="">all roles</option>
+                    {% for role in roles %}
+                    <option value="{{ role.id }}" {% if request.GET.role == role.id|stringformat:"s" %}selected{% endif %}>
+                        {{ role.name }}
+                    </option>
+                    {% endfor %}
+                </select>
+
+                <button type="submit" class="btn-primary">🔍 filter</button>
+                <a href="{% url 'administration:users' %}" class="btn-secondary">clear</a>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- User Statistics -->
+<div class="stats-grid">
+    <div class="stat-card">
+        <div class="stat-value">{{ users.count }}</div>
+        <div class="stat-label">total users</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-value">{{ users|dictsort:"last_login"|slice:":7"|length }}</div>
+        <div class="stat-label">active this week</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-value">{{ users.filter.is_superuser|length|default:0 }}</div>
+        <div class="stat-label">administrators</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-value">{{ users.filter.is_active|length|default:0 }}</div>
+        <div class="stat-label">active users</div>
+    </div>
+</div>
+
+<!-- Users Table -->
+<div class="section">
+    <div class="section-header">
+        <h2>user list</h2>
+        <div class="button-group">
+            <button class="btn-secondary" onclick="exportUsers()">📥 export</button>
+            <button class="btn-secondary" onclick="importUsers()">📤 import</button>
+        </div>
+    </div>
+
+    <div class="content-box">
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th><input type="checkbox" id="selectAll" onclick="toggleAllCheckboxes()"></th>
+                    <th>Username</th>
+                    <th>Full Name</th>
+                    <th>Email</th>
+                    <th>Roles</th>
+                    <th>Departments</th>
+                    <th>Status</th>
+                    <th>Last Login</th>
+                    <th>Last Active</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for user in users %}
+                <tr>
+                    <td>
+                        {% if not user.is_superuser and user != request.user %}
+                        <input type="checkbox" class="user-checkbox" value="{{ user.id }}">
+                        {% endif %}
+                    </td>
+                    <td>
+                        <strong>{{ user.username }}</strong>
+                        {% if user.is_superuser %}
+                        <span class="badge badge-danger">Super Admin</span>
+                        {% endif %}
+                    </td>
+                    <td>{{ user.get_full_name|default:"-" }}</td>
+                    <td>{{ user.email|default:"-" }}</td>
+                    <td>
+                        {% for user_role in user.user_roles.all %}
+                        <span class="badge badge-primary">{{ user_role.role.name }}</span>
+                        {% empty %}
+                        <span class="text-muted">No roles</span>
+                        {% endfor %}
+                    </td>
+                    <td>
+                        {% for dept in user.departments.all %}
+                        <span class="badge badge-info">{{ dept.name }}</span>
+                        {% empty %}
+                        <span class="text-muted">-</span>
+                        {% endfor %}
+                    </td>
+                    <td>
+                        {% if user.is_active %}
+                        <span class="badge badge-success">Active</span>
+                        {% else %}
+                        <span class="badge badge-danger">Inactive</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if user.last_login %}
+                        {{ user.last_login|timesince }} ago
+                        {% else %}
+                        Never
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if user.last_activity %}
+                            {% with time_diff=user.last_activity|timesince %}
+                                {% if "0 minutes" in time_diff or "minute, " in time_diff %}
+                                    <span style="color: #4CAF50; font-weight: bold;">now</span>
+                                {% else %}
+                                    {{ time_diff }} ago
+                                {% endif %}
+                            {% endwith %}
+                        {% else %}
+                        Never
+                        {% endif %}
+                    </td>
+                    <td>
+                        <a href="{% url 'administration:user_detail' user.id %}" class="action-link">View</a>
+                        <a href="{% url 'administration:user_detail' user.id %}" class="action-link">Edit</a>
+                        {% if not user.is_superuser and user != request.user %}
+                        <a href="#" onclick="toggleUserStatus('{{ user.id }}'); return false;" class="action-link">
+                            {% if user.is_active %}Deactivate{% else %}Activate{% endif %}
+                        </a>
+                        <a href="#" onclick="deleteUser('{{ user.id }}', '{{ user.username }}'); return false;" class="action-link delete-link">Delete</a>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="10" class="text-center">No users found</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Quick Actions -->
+<div class="section">
+    <h2>quick actions</h2>
+    <div class="button-group">
+        <button class="btn-secondary" onclick="syncWithLDAP()">🔄 sync with ldap</button>
+        <button class="btn-secondary" onclick="sendBulkEmail()">📧 send bulk email</button>
+        <button class="btn-warning" onclick="bulkDeactivate()">⚠️ bulk deactivate</button>
+        <button class="btn-primary" onclick="bulkActivate()">✅ bulk activate</button>
+        <button class="btn-danger" onclick="bulkDelete()">🗑️ bulk delete</button>
+    </div>
+</div>
+
+<!-- Custom Confirmation Popup -->
+<div id="confirmPopup" class="confirm-popup" style="display: none;">
+    <div class="popup-content">
+        <div class="popup-header">
+            <span class="popup-icon">⚠️</span>
+            <h3 id="popupTitle">confirm action</h3>
+        </div>
+        <div class="popup-body">
+            <p id="popupMessage">are you sure?</p>
+            <div id="popupUserList" class="user-list" style="display: none;">
+                <div class="user-list-header">affected users:</div>
+                <ul id="affectedUsersList"></ul>
+            </div>
+        </div>
+        <div class="popup-footer">
+            <button class="btn-cancel" onclick="closePopup()">cancel</button>
+            <button class="btn-confirm" id="confirmButton">confirm</button>
+        </div>
+    </div>
+</div>
+
+<style>
+.confirm-popup {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.7);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 10000;
+}
+
+.popup-content {
+    background: #1a1a1a;
+    border: 2px solid #ff8c00;
+    border-radius: 8px;
+    padding: 0;
+    width: 450px;
+    max-width: 90%;
+    font-family: 'Courier New', monospace;
+    box-shadow: 0 0 30px rgba(255, 140, 0, 0.4);
+    animation: slideIn 0.3s ease-out;
+}
+
+@keyframes slideIn {
+    from {
+        transform: translateY(-20px);
+        opacity: 0;
+    }
+    to {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}
+
+.popup-header {
+    background: rgba(255, 140, 0, 0.1);
+    padding: 20px;
+    border-bottom: 1px solid rgba(255, 140, 0, 0.3);
+    text-align: center;
+    border-radius: 8px 8px 0 0;
+}
+
+.popup-icon {
+    font-size: 32px;
+    display: block;
+    margin-bottom: 10px;
+    filter: drop-shadow(0 0 10px rgba(255, 140, 0, 0.5));
+}
+
+.popup-header h3 {
+    color: #ff8c00;
+    margin: 0;
+    font-size: 18px;
+    text-transform: lowercase;
+    letter-spacing: 1px;
+}
+
+.popup-body {
+    padding: 25px;
+    text-align: center;
+}
+
+.popup-body p {
+    color: #f0f0f0;
+    margin: 0 0 15px 0;
+    font-size: 14px;
+    line-height: 1.5;
+}
+
+.user-list {
+    margin-top: 20px;
+    text-align: left;
+    max-height: 200px;
+    overflow-y: auto;
+    background: rgba(0, 0, 0, 0.3);
+    border: 1px solid rgba(255, 140, 0, 0.2);
+    border-radius: 4px;
+    padding: 10px;
+}
+
+.user-list-header {
+    color: #ff8c00;
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-bottom: 10px;
+    padding-bottom: 5px;
+    border-bottom: 1px solid rgba(255, 140, 0, 0.2);
+}
+
+#affectedUsersList {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+#affectedUsersList li {
+    color: #f0f0f0;
+    font-size: 13px;
+    padding: 5px 10px;
+    margin: 2px 0;
+    background: rgba(255, 140, 0, 0.05);
+    border-left: 2px solid #ff8c00;
+    transition: all 0.2s;
+}
+
+#affectedUsersList li:hover {
+    background: rgba(255, 140, 0, 0.1);
+}
+
+.popup-footer {
+    padding: 20px;
+    border-top: 1px solid rgba(255, 140, 0, 0.3);
+    display: flex;
+    justify-content: space-between;
+    gap: 15px;
+    background: rgba(0, 0, 0, 0.2);
+    border-radius: 0 0 8px 8px;
+}
+
+.btn-cancel, .btn-confirm {
+    flex: 1;
+    padding: 12px 24px;
+    border: 1px solid #ff8c00;
+    background: transparent;
+    color: #ff8c00;
+    cursor: pointer;
+    font-family: 'Courier New', monospace;
+    font-size: 14px;
+    text-transform: lowercase;
+    border-radius: 4px;
+    transition: all 0.3s;
+    letter-spacing: 1px;
+}
+
+.btn-cancel:hover {
+    background: rgba(255, 140, 0, 0.1);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(255, 140, 0, 0.2);
+}
+
+.btn-confirm {
+    background: #ff8c00;
+    color: #000;
+    font-weight: bold;
+}
+
+.btn-confirm:hover {
+    background: #ffa500;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(255, 140, 0, 0.4);
+}
+
+.delete-link {
+    color: #ff6b6b !important;
+}
+
+.delete-link:hover {
+    color: #ff0000 !important;
+}
+
+.user-checkbox {
+    cursor: pointer;
+}
+</style>
+
+<script>
+let currentAction = null;
+let currentUserId = null;
+
+function showPopup(title, message, action, userList = null) {
+    currentAction = action;
+    document.getElementById('popupTitle').textContent = title;
+    document.getElementById('popupMessage').textContent = message;
+    
+    // Handle user list display
+    const userListDiv = document.getElementById('popupUserList');
+    const affectedUsersList = document.getElementById('affectedUsersList');
+    
+    if (userList && userList.length > 0) {
+        userListDiv.style.display = 'block';
+        affectedUsersList.innerHTML = '';
+        userList.forEach(user => {
+            const li = document.createElement('li');
+            li.textContent = user;
+            affectedUsersList.appendChild(li);
+        });
+    } else {
+        userListDiv.style.display = 'none';
+    }
+    
+    document.getElementById('confirmPopup').style.display = 'flex';
+    
+    // Set confirm button action
+    document.getElementById('confirmButton').onclick = function() {
+        if (currentAction) {
+            currentAction();
+        }
+        closePopup();
+    };
+}
+
+function closePopup() {
+    document.getElementById('confirmPopup').style.display = 'none';
+    currentAction = null;
+    currentUserId = null;
+}
+
+function toggleUserStatus(userId) {
+    showPopup(
+        'confirm status change',
+        'are you sure you want to change this user\'s status?',
+        function() {
+            fetch(`/administration/users/${userId}/toggle-status/`, {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': '{{ csrf_token }}',
+                    'Content-Type': 'application/json'
+                }
+            }).then(response => {
+                if (response.ok) {
+                    location.reload();
+                }
+            });
+        },
+        userNames
+    );
+}
+
+function deleteUser(userId, username) {
+    showPopup(
+        '⚠️ confirm deletion',
+        `are you sure you want to permanently delete user "${username}"? this action cannot be undone!`,
+        function() {
+            fetch(`/administration/users/${userId}/delete/`, {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': '{{ csrf_token }}',
+                    'Content-Type': 'application/json'
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    showPopup(
+                        '✅ user deleted',
+                        `successfully deleted user "${username}"`,
+                        function() {
+                            location.reload();
+                        }
+                    );
+                } else {
+                    showPopup(
+                        '❌ deletion failed',
+                        data.error || 'failed to delete user',
+                        function() {}
+                    );
+                }
+            })
+            .catch(error => {
+                console.error('Delete error:', error);
+                showPopup(
+                    '❌ error',
+                    `error deleting user: ${error}`,
+                    function() {}
+                );
+            });
+        },
+        [username]  // Single username in array for popup display
+    );
+}
+
+function toggleAllCheckboxes() {
+    const selectAll = document.getElementById('selectAll');
+    const checkboxes = document.querySelectorAll('.user-checkbox');
+    checkboxes.forEach(cb => cb.checked = selectAll.checked);
+}
+
+function getSelectedUsers() {
+    const checkboxes = document.querySelectorAll('.user-checkbox:checked');
+    return Array.from(checkboxes).map(cb => cb.value);
+}
+
+function bulkDelete() {
+    const selectedUsers = getSelectedUsers();
+    if (selectedUsers.length === 0) {
+        alert('please select users to delete');
+        return;
+    }
+    
+    // Get usernames for display
+    const userNames = [];
+    selectedUsers.forEach(userId => {
+        const row = document.querySelector(`input[value="${userId}"]`).closest('tr');
+        const username = row.querySelector('td:nth-child(2)').textContent.trim();
+        userNames.push(username);
+    });
+    
+    showPopup(
+        '🗑️ confirm bulk deletion',
+        `you are about to permanently delete ${selectedUsers.length} user${selectedUsers.length > 1 ? 's' : ''}. this action cannot be undone!`,
+        function() {
+            fetch('/administration/users/bulk-delete/', {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': '{{ csrf_token }}',
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ user_ids: selectedUsers })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    if (data.deleted_count > 0) {
+                        showPopup(
+                            '✅ deletion complete',
+                            `successfully deleted ${data.deleted_count} user${data.deleted_count > 1 ? 's' : ''}`,
+                            function() {
+                                if (data.skipped_users && data.skipped_users.length > 0) {
+                                    showPopup(
+                                        '⚠️ protected users',
+                                        `skipped protected users: ${data.skipped_users.join(', ')}`,
+                                        function() {
+                                            location.reload();
+                                        }
+                                    );
+                                } else {
+                                    location.reload();
+                                }
+                            }
+                        );
+                    } else {
+                        location.reload();
+                    }
+                } else {
+                    showPopup(
+                        '❌ deletion failed', 
+                        data.error || 'failed to delete users',
+                        function() {}
+                    );
+                }
+            })
+            .catch(error => {
+                console.error('Bulk delete error:', error);
+                showPopup(
+                    '❌ error',
+                    `error deleting users: ${error}`,
+                    function() {}
+                );
+            });
+        },
+        userNames
+    );
+}
+
+function bulkDeactivate() {
+    const selectedUsers = getSelectedUsers();
+    if (selectedUsers.length === 0) {
+        alert('please select users to deactivate');
+        return;
+    }
+    
+    // Get usernames for display
+    const userNames = [];
+    selectedUsers.forEach(userId => {
+        const row = document.querySelector(`input[value="${userId}"]`).closest('tr');
+        const username = row.querySelector('td:nth-child(2)').textContent.trim();
+        userNames.push(username);
+    });
+    
+    showPopup(
+        '🔒 confirm bulk deactivation',
+        `you are about to deactivate ${selectedUsers.length} user${selectedUsers.length > 1 ? 's' : ''}. they will not be able to login.`,
+        function() {
+            fetch('/administration/users/bulk-status/', {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': '{{ csrf_token }}',
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ user_ids: selectedUsers, active: false })
+            }).then(response => {
+                if (response.ok) {
+                    location.reload();
+                }
+            });
+        },
+        userNames
+    );
+}
+
+function bulkActivate() {
+    const selectedUsers = getSelectedUsers();
+    if (selectedUsers.length === 0) {
+        alert('please select users to activate');
+        return;
+    }
+    
+    showPopup(
+        'confirm bulk activation',
+        `are you sure you want to activate ${selectedUsers.length} selected users?`,
+        function() {
+            fetch('/administration/users/bulk-status/', {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': '{{ csrf_token }}',
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ user_ids: selectedUsers, active: true })
+            }).then(response => {
+                if (response.ok) {
+                    location.reload();
+                }
+            });
+        },
+        userNames
+    );
+}
+
+function exportUsers() {
+    console.log('Exporting users...');
+    window.location.href = '{% url "administration:users" %}?export=csv';
+}
+
+function importUsers() {
+    const input = document.createElement('input');
+    input.type = 'file';
+    input.accept = '.csv';
+    input.onchange = function(e) {
+        const file = e.target.files[0];
+        if (file) {
+            console.log('Importing:', file.name);
+            // Implement import functionality
+        }
+    };
+    input.click();
+}
+
+function syncWithLDAP() {
+    if (confirm('Sync users with LDAP directory?')) {
+        console.log('Syncing with LDAP...');
+        // Implement LDAP sync
+    }
+}
+
+function sendBulkEmail() {
+    console.log('Opening bulk email dialog...');
+    // Implement bulk email functionality
+}
+
+function bulkDeactivate() {
+    if (confirm('This will deactivate multiple users. Continue?')) {
+        console.log('Bulk deactivating...');
+        // Implement bulk deactivate
+    }
+}
+
+function bulkActivate() {
+    if (confirm('This will activate multiple users. Continue?')) {
+        console.log('Bulk activating...');
+        // Implement bulk activate
+    }
+}
+</script>
+{% endblock %}

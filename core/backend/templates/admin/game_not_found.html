@@ -1,0 +1,35 @@
+{% extends 'administration/base_admin.html' %}
+
+{% block admin_content %}
+<div class="section">
+    <div class="section-header">
+        <h2>❌ game not found</h2>
+        <div class="section-controls">
+            <a href="{% url 'administration:solitaire_dashboard' %}" class="btn-secondary">back to dashboard</a>
+        </div>
+    </div>
+    
+    <div class="content-box" style="text-align: center; padding: 60px;">
+        <h3 style="color: var(--red); margin-bottom: 20px;">game session not found</h3>
+        <p style="color: #999; margin-bottom: 10px;">
+            The game session with ID <strong style="color: var(--yellow);">{{ session_id|slice:":8" }}...</strong> could not be found.
+        </p>
+        <p style="color: #666; font-size: 12px;">
+            This game may have been deleted or the URL may be incorrect.
+        </p>
+        
+        <div style="margin-top: 30px;">
+            <a href="{% url 'administration:solitaire_dashboard' %}" class="btn-primary">
+                return to dashboard
+            </a>
+        </div>
+    </div>
+</div>
+
+<style>
+    .content-box {
+        max-width: 600px;
+        margin: 0 auto;
+    }
+</style>
+{% endblock %}

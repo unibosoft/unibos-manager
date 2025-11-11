@@ -1,0 +1,25 @@
+[Unit]
+Description=EMSC WebSocket Listener - Real-time Earthquake Data
+After=network.target postgresql.service
+
+[Service]
+Type=simple
+User=ubuntu
+Group=ubuntu
+WorkingDirectory=/home/ubuntu/unibos/apps/web/backend
+Environment="DJANGO_SETTINGS_MODULE=unibos_backend.settings.production"
+Environment="PYTHONPATH=/home/ubuntu/unibos/apps/web/backend"
+ExecStart=/home/ubuntu/unibos/apps/web/backend/venv/bin/python manage.py emsc_listener
+Restart=always
+RestartSec=10
+
+# Logging
+StandardOutput=append:/home/ubuntu/unibos/apps/web/backend/logs/emsc-listener.log
+StandardError=append:/home/ubuntu/unibos/apps/web/backend/logs/emsc-listener-error.log
+
+# Security
+PrivateTmp=true
+NoNewPrivileges=true
+
+[Install]
+WantedBy=multi-user.target

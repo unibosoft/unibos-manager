@@ -1,0 +1,341 @@
+{% extends 'web_ui/base.html' %}
+
+{% block title %}{{ module_data.name }} - unibos{% endblock %}
+
+{% block header_title %}unibos{% endblock %}
+{% block module_name %}{{ module_data.name|default:"module" }}{% endblock %}
+
+{% block content %}
+<div class="content-box">
+    <h1 class="content-title">
+        <span style="font-size: 24px; margin-right: 10px;">{{ module_data.icon }}</span>
+        {{ module_data.name }}
+    </h1>
+    
+    <p style="color: var(--gray); margin-bottom: 20px;">
+        {{ module_data.description }}
+    </p>
+    
+    <!-- Module Features -->
+    <div style="margin-top: 20px;">
+        <h3 style="color: var(--orange); margin-bottom: 15px;">features</h3>
+        <ul style="list-style: none; padding: 0;">
+            {% for feature in module_data.features %}
+            <li style="padding: 5px 0; color: var(--white);">
+                <span style="color: var(--green); margin-right: 10px;">▸</span>
+                {{ feature }}
+            </li>
+            {% endfor %}
+        </ul>
+    </div>
+</div>
+
+<!-- Module Stats -->
+{% if module_data.stats %}
+<div class="content-box">
+    <h2 class="content-title">statistics</h2>
+    
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 20px;">
+        {% for key, value in module_data.stats.items %}
+        <div style="text-align: center; padding: 15px; background: var(--bg-black); border: 1px solid var(--dark-gray); border-radius: 5px;">
+            <div style="color: var(--orange); font-size: 24px; font-weight: bold;">{{ value }}</div>
+            <div style="color: var(--gray); font-size: 12px; text-transform: capitalize;">{{ key }}</div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endif %}
+
+<!-- Module Specific Content -->
+{% if current_module == 'recaria' %}
+<div class="content-box">
+    <h2 class="content-title">recaria game world</h2>
+    
+    <div class="terminal-text">
+        <p class="terminal-prompt">connecting to britannia server...</p>
+        <p style="color: var(--green);">connection established</p>
+        <p style="color: var(--cyan);">welcome to the world of recaria!</p>
+    </div>
+    
+    <div style="margin-top: 20px;">
+        <button class="btn" onclick="createCharacter()">create character</button>
+        <button class="btn" onclick="joinGuild()">join guild</button>
+        <button class="btn btn-secondary" onclick="viewLeaderboard()">leaderboard</button>
+    </div>
+</div>
+
+{% elif current_module == 'birlikteyiz' %}
+<div class="content-box">
+    <h2 class="content-title">emergency response system</h2>
+    
+    <div class="terminal-text">
+        <p class="terminal-prompt">emergency system status: <span style="color: var(--green);">active</span></p>
+        <p class="terminal-prompt">monitoring location: {{ location }}</p>
+    </div>
+    
+    <div style="margin-top: 20px;">
+        <button class="btn" style="background: #ff0000;" onclick="sendEmergency()">
+            send emergency alert
+        </button>
+        <button class="btn" onclick="viewAlerts()">view active alerts</button>
+        <button class="btn btn-secondary" onclick="offerHelp()">offer help</button>
+    </div>
+    
+    <div style="margin-top: 20px; padding: 15px; background: rgba(255,0,0,0.1); border: 1px solid #ff0000; border-radius: 5px;">
+        <p style="color: var(--orange);">⚠️ emergency hotline: 112 (turkey)</p>
+        <p style="color: var(--gray); font-size: 12px;">this system complements but does not replace official emergency services</p>
+    </div>
+</div>
+
+{% elif current_module == 'kisisel_enflasyon' %}
+<div class="content-box">
+    <h2 class="content-title">personal inflation tracker</h2>
+    
+    <div class="terminal-text">
+        <p class="terminal-prompt">loading price data...</p>
+        <p style="color: var(--green);">database connected</p>
+        <p style="color: var(--cyan);">ready to track prices</p>
+    </div>
+    
+    <div style="margin-top: 20px;">
+        <button class="btn" onclick="addProduct()">add product</button>
+        <button class="btn" onclick="updatePrices()">update prices</button>
+        <button class="btn" onclick="calculateInflation()">calculate inflation</button>
+        <button class="btn btn-secondary" onclick="viewReport()">view report</button>
+    </div>
+    
+    <!-- Sample Chart Area -->
+    <div style="margin-top: 20px; padding: 20px; background: var(--bg-black); border: 1px solid var(--dark-gray); border-radius: 5px; height: 200px; display: flex; align-items: center; justify-content: center;">
+        <span style="color: var(--gray);">inflation chart will appear here</span>
+    </div>
+</div>
+
+{% elif current_module == 'currencies' %}
+<div class="content-box">
+    <h2 class="content-title">💱 advanced currency exchange</h2>
+    
+    <!-- Quick Converter -->
+    <div style="background: var(--bg-dark); padding: 20px; border: 1px solid var(--orange); border-radius: 5px; margin: 20px 0;">
+        <h3 style="color: var(--orange); margin-bottom: 15px;">⚡ quick converter</h3>
+        <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
+            <input type="number" id="convert-amount" class="terminal-input" style="width: 120px;" placeholder="amount" value="100">
+            <select id="convert-from" class="terminal-input" style="width: 150px;">
+                <option value="TRY">🇹🇷 TRY</option>
+                <option value="USD" selected>🇺🇸 USD</option>
+                <option value="EUR">🇪🇺 EUR</option>
+                <option value="GBP">🇬🇧 GBP</option>
+                <option value="BTC">₿ Bitcoin</option>
+                <option value="ETH">Ξ Ethereum</option>
+            </select>
+            <span style="color: var(--orange); font-size: 20px;">→</span>
+            <select id="convert-to" class="terminal-input" style="width: 150px;">
+                <option value="TRY" selected>🇹🇷 TRY</option>
+                <option value="USD">🇺🇸 USD</option>
+                <option value="EUR">🇪🇺 EUR</option>
+                <option value="GBP">🇬🇧 GBP</option>
+                <option value="BTC">₿ Bitcoin</option>
+                <option value="ETH">Ξ Ethereum</option>
+            </select>
+            <button class="terminal-btn" onclick="performConversion()">convert</button>
+        </div>
+        <div id="conversion-result" style="margin-top: 15px; min-height: 30px;"></div>
+    </div>
+    
+    <!-- Live Rates Grid -->
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px;">
+        <!-- Fiat Currencies -->
+        <div>
+            <h3 style="color: var(--orange); margin-bottom: 10px;">💵 fiat currencies</h3>
+            <div style="background: var(--bg-dark); padding: 15px; border: 1px solid var(--dark-gray);">
+                <table style="width: 100%;">
+                    <tbody id="fiat-rates">
+                        <tr><td>🇺🇸 USD</td><td style="text-align: right; color: var(--cyan);">₺32.45</td><td style="text-align: right; color: var(--green);">+0.5%</td></tr>
+                        <tr><td>🇪🇺 EUR</td><td style="text-align: right; color: var(--cyan);">₺35.12</td><td style="text-align: right; color: var(--red);">-0.2%</td></tr>
+                        <tr><td>🇬🇧 GBP</td><td style="text-align: right; color: var(--cyan);">₺41.23</td><td style="text-align: right; color: var(--green);">+0.8%</td></tr>
+                        <tr><td>🇯🇵 JPY</td><td style="text-align: right; color: var(--cyan);">₺0.22</td><td style="text-align: right; color: var(--green);">+0.1%</td></tr>
+                        <tr><td>🇨🇭 CHF</td><td style="text-align: right; color: var(--cyan);">₺36.78</td><td style="text-align: right; color: var(--red);">-0.3%</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        
+        <!-- Cryptocurrencies -->
+        <div>
+            <h3 style="color: var(--orange); margin-bottom: 10px;">🪙 cryptocurrencies</h3>
+            <div style="background: var(--bg-dark); padding: 15px; border: 1px solid var(--dark-gray);">
+                <table style="width: 100%;">
+                    <tbody id="crypto-rates">
+                        <tr><td>₿ BTC</td><td style="text-align: right; color: var(--cyan);">₺1.25M</td><td style="text-align: right; color: var(--green);">+2.3%</td></tr>
+                        <tr><td>Ξ ETH</td><td style="text-align: right; color: var(--cyan);">₺85K</td><td style="text-align: right; color: var(--green);">+1.8%</td></tr>
+                        <tr><td>🔶 BNB</td><td style="text-align: right; color: var(--cyan);">₺12.5K</td><td style="text-align: right; color: var(--red);">-0.5%</td></tr>
+                        <tr><td>💲 USDT</td><td style="text-align: right; color: var(--cyan);">₺32.40</td><td style="text-align: right; color: var(--gray);">0.0%</td></tr>
+                        <tr><td>☀️ SOL</td><td style="text-align: right; color: var(--cyan);">₺3.2K</td><td style="text-align: right; color: var(--green);">+5.2%</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Portfolio Summary -->
+    <div style="margin-top: 30px; background: var(--bg-dark); padding: 20px; border: 1px solid var(--orange);">
+        <h3 style="color: var(--orange); margin-bottom: 15px;">📊 portfolio overview</h3>
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 15px;">
+            <div>
+                <div style="color: var(--gray); font-size: 12px;">total value</div>
+                <div style="color: var(--green); font-size: 20px;">₺125,450</div>
+            </div>
+            <div>
+                <div style="color: var(--gray); font-size: 12px;">24h change</div>
+                <div style="color: var(--green); font-size: 20px;">+2.45%</div>
+            </div>
+            <div>
+                <div style="color: var(--gray); font-size: 12px;">holdings</div>
+                <div style="color: var(--cyan); font-size: 20px;">8</div>
+            </div>
+            <div>
+                <div style="color: var(--gray); font-size: 12px;">profit/loss</div>
+                <div style="color: var(--green); font-size: 20px;">+₺3,200</div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Action Buttons -->
+    <div style="margin-top: 20px; display: flex; gap: 10px; flex-wrap: wrap;">
+        <button class="terminal-btn" onclick="viewPortfolio()">📈 view portfolio</button>
+        <button class="terminal-btn" onclick="createAlert()">🔔 set alert</button>
+        <button class="terminal-btn" onclick="viewCharts()">📊 charts</button>
+        <button class="terminal-btn" onclick="viewHistory()">📜 history</button>
+    </div>
+</div>
+
+<script>
+// Demo rates for conversion
+const rates = {
+    TRY: 1,
+    USD: 32.45,
+    EUR: 35.12,
+    GBP: 41.23,
+    BTC: 1250000,
+    ETH: 85000
+};
+
+function performConversion() {
+    const amount = parseFloat(document.getElementById('convert-amount').value) || 0;
+    const from = document.getElementById('convert-from').value;
+    const to = document.getElementById('convert-to').value;
+    
+    if (amount <= 0) {
+        document.getElementById('conversion-result').innerHTML = 
+            '<span style="color: var(--red);">please enter a valid amount</span>';
+        return;
+    }
+    
+    const result = (amount * rates[from]) / rates[to];
+    const formattedResult = result > 0.01 ? result.toFixed(2) : result.toFixed(8);
+    
+    document.getElementById('conversion-result').innerHTML = 
+        `<span style="color: var(--gray);">${amount} ${from} =</span> ` +
+        `<span style="color: var(--green); font-size: 24px; font-weight: bold;">${formattedResult} ${to}</span>`;
+}
+
+function viewPortfolio() { alert('portfolio detailed view coming soon!'); }
+function createAlert() { 
+    const currency = prompt('enter currency (usd, eur, btc, etc):');
+    const price = prompt('enter target price:');
+    if (currency && price) {
+        alert(`alert set for ${currency} at ${price}`);
+    }
+}
+function viewCharts() { alert('interactive charts coming soon!'); }
+function viewHistory() { alert('transaction history coming soon!'); }
+
+// Auto-refresh rates every 30 seconds
+setInterval(() => {
+    // In production, this would fetch from API
+    console.log('refreshing rates...');
+}, 30000);
+</script>
+{% endif %}
+
+<!-- Action Buttons -->
+<div class="content-box">
+    <h2 class="content-title">actions</h2>
+    
+    <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+        <button class="btn" onclick="refreshModule()">
+            refresh
+        </button>
+        <button class="btn btn-secondary" onclick="window.location.href='{% url 'web_ui:main' %}'">
+            back to main
+        </button>
+    </div>
+</div>
+
+<script>
+    // Module specific functions
+    function refreshModule() {
+        location.reload();
+    }
+    
+    // Recaria functions
+    function createCharacter() {
+        alert('character creation will be implemented soon');
+    }
+    
+    function joinGuild() {
+        alert('guild system will be implemented soon');
+    }
+    
+    function viewLeaderboard() {
+        alert('leaderboard will be implemented soon');
+    }
+    
+    // Birlikteyiz functions
+    function sendEmergency() {
+        if (confirm('are you sure you want to send an emergency alert?')) {
+            alert('emergency alert system will be implemented soon');
+        }
+    }
+    
+    function viewAlerts() {
+        alert('Active alerts viewer will be implemented soon');
+    }
+    
+    function offerHelp() {
+        alert('Help offer system will be implemented soon');
+    }
+    
+    // Personal Inflation functions
+    function addProduct() {
+        const product = prompt('Enter product name:');
+        if (product) {
+            alert(`Product "${product}" will be added (implementation pending)`);
+        }
+    }
+    
+    function updatePrices() {
+        alert('Price update interface will be implemented soon');
+    }
+    
+    function calculateInflation() {
+        alert('Inflation calculation will be implemented soon');
+    }
+    
+    function viewReport() {
+        alert('Report viewer will be implemented soon');
+    }
+    
+    // Currency functions
+    function convertCurrency() {
+        alert('Currency converter will be implemented soon');
+    }
+    
+    function setAlert() {
+        alert('Price alert system will be implemented soon');
+    }
+    
+    function viewHistory() {
+        alert('Historical data viewer will be implemented soon');
+    }
+</script>
+{% endblock %}

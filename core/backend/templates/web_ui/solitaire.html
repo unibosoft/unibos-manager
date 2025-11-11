@@ -1,0 +1,2757 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>unicorn solitaire</title>
+    
+    <!-- AGGRESSIVE CACHE BUSTING -->
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate, max-age=0">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+    
+    <style id="solitaire-critical-css-v3">
+        /* CRITICAL INLINE CSS - VERSION 3.2 - MS SOLITAIRE STYLE */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            user-select: none;
+            -webkit-user-select: none;
+        }
+        
+        html, body {
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        }
+        
+        /* Game container - fullscreen */
+        .game-container {
+            width: 100vw;
+            height: 100vh;
+            background: #1e5620;
+            background-image: 
+                radial-gradient(ellipse at center, #2a6f2e 0%, #1e5620 100%);
+            position: relative;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        /* Game toolbar - UNIBOS style */
+        .game-toolbar {
+            height: 40px;
+            background: #2a2a2a;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 20px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .toolbar-center {
+            position: absolute;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 10px;
+        }
+        
+        .toolbar-right {
+            position: absolute;
+            right: 20px;
+            display: flex;
+            gap: 20px;
+            align-items: center;
+            color: white;
+            font-size: 13px;
+        }
+        
+        .toolbar-btn {
+            padding: 6px 18px;
+            background: linear-gradient(to bottom, #ff6b35, #e55a2b);
+            border: 1px solid #d54521;
+            color: white;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 13px;
+            font-weight: 500;
+            transition: all 0.2s;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+        }
+        
+        .toolbar-btn:hover {
+            background: linear-gradient(to bottom, #ff7d4d, #ff6b35);
+            box-shadow: 0 3px 6px rgba(0, 0, 0, 0.4);
+            transform: translateY(-1px);
+        }
+        
+        .toolbar-btn:active {
+            transform: translateY(0);
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+        }
+        
+        .score-display, .time-display {
+            font-weight: bold;
+            font-family: 'Courier New', monospace;
+        }
+        
+        /* Game board - centered */
+        .game-board {
+            flex: 1;
+            position: relative;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            padding-top: 40px;
+            width: 100%;
+        }
+        
+        /* Game area container */
+        .game-area {
+            position: relative;
+            width: 935px;
+            height: 715px;
+        }
+        
+        /* Card styles */
+        .card {
+            position: absolute;
+            width: 110px;
+            height: 148px;
+            border-radius: 13px;
+            cursor: pointer;
+            transition: transform 0.1s;
+            will-change: transform;
+        }
+        
+        .card.dragging {
+            z-index: 1000 !important;
+            cursor: grabbing !important;
+            opacity: 0.95;
+        }
+        
+        /* Card face */
+        .card.face-up {
+            background: linear-gradient(135deg, #ffffff 0%, #fafafa 100%);
+            border: 1px solid #bbb;
+            box-shadow: 
+                0 2px 5px rgba(0, 0, 0, 0.08),
+                0 1px 2px rgba(0, 0, 0, 0.06),
+                inset 0 1px 0 rgba(255, 255, 255, 0.8);
+            display: flex;
+            flex-direction: column;
+            padding: 6px;
+            font-family: 'Trebuchet MS', 'Lucida Grande', 'Lucida Sans', Tahoma, sans-serif;
+        }
+        
+        /* Card back */
+        .card.face-down {
+            background: linear-gradient(135deg, #3d3d3d 0%, #2d2d2d 100%);
+            border: 1px solid #222;
+            box-shadow: 
+                0 3px 6px rgba(0, 0, 0, 0.4),
+                0 1px 2px rgba(0, 0, 0, 0.2),
+                inset 0 1px 0 rgba(255, 255, 255, 0.05);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .card.face-down::after {
+            content: '🦄';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 40px;
+            opacity: 0.2;
+            filter: contrast(0.8);
+        }
+        
+        /* Card content */
+        .card-corner {
+            position: absolute;
+            font-size: 13px;
+            font-weight: 400;
+            line-height: 1.1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            font-family: 'Trebuchet MS', 'Lucida Grande', Tahoma, sans-serif;
+        }
+        
+        .card-corner.top-left {
+            top: 8px;
+            left: 8px;
+        }
+        
+        .card-corner.bottom-right {
+            bottom: 8px;
+            right: 8px;
+            transform: rotate(180deg);
+        }
+        
+        .card-rank {
+            font-size: 20px;
+            font-weight: 400;
+            letter-spacing: 0.5px;
+            text-rendering: optimizeLegibility;
+            -webkit-font-smoothing: antialiased;
+        }
+        
+        .card-suit {
+            font-size: 18px;
+            margin-top: -1px;
+            filter: brightness(0.95);
+        }
+        
+        .card-center {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 48px;
+            opacity: 0.85;
+            filter: brightness(0.95);
+            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+        }
+        
+        .card.red .card-rank {
+            color: #d84040;
+            text-shadow: 0 0.5px 1px rgba(216, 64, 64, 0.15);
+        }
+        
+        .card.red .card-suit,
+        .card.red .card-center {
+            color: #c73636;
+        }
+        
+        .card.black .card-rank {
+            color: #4a4a4a;
+            text-shadow: 0 0.5px 1px rgba(74, 74, 74, 0.1);
+        }
+        
+        .card.black .card-suit,
+        .card.black .card-center {
+            color: #3a3a3a;
+        }
+        
+        /* Card slots */
+        .card-slot {
+            position: absolute;
+            width: 110px;
+            height: 148px;
+            border: 2px dashed rgba(0, 0, 0, 0.2);
+            border-radius: 13px;
+            background: transparent;
+        }
+        
+        /* Stock and Waste slots */
+        .card-slot#stock,
+        .card-slot#waste {
+            background: rgba(0, 0, 0, 0.15);
+            border: 2px solid rgba(0, 0, 0, 0.3);
+        }
+        
+        .card-slot#stock {
+            cursor: pointer;
+        }
+        
+        .card-slot#stock:hover {
+            background: rgba(0, 0, 0, 0.25);
+        }
+        
+        /* Foundation slots */
+        .card-slot[id^="foundation-"] {
+            background: rgba(0, 0, 0, 0.2);
+            border: 2px solid rgba(0, 0, 0, 0.4);
+            box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.3);
+        }
+        
+        /* Tableau slots */
+        .card-slot[id^="tableau-"] {
+            height: 450px;
+            overflow: visible;
+            background: transparent;
+            border: none;
+            box-shadow: none;
+        }
+        
+        .card-slot.can-drop {
+            border-color: #4CAF50;
+            background: rgba(76, 175, 80, 0.2);
+        }
+        
+        /* Pile positions */
+        /* Stock and Waste - TOP LEFT */
+        .stock, #stock { top: 0px; left: 0px; }
+        .waste, #waste { top: 0px; left: 132px; }
+        
+        /* Foundations - TOP RIGHT */
+        .foundation-0, #foundation-0 { top: 0px; right: 396px; }
+        .foundation-1, #foundation-1 { top: 0px; right: 264px; }
+        .foundation-2, #foundation-2 { top: 0px; right: 132px; }
+        .foundation-3, #foundation-3 { top: 0px; right: 0px; }
+        
+        /* Tableau columns - BELOW */
+        .tableau-0, #tableau-0 { top: 176px; left: 0px; }
+        .tableau-1, #tableau-1 { top: 176px; left: 126px; }
+        .tableau-2, #tableau-2 { top: 176px; left: 253px; }
+        .tableau-3, #tableau-3 { top: 176px; left: 379px; }
+        .tableau-4, #tableau-4 { top: 176px; left: 506px; }
+        .tableau-5, #tableau-5 { top: 176px; left: 632px; }
+        .tableau-6, #tableau-6 { top: 176px; left: 759px; }
+        
+        /* Exit dialog */
+        .exit-dialog {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.8);
+            z-index: 10000;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .exit-dialog.show {
+            display: flex;
+        }
+        
+        .exit-dialog-content {
+            background: #2a2a2a;
+            border: 2px solid #ff6b35;
+            padding: 30px;
+            border-radius: 10px;
+            min-width: 400px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.8);
+        }
+        
+        .exit-dialog h3 {
+            margin-bottom: 20px;
+            font-size: 18px;
+            color: #ff6b35;
+            font-weight: bold;
+            text-align: center;
+        }
+        
+        .exit-dialog input {
+            width: 100%;
+            padding: 12px;
+            background: #1a1a1a;
+            border: 1px solid #444;
+            border-radius: 5px;
+            font-size: 14px;
+            margin-bottom: 10px;
+            color: white;
+        }
+        
+        .exit-dialog input:focus {
+            outline: none;
+            border-color: #ff6b35;
+            box-shadow: 0 0 5px rgba(255, 107, 53, 0.3);
+        }
+        
+        .exit-dialog .error {
+            color: #ff4444;
+            font-size: 12px;
+            margin-bottom: 10px;
+            display: none;
+            text-align: center;
+        }
+        
+        .exit-dialog-buttons {
+            display: flex;
+            gap: 10px;
+            justify-content: flex-end;
+            margin-top: 20px;
+        }
+        
+        .exit-dialog button {
+            padding: 8px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+        
+        .exit-dialog .btn-cancel {
+            background: #555;
+            color: white;
+        }
+        
+        .exit-dialog .btn-cancel:hover {
+            background: #666;
+        }
+        
+        .exit-dialog .btn-confirm {
+            background: linear-gradient(to bottom, #ff6b35, #e55a2b);
+            color: white;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+        }
+        
+        .exit-dialog .btn-confirm:hover {
+            background: linear-gradient(to bottom, #ff7d4d, #ff6b35);
+        }
+        
+        .exit-dialog button:hover {
+            opacity: 0.9;
+        }
+    </style>
+</head>
+<body>
+    <div class="game-container">
+        <!-- Toolbar -->
+        <div class="game-toolbar">
+            <div style="position: absolute; left: 20px; color: white; font-size: 16px;">unicorn solitaire</div>
+            <div class="toolbar-center">
+                <button class="toolbar-btn" onclick="newGame()">new game</button>
+                <button class="toolbar-btn" onclick="undoMove()">undo</button>
+                <button class="toolbar-btn" onclick="showHint()">auto</button>
+            </div>
+            <div class="toolbar-right">
+                <div>moves: <span id="moves">0</span></div>
+                <div>score: <span class="score-display" id="score">0</span></div>
+                <div>time: <span class="time-display" id="timer">0:00</span></div>
+            </div>
+        </div>
+        
+        <!-- Game Board -->
+        <div class="game-board" id="gameBoard">
+            <div class="game-area">
+                <!-- Stock and Waste -->
+                <div class="card-slot stock" id="stock"></div>
+                <div class="card-slot waste" id="waste"></div>
+                
+                <!-- Foundations -->
+                <div class="card-slot foundation-0" id="foundation-0" data-suit="0"></div>
+                <div class="card-slot foundation-1" id="foundation-1" data-suit="1"></div>
+                <div class="card-slot foundation-2" id="foundation-2" data-suit="2"></div>
+                <div class="card-slot foundation-3" id="foundation-3" data-suit="3"></div>
+                
+                <!-- Tableau -->
+                <div class="card-slot tableau-0" id="tableau-0"></div>
+                <div class="card-slot tableau-1" id="tableau-1"></div>
+                <div class="card-slot tableau-2" id="tableau-2"></div>
+                <div class="card-slot tableau-3" id="tableau-3"></div>
+                <div class="card-slot tableau-4" id="tableau-4"></div>
+                <div class="card-slot tableau-5" id="tableau-5"></div>
+                <div class="card-slot tableau-6" id="tableau-6"></div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Exit Dialog - DISABLED (using showScreenLockDialog instead) -->
+    <!-- <div class="exit-dialog" id="exitDialog">
+        <div class="exit-dialog-content">
+            <h3>Enter Screen Lock Code to Exit</h3>
+            <input type="password" id="screenLockCode" placeholder="Enter code..." autofocus onkeypress="if(event.key === 'Enter') confirmExit()">
+            <div class="error" id="errorMsg"></div>
+            <div class="exit-dialog-buttons">
+                <button class="btn-cancel" onclick="cancelExit()">Cancel</button>
+                <button class="btn-confirm" onclick="confirmExit()">OK</button>
+            </div>
+        </div>
+    </div> -->
+    
+    <!-- New Game Dialog -->
+    <div class="exit-dialog" id="newGameDialog">
+        <div class="exit-dialog-content">
+            <h3>start new game?</h3>
+            <p style="color: #ccc; font-size: 14px; margin: 15px 0;">your current progress will be lost</p>
+            <div class="exit-dialog-buttons">
+                <button class="btn-cancel" onclick="cancelNewGame()">cancel</button>
+                <button class="btn-confirm" onclick="confirmNewGame()">new game</button>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        // Browser history protection - prevent back/forward navigation
+        let allowNavigation = false; // Flag to control navigation warnings
+        
+        (function() {
+            // Enhanced security - prevent back navigation
+            // Replace current history entry
+            history.replaceState(null, null, location.href);
+            
+            // Push multiple states to make back navigation harder
+            for (let i = 0; i < 10; i++) {
+                history.pushState(null, null, location.href);
+            }
+            
+            // Aggressive back button handling
+            window.addEventListener('popstate', function(event) {
+                // Immediately push multiple states again
+                for (let i = 0; i < 3; i++) {
+                    history.pushState(null, null, location.href);
+                }
+                
+                // Show exit dialog
+                if (typeof showScreenLockDialog === 'function') {
+                    showScreenLockDialog();
+                }
+                
+                // Prevent any navigation
+                event.preventDefault();
+                event.stopImmediatePropagation();
+                return false;
+            });
+            
+            // Also prevent navigation with hashchange
+            window.addEventListener('hashchange', function(event) {
+                window.location.hash = '';
+                event.preventDefault();
+                showScreenLockDialog();
+                return false;
+            });
+            
+            // Handle keyboard shortcuts
+            document.addEventListener('keydown', function(e) {
+                // Block browser back navigation shortcuts
+                if ((e.altKey && e.key === 'ArrowLeft') || 
+                    (e.altKey && e.key === 'ArrowRight') ||
+                    (e.key === 'Backspace' && !['INPUT', 'TEXTAREA'].includes(document.activeElement.tagName))) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    showScreenLockDialog();
+                    return false;
+                }
+                
+                // Allow F5 refresh but save state first
+                if (e.key === 'F5' || (e.ctrlKey && e.key === 'r')) {
+                    // Save game state before refresh
+                    if (typeof saveGameStateSync === 'function') {
+                        saveGameStateSync();
+                    }
+                    // Allow refresh
+                }
+                
+                // Block Escape key navigation
+                if (e.key === 'Escape') {
+                    e.preventDefault();
+                    showScreenLockDialog();
+                    return false;
+                }
+            });
+            
+            // Prevent navigation unless explicitly allowed
+            window.addEventListener('beforeunload', function(e) {
+                // Always try to save game state
+                if (typeof saveGameStateSync === 'function') {
+                    saveGameStateSync();
+                }
+                
+                // If navigation is not allowed, show warning
+                if (!allowNavigation) {
+                    const message = 'You must enter password to exit solitaire!';
+                    e.preventDefault();
+                    e.returnValue = message;
+                    
+                    // Show screen lock dialog after a small delay
+                    setTimeout(function() {
+                        showScreenLockDialog();
+                    }, 100);
+                    
+                    return message;
+                }
+                
+                // Don't show warning - allow smooth duplicate tab functionality
+                return undefined;
+            });
+        })();
+        
+        // Get game state from backend
+        const initialGameState = {{ game_state|safe }};
+        const sessionId = '{{ session_id }}';
+        const tabId = '{{ tab_id }}';
+        
+        console.log('=== GAME STATE FROM BACKEND ===');
+        console.log('Session ID:', sessionId);
+        console.log('Tab ID:', tabId);
+        console.log('Initial game state:', initialGameState);
+        console.log('Stock count:', initialGameState.stock ? initialGameState.stock.length : 0);
+        console.log('Waste count:', initialGameState.waste ? initialGameState.waste.length : 0);
+        console.log('Tableau:', initialGameState.tableau ? initialGameState.tableau.map(p => p.length) : []);
+        console.log('Moves from backend:', initialGameState.moves);
+        console.log('Score from backend:', initialGameState.score);
+        console.log('Time from backend:', initialGameState.time);
+        
+        // Verify we have valid game state
+        if (!initialGameState || (!initialGameState.stock && !initialGameState.waste && !initialGameState.tableau)) {
+            console.error('❌ CRITICAL ERROR: No valid game state from backend!');
+            alert('Error: Could not load game state. Please refresh the page.');
+        }
+        
+        const suits = ['♠', '♥', '♦', '♣'];
+        const ranks = ['A', '2', '3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K'];
+        const values = { A: 1, J: 11, Q: 12, K: 13 };
+        
+        // Initialize saveTimer globally
+        let saveTimer = null;
+        
+        // Convert backend card format to frontend format
+        function convertCard(card) {
+            if (!card) {
+                console.error('convertCard called with null/undefined card');
+                return null;
+            }
+            
+            const suitMap = {
+                'clubs': 3,    // ♣
+                'hearts': 1,   // ♥
+                'diamonds': 2, // ♦
+                'spades': 0    // ♠
+            };
+            
+            const suitIndex = typeof card.suit === 'string' ? suitMap[card.suit] : card.suit;
+            
+            if (suitIndex === undefined || suitIndex === null) {
+                console.error('Invalid suit:', card.suit);
+                return null;
+            }
+            
+            return {
+                suit: suitIndex,
+                rank: card.rank || 'A',
+                value: card.value || values[card.rank] || parseInt(card.rank) || 1,
+                color: (suitIndex === 1 || suitIndex === 2) ? 'red' : 'black',
+                faceUp: card.face_up === true  // Only true if explicitly true, false otherwise
+            };
+        }
+        
+        // Check if we have valid game state from backend
+        console.log('Checking initialGameState:', initialGameState);
+        console.log('Has tableau:', initialGameState && initialGameState.tableau);
+        console.log('Is array:', initialGameState && Array.isArray(initialGameState.tableau));
+        console.log('Has cards:', initialGameState && initialGameState.tableau && initialGameState.tableau.some(pile => pile && pile.length > 0));
+        
+        // Game state is always valid if we have it from backend
+        const hasGameState = initialGameState && (initialGameState.tableau || initialGameState.stock);
+        
+        if (!hasGameState) {
+            console.error('NO GAME STATE FROM BACKEND! Creating empty state.');
+            // Don't return, create empty state instead
+        }
+        
+        // Initialize game object - will be populated in initializeGameObject()
+        let game = null;
+        
+        function initializeGameObject() {
+            console.log('Initializing game object from state:', initialGameState);
+            
+            game = {
+                deck: [],
+                stock: initialGameState.stock ? initialGameState.stock.map(convertCard).filter(c => c !== null) : [],
+                waste: initialGameState.waste ? initialGameState.waste.map(convertCard).filter(c => c !== null) : [],
+                foundations: initialGameState.foundations ? 
+                    (Array.isArray(initialGameState.foundations) ? 
+                        initialGameState.foundations.map(pile => pile ? pile.map(convertCard).filter(c => c !== null) : []) :
+                        [
+                            initialGameState.foundations.spades ? initialGameState.foundations.spades.map(convertCard).filter(c => c !== null) : [],
+                            initialGameState.foundations.hearts ? initialGameState.foundations.hearts.map(convertCard).filter(c => c !== null) : [],
+                            initialGameState.foundations.diamonds ? initialGameState.foundations.diamonds.map(convertCard).filter(c => c !== null) : [],
+                            initialGameState.foundations.clubs ? initialGameState.foundations.clubs.map(convertCard).filter(c => c !== null) : []
+                        ]
+                    ) : 
+                    [[], [], [], []],
+                tableau: initialGameState.tableau ? 
+                    initialGameState.tableau.map((pile, pileIndex) => {
+                        if (!pile) return [];
+                        return pile.map((card, cardIndex) => {
+                            const converted = convertCard(card);
+                            return converted;
+                        }).filter(c => c !== null);
+                    }) : 
+                    [[], [], [], [], [], [], []],
+                score: initialGameState.score || 0,
+                moves: initialGameState.moves || 0,
+                moveHistory: initialGameState.move_history || [],
+                undoStack: [],
+                undoUsed: false,  // Track if undo has been used
+                wasteGroupSize: 0,  // Track visible waste group size
+                lastMoveTime: Date.now()  // Track time between moves
+            };
+            
+            console.log('Game object created:');
+            console.log('  Stock:', game.stock.length, 'cards');
+            console.log('  Waste:', game.waste.length, 'cards');
+            console.log('  Tableau:', game.tableau.map(p => p.length));
+            
+            return game;
+        }
+        
+        // Game object will be initialized when page loads
+        
+        
+        function createCard(card, faceUp) {
+            const cardEl = document.createElement('div');
+            cardEl.className = 'card';
+            
+            // Use the card's own faceUp property if not explicitly overridden
+            const shouldShowFace = faceUp !== undefined ? faceUp : (card && card.faceUp);
+            
+            
+            if (shouldShowFace && card) {
+                cardEl.classList.add('face-up', card.color);
+                
+                // Create card elements
+                const topLeft = document.createElement('div');
+                topLeft.className = 'card-corner top-left';
+                topLeft.innerHTML = `
+                    <div class="card-rank">${card.rank}</div>
+                    <div class="card-suit">${suits[card.suit]}</div>
+                `;
+                
+                const bottomRight = document.createElement('div');
+                bottomRight.className = 'card-corner bottom-right';
+                bottomRight.innerHTML = `
+                    <div class="card-rank">${card.rank}</div>
+                    <div class="card-suit">${suits[card.suit]}</div>
+                `;
+                
+                const center = document.createElement('div');
+                center.className = 'card-center';
+                center.textContent = suits[card.suit];
+                
+                cardEl.appendChild(topLeft);
+                cardEl.appendChild(bottomRight);
+                cardEl.appendChild(center);
+            } else {
+                cardEl.classList.add('face-down');
+            }
+            
+            return cardEl;
+        }
+        
+        let renderInProgress = false;
+        function render() {
+            console.log('=== RENDER CALLED ===');
+            
+            // Prevent multiple simultaneous renders
+            if (renderInProgress) {
+                console.log('Render already in progress, skipping');
+                return;
+            }
+            renderInProgress = true;
+            
+            try {
+                // Clear all cards
+                document.querySelectorAll('.card').forEach(c => c.remove());
+                console.log('Cleared existing cards');
+            
+            // Don't auto-save on every render - this causes too many API calls!
+            // Save will be triggered by user actions instead
+            
+            // Render stock - always show face-down
+            if (game.stock.length > 0) {
+                const stockEl = document.getElementById('stock');
+                // Explicitly pass false to show card face-down
+                const card = createCard(game.stock[game.stock.length - 1], false);
+                card.style.top = '0';
+                card.style.left = '0';
+                stockEl.appendChild(card);
+            }
+            
+            // Render waste - show the last draw group (1-3 cards)
+            if (game.waste.length > 0) {
+                const wasteEl = document.getElementById('waste');
+                
+                // Determine the visible group size
+                // wasteGroupSize tracks how many cards are in the current visible group
+                // Only reset if it's undefined, null, or exceeds waste length
+                if (game.wasteGroupSize === undefined || game.wasteGroupSize === null || game.wasteGroupSize > game.waste.length) {
+                    // If not set or invalid, show last 3 or all remaining
+                    console.log('Resetting wasteGroupSize from', game.wasteGroupSize, 'to', Math.min(3, game.waste.length));
+                    game.wasteGroupSize = Math.min(3, game.waste.length);
+                }
+                
+                // If wasteGroupSize is 0 and we have cards, it means all visible cards were taken
+                // We should show the previous group or prepare for reset
+                if (game.wasteGroupSize === 0 && game.waste.length > 0) {
+                    console.log('wasteGroupSize is 0 but waste has', game.waste.length, 'cards. Adjusting...');
+                    // Show the next available group (going backwards)
+                    const remainingCards = game.waste.length;
+                    game.wasteGroupSize = Math.min(3, remainingCards);
+                    console.log('Adjusted wasteGroupSize to:', game.wasteGroupSize);
+                }
+                
+                // Now render if we have cards to show
+                if (game.wasteGroupSize > 0) {
+                
+                // Calculate start index for the visible group
+                const startIndex = game.waste.length - game.wasteGroupSize;
+                
+                console.log('Rendering waste:', game.waste.length, 'total cards, showing', game.wasteGroupSize, 'cards from index', startIndex);
+                
+                // Render the visible group
+                for (let i = 0; i < game.wasteGroupSize; i++) {
+                    const cardIndex = startIndex + i;
+                    if (cardIndex >= 0 && cardIndex < game.waste.length) {
+                        const card = createCard(game.waste[cardIndex], true);
+                        card.style.top = '0';
+                        card.style.left = (i * 25) + 'px'; // Spread cards horizontally
+                        card.style.zIndex = i + 1;
+                        
+                        // Only the last card in the group is draggable
+                        if (i === game.wasteGroupSize - 1) {
+                            card.dataset.pile = 'waste';
+                            card.draggable = true;
+                        }
+                        
+                        wasteEl.appendChild(card);
+                    }
+                }
+                } // Close the else block for wasteGroupSize > 0
+            } else {
+                // Waste is empty, make sure wasteGroupSize is 0
+                game.wasteGroupSize = 0;
+            }
+            
+            // Render foundations
+            for (let f = 0; f < 4; f++) {
+                const foundation = document.getElementById('foundation-' + f);
+                const pile = game.foundations[f];
+                if (pile && pile.length > 0) {
+                    const topCard = pile[pile.length - 1];
+                    const card = createCard(topCard, true);
+                    card.style.top = '0';
+                    card.style.left = '0';
+                    foundation.appendChild(card);
+                }
+            }
+            
+            // Render tableau - proper stacking with consistent spacing
+            const CARD_SPACING = {
+                FACE_DOWN: 22,  // Increased by 20% from 18
+                FACE_UP: 30     // Increased by 20% from 25
+            };
+            
+            for (let col = 0; col < 7; col++) {
+                const tableau = document.getElementById('tableau-' + col);
+                const pile = game.tableau[col];
+                
+                pile.forEach((card, index) => {
+                    // Pass the card's faceUp property explicitly
+                    const cardEl = createCard(card, card.faceUp);
+                    
+                    // Calculate cumulative offset based on all previous cards
+                    let yOffset = 0;
+                    for (let i = 0; i < index; i++) {
+                        yOffset += pile[i].faceUp ? CARD_SPACING.FACE_UP : CARD_SPACING.FACE_DOWN;
+                    }
+                    
+                    cardEl.style.position = 'absolute';
+                    cardEl.style.top = yOffset + 'px';
+                    cardEl.style.left = '0';
+                    cardEl.style.zIndex = index;
+                    
+                    // Add drag and double-click handlers for face-up cards
+                    if (card.faceUp) {
+                        cardEl.draggable = true;
+                        cardEl.dataset.pile = 'tableau';
+                        cardEl.dataset.column = col;
+                        cardEl.dataset.index = index;
+                        
+                        // Drag events
+                        cardEl.addEventListener('dragstart', handleDragStart);
+                        cardEl.addEventListener('dragend', handleDragEnd);
+                        
+                        // Double-click to auto-move - simple and direct
+                        cardEl.addEventListener('dblclick', function(e) {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            
+                            // Get current state of pile and card
+                            const currentPile = game.tableau[col];
+                            const currentIndex = currentPile.length - 1;
+                            
+                            // Only process if this is still the top card
+                            if (index === currentIndex && currentPile[currentIndex]) {
+                                const topCard = currentPile[currentIndex];
+                                
+                                // Try to place on each foundation
+                                for (let f = 0; f < 4; f++) {
+                                    if (canPlaceOnFoundation(topCard, game.foundations[f])) {
+                                        // Record the auto-move in history BEFORE making changes
+                                        const move = recordMove('auto', 
+                                            `tableau-${col}`,
+                                            `foundation-${f}`,
+                                            [topCard],
+                                            { 
+                                                score: game.score, 
+                                                isDoubleClick: true,
+                                                sourceHadFaceDown: currentPile.length > 1 && !currentPile[currentPile.length - 2].faceUp
+                                            }
+                                        );
+                                        
+                                        // Move the card
+                                        currentPile.pop();
+                                        game.foundations[f].push(topCard);
+                                        game.score += 10;
+                                        
+                                        // Flip next card if needed
+                                        if (currentPile.length > 0 && !currentPile[currentPile.length - 1].faceUp) {
+                                            currentPile[currentPile.length - 1].faceUp = true;
+                                        }
+                                        
+                                        game.moves++;
+                                        
+                                        // Update UI
+                                        document.getElementById('moves').textContent = game.moves;
+                                        document.getElementById('score').textContent = game.score;
+                                        
+                                        // Render immediately
+                                        render();
+                                        
+                                        // Use debounced save instead of immediate save to avoid rate limits
+                                        debouncedSave();
+                                        
+                                        game.lastMoveTime = Date.now();
+                                        break;
+                                    }
+                                }
+                            }
+                        });
+                    }
+                    
+                    tableau.appendChild(cardEl);
+                });
+            }
+            
+                console.log('Render complete - Stock:', document.querySelectorAll('#stock .card').length, 
+                           'Tableau:', document.querySelectorAll('[id^=tableau-] .card').length);
+                
+            } catch (error) {
+                console.error('ERROR in render():', error);
+                console.error('Stack trace:', error.stack);
+            } finally {
+                // Always release render lock
+                setTimeout(() => {
+                    renderInProgress = false;
+                    console.log('Render lock released');
+                }, 10);
+            }
+        }
+        
+        function initGame() {
+            console.log('=== INITIALIZING GAME ===');
+            
+            // We ALWAYS have backend state in the new system
+            console.log('Using backend game state');
+            console.log('Stock cards:', game.stock.length);
+            console.log('Waste cards:', game.waste.length);
+            console.log('Tableau piles:', game.tableau.map(p => p ? p.length : 0));
+            console.log('Moves:', game.moves);
+            console.log('Score:', game.score);
+            
+            // Restore timer if we have time from backend
+            if (initialGameState.time && initialGameState.time > 0) {
+                const savedTime = initialGameState.time;
+                startTime = Date.now() - (savedTime * 1000);
+                console.log('Restored timer:', savedTime, 'seconds');
+            }
+            
+            // Update UI with saved values
+            document.getElementById('score').textContent = game.score;
+            document.getElementById('moves').textContent = game.moves;
+            
+            // Render the game
+            render();
+            
+            // Verify cards are rendered
+            setTimeout(() => {
+                const cardCount = document.querySelectorAll('.card').length;
+                console.log('Cards rendered:', cardCount);
+                if (cardCount === 0) {
+                    console.error('NO CARDS RENDERED! Check render() function');
+                }
+            }, 100);
+            
+            // NOTE: Removed duplicate game creation logic!
+            // The game object is already properly initialized from backend state above.
+            // We should NOT create a new deck or deal new cards here - use backend state!
+        }
+        
+        // Stock click handler
+        // Move tracking functions
+        function recordMove(moveType, from, to, cards, additionalInfo = {}) {
+            // Reset undo flag when making a new move
+            game.undoUsed = false;
+            
+            // Save the state BEFORE the move for undo
+            const previousState = {
+                stock: game.stock.map(c => ({...c})),
+                waste: game.waste.map(c => ({...c})),
+                foundations: game.foundations.map(f => f.map(c => ({...c}))),
+                tableau: game.tableau.map(t => t.map(c => ({...c}))),
+                score: game.score,
+                moves: game.moves,
+                wasteGroupSize: game.wasteGroupSize  // Save waste group size too
+            };
+            
+            const move = {
+                type: moveType,
+                from: from,
+                to: to,
+                cards: cards.map(c => ({...c})), // Deep copy cards
+                timestamp: Date.now(),
+                moveNumber: game.moves + 1,
+                previousState: previousState, // Store complete previous state
+                ...additionalInfo
+            };
+            
+            if (!game.moveHistory) {
+                game.moveHistory = [];
+            }
+            game.moveHistory.push(move);
+            
+            // Keep only last 100 moves to prevent memory issues
+            if (game.moveHistory.length > 100) {
+                game.moveHistory = game.moveHistory.slice(-100);
+            }
+            
+            console.log('Move recorded:', move);
+            return move;
+        }
+        
+        function handleStockClick() {
+            let moveInfo = null;
+            
+            if (game.stock.length > 0) {
+                // Draw cards from stock
+                const cardsToDrawCount = Math.min(3, game.stock.length);
+                const cardsToDrawInfo = [];
+                
+                // Look at what cards will be drawn (without removing them yet)
+                for (let i = 0; i < cardsToDrawCount; i++) {
+                    const card = game.stock[game.stock.length - 1 - i];
+                    cardsToDrawInfo.push({rank: card.rank, suit: card.suit});
+                }
+                
+                // Record move BEFORE making changes
+                moveInfo = recordMove('draw', 'stock', 'waste', cardsToDrawInfo, {
+                    cardsDrawn: cardsToDrawCount,
+                    stockRemaining: game.stock.length - cardsToDrawCount,
+                    wasteCountBefore: game.waste.length
+                });
+                
+                // Now actually draw the cards
+                const drawnCards = [];
+                for (let i = 0; i < cardsToDrawCount; i++) {
+                    const card = game.stock.pop();
+                    card.faceUp = true;
+                    game.waste.push(card);
+                    drawnCards.push(card);
+                }
+                
+                // Set the waste group size to the number of cards just drawn
+                game.wasteGroupSize = cardsToDrawCount;
+                
+                console.log('Drew', drawnCards.length, 'cards from stock. Waste now has:', game.waste.length, 'cards, group size:', game.wasteGroupSize);
+                
+            } else if (game.waste.length > 0) {
+                // Record move BEFORE making changes
+                const cardsToReturn = [...game.waste];
+                
+                moveInfo = recordMove('reset', 'waste', 'stock', cardsToReturn, {
+                    cardsReturned: cardsToReturn.length
+                });
+                
+                // Now actually reset the stock
+                console.log('Resetting stock. Waste has:', game.waste.length, 'cards');
+                
+                // Important: Reverse the waste to maintain the original order
+                const wasteReversed = [...game.waste].reverse();
+                game.waste = []; // Clear waste array
+                game.wasteGroupSize = 0; // Reset waste group size
+                
+                // Put cards back in stock in correct order
+                wasteReversed.forEach(card => {
+                    card.faceUp = false;
+                    game.stock.push(card);
+                });
+                
+                console.log('Stock reset complete. Stock now has:', game.stock.length, 'cards, waste group size reset to 0');
+            }
+            
+            const scoreBefore = game.score;
+            game.moves++;
+            document.getElementById('moves').textContent = game.moves;
+            
+            // Track move details
+            if (moveInfo) {
+                const moveDetails = {
+                    from_type: moveInfo.moveType === 'draw' ? 'stock' : 'waste',
+                    from_index: null,
+                    to_type: moveInfo.moveType === 'draw' ? 'waste' : 'stock',
+                    to_index: null,
+                    cards: moveInfo.cards.map(c => ({
+                        suit: ['S', 'H', 'D', 'C'][c.suit],
+                        rank: c.rank.toString(),
+                        face_up: c.faceUp || false
+                    })),
+                    score_before: scoreBefore,
+                    time_since_start: Math.floor((Date.now() - startTime) / 1000),
+                    time_since_last_move: Math.floor((Date.now() - game.lastMoveTime) / 1000),
+                    is_undo: false,
+                    is_auto: false
+                };
+                
+                game.lastMoveTime = Date.now();
+                render();
+                saveGameStateWithMove(moveDetails);
+            } else {
+                render();
+                saveGameState();
+            }
+        }
+        
+        // Timer variables
+        let startTime = Date.now();
+        let timerInterval = null;
+        
+        function formatDuration(seconds) {
+            // Handle very long durations (days, months, years)
+            const year = 365 * 24 * 60 * 60;
+            const month = 30 * 24 * 60 * 60;
+            const day = 24 * 60 * 60;
+            const hour = 60 * 60;
+            const minute = 60;
+            
+            if (seconds >= year) {
+                const years = Math.floor(seconds / year);
+                const remaining = seconds % year;
+                const days = Math.floor(remaining / day);
+                return `${years}y ${days}d`;
+            } else if (seconds >= month) {
+                const months = Math.floor(seconds / month);
+                const remaining = seconds % month;
+                const days = Math.floor(remaining / day);
+                return `${months}mo ${days}d`;
+            } else if (seconds >= day) {
+                const days = Math.floor(seconds / day);
+                const remaining = seconds % day;
+                const hours = Math.floor(remaining / hour);
+                return `${days}d ${hours}h`;
+            } else if (seconds >= hour) {
+                const hours = Math.floor(seconds / hour);
+                const remaining = seconds % hour;
+                const minutes = Math.floor(remaining / minute);
+                return `${hours}h ${minutes}m`;
+            } else {
+                const minutes = Math.floor(seconds / minute);
+                const secs = seconds % minute;
+                return `${minutes}:${secs.toString().padStart(2, '0')}`;
+            }
+        }
+        
+        function updateTimer() {
+            const elapsed = Math.floor((Date.now() - startTime) / 1000);
+            document.getElementById('timer').textContent = formatDuration(elapsed);
+        }
+        
+        function startTimer() {
+            // Don't reset startTime if we already have a saved time
+            // This preserves the timer across page reloads
+            if (timerInterval) clearInterval(timerInterval);
+            
+            // Only set startTime if it's not already set (from saved game)
+            if (!startTime || startTime === Date.now()) {
+                startTime = Date.now();
+            }
+            
+            timerInterval = setInterval(updateTimer, 1000);
+            updateTimer();
+        }
+        
+        function stopTimer() {
+            if (timerInterval) {
+                clearInterval(timerInterval);
+                timerInterval = null;
+            }
+        }
+        
+        // Game logic functions
+        function canPlaceOnTableau(card, targetCard) {
+            if (!targetCard) {
+                // Empty pile - only Kings can go here
+                return card.rank === 'K';
+            }
+            // Different color and one rank lower
+            const isOppositeColor = card.color !== targetCard.color;
+            const isOneLower = card.value === targetCard.value - 1;
+            return isOppositeColor && isOneLower;
+        }
+        
+        function canPlaceOnFoundation(card, foundation) {
+            if (foundation.length === 0) {
+                // Empty foundation - only Aces
+                return card.rank === 'A';
+            }
+            const topCard = foundation[foundation.length - 1];
+            // Same suit and one rank higher
+            return card.suit === topCard.suit && card.value === topCard.value + 1;
+        }
+        
+        function tryAutoMoveToFoundation(card, fromPile) {
+            // Try to auto-move card to appropriate foundation
+            for (let f = 0; f < 4; f++) {
+                if (canPlaceOnFoundation(card, game.foundations[f])) {
+                    // Remove from source
+                    fromPile.pop();
+                    // Add to foundation
+                    game.foundations[f].push(card);
+                    // Update score
+                    game.score += 10;
+                    document.getElementById('score').textContent = game.score;
+                    return true;
+                }
+            }
+            return false;
+        }
+        
+        // Drag and drop variables
+        let draggedCards = [];
+        let draggedFrom = null;
+        let dragGhost = null;
+        
+        // Drag and drop handlers
+        function handleDragStart(e) {
+            const pile = e.target.dataset.pile;
+            const col = parseInt(e.target.dataset.column);
+            const index = parseInt(e.target.dataset.index);
+            
+            if (pile === 'tableau') {
+                // Get all cards from this index to end
+                draggedCards = game.tableau[col].slice(index);
+                draggedFrom = { type: 'tableau', column: col, index: index };
+            } else if (pile === 'waste') {
+                // Only top card from waste
+                draggedCards = [game.waste[game.waste.length - 1]];
+                draggedFrom = { type: 'waste' };
+            }
+            
+            e.target.classList.add('dragging');
+            e.dataTransfer.effectAllowed = 'move';
+        }
+        
+        function handleDragEnd(e) {
+            e.target.classList.remove('dragging');
+            draggedCards = [];
+            draggedFrom = null;
+        }
+        
+        function handleDragOver(e) {
+            e.preventDefault();
+            e.dataTransfer.dropEffect = 'move';
+        }
+        
+        function handleDrop(e) {
+            e.preventDefault();
+            
+            if (!draggedCards.length || !draggedFrom) return;
+            
+            const targetEl = e.target.closest('.card-slot');
+            if (!targetEl) return;
+            
+            const targetId = targetEl.id;
+            let moved = false;
+            
+            if (targetId.startsWith('tableau-')) {
+                const col = parseInt(targetId.split('-')[1]);
+                const targetPile = game.tableau[col];
+                const targetCard = targetPile.length > 0 ? targetPile[targetPile.length - 1] : null;
+                
+                if (canPlaceOnTableau(draggedCards[0], targetCard)) {
+                    // Record move BEFORE making changes
+                    const move = recordMove('drag', 
+                        draggedFrom.type === 'tableau' ? `tableau-${draggedFrom.column}` : draggedFrom.type,
+                        targetId,
+                        draggedCards,
+                        { 
+                            score: game.score,
+                            sourceHadFaceDown: draggedFrom.type === 'tableau' && 
+                                              draggedFrom.index > 0 && 
+                                              game.tableau[draggedFrom.column][draggedFrom.index - 1] &&
+                                              !game.tableau[draggedFrom.column][draggedFrom.index - 1].faceUp
+                        }
+                    );
+                    
+                    // Remove from source
+                    if (draggedFrom.type === 'tableau') {
+                        game.tableau[draggedFrom.column].splice(draggedFrom.index);
+                    } else if (draggedFrom.type === 'waste') {
+                        game.waste.pop();
+                        // Decrease waste group size when a card is taken
+                        if (game.wasteGroupSize > 0) {
+                            game.wasteGroupSize--;
+                            console.log('Waste card taken. New wasteGroupSize:', game.wasteGroupSize);
+                        }
+                    }
+                    
+                    // Add to target
+                    draggedCards.forEach(card => targetPile.push(card));
+                    moved = true;
+                    
+                    // Flip card in source if needed
+                    if (draggedFrom.type === 'tableau') {
+                        const sourcePile = game.tableau[draggedFrom.column];
+                        if (sourcePile.length > 0 && !sourcePile[sourcePile.length - 1].faceUp) {
+                            sourcePile[sourcePile.length - 1].faceUp = true;
+                        }
+                    }
+                }
+            } else if (targetId.startsWith('foundation-') && draggedCards.length === 1) {
+                const f = parseInt(targetId.split('-')[1]);
+                if (canPlaceOnFoundation(draggedCards[0], game.foundations[f])) {
+                    // Record move BEFORE making changes
+                    const move = recordMove('drag', 
+                        draggedFrom.type === 'tableau' ? `tableau-${draggedFrom.column}` : draggedFrom.type,
+                        targetId,
+                        draggedCards,
+                        { 
+                            score: game.score,
+                            sourceHadFaceDown: draggedFrom.type === 'tableau' && 
+                                              game.tableau[draggedFrom.column].length > 1 &&
+                                              !game.tableau[draggedFrom.column][game.tableau[draggedFrom.column].length - 2].faceUp
+                        }
+                    );
+                    
+                    // Remove from source
+                    if (draggedFrom.type === 'tableau') {
+                        game.tableau[draggedFrom.column].pop();
+                        // Flip next card if needed
+                        const sourcePile = game.tableau[draggedFrom.column];
+                        if (sourcePile.length > 0 && !sourcePile[sourcePile.length - 1].faceUp) {
+                            sourcePile[sourcePile.length - 1].faceUp = true;
+                        }
+                    } else if (draggedFrom.type === 'waste') {
+                        game.waste.pop();
+                        // Decrease waste group size when a card is taken
+                        if (game.wasteGroupSize > 0) {
+                            game.wasteGroupSize--;
+                            console.log('Waste card taken. New wasteGroupSize:', game.wasteGroupSize);
+                        }
+                    }
+                    
+                    // Add to foundation
+                    game.foundations[f].push(draggedCards[0]);
+                    game.score += 10;
+                    moved = true;
+                }
+            }
+            
+            if (moved) {
+                const scoreBefore = game.score - (targetId.startsWith('foundation-') ? 10 : 0);
+                game.moves++;
+                document.getElementById('moves').textContent = game.moves;
+                document.getElementById('score').textContent = game.score;
+                
+                // Don't record move again - already recorded above
+                
+                // Track move details for backend
+                const moveDetails = {
+                    from_type: draggedFrom.type,
+                    from_index: draggedFrom.type === 'tableau' ? draggedFrom.column : null,
+                    to_type: targetId.startsWith('tableau-') ? 'tableau' : 'foundation',
+                    to_index: parseInt(targetId.split('-')[1]),
+                    cards: draggedCards.map(c => ({
+                        suit: ['S', 'H', 'D', 'C'][c.suit],
+                        rank: c.rank.toString(),
+                        face_up: c.faceUp
+                    })),
+                    score_before: scoreBefore,
+                    time_since_start: Math.floor((Date.now() - startTime) / 1000),
+                    time_since_last_move: Math.floor((Date.now() - game.lastMoveTime) / 1000),
+                    is_undo: false,
+                    is_auto: false
+                };
+                
+                game.lastMoveTime = Date.now();
+                render();
+                saveGameStateWithMove(moveDetails);
+            }
+        }
+        
+        // Synchronous save for exit
+        async function saveGameStateSync() {
+            if (!sessionId) {
+                console.warn('No session ID, cannot save');
+                return;
+            }
+            
+            // Convert frontend format back to backend format
+            const backendGameState = {
+                stock: game.stock.map(card => ({
+                    suit: ['spades', 'hearts', 'diamonds', 'clubs'][card.suit],
+                    rank: card.rank,
+                    face_up: card.faceUp || false
+                })),
+                waste: game.waste.map(card => ({
+                    suit: ['spades', 'hearts', 'diamonds', 'clubs'][card.suit],
+                    rank: card.rank,
+                    face_up: true
+                })),
+                foundations: {
+                    spades: game.foundations[0]?.map(card => ({
+                        suit: 'spades',
+                        rank: card.rank,
+                        face_up: true
+                    })) || [],
+                    hearts: game.foundations[1]?.map(card => ({
+                        suit: 'hearts',
+                        rank: card.rank,
+                        face_up: true
+                    })) || [],
+                    diamonds: game.foundations[2]?.map(card => ({
+                        suit: 'diamonds',
+                        rank: card.rank,
+                        face_up: true
+                    })) || [],
+                    clubs: game.foundations[3]?.map(card => ({
+                        suit: 'clubs',
+                        rank: card.rank,
+                        face_up: true
+                    })) || []
+                },
+                tableau: game.tableau.map(pile => 
+                    pile.map(card => ({
+                        suit: ['spades', 'hearts', 'diamonds', 'clubs'][card.suit],
+                        rank: card.rank,
+                        face_up: card.faceUp || false
+                    }))
+                ),
+                score: game.score,
+                moves: game.moves,
+                time: Math.floor((Date.now() - startTime) / 1000),
+                is_won: false,
+                move_history: game.moveHistory || [],
+                undo_stack: game.undoStack || []
+            };
+            
+            try {
+                const savePayload = {
+                    session_id: sessionId,
+                    game_state: backendGameState,
+                    score: game.score,
+                    moves: game.moves,
+                    time: Math.floor((Date.now() - startTime) / 1000)
+                };
+                
+                console.log('Sync save - Session:', sessionId, 'Moves:', savePayload.moves, 'Score:', savePayload.score);
+                
+                const response = await fetch('/solitaire/api/save/', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': getCookie('csrftoken')
+                    },
+                    body: JSON.stringify(savePayload)
+                });
+                
+                if (!response.ok) {
+                    const text = await response.text();
+                    console.error('Sync save HTTP error:', response.status, text);
+                    throw new Error(`HTTP ${response.status}: ${text}`);
+                }
+                
+                const result = await response.json();
+                console.log('Game saved synchronously:', result);
+                return result;
+            } catch (error) {
+                console.error('Failed to save game synchronously:', error);
+            }
+        }
+        
+        // Throttle mechanism removed - saving every move immediately
+        // let lastSaveTime = 0;
+        // const SAVE_THROTTLE_MS = 500; // Minimum 500ms between saves
+        
+        // Save game state with move details
+        function saveGameStateWithMove(moveDetails = null) {
+            if (!sessionId) {
+                console.warn('No session ID, cannot save');
+                return;
+            }
+            
+            // Save immediately - no throttling
+            // Every move is saved to the backend
+            
+            // Convert frontend format back to backend format
+            const backendGameState = {
+                stock: game.stock.map(card => ({
+                    suit: ['spades', 'hearts', 'diamonds', 'clubs'][card.suit],
+                    rank: card.rank,
+                    face_up: card.faceUp || false
+                })),
+                waste: game.waste.map(card => ({
+                    suit: ['spades', 'hearts', 'diamonds', 'clubs'][card.suit],
+                    rank: card.rank,
+                    face_up: true
+                })),
+                foundations: {
+                    spades: game.foundations[0]?.map(card => ({
+                        suit: 'spades',
+                        rank: card.rank,
+                        face_up: true
+                    })) || [],
+                    hearts: game.foundations[1]?.map(card => ({
+                        suit: 'hearts',
+                        rank: card.rank,
+                        face_up: true
+                    })) || [],
+                    diamonds: game.foundations[2]?.map(card => ({
+                        suit: 'diamonds',
+                        rank: card.rank,
+                        face_up: true
+                    })) || [],
+                    clubs: game.foundations[3]?.map(card => ({
+                        suit: 'clubs',
+                        rank: card.rank,
+                        face_up: true
+                    })) || []
+                },
+                tableau: game.tableau.map(pile => 
+                    pile.map(card => ({
+                        suit: ['spades', 'hearts', 'diamonds', 'clubs'][card.suit],
+                        rank: card.rank,
+                        face_up: card.faceUp || false
+                    }))
+                ),
+                score: game.score,
+                moves: game.moves,
+                time: Math.floor((Date.now() - startTime) / 1000),
+                is_won: false,
+                move_history: game.moveHistory || [],
+                undo_stack: game.undoStack || []
+            };
+            
+            // If moveDetails provided, send to save endpoint with save_with_move action
+            if (moveDetails) {
+                fetch(`/solitaire/api/save/`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': getCookie('csrftoken')
+                    },
+                    body: JSON.stringify({
+                        action: 'save_with_move',  // Use the correct action
+                        session_id: sessionId,
+                        game_state: backendGameState,  // Include full game state
+                        score: game.score,
+                        moves: game.moves,
+                        move_details: moveDetails
+                    })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (!data.success) {
+                        console.error('Failed to save move:', data.error);
+                    }
+                })
+                .catch(error => {
+                    console.error('Failed to save move:', error);
+                });
+            } else {
+                // No move details, just save the state
+                saveGameState();
+            }
+        }
+        
+        // Save game state to backend
+        function saveGameState() {
+            if (!sessionId) {
+                console.warn('No session ID, cannot save');
+                return;
+            }
+            
+            // Convert frontend format back to backend format
+            const backendGameState = {
+                stock: game.stock.map(card => ({
+                    suit: ['spades', 'hearts', 'diamonds', 'clubs'][card.suit],
+                    rank: card.rank,
+                    face_up: card.faceUp || false
+                })),
+                waste: game.waste.map(card => ({
+                    suit: ['spades', 'hearts', 'diamonds', 'clubs'][card.suit],
+                    rank: card.rank,
+                    face_up: true  // Waste cards are always face-up
+                })),
+                foundations: {
+                    spades: game.foundations[0]?.map(card => ({
+                        suit: 'spades',
+                        rank: card.rank,
+                        face_up: true
+                    })) || [],
+                    hearts: game.foundations[1]?.map(card => ({
+                        suit: 'hearts',
+                        rank: card.rank,
+                        face_up: true
+                    })) || [],
+                    diamonds: game.foundations[2]?.map(card => ({
+                        suit: 'diamonds',
+                        rank: card.rank,
+                        face_up: true
+                    })) || [],
+                    clubs: game.foundations[3]?.map(card => ({
+                        suit: 'clubs',
+                        rank: card.rank,
+                        face_up: true
+                    })) || []
+                },
+                tableau: game.tableau.map(pile => 
+                    pile.map(card => ({
+                        suit: ['spades', 'hearts', 'diamonds', 'clubs'][card.suit],
+                        rank: card.rank,
+                        face_up: card.faceUp || false
+                    }))
+                ),
+                score: game.score,
+                moves: game.moves,
+                time: Math.floor((Date.now() - startTime) / 1000),
+                is_won: false,
+                move_history: game.moveHistory || [],
+                undo_stack: game.undoStack || []
+            };
+            
+            const saveData = {
+                session_id: sessionId,
+                game_state: backendGameState,
+                score: game.score,
+                moves: game.moves,
+                time: Math.floor((Date.now() - startTime) / 1000)
+            };
+            
+            console.log('=== SAVING GAME STATE ===');
+            console.log('Session ID:', sessionId);
+            console.log('Moves:', saveData.moves);
+            console.log('Score:', saveData.score);
+            console.log('Time:', saveData.time);
+            console.log('Stock cards being saved:', backendGameState.stock.length);
+            console.log('Waste cards being saved:', backendGameState.waste.length);
+            console.log('Tableau being saved:', backendGameState.tableau.map(p => p.length));
+            console.log('Full save data:', JSON.stringify(saveData));
+            
+            fetch('/solitaire/api/save/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': getCookie('csrftoken')
+                },
+                body: JSON.stringify(saveData)
+            })
+            .then(response => {
+                if (!response.ok) {
+                    console.error('✗ Save HTTP error:', response.status, response.statusText);
+                    return response.text().then(text => {
+                        console.error('Response body:', text);
+                        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                    });
+                }
+                return response.json();
+            })
+            .then(result => {
+                if (result && result.success) {
+                    console.log('✓ Game saved successfully');
+                } else {
+                    console.error('✗ Save failed:', result);
+                }
+            })
+            .catch(err => {
+                console.error('✗ Save error:', err);
+                console.error('Save data was:', saveData);
+            });
+        }
+        
+        // Get CSRF token
+        function getCookie(name) {
+            let cookieValue = null;
+            if (document.cookie && document.cookie !== '') {
+                const cookies = document.cookie.split(';');
+                for (let i = 0; i < cookies.length; i++) {
+                    const cookie = cookies[i].trim();
+                    if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                        break;
+                    }
+                }
+            }
+            return cookieValue;
+        }
+        
+        // Setup drop zones
+        function setupDropZones() {
+            // Add drop handlers to all tableau and foundation slots
+            document.querySelectorAll('.card-slot').forEach(slot => {
+                slot.addEventListener('dragover', handleDragOver);
+                slot.addEventListener('drop', handleDrop);
+            });
+        }
+        
+        // Add drag handlers to waste cards
+        function addWasteCardHandlers() {
+            const wasteEl = document.getElementById('waste');
+            const cards = wasteEl.querySelectorAll('.card');
+            if (cards.length > 0) {
+                const topCard = cards[cards.length - 1];
+                topCard.draggable = true;
+                topCard.dataset.pile = 'waste';
+                topCard.addEventListener('dragstart', handleDragStart);
+                topCard.addEventListener('dragend', handleDragEnd);
+                
+                // Double-click handler - simple and direct
+                topCard.addEventListener('dblclick', function(e) {
+                    e.preventDefault();
+                    
+                    const card = game.waste[game.waste.length - 1];
+                    if (!card) return;
+                    
+                    for (let f = 0; f < 4; f++) {
+                        if (canPlaceOnFoundation(card, game.foundations[f])) {
+                            // Record the move BEFORE making changes
+                            const move = recordMove('auto', 
+                                'waste',
+                                `foundation-${f}`,
+                                [card],
+                                { 
+                                    score: game.score, 
+                                    isDoubleClick: true
+                                }
+                            );
+                            
+                            // Move the card
+                            game.waste.pop();
+                            
+                            // Decrease waste group size when a card is taken via double-click
+                            if (game.wasteGroupSize > 0) {
+                                game.wasteGroupSize--;
+                                console.log('Waste card moved via double-click. New wasteGroupSize:', game.wasteGroupSize);
+                            }
+                            
+                            game.foundations[f].push(card);
+                            game.score += 10;
+                            game.moves++;
+                            
+                            // Update UI
+                            document.getElementById('moves').textContent = game.moves;
+                            document.getElementById('score').textContent = game.score;
+                            
+                            // Render immediately
+                            render();
+                            
+                            // Save state
+                            saveGameState();
+                            break;
+                        }
+                    }
+                });
+            }
+        }
+        
+        // Update render to call addWasteCardHandlers
+        const originalRender = render;
+        render = function() {
+            originalRender();
+            addWasteCardHandlers();
+        };
+        
+        // Game initialization will be handled by DOMContentLoaded event
+        
+        // Add event listeners
+        document.getElementById('stock').addEventListener('click', handleStockClick);
+        
+        // Save game state after moves and periodically
+        function debouncedSave() {
+            // Cancel previous save timer
+            if (saveTimer) {
+                clearTimeout(saveTimer);
+            }
+            // Save after 2 seconds of inactivity
+            saveTimer = setTimeout(saveGameState, 2000);
+        }
+        
+        // Auto-save every 30 seconds
+        setInterval(saveGameState, 30000);
+        
+        // Exit functions
+        function showExitDialog() {
+            document.getElementById('exitDialog').classList.add('show');
+            document.getElementById('screenLockCode').focus();
+        }
+        
+        function cancelExit() {
+            document.getElementById('exitDialog').classList.remove('show');
+            document.getElementById('screenLockCode').value = '';
+            document.getElementById('errorMsg').style.display = 'none';
+        }
+        
+        async function confirmExit() {
+            const code = document.getElementById('screenLockCode').value;
+            
+            if (!code) {
+                document.getElementById('errorMsg').textContent = 'Please enter code';
+                document.getElementById('errorMsg').style.display = 'block';
+                return;
+            }
+            
+            // Save game state before exit (wait for completion)
+            await saveGameStateSync();
+            
+            // Create form data for POST request
+            const formData = new FormData();
+            formData.append('password', code);
+            formData.append('tab_id', tabId);
+            
+            // Verify screen lock code
+            fetch('/administration/unlock/', {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': getCookie('csrftoken')
+                },
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // Allow navigation without warning
+                    allowNavigation = true;
+                    // Redirect to the previous page or main page
+                    window.location.replace(data.redirect_url || '/');
+                } else {
+                    document.getElementById('errorMsg').textContent = data.error || 'Invalid code';
+                    document.getElementById('errorMsg').style.display = 'block';
+                    document.getElementById('screenLockCode').value = '';
+                    document.getElementById('screenLockCode').focus();
+                }
+            })
+            .catch(err => {
+                console.error('Unlock error:', err);
+                document.getElementById('errorMsg').textContent = 'Error verifying code';
+                document.getElementById('errorMsg').style.display = 'block';
+            });
+        }
+        
+        // Track pressed keys for Q+W+E combination
+        let keysPressed = {};
+        
+        // Keyboard handlers
+        document.addEventListener('keydown', function(e) {
+            // Don't handle keys if dialog is showing and user is typing
+            const dialogShowing = document.getElementById('exitDialog').classList.contains('show');
+            const isTypingInInput = document.activeElement.tagName === 'INPUT';
+            
+            // Track key press
+            keysPressed[e.key.toLowerCase()] = true;
+            
+            // DISABLED - Q+W now handled by showScreenLockDialog function
+            // if (keysPressed['q'] && keysPressed['w'] && !keysPressed['e'] && !dialogShowing && !isTypingInInput) {
+            //     console.log('Q+W combination detected, exiting solitaire');
+            //     // Reset keys to prevent repeated triggers
+            //     keysPressed = {};
+            //     
+            //     e.preventDefault();
+            //     showExitDialog();
+            //     // Clear the input after a small delay to prevent 'q' from appearing
+            //     setTimeout(() => {
+            //         document.getElementById('screenLockCode').value = '';
+            //         document.getElementById('screenLockCode').focus();
+            //     }, 10);
+            // } else 
+            if (e.key === 'Escape') {
+                if (dialogShowing) {
+                    cancelExit();
+                }
+            }
+        });
+        
+        // Reset keys when any key is released
+        document.addEventListener('keyup', function(e) {
+            delete keysPressed[e.key.toLowerCase()];
+        });
+        
+        // Also reset when window loses focus
+        window.addEventListener('blur', function() {
+            keysPressed = {};
+        });
+        
+        // New game dialog functions
+        function cancelNewGame() {
+            document.getElementById('newGameDialog').style.display = 'none';
+        }
+        
+        function confirmNewGame() {
+            document.getElementById('newGameDialog').style.display = 'none';
+            
+            // Notify backend about new game
+            fetch('/solitaire/api/new_game/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': getCookie('csrftoken')
+                },
+                body: JSON.stringify({ 
+                    session_id: sessionId,
+                    action: 'new_game' 
+                })
+                }).then(response => response.json()).then(data => {
+                    if (data.game_state) {
+                        // Use new game state from backend
+                        const state = data.game_state;
+                        game.stock = state.stock.map(convertCard);
+                        game.waste = state.waste.map(convertCard);
+                        game.foundations = [[], [], [], []];
+                        game.tableau = state.tableau.map(pile => pile.map(convertCard));
+                        game.score = 0;
+                        game.moves = 0;
+                        game.moveHistory = [];
+                        game.undoStack = [];
+                        
+                        // Reset timer for new game
+                        startTime = Date.now();
+                        startTimer();
+                        
+                        // Update UI
+                        document.getElementById('score').textContent = '0';
+                        document.getElementById('moves').textContent = '0';
+                        
+                        render();
+                    }
+                }).catch(err => {
+                    console.error('New game error:', err);
+                    // Fallback to client-side new game
+                    createNewGameLocal();
+                });
+        }
+        
+        // Button function to show new game dialog
+        function newGame() {
+            document.getElementById('newGameDialog').style.display = 'flex';
+        }
+        
+        function createNewGameLocal() {
+            console.log('Creating new game...');
+            
+            // Call backend to create new game
+            fetch('/solitaire/api/new_game/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': getCookie('csrftoken')
+                },
+                body: JSON.stringify({
+                    session_id: sessionId
+                })
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                }
+                return response.json();
+            })
+            .then(data => {
+                console.log('New game response:', data);
+                
+                if (data.success && data.game_state) {
+                    // Get new session ID if provided
+                    if (data.session_id) {
+                        sessionId = data.session_id;
+                        console.log('New session ID:', sessionId);
+                    }
+                    
+                    // Update game with new state from backend
+                    const newState = data.game_state;
+                    
+                    // Reset game object completely using backend state
+                    game = {
+                        deck: [],
+                        stock: newState.stock ? newState.stock.map(convertCard) : [],
+                        waste: newState.waste ? newState.waste.map(convertCard) : [],
+                        foundations: newState.foundations ? 
+                            (Array.isArray(newState.foundations) ? 
+                                newState.foundations.map(pile => pile ? pile.map(convertCard) : []) :
+                                [
+                                    newState.foundations.spades ? newState.foundations.spades.map(convertCard) : [],
+                                    newState.foundations.hearts ? newState.foundations.hearts.map(convertCard) : [],
+                                    newState.foundations.diamonds ? newState.foundations.diamonds.map(convertCard) : [],
+                                    newState.foundations.clubs ? newState.foundations.clubs.map(convertCard) : []
+                                ]
+                            ) : 
+                            [[], [], [], []],
+                        tableau: newState.tableau ? 
+                            newState.tableau.map((pile, pileIndex) => {
+                                if (!pile) return [];
+                                return pile.map((card, cardIndex) => {
+                                    const converted = convertCard(card);
+                                    // Trust the backend state for face-up/down status
+                                    return converted;
+                                });
+                            }) : 
+                            [[], [], [], [], [], [], []],
+                        score: newState.score || 0,
+                        moves: newState.moves || 0,
+                        moveHistory: newState.move_history || [],
+                        undoStack: [],
+                        undoUsed: false,  // Reset undo flag for new game
+                        lastMoveTime: Date.now()
+                    };
+                    
+                    // Reset timer
+                    startTime = Date.now();
+                    startTimer();
+                    
+                    // Update UI
+                    document.getElementById('score').textContent = '0';
+                    document.getElementById('moves').textContent = '0';
+                    
+                    // Render the new game
+                    render();
+                    
+                    // Save the new game state
+                    saveGameState();
+                    
+                    console.log('New game started successfully');
+                    console.log('Stock:', game.stock.length, 'Tableau:', game.tableau.map(p => p.length));
+                } else {
+                    console.error('Failed to create new game:', data);
+                    alert('Failed to start new game. Please try again.');
+                }
+            })
+            .catch(error => {
+                console.error('Error creating new game:', error);
+                alert('Error starting new game. Please try again.');
+            });
+        }
+        
+        function undoMove() {
+            if (!game.moveHistory || game.moveHistory.length === 0) {
+                console.log('No moves to undo');
+                return;
+            }
+            
+            // Check if undo was already used (only allow one undo)
+            if (game.undoUsed) {
+                console.log('Undo already used. Make a new move to reset undo.');
+                return;
+            }
+            
+            // Get the last move
+            const lastMove = game.moveHistory.pop();
+            console.log('Undoing move:', lastMove);
+            
+            // Restore the previous state completely
+            if (lastMove.previousState) {
+                // Deep copy the previous state
+                game.stock = lastMove.previousState.stock.map(c => ({...c}));
+                game.waste = lastMove.previousState.waste.map(c => ({...c}));
+                game.foundations = lastMove.previousState.foundations.map(f => f.map(c => ({...c})));
+                game.tableau = lastMove.previousState.tableau.map(t => t.map(c => ({...c})));
+                game.score = lastMove.previousState.score;
+                game.moves = lastMove.previousState.moves;
+                game.wasteGroupSize = lastMove.previousState.wasteGroupSize || 0;  // Restore waste group size
+                
+                // Mark undo as used
+                game.undoUsed = true;
+                
+                // Update UI
+                document.getElementById('moves').textContent = game.moves;
+                document.getElementById('score').textContent = game.score;
+                
+                // Re-render and save
+                render();
+                saveGameState();
+                
+                console.log('Undo complete. Restored to previous state.');
+            } else {
+                // Fallback for old moves without previousState
+                console.log('Cannot undo - no previous state saved');
+                game.moveHistory.push(lastMove); // Put it back
+            }
+        }
+        
+        // Auto-complete functionality
+        let autoCompleteRunning = false;
+        let autoCompleteInterval = null;
+        
+        function showHint() {
+            // Actually this is auto-complete, not hint
+            if (autoCompleteRunning) {
+                stopAutoComplete();
+                return;
+            }
+            
+            // Check if auto-complete is possible
+            if (!canAutoComplete()) {
+                console.log('Auto-complete not possible yet. Keep playing!');
+                return;
+            }
+            
+            console.log('Starting auto-complete...');
+            startAutoComplete();
+        }
+        
+        function canAutoComplete() {
+            // Auto-complete is possible when:
+            // 1. All cards in tableau are face-up
+            // 2. Stock is empty (or waste is empty after recycling)
+            // 3. All remaining cards can theoretically go to foundations
+            
+            // Check if stock and waste are both empty (or only waste has cards)
+            const stockEmpty = game.stock.length === 0;
+            
+            // Check if all tableau cards are face-up
+            for (let i = 0; i < 7; i++) {
+                const pile = game.tableau[i];
+                for (let card of pile) {
+                    if (!card.faceUp) {
+                        return false; // Found a face-down card
+                    }
+                }
+            }
+            
+            // Additional check: if stock is not empty, auto-complete is not available
+            if (!stockEmpty) {
+                return false;
+            }
+            
+            return true;
+        }
+        
+        function startAutoComplete() {
+            autoCompleteRunning = true;
+            
+            // Change button text to show it's running
+            const autoBtn = document.querySelector('button[onclick="showHint()"]');
+            if (autoBtn) {
+                autoBtn.textContent = 'stop';
+                autoBtn.style.background = '#dc3545';
+            }
+            
+            // Run auto-complete moves every 150ms for smooth animation
+            autoCompleteInterval = setInterval(() => {
+                if (!makeAutoMove()) {
+                    // No more moves possible
+                    stopAutoComplete();
+                    
+                    // Check if game is won
+                    if (isGameWon()) {
+                        console.log('🎉 Congratulations! You won!');
+                        showWinMessage();
+                    } else {
+                        console.log('Auto-complete finished. No more automatic moves.');
+                    }
+                }
+            }, 150); // 150ms delay between moves for animation
+        }
+        
+        function stopAutoComplete() {
+            autoCompleteRunning = false;
+            
+            if (autoCompleteInterval) {
+                clearInterval(autoCompleteInterval);
+                autoCompleteInterval = null;
+            }
+            
+            // Reset button text
+            const autoBtn = document.querySelector('button[onclick="showHint()"]');
+            if (autoBtn) {
+                autoBtn.textContent = 'auto';
+                autoBtn.style.background = '';
+            }
+        }
+        
+        function makeAutoMove() {
+            // Try to move cards to foundations
+            // Priority: Aces and 2s first, then lowest available cards
+            
+            // First, try to move from waste
+            if (game.waste.length > 0) {
+                const card = game.waste[game.waste.length - 1];
+                for (let f = 0; f < 4; f++) {
+                    if (canPlaceOnFoundation(card, game.foundations[f])) {
+                        // Record move
+                        recordMove('auto', 'waste', `foundation-${f}`, [card], {
+                            score: game.score,
+                            isAutoComplete: true
+                        });
+                        
+                        // Move the card
+                        game.waste.pop();
+                        if (game.wasteGroupSize > 0) {
+                            game.wasteGroupSize--;
+                        }
+                        game.foundations[f].push(card);
+                        game.score += 10;
+                        game.moves++;
+                        
+                        // Update UI
+                        document.getElementById('moves').textContent = game.moves;
+                        document.getElementById('score').textContent = game.score;
+                        render();
+                        debouncedSave();
+                        
+                        return true;
+                    }
+                }
+            }
+            
+            // Then try to move from tableau
+            // Look for lowest cards first (Aces, 2s, 3s, etc.)
+            for (let targetValue = 1; targetValue <= 13; targetValue++) {
+                for (let col = 0; col < 7; col++) {
+                    const pile = game.tableau[col];
+                    if (pile.length > 0) {
+                        const card = pile[pile.length - 1];
+                        
+                        // Check if this card has the target value
+                        if (card.value === targetValue) {
+                            for (let f = 0; f < 4; f++) {
+                                if (canPlaceOnFoundation(card, game.foundations[f])) {
+                                    // Record move
+                                    recordMove('auto', `tableau-${col}`, `foundation-${f}`, [card], {
+                                        score: game.score,
+                                        isAutoComplete: true
+                                    });
+                                    
+                                    // Move the card
+                                    pile.pop();
+                                    game.foundations[f].push(card);
+                                    game.score += 10;
+                                    game.moves++;
+                                    
+                                    // Flip next card if needed (shouldn't happen in auto-complete)
+                                    if (pile.length > 0 && !pile[pile.length - 1].faceUp) {
+                                        pile[pile.length - 1].faceUp = true;
+                                    }
+                                    
+                                    // Update UI
+                                    document.getElementById('moves').textContent = game.moves;
+                                    document.getElementById('score').textContent = game.score;
+                                    render();
+                                    debouncedSave();
+                                    
+                                    return true;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            
+            return false; // No move was made
+        }
+        
+        function isGameWon() {
+            // Check if all 52 cards are in foundations
+            let totalCards = 0;
+            for (let f = 0; f < 4; f++) {
+                totalCards += game.foundations[f].length;
+            }
+            return totalCards === 52;
+        }
+        
+        function showWinMessage() {
+            // Save win status to backend
+            if (sessionId) {
+                const gameState = {
+                    ...game,
+                    is_won: true,
+                    is_completed: true,
+                    final_score: game.score,
+                    final_moves: game.moves,
+                    final_time: document.getElementById('timer').textContent
+                };
+                
+                // Save the win status
+                fetch(`/solitaire/api/save/`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': getCookie('csrftoken')
+                    },
+                    body: JSON.stringify({
+                        session_id: sessionId,
+                        game_state: gameState,
+                        moves: game.moves,
+                        score: game.score,
+                        time: Math.floor((Date.now() - startTime) / 1000),
+                        is_won: true,
+                        is_completed: true
+                    })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    console.log('Win status saved:', data);
+                })
+                .catch(error => {
+                    console.error('Error saving win status:', error);
+                });
+            }
+            
+            // Create or show win message with UNIBOS design
+            let winDialog = document.getElementById('winDialog');
+            if (!winDialog) {
+                // Create overlay
+                const overlay = document.createElement('div');
+                overlay.id = 'winOverlay';
+                overlay.style.cssText = `
+                    position: fixed;
+                    top: 0;
+                    left: 0;
+                    width: 100%;
+                    height: 100%;
+                    background: rgba(0, 0, 0, 0.8);
+                    z-index: 9999;
+                    animation: fadeIn 0.3s ease;
+                `;
+                
+                winDialog = document.createElement('div');
+                winDialog.id = 'winDialog';
+                winDialog.style.cssText = `
+                    position: fixed;
+                    top: 50%;
+                    left: 50%;
+                    transform: translate(-50%, -50%);
+                    background: #1a1a1a;
+                    border: 2px solid #ff8c00;
+                    border-radius: 0;
+                    padding: 30px;
+                    z-index: 10000;
+                    color: #ffffff;
+                    text-align: center;
+                    font-family: 'JetBrains Mono', 'Courier New', monospace;
+                    min-width: 400px;
+                    animation: slideIn 0.3s ease;
+                `;
+                
+                const time = document.getElementById('timer').textContent;
+                
+                winDialog.innerHTML = `
+                    <div style="border-bottom: 1px solid #ff8c00; padding-bottom: 15px; margin-bottom: 20px;">
+                        <h2 style="font-size: 20px; margin: 0; color: #ff8c00; text-transform: lowercase; font-weight: bold;">
+                            game completed
+                        </h2>
+                    </div>
+                    
+                    <div style="margin-bottom: 25px;">
+                        <div style="font-size: 14px; color: #00ff00; margin-bottom: 20px; text-transform: lowercase;">
+                            ✓ you won
+                        </div>
+                        
+                        <div style="display: flex; justify-content: space-between; margin: 10px 0; font-size: 13px;">
+                            <span style="color: #808080;">score:</span>
+                            <span style="color: #00ff00; font-weight: bold;">${game.score}</span>
+                        </div>
+                        
+                        <div style="display: flex; justify-content: space-between; margin: 10px 0; font-size: 13px;">
+                            <span style="color: #808080;">moves:</span>
+                            <span style="color: #00ffff; font-weight: bold;">${game.moves}</span>
+                        </div>
+                        
+                        <div style="display: flex; justify-content: space-between; margin: 10px 0; font-size: 13px;">
+                            <span style="color: #808080;">time:</span>
+                            <span style="color: #ffff00; font-weight: bold;">${time}</span>
+                        </div>
+                    </div>
+                    
+                    <div style="display: flex; gap: 10px; justify-content: center;">
+                        <button onclick="document.getElementById('winDialog')?.remove(); document.getElementById('winOverlay')?.remove(); createNewGameLocal();" style="
+                            padding: 8px 20px;
+                            font-size: 12px;
+                            background: transparent;
+                            color: #ff8c00;
+                            border: 1px solid #ff8c00;
+                            border-radius: 0;
+                            cursor: pointer;
+                            font-family: 'JetBrains Mono', monospace;
+                            text-transform: lowercase;
+                            transition: all 0.2s;
+                        " onmouseover="this.style.background='#ff8c00'; this.style.color='#000000';" 
+                           onmouseout="this.style.background='transparent'; this.style.color='#ff8c00';">
+                            [n] new game
+                        </button>
+                        <button onclick="document.getElementById('winDialog').remove(); document.getElementById('winOverlay').remove();" style="
+                            padding: 8px 20px;
+                            font-size: 12px;
+                            background: transparent;
+                            color: #808080;
+                            border: 1px solid #808080;
+                            border-radius: 0;
+                            cursor: pointer;
+                            font-family: 'JetBrains Mono', monospace;
+                            text-transform: lowercase;
+                            transition: all 0.2s;
+                        " onmouseover="this.style.background='#808080'; this.style.color='#000000';" 
+                           onmouseout="this.style.background='transparent'; this.style.color='#808080';">
+                            [esc] close
+                        </button>
+                    </div>
+                    
+                    <div style="margin-top: 20px; padding-top: 15px; border-top: 1px solid #404040;">
+                        <div style="font-size: 10px; color: #606060; text-transform: lowercase;">
+                            press 'n' for new game or 'esc' to close
+                        </div>
+                    </div>
+                `;
+                
+                // Add animation keyframes if not exists
+                if (!document.getElementById('winAnimations')) {
+                    const style = document.createElement('style');
+                    style.id = 'winAnimations';
+                    style.textContent = `
+                        @keyframes fadeIn {
+                            from { opacity: 0; }
+                            to { opacity: 1; }
+                        }
+                        @keyframes slideIn {
+                            from {
+                                opacity: 0;
+                                transform: translate(-50%, -60%);
+                            }
+                            to {
+                                opacity: 1;
+                                transform: translate(-50%, -50%);
+                            }
+                        }
+                    `;
+                    document.head.appendChild(style);
+                }
+                
+                // Add keyboard shortcuts
+                const handleWinKeys = (e) => {
+                    if (e.key.toLowerCase() === 'n') {
+                        // Remove dialog first
+                        document.getElementById('winDialog')?.remove();
+                        document.getElementById('winOverlay')?.remove();
+                        document.removeEventListener('keydown', handleWinKeys);
+                        // Then create new game directly
+                        createNewGameLocal();
+                    } else if (e.key === 'Escape') {
+                        document.getElementById('winDialog')?.remove();
+                        document.getElementById('winOverlay')?.remove();
+                        document.removeEventListener('keydown', handleWinKeys);
+                    }
+                };
+                document.addEventListener('keydown', handleWinKeys);
+                
+                document.body.appendChild(overlay);
+                document.body.appendChild(winDialog);
+            } else {
+                winDialog.style.display = 'block';
+                document.getElementById('winOverlay').style.display = 'block';
+            }
+        }
+        
+        // Screen lock functionality
+        let qPressed = false;
+        let wPressed = false;
+        
+        function showScreenLockDialog() {
+            // Create overlay if it doesn't exist
+            let overlay = document.getElementById('screenLockOverlay');
+            if (!overlay) {
+                overlay = document.createElement('div');
+                overlay.id = 'screenLockOverlay';
+                overlay.style.cssText = `
+                    position: fixed;
+                    top: 0;
+                    left: 0;
+                    right: 0;
+                    bottom: 0;
+                    width: 100vw;
+                    height: 100vh;
+                    background: rgba(0, 0, 0, 0.75);
+                    z-index: 9999;
+                    backdrop-filter: blur(3px);
+                    -webkit-backdrop-filter: blur(3px);
+                    display: block;
+                `;
+                document.body.appendChild(overlay);
+            }
+            
+            // Create dialog if it doesn't exist
+            let dialog = document.getElementById('screenLockDialog');
+            if (!dialog) {
+                dialog = document.createElement('div');
+                dialog.id = 'screenLockDialog';
+                dialog.style.cssText = `
+                    position: fixed;
+                    top: 50%;
+                    left: 50%;
+                    transform: translate(-50%, -50%);
+                    background: #2a2a2a;
+                    border: 2px solid #ff6b35;
+                    border-radius: 8px;
+                    padding: 25px;
+                    z-index: 10001;
+                    color: white;
+                    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+                    box-shadow: 0 10px 40px rgba(0,0,0,0.9);
+                    min-width: 360px;
+                    max-width: 90vw;
+                `;
+                
+                dialog.innerHTML = `
+                    <h3 style="margin-bottom: 15px; color: #ff6b35;">screen lock</h3>
+                    <p style="margin-bottom: 15px; color: #ccc;">enter password to exit solitaire:</p>
+                    <input type="password" id="screenLockPassword" style="
+                        width: 100%;
+                        padding: 10px;
+                        background: #1a1a1a;
+                        border: 1px solid #444;
+                        color: white;
+                        border-radius: 4px;
+                        margin-bottom: 15px;
+                        font-size: 14px;
+                        box-sizing: border-box;
+                    " />
+                    <div style="display: flex; gap: 10px;">
+                        <button onclick="checkScreenLockPassword()" style="
+                            flex: 1;
+                            padding: 10px;
+                            background: linear-gradient(to bottom, #ff6b35, #e55a2b);
+                            border: 1px solid #d54521;
+                            color: white;
+                            border-radius: 4px;
+                            cursor: pointer;
+                            font-size: 14px;
+                            font-weight: 500;
+                            transition: all 0.2s;
+                        " onmouseover="this.style.background='linear-gradient(to bottom, #ff7f4a, #f06a3a)'" 
+                           onmouseout="this.style.background='linear-gradient(to bottom, #ff6b35, #e55a2b)'">unlock</button>
+                        <button onclick="closeScreenLockDialog()" style="
+                            flex: 1;
+                            padding: 10px;
+                            background: #444;
+                            border: 1px solid #555;
+                            color: white;
+                            border-radius: 4px;
+                            cursor: pointer;
+                            font-size: 14px;
+                            font-weight: 500;
+                            transition: all 0.2s;
+                        " onmouseover="this.style.background='#555'" 
+                           onmouseout="this.style.background='#444'">cancel</button>
+                    </div>
+                `;
+                
+                document.body.appendChild(dialog);
+            }
+            
+            overlay.style.display = 'block';
+            dialog.style.display = 'block';
+            // Clear any text that might be in the input (like 'q' or 'w')
+            const passwordInput = document.getElementById('screenLockPassword');
+            passwordInput.value = '';
+            // Small delay to ensure the keys don't get typed into the input
+            setTimeout(() => {
+                passwordInput.focus();
+                passwordInput.value = ''; // Clear again just to be sure
+            }, 50);
+        }
+        
+        function closeScreenLockDialog() {
+            const dialog = document.getElementById('screenLockDialog');
+            const overlay = document.getElementById('screenLockOverlay');
+            if (dialog) {
+                dialog.style.display = 'none';
+                document.getElementById('screenLockPassword').value = '';
+            }
+            if (overlay) {
+                overlay.style.display = 'none';
+            }
+        }
+        
+        function checkScreenLockPassword() {
+            const password = document.getElementById('screenLockPassword').value;
+            
+            fetch('/solitaire/exit/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                    'X-CSRFToken': getCookie('csrftoken')
+                },
+                body: 'code=' + encodeURIComponent(password) + '&tab_id=' + encodeURIComponent(tabId)
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // Allow navigation without warning
+                    allowNavigation = true;
+                    
+                    // Clear solitaire from browser history
+                    // Use replace instead of href to prevent forward navigation
+                    window.location.replace(data.redirect_url || '/');
+                } else {
+                    alert(data.error || 'incorrect password');
+                    document.getElementById('screenLockPassword').value = '';
+                    document.getElementById('screenLockPassword').focus();
+                }
+            })
+            .catch(error => {
+                console.error('Error checking password:', error);
+                alert('Error checking password');
+            });
+        }
+        
+        function getCookie(name) {
+            let cookieValue = null;
+            if (document.cookie && document.cookie !== '') {
+                const cookies = document.cookie.split(';');
+                for (let i = 0; i < cookies.length; i++) {
+                    const cookie = cookies[i].trim();
+                    if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                        break;
+                    }
+                }
+            }
+            return cookieValue;
+        }
+        
+        // Keyboard event listeners for Q+W
+        document.addEventListener('keydown', function(e) {
+            // Don't process if dialog is already showing or user is typing in an input
+            const dialogShowing = document.getElementById('screenLockDialog') && 
+                                  document.getElementById('screenLockDialog').style.display === 'block';
+            const isTyping = document.activeElement && document.activeElement.tagName === 'INPUT';
+            
+            if (dialogShowing || isTyping) return;
+            
+            if (e.key.toLowerCase() === 'q') {
+                qPressed = true;
+            }
+            if (e.key.toLowerCase() === 'w') {
+                wPressed = true;
+            }
+            
+            // Check if both Q and W are pressed
+            if (qPressed && wPressed) {
+                // Prevent the key events from bubbling
+                e.preventDefault();
+                e.stopPropagation();
+                
+                // Reset the flags immediately
+                qPressed = false;
+                wPressed = false;
+                
+                // Show the dialog
+                showScreenLockDialog();
+            }
+        });
+        
+        document.addEventListener('keyup', function(e) {
+            if (e.key.toLowerCase() === 'q') {
+                qPressed = false;
+            }
+            if (e.key.toLowerCase() === 'w') {
+                wPressed = false;
+            }
+        });
+        
+        // Also handle Enter key in password field
+        document.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter' && document.activeElement && document.activeElement.id === 'screenLockPassword') {
+                checkScreenLockPassword();
+            }
+        });
+        
+        // Continuous history state protection
+        function maintainHistoryProtection() {
+            // Keep pushing states periodically to prevent back navigation
+            setInterval(function() {
+                if (history.length < 50) {
+                    history.pushState(null, null, location.href);
+                }
+            }, 1000);
+        }
+        
+        // Initialize the game when the page loads
+        window.addEventListener('DOMContentLoaded', function() {
+            console.log('=== PAGE LOADED - INITIALIZING GAME ===');
+            console.log('Initial game state from backend:', initialGameState);
+            
+            // Start continuous protection
+            maintainHistoryProtection();
+            
+            // Check if we have a stored URL from when user pressed QW
+            const storedUrl = sessionStorage.getItem('pre_solitaire_url');
+            if (storedUrl) {
+                console.log('Found stored URL from QW shortcut:', storedUrl);
+                // Send it to backend to store in session
+                fetch('/solitaire/store-return-url/', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': getCookie('csrftoken')
+                    },
+                    body: JSON.stringify({
+                        return_url: storedUrl,
+                        tab_id: tabId
+                    })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        console.log('Return URL saved to backend');
+                        // Clear from sessionStorage after sending to backend
+                        sessionStorage.removeItem('pre_solitaire_url');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error saving return URL:', error);
+                });
+            }
+            
+            // Initialize the game object first!
+            initializeGameObject();
+            
+            // Now check game object after initialization
+            console.log('Game object after initialization:');
+            console.log('  game.stock:', game.stock ? game.stock.length : 'undefined');
+            console.log('  game.tableau:', game.tableau ? game.tableau.map(p => p ? p.length : 0) : 'undefined');
+            
+            // Check if cards were converted properly
+            if (game.stock && game.stock.length > 0) {
+                console.log('First stock card:', game.stock[0]);
+            }
+            if (game.tableau && game.tableau[0] && game.tableau[0].length > 0) {
+                console.log('First tableau card:', game.tableau[0][0]);
+            }
+            
+            // Initialize game components
+            initGame();
+            // Timer will be started with the restored time from initGame
+            startTimer();
+            setupDropZones();
+            
+            // Don't call render again - initGame already calls it
+            // render();
+            
+            console.log('Game initialized successfully');
+            console.log('Stock cards:', game.stock.length);
+            console.log('Tableau:', game.tableau.map(p => p.length));
+            
+            // Final check after 1 second
+            setTimeout(() => {
+                const cardCount = document.querySelectorAll('.card').length;
+                console.log('=== FINAL CHECK ===');
+                console.log('Total cards in DOM:', cardCount);
+                console.log('Stock cards in DOM:', document.querySelectorAll('#stock .card').length);
+                console.log('Tableau cards in DOM:', document.querySelectorAll('[id^=tableau-] .card').length);
+                
+                if (cardCount === 0) {
+                    console.error('NO CARDS VISIBLE! Debugging info:');
+                    console.log('game.stock:', game.stock);
+                    console.log('game.tableau:', game.tableau);
+                    console.log('Stock element exists:', !!document.getElementById('stock'));
+                    console.log('Tableau-0 element exists:', !!document.getElementById('tableau-0'));
+                }
+            }, 1000);
+        });
+    </script>
+</body>
+</html>

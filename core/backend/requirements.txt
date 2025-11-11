@@ -1,0 +1,107 @@
+# Core Django Dependencies
+Django==5.0.1
+django-cors-headers==4.3.1
+django-environ==0.11.2
+django-extensions==3.2.3
+django-filter==23.5
+
+# Django REST Framework
+djangorestframework==3.14.0
+djangorestframework-simplejwt==5.3.1
+drf-spectacular==0.27.0
+
+# Database
+psycopg2-binary==2.9.9
+django-redis==5.4.0
+redis==5.0.1
+
+# Authentication & Security
+PyJWT==2.8.0
+cryptography==41.0.7
+bcrypt==4.1.2
+django-ratelimit==4.1.0
+pyotp==2.9.0
+qrcode==7.4.2
+
+# WebSocket Support
+channels==4.0.0
+channels-redis==4.2.0
+daphne==4.1.0
+
+# Async Support
+asgiref==3.7.2
+aiohttp==3.9.1
+aioredis==2.0.1
+
+# Task Queue
+celery==5.3.4
+django-celery-beat==2.5.0
+kombu==5.3.4
+
+# Monitoring & Logging
+django-prometheus==2.3.1
+sentry-sdk==1.39.1
+python-json-logger==2.0.7
+
+# Development & Testing
+pytest==7.4.4
+pytest-django==4.7.0
+pytest-asyncio==0.21.1
+pytest-cov==4.1.0
+factory-boy==3.3.0
+faker==21.0.0
+
+# Code Quality
+flake8==7.0.0
+black==23.12.1
+mypy==1.8.0
+django-stubs==4.2.7
+
+# Utilities
+python-decouple==3.8
+pillow==10.2.0
+requests==2.31.0
+python-dateutil==2.8.2
+pytz==2023.3.post1
+user-agents==2.2.0
+
+# OCR and Image Processing
+pytesseract==0.3.10
+opencv-python==4.9.0.80
+numpy==1.26.3
+
+# Advanced OCR Libraries
+paddleocr==3.3.1
+paddlepaddle==2.6.2  # 3.x has segfault issues on ARM64
+torch==2.9.0
+torchvision==0.21.0
+transformers==4.57.1
+sentencepiece==0.2.0
+protobuf==5.29.3
+
+# Additional OCR Tools
+easyocr==1.7.2
+surya-ocr==0.9.0
+python-doctr[torch]==0.9.0
+pdf2image==1.17.0
+pypdfium2==4.30.0
+
+# Ollama Integration (optional - requires local Ollama installation)
+# Ollama modelleri: ollama pull llama3.2-vision
+
+# Production Server
+gunicorn==21.2.0
+whitenoise==6.6.0
+
+# API Documentation
+drf-yasg==1.21.7
+
+# Data Validation
+marshmallow==3.20.2
+django-model-utils==4.3.1
+
+# Caching
+django-cachalot==2.6.1
+
+# Background Tasks
+django-crontab==0.7.1

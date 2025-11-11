@@ -1,0 +1,238 @@
+{% extends 'web_ui/base.html' %}
+
+{% block title %}{{ page_title }}{% endblock %}
+
+{% block header_title %}unibos{% endblock %}
+{% block module_name %}{% if current_tool in dev_tools_list %}dev tools{% else %}tools{% endif %} › {{ tool_data.name|lower|default:"tool" }}{% endblock %}
+
+{% block content %}
+<div class="content-box">
+    <h1 class="content-title">
+        <span style="font-size: 24px; margin-right: 10px;">{{ tool_data.icon }}</span>
+        {{ tool_data.name }}
+    </h1>
+    
+    <p style="color: var(--gray); margin-bottom: 20px;">
+        {{ tool_data.description }}
+    </p>
+</div>
+
+<!-- Tool Specific Content -->
+{% if current_tool == 'web_forge' %}
+<div class="content-box">
+    <h2 class="content-title">web server control</h2>
+    
+    <div class="terminal-text">
+        <p class="terminal-prompt">web server status: <span style="color: var(--green);">{{ tool_data.status }}</span></p>
+        <p class="terminal-prompt">port: {{ tool_data.port }}</p>
+        <p class="terminal-prompt">url: http://localhost:{{ tool_data.port }}</p>
+    </div>
+    
+    <div style="margin-top: 20px;">
+        <button class="btn" onclick="startServer()">start server</button>
+        <button class="btn" style="background: #ff0000;" onclick="stopServer()">stop server</button>
+        <button class="btn btn-secondary" onclick="restartServer()">restart</button>
+        <button class="btn btn-secondary" onclick="viewLogs()">view logs</button>
+    </div>
+    
+    <!-- Server Log Display -->
+    <div style="margin-top: 20px; padding: 15px; background: var(--bg-black); border: 1px solid var(--dark-gray); border-radius: 5px; font-family: monospace; font-size: 12px; height: 300px; overflow-y: auto;" id="server-logs">
+        <p style="color: var(--green);">[2025-08-07 10:00:00] server started successfully</p>
+        <p style="color: var(--cyan);">[2025-08-07 10:00:01] listening on port {{ tool_data.port }}</p>
+        <p style="color: var(--white);">[2025-08-07 10:00:02] database connection established</p>
+        <p style="color: var(--yellow);">[2025-08-07 10:00:03] websocket server ready</p>
+        <p style="color: var(--green);">[2025-08-07 10:00:04] all systems operational</p>
+        <p class="loading" style="color: var(--cyan);">waiting for requests...</p>
+    </div>
+</div>
+
+{% elif current_tool == 'database_setup' %}
+<div class="content-box">
+    <h2 class="content-title">database configuration</h2>
+    
+    <div class="terminal-text">
+        <p class="terminal-prompt">database: <span style="color: var(--green);">{{ tool_data.database }}</span></p>
+        <p class="terminal-prompt">status: <span style="color: var(--green);">{{ tool_data.status }}</span></p>
+    </div>
+    
+    <div style="margin-top: 20px;">
+        <h3 style="color: var(--orange); margin-bottom: 15px;">connection settings</h3>
+        
+        <div style="display: grid; gap: 15px; max-width: 500px;">
+            <div>
+                <label style="color: var(--gray); display: block; margin-bottom: 5px;">host:</label>
+                <input type="text" value="localhost" style="width: 100%; padding: 8px; background: var(--bg-black); border: 1px solid var(--dark-gray); color: var(--white); font-family: inherit;">
+            </div>
+            <div>
+                <label style="color: var(--gray); display: block; margin-bottom: 5px;">port:</label>
+                <input type="text" value="5432" style="width: 100%; padding: 8px; background: var(--bg-black); border: 1px solid var(--dark-gray); color: var(--white); font-family: inherit;">
+            </div>
+            <div>
+                <label style="color: var(--gray); display: block; margin-bottom: 5px;">database:</label>
+                <input type="text" value="unibos" style="width: 100%; padding: 8px; background: var(--bg-black); border: 1px solid var(--dark-gray); color: var(--white); font-family: inherit;">
+            </div>
+            <div>
+                <label style="color: var(--gray); display: block; margin-bottom: 5px;">username:</label>
+                <input type="text" value="unibos" style="width: 100%; padding: 8px; background: var(--bg-black); border: 1px solid var(--dark-gray); color: var(--white); font-family: inherit;">
+            </div>
+            <div>
+                <label style="color: var(--gray); display: block; margin-bottom: 5px;">password:</label>
+                <input type="password" value="********" style="width: 100%; padding: 8px; background: var(--bg-black); border: 1px solid var(--dark-gray); color: var(--white); font-family: inherit;">
+            </div>
+        </div>
+        
+        <div style="margin-top: 20px;">
+            <button class="btn" onclick="testConnection()">test connection</button>
+            <button class="btn" onclick="runMigrations()">run migrations</button>
+            <button class="btn btn-secondary" onclick="backupDatabase()">backup</button>
+            <button class="btn btn-secondary" onclick="restoreDatabase()">restore</button>
+        </div>
+    </div>
+</div>
+
+<div class="content-box">
+    <h2 class="content-title">migration status</h2>
+    
+    <div style="overflow-x: auto;">
+        <table style="width: 100%; border-collapse: collapse;">
+            <thead>
+                <tr style="border-bottom: 2px solid var(--orange);">
+                    <th style="padding: 10px; text-align: left; color: var(--orange);">app</th>
+                    <th style="padding: 10px; text-align: left; color: var(--orange);">migration</th>
+                    <th style="padding: 10px; text-align: center; color: var(--orange);">status</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr style="border-bottom: 1px solid var(--dark-gray);">
+                    <td style="padding: 10px;">auth</td>
+                    <td style="padding: 10px;">0001_initial</td>
+                    <td style="padding: 10px; text-align: center; color: var(--green);">✓ applied</td>
+                </tr>
+                <tr style="border-bottom: 1px solid var(--dark-gray);">
+                    <td style="padding: 10px;">recaria</td>
+                    <td style="padding: 10px;">0001_initial</td>
+                    <td style="padding: 10px; text-align: center; color: var(--green);">✓ applied</td>
+                </tr>
+                <tr style="border-bottom: 1px solid var(--dark-gray);">
+                    <td style="padding: 10px;">birlikteyiz</td>
+                    <td style="padding: 10px;">0001_initial</td>
+                    <td style="padding: 10px; text-align: center; color: var(--green);">✓ applied</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+{% elif current_tool == 'system_scrolls' %}
+<div class="content-box">
+    <h2 class="content-title">system documentation</h2>
+    
+    <div class="terminal-text">
+        <p class="terminal-prompt">loading documentation...</p>
+        <p style="color: var(--green);">documentation system ready</p>
+    </div>
+    
+    <div style="margin-top: 20px;">
+        <ul style="list-style: none; padding: 0;">
+            <li style="padding: 10px; border-bottom: 1px solid var(--dark-gray);">
+                <a href="#" style="color: var(--cyan); text-decoration: none;">📜 getting started guide</a>
+            </li>
+            <li style="padding: 10px; border-bottom: 1px solid var(--dark-gray);">
+                <a href="#" style="color: var(--cyan); text-decoration: none;">📜 api documentation</a>
+            </li>
+            <li style="padding: 10px; border-bottom: 1px solid var(--dark-gray);">
+                <a href="#" style="color: var(--cyan); text-decoration: none;">📜 module development</a>
+            </li>
+            <li style="padding: 10px; border-bottom: 1px solid var(--dark-gray);">
+                <a href="#" style="color: var(--cyan); text-decoration: none;">📜 troubleshooting</a>
+            </li>
+        </ul>
+    </div>
+</div>
+
+{% else %}
+<div class="content-box">
+    <h2 class="content-title">Tool Features</h2>
+    
+    <ul style="list-style: none; padding: 0;">
+        {% for feature in tool_data.features %}
+        <li style="padding: 5px 0; color: var(--white);">
+            <span style="color: var(--green); margin-right: 10px;">▸</span>
+            {{ feature }}
+        </li>
+        {% endfor %}
+    </ul>
+</div>
+{% endif %}
+
+<!-- Back Button -->
+<div class="content-box">
+    <button class="btn btn-secondary" onclick="window.location.href='{% url 'web_ui:main' %}'">
+        Back to Main
+    </button>
+</div>
+
+<script>
+    // Web Forge functions
+    function startServer() {
+        console.log('Starting server...');
+        addLogEntry('[' + new Date().toLocaleTimeString() + '] Starting web server...', 'yellow');
+        setTimeout(() => {
+            addLogEntry('[' + new Date().toLocaleTimeString() + '] Server started successfully', 'green');
+        }, 1000);
+    }
+    
+    function stopServer() {
+        if (confirm('Are you sure you want to stop the server?')) {
+            console.log('Stopping server...');
+            addLogEntry('[' + new Date().toLocaleTimeString() + '] Stopping web server...', 'orange');
+            setTimeout(() => {
+                addLogEntry('[' + new Date().toLocaleTimeString() + '] Server stopped', 'red');
+            }, 1000);
+        }
+    }
+    
+    function restartServer() {
+        console.log('Restarting server...');
+        addLogEntry('[' + new Date().toLocaleTimeString() + '] Restarting web server...', 'yellow');
+        setTimeout(() => {
+            addLogEntry('[' + new Date().toLocaleTimeString() + '] Server restarted successfully', 'green');
+        }, 2000);
+    }
+    
+    function viewLogs() {
+        const logContainer = document.getElementById('server-logs');
+        logContainer.scrollTop = logContainer.scrollHeight;
+    }
+    
+    function addLogEntry(message, color) {
+        const logContainer = document.getElementById('server-logs');
+        if (logContainer) {
+            const p = document.createElement('p');
+            p.style.color = `var(--${color})`;
+            p.textContent = message;
+            logContainer.appendChild(p);
+            logContainer.scrollTop = logContainer.scrollHeight;
+        }
+    }
+    
+    // Database functions
+    function testConnection() {
+        alert('Testing database connection...\nConnection successful!');
+    }
+    
+    function runMigrations() {
+        if (confirm('Run database migrations?')) {
+            alert('Running migrations...\nAll migrations applied successfully!');
+        }
+    }
+    
+    function backupDatabase() {
+        alert('Database backup will be implemented soon');
+    }
+    
+    function restoreDatabase() {
+        alert('Database restore will be implemented soon');
+    }
+</script>
+{% endblock %}

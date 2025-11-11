@@ -1,0 +1,622 @@
+{% extends 'web_ui/base.html' %}
+{% load static %}
+
+{% block header_title %}unibos{% endblock %}
+{% block module_name %}administration - system control{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* Administration Module Styles - Using UNIBOS Design System */
+    /* Keep the default UNIBOS sidebar visible and use standard colors */
+    
+    /* Override Module Container for Administration */
+    .module-container {
+        padding: 0;
+        max-width: 100%;
+        margin: 0;
+        width: 100%;
+        height: auto;
+        position: relative;
+    }
+
+    /* Module Header */
+    .module-header {
+        display: flex;
+        flex-direction: column;
+        align-items: flex-start;
+        margin-bottom: 30px;
+        padding-bottom: 15px;
+        border-bottom: 2px solid var(--orange);
+    }
+
+    .module-header h1 {
+        display: block;
+        color: var(--orange);
+        font-size: 24px;
+        font-weight: bold;
+        text-transform: lowercase;
+        margin: 0;
+        margin-bottom: 8px;
+        line-height: 1.2;
+    }
+
+    .module-header p {
+        display: block;
+        color: var(--gray);
+        font-size: 14px;
+        text-transform: lowercase;
+        margin: 0;
+        line-height: 1.4;
+    }
+    
+    /* Admin Navigation Tabs */
+    .admin-nav {
+        display: flex;
+        gap: 10px;
+        margin-bottom: 30px;
+        padding: 15px;
+        background: rgba(20, 20, 20, 0.5);
+        border: 1px solid #333;
+        border-radius: 4px;
+    }
+
+    .admin-nav-item {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 10px 16px;
+        color: var(--white);
+        text-decoration: none;
+        border: 1px solid #333;
+        border-radius: 4px;
+        transition: all 0.2s;
+        font-size: 13px;
+        text-transform: lowercase;
+    }
+    
+    .admin-nav-item:hover {
+        background: var(--dark-gray);
+        color: var(--cyan);
+        border-color: var(--orange);
+    }
+    
+    .admin-nav-item.active {
+        background: var(--orange);
+        color: var(--bg-black);
+        border-color: var(--orange);
+        font-weight: bold;
+    }
+    
+    .admin-nav-badge {
+        background: #ff4444;
+        color: white;
+        padding: 2px 6px;
+        border-radius: 10px;
+        font-size: 10px;
+        font-weight: bold;
+        margin-left: 5px;
+    }
+    
+    /* Section Headers */
+    .section {
+        margin-bottom: 30px;
+    }
+    
+    .section h2 {
+        color: var(--orange);
+        font-size: 18px;
+        margin-bottom: 20px;
+        padding-bottom: 10px;
+        border-bottom: 1px solid #333;
+        text-transform: lowercase;
+    }
+    
+    .section-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 20px;
+    }
+    
+    .section-header h2 {
+        margin: 0;
+        border: none;
+        padding: 0;
+    }
+    
+    .section-controls {
+        display: flex;
+        gap: 10px;
+    }
+    
+    /* Button Styles - UNIBOS Style */
+    .button-group {
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+    }
+    
+    .btn-primary {
+        background: var(--orange);
+        color: var(--bg-black);
+        border: none;
+        padding: 8px 16px;
+        border-radius: 4px;
+        font-family: inherit;
+        font-weight: bold;
+        cursor: pointer;
+        transition: all 0.3s;
+        text-transform: lowercase;
+        font-size: 12px;
+        text-decoration: none;
+        display: inline-block;
+    }
+    
+    .btn-primary:hover {
+        background: var(--orange-bright);
+        transform: translateY(-2px);
+    }
+    
+    .btn-secondary {
+        background: transparent;
+        color: var(--white);
+        border: 1px solid #333;
+        padding: 8px 16px;
+        border-radius: 4px;
+        font-family: inherit;
+        cursor: pointer;
+        transition: all 0.3s;
+        text-transform: lowercase;
+        font-size: 12px;
+        text-decoration: none;
+        display: inline-block;
+    }
+    
+    .btn-secondary:hover {
+        background: var(--dark-gray);
+        border-color: var(--orange);
+        color: var(--cyan);
+    }
+    
+    .btn-warning {
+        background: #ffc107;
+        color: #000;
+        border: none;
+        padding: 8px 16px;
+        border-radius: 4px;
+        font-family: inherit;
+        font-weight: bold;
+        cursor: pointer;
+        transition: all 0.3s;
+        text-transform: lowercase;
+        font-size: 12px;
+    }
+
+    .btn-warning:hover {
+        background: #ffcd38;
+        transform: translateY(-2px);
+    }
+
+    .btn-danger {
+        background: #dc3545;
+        color: white;
+        border: none;
+        padding: 8px 16px;
+        border-radius: 4px;
+        font-family: inherit;
+        cursor: pointer;
+        transition: all 0.3s;
+        text-transform: lowercase;
+        font-size: 12px;
+    }
+
+    .btn-danger:hover {
+        background: #ff4444;
+        transform: translateY(-2px);
+    }
+    
+    /* Content Boxes */
+    .content-box {
+        background: rgba(20, 20, 20, 0.5);
+        border: 1px solid #333;
+        border-radius: 4px;
+        padding: 20px;
+        margin-bottom: 20px;
+    }
+    
+    .content-box h3 {
+        color: var(--orange);
+        margin-top: 0;
+        margin-bottom: 20px;
+        font-size: 14px;
+        text-transform: lowercase;
+    }
+    
+    .section-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 20px;
+    }
+    
+    .section-header h3 {
+        margin: 0;
+    }
+    
+    /* Data Tables */
+    .data-table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 13px;
+    }
+    
+    .data-table th {
+        background: var(--bg-dark);
+        color: var(--orange);
+        padding: 12px;
+        text-align: left;
+        border-bottom: 2px solid var(--orange);
+        font-weight: bold;
+        text-transform: lowercase;
+        font-size: 12px;
+    }
+    
+    .data-table td {
+        padding: 12px;
+        border-bottom: 1px solid var(--dark-gray);
+        color: var(--white);
+    }
+    
+    .data-table tr:hover {
+        background: var(--bg-dark);
+    }
+    
+    .data-table .actions {
+        display: flex;
+        gap: 10px;
+    }
+    
+    /* Form Elements */
+    .form-input, .form-select, .form-textarea {
+        background: var(--bg-black);
+        color: var(--white);
+        border: 1px solid var(--dark-gray);
+        padding: 10px;
+        font-family: inherit;
+        font-size: 13px;
+        border-radius: 3px;
+        transition: all 0.2s;
+        width: 100%;
+    }
+    
+    .form-input:focus, .form-select:focus, .form-textarea:focus {
+        outline: none;
+        border-color: var(--orange);
+        box-shadow: 0 0 5px rgba(255, 140, 0, 0.3);
+    }
+    
+    .form-input:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+    }
+    
+    .form-textarea {
+        resize: vertical;
+        min-height: 100px;
+    }
+    
+    .form-group {
+        margin-bottom: 20px;
+    }
+    
+    .form-label {
+        display: block;
+        color: var(--gray);
+        font-size: 12px;
+        margin-bottom: 5px;
+        text-transform: lowercase;
+    }
+    
+    /* Statistics Grid */
+    .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 15px;
+        margin-bottom: 30px;
+    }
+
+    .stat-card {
+        background: rgba(20, 20, 20, 0.5);
+        border: 1px solid #333;
+        border-radius: 4px;
+        padding: 15px;
+        text-align: center;
+        transition: all 0.3s;
+    }
+
+    .stat-card:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 5px 15px rgba(255, 140, 0, 0.2);
+        border-color: var(--orange);
+    }
+
+    .stat-value {
+        font-size: 24px;
+        font-weight: bold;
+        color: var(--orange);
+        margin-bottom: 5px;
+    }
+
+    .stat-label {
+        color: var(--gray);
+        font-size: 12px;
+        text-transform: lowercase;
+    }
+    
+    .stat-value.positive {
+        color: #4CAF50;
+    }
+    
+    .stat-value.negative {
+        color: #ff4444;
+    }
+    
+    /* Badges */
+    .badge {
+        display: inline-block;
+        padding: 3px 8px;
+        font-size: 11px;
+        border-radius: 3px;
+        margin-right: 5px;
+        text-transform: lowercase;
+    }
+    
+    .badge-active {
+        background: #4CAF50;
+        color: white;
+    }
+    
+    .badge-inactive {
+        background: var(--dark-gray);
+        color: var(--gray);
+    }
+    
+    .badge-admin {
+        background: var(--orange);
+        color: var(--bg-black);
+    }
+    
+    .badge-user {
+        background: var(--cyan);
+        color: var(--bg-black);
+    }
+    
+    .badge-pending {
+        background: #ffc107;
+        color: #000;
+    }
+    
+    .badge-approved {
+        background: #4CAF50;
+        color: white;
+    }
+    
+    .badge-rejected {
+        background: #dc3545;
+        color: white;
+    }
+    
+    /* Action Links */
+    .action-link {
+        color: var(--cyan);
+        text-decoration: none;
+        margin-right: 10px;
+        cursor: pointer;
+        transition: all 0.2s;
+        font-size: 12px;
+        text-transform: lowercase;
+    }
+    
+    .action-link:hover {
+        color: var(--orange);
+        text-decoration: underline;
+    }
+    
+    /* Alert Boxes */
+    .alert {
+        padding: 15px;
+        border-radius: 5px;
+        margin-bottom: 20px;
+        border: 1px solid;
+    }
+    
+    .alert-success {
+        background: rgba(76, 175, 80, 0.1);
+        border-color: #4CAF50;
+        color: #4CAF50;
+    }
+    
+    .alert-error {
+        background: rgba(255, 68, 68, 0.1);
+        border-color: #ff4444;
+        color: #ff4444;
+    }
+    
+    .alert-warning {
+        background: rgba(255, 193, 7, 0.1);
+        border-color: #ffc107;
+        color: #ffc107;
+    }
+    
+    .alert-info {
+        background: rgba(0, 255, 255, 0.1);
+        border-color: var(--cyan);
+        color: var(--cyan);
+    }
+    
+    /* User Cards */
+    .user-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+        gap: 20px;
+    }
+    
+    .user-card {
+        background: var(--bg-dark);
+        border: 1px solid var(--dark-gray);
+        border-radius: 5px;
+        padding: 15px;
+        transition: all 0.3s;
+    }
+    
+    .user-card:hover {
+        border-color: var(--orange);
+        transform: translateY(-2px);
+    }
+    
+    .user-avatar {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        background: var(--orange);
+        color: var(--bg-black);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: bold;
+        font-size: 18px;
+    }
+    
+    .user-info {
+        display: flex;
+        align-items: center;
+        gap: 15px;
+    }
+    
+    .user-details {
+        flex: 1;
+    }
+    
+    .user-name {
+        color: var(--white);
+        font-weight: bold;
+        margin-bottom: 3px;
+    }
+    
+    .user-role {
+        color: var(--gray);
+        font-size: 12px;
+    }
+    
+    /* Utility Classes */
+    .text-muted {
+        color: var(--gray);
+    }
+    
+    .text-center {
+        text-align: center;
+    }
+    
+    .mb-0 {
+        margin-bottom: 0;
+    }
+    
+    .mt-20 {
+        margin-top: 20px;
+    }
+    
+    /* Responsive */
+    @media (max-width: 768px) {
+        .stats-grid {
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+        }
+        
+        .admin-nav {
+            flex-wrap: wrap;
+        }
+        
+        .user-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+    
+    @media (max-width: 600px) {
+        .module-container {
+            padding: 15px;
+        }
+        
+        .button-group {
+            flex-direction: column;
+        }
+        
+        .button-group .btn-primary,
+        .button-group .btn-secondary {
+            width: 100%;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="module-container">
+    <!-- Module Header -->
+    <div class="module-header">
+        <h1>🔐 administration</h1>
+        <p>system control center</p>
+    </div>
+    
+    <!-- Administration Navigation -->
+    <div class="admin-nav">
+        <a href="{% url 'administration:dashboard' %}" class="admin-nav-item {% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}">
+            <span>📊</span>
+            <span>dashboard</span>
+        </a>
+        <a href="{% url 'administration:users' %}" class="admin-nav-item {% if request.resolver_match.url_name == 'users' or request.resolver_match.url_name == 'user_detail' %}active{% endif %}">
+            <span>👥</span>
+            <span>users</span>
+        </a>
+        <a href="{% url 'administration:roles' %}" class="admin-nav-item {% if request.resolver_match.url_name == 'roles' or request.resolver_match.url_name == 'role_detail' %}active{% endif %}">
+            <span>🎭</span>
+            <span>roles</span>
+        </a>
+        <a href="{% url 'administration:departments' %}" class="admin-nav-item {% if request.resolver_match.url_name == 'departments' %}active{% endif %}">
+            <span>🏢</span>
+            <span>departments</span>
+        </a>
+        <a href="{% url 'administration:permission_requests' %}" class="admin-nav-item {% if request.resolver_match.url_name == 'permission_requests' %}active{% endif %}">
+            <span>📋</span>
+            <span>requests</span>
+            {% if pending_requests_count %}
+            <span class="admin-nav-badge">{{ pending_requests_count }}</span>
+            {% endif %}
+        </a>
+        <a href="{% url 'administration:audit_logs' %}" class="admin-nav-item {% if request.resolver_match.url_name == 'audit_logs' %}active{% endif %}">
+            <span>📜</span>
+            <span>audit logs</span>
+        </a>
+        <a href="{% url 'administration:system_settings' %}" class="admin-nav-item {% if request.resolver_match.url_name == 'system_settings' %}active{% endif %}">
+            <span>⚙️</span>
+            <span>settings</span>
+        </a>
+        <a href="{% url 'administration:screen_lock_settings' %}" class="admin-nav-item {% if request.resolver_match.url_name == 'screen_lock_settings' %}active{% endif %}">
+            <span>🔒</span>
+            <span>screen lock</span>
+        </a>
+        <a href="{% url 'administration:solitaire_dashboard' %}" class="admin-nav-item {% if 'solitaire' in request.resolver_match.url_name %}active{% endif %}">
+            <span>🃏</span>
+            <span>solitaire</span>
+        </a>
+        <a href="{% url 'administration:cron_jobs' %}" class="admin-nav-item {% if request.resolver_match.url_name == 'cron_jobs' %}active{% endif %}">
+            <span>⏰</span>
+            <span>cron jobs</span>
+        </a>
+        <a href="{% url 'administration:mailbox_list' %}" class="admin-nav-item {% if 'mailbox' in request.resolver_match.url_name %}active{% endif %}">
+            <span>📧</span>
+            <span>recaria mail</span>
+        </a>
+    </div>
+    
+    <!-- Admin Content Area -->
+    {% block admin_content %}{% endblock %}
+</div>
+{% endblock %}

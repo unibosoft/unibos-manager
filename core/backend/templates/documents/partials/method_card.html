@@ -1,0 +1,120 @@
+{# Method Card Template - Reusable for all OCR methods #}
+{# Usage: {% include 'documents/partials/method_card.html' with method=method_config %} #}
+{% load analysis_filters %}
+
+<div id="card-{{ method.id }}" class="analysis-method" data-method="{{ method.id }}" style="display: none;">
+    <div class="method-header">
+        <div class="method-title">
+            <div class="method-name-wrapper">
+                <div class="method-name-line">
+                    <span>{{ method.icon }}</span>
+                    <span>{{ method.name }}</span>
+                </div>
+                <div class="method-description">{{ method.description }}</div>
+            </div>
+        </div>
+        <div class="method-status">
+            <span class="status-badge status-{{ analysis|get_item:method.id|get_item:'status' }}">
+                {{ analysis|get_item:method.id|get_item:'status'|default:'pending' }}
+            </span>
+        </div>
+    </div>
+
+    {% with method_data=analysis|get_item:method.id %}
+    {% if method_data.error %}
+    <div style="background: rgba(255, 0, 0, 0.1); border: 1px solid var(--red); border-radius: 6px; padding: 12px; margin-bottom: 12px;">
+        <div style="color: var(--red); font-size: 10px; font-weight: bold; margin-bottom: 4px;">
+            ❌ error
+        </div>
+        <div style="color: var(--gray); font-size: 10px;">
+            {{ method_data.error }}
+        </div>
+    </div>
+    {% endif %}
+
+    <div class="metrics-grid">
+        <div class="metric-card">
+            <div class="metric-value">{{ method_data.confidence|default:0|floatformat:1 }}%</div>
+            <div class="metric-label">confidence</div>
+        </div>
+        <div class="metric-card">
+            <div class="metric-value">{{ method_data.char_count|default:0 }}</div>
+            <div class="metric-label">characters</div>
+        </div>
+        <div class="metric-card">
+            <div class="metric-value">{{ method_data.word_count|default:0 }}</div>
+            <div class="metric-label">words</div>
+        </div>
+        <div class="metric-card">
+            <div class="metric-value">{{ method_data.processing_time|default:0|floatformat:2 }}s</div>
+            <div class="metric-label">processing time</div>
+        </div>
+    </div>
+
+    <div class="key-findings">
+        <div class="finding-item">
+            <div class="finding-header">
+                <span class="finding-label">store name</span>
+                <span class="finding-status {% if method_data.found_store %}found{% else %}missing{% endif %}">
+                    {{ method_data.found_store|yesno:"✓ found,✗ missing" }}
+                </span>
+            </div>
+            <div class="finding-value" style="min-height: 24px; display: flex; align-items: center;">{{ method_data.store_name|default:"" }}</div>
+        </div>
+        <div class="finding-item">
+            <div class="finding-header">
+                <span class="finding-label">total amount</span>
+                <span class="finding-status {% if method_data.found_total %}found{% else %}missing{% endif %}">
+                    {{ method_data.found_total|yesno:"✓ found,✗ missing" }}
+                </span>
+            </div>
+            <div class="finding-value" style="min-height: 24px; display: flex; align-items: center;">{{ method_data.total_amount|default:"" }}</div>
+        </div>
+        <div class="finding-item">
+            <div class="finding-header">
+                <span class="finding-label">date/time</span>
+                <span class="finding-status {% if method_data.found_date %}found{% else %}missing{% endif %}">
+                    {{ method_data.found_date|yesno:"✓ found,✗ missing" }}
+                </span>
+            </div>
+            <div class="finding-value" style="min-height: 24px; display: flex; align-items: center;">{{ method_data.date_time|default:"" }}</div>
+        </div>
+        <div class="finding-item">
+            <div class="finding-header">
+                <span class="finding-label">bottom info</span>
+                <span class="finding-status {% if method_data.found_bottom %}found{% else %}missing{% endif %}">
+                    {{ method_data.found_bottom|yesno:"✓ found,✗ missing" }}
+                </span>
+            </div>
+            <div class="finding-value" style="min-height: 24px; display: flex; align-items: center;">{{ method_data.bottom_info|default:"" }}</div>
+        </div>
+    </div>
+
+    <details open style="margin-top: 15px;">
+        <summary style="color: var(--cyan); cursor: pointer; font-size: 12px;">view full ocr text</summary>
+        <div class="ocr-text-preview" style="margin-top: 10px; min-height: 120px; max-height: 300px; overflow-y: auto;">
+            {{ method_data.text|default:"no ocr text available"|linebreaksbr }}
+        </div>
+    </details>
+
+    <div class="action-buttons">
+        <button class="btn btn-small" onclick="retryMethod('{{ method.id }}', '{{ document.id }}')" style="background: var(--cyan); color: #000;">
+            🔄 retry
+        </button>
+        <button class="btn btn-small" onclick="selectMethod('{{ method.id }}', '{{ document.id }}')" style="background: var(--green); color: #000;">
+            ✓ use this
+        </button>
+    </div>
+
+    {% if method_data.analyzed_at %}
+    <div style="margin-top: 10px; padding-top: 8px; border-top: 1px solid var(--dark-gray); font-size: 10px; color: var(--gray); text-align: center;">
+        <div style="margin-bottom: 2px;">
+            🕒 <span style="color: var(--cyan);">{{ method_data.analyzed_at|timeago }}</span>
+        </div>
+        <div style="font-size: 9px; opacity: 0.7;">
+            {{ method_data.analyzed_at|date:"d M Y, H:i" }}
+        </div>
+    </div>
+    {% endif %}
+    {% endwith %}
+</div>

@@ -1,0 +1,329 @@
+{
+  "version": "v533",
+  "build_number": "20251110_1604",
+  "release_date": "2025-11-10 16:04:00 +0300",
+  "author": "berk hatırlı",
+  "location": "bitez, bodrum, muğla, türkiye, dünya, güneş sistemi, samanyolu, yerel galaksi grubu, evren",
+  "description": "v530: Database backup system, improved deployment automation, version management enhancements",
+  "features": [
+    "🎬 **Movies Module**: Complete movie/series collection management with TMDB/OMDB API integration",
+    "🎵 **Music Module**: Spotify-integrated music library without storing files, open source artwork",
+    "🍽️ **RestoPOS Module**: Professional restaurant POS system with table management and order tracking",
+    "➡️ **Enhanced Arrow Navigation**: RIGHT arrow to enter, LEFT arrow to go back across all menus",
+    "🎯 **Visual Selection Feedback**: Cyan background highlighting for selected menu items",
+    "🧹 **Auto-cleanup Messages**: Temporary messages disappear after 3 seconds automatically",
+    "🧾 **Invoice Processor Content Area**: Invoice processor now renders in content area with sidebar visible",
+    "✅ **Fixed Display Issues**: Removed broken bracket characters from invoice processor",
+    "📄 **Documents Module Complete**: 7 functional features including browse, search, upload, OCR, invoice, tags, analytics",
+    "🎯 **77.8% Processing Accuracy**: Invoice processor with Ollama llama2 model",
+    "📊 **Version Manager**: Archive size analyzer, git tools integration, and version management",
+    "📈 **Archive Analyzer**: Detect size anomalies in version archives with statistical analysis",
+    "🎨 **Size-based Color Coding**: 50-200MB yellow, 200-500MB orange, 500MB+ red indicators",
+    "⏳ **Progress Indicators**: Real-time scanning progress with spinner and status updates",
+    "🔧 **UI Fixes**: Resolved sidebar drawing issues and header refresh problems",
+    "🔐 **Login System**: Full authentication with Unicorn user import",
+    "💸 **WIMM Module**: Where Is My Money - Financial management system",
+    "📦 **WIMS Module**: Where Is My Stuff - Inventory management system",
+    "👤 **User Profiles**: Editable profiles with preferences",
+    "🎨 **Header Update**: Username display in top-right corner",
+    "🌍 **Auto Language Detection**: Detects system language and sets as default",
+    "🎨 **Functional Theme Switching**: Dark/Light/Auto theme modes work properly",
+    "🌐 **10 Language Support**: EN, TR, ES, FR, DE, ZH, JA, PT, RU, AR",
+    "🔡 **Lowercase UI**: All UI text converted to lowercase for consistency",
+    "🔐 **Administration Module**: Professional user, role and permission management",
+    "👥 **8 System Roles**: Super Admin, Admin, Manager, Supervisor, Developer, Auditor, User, Guest",
+    "🏢 **Department System**: IT, HR, Finance, Operations departments with hierarchy",
+    "📜 **Audit Logging**: Complete action tracking for all administrative operations",
+    "⚙️ **System Settings**: Configurable security and system parameters",
+    "📹 **CCTV Module**: Professional camera monitoring and recording system",
+    "📷 **TP-Link Tapo Support**: C200, C210, C310, C320WS camera integration",
+    "🎥 **Multi-Camera Grid**: 2x2, 3x3, 4x4 grid monitoring layouts",
+    "⏺️ **Recording System**: Continuous, motion-triggered, and scheduled recording",
+    "🚨 **Alert Management**: Security alerts with priority levels",
+    "🔄 **PTZ Control**: Pan/Tilt/Zoom control for supported cameras",
+    "⛶ **Global Fullscreen**: Fullscreen mode for all modules with F11 key support",
+    "🖥️ **Fullscreen Button**: Floating fullscreen button on all module pages",
+    "📄 **Documents Module**: OCR processing and cross-module integration system",
+    "📑 **Document Pagination**: 20 items per page with filtering and search",
+    "🔍 **Enhanced OCR Display**: Prominent OCR text display with confidence levels",
+    "💰 **Kişisel Enflasyon Integration**: Automatic inflation tracking from receipts",
+    "🛒 **Smart Product Creation**: Auto-creates products and price records from OCR",
+    "📊 **Personal Baskets**: Automatic user basket creation for inflation tracking",
+    "💳 **Credit Card Management**: Track and manage multiple credit cards",
+    "🔄 **Subscription Tracking**: Monitor recurring payments and subscriptions"
+  ],
+  "improvements": [
+    "translations.py get_translation() parameter order fixed: (key, lang_code)",
+    "Fixed typos in translations: 'birkisisel' → 'birlikteyiz'",
+    "Header redesigned to 3 lines with proper layout",
+    "draw_header() now shows UNIBOS left, user info right",
+    "Web Forge menu padding increased from 25 to 30 characters",
+    "Footer time removed, only date|location|online shown",
+    "Added 'l' key hint for language menu in footer",
+    "Modules now display correctly instead of language codes"
+  ],
+  "technical": {
+    "python_minimum": "3.8",
+    "python_recommended": "3.11",
+    "dependencies": [
+      "requests",
+      "beautifulsoup4",
+      "psycopg2-binary",
+      "sqlalchemy",
+      "alembic",
+      "xml.etree (built-in)",
+      "psutil (optional)",
+      "threading (built-in)"
+    ],
+    "database": "PostgreSQL only - SQLite support removed",
+    "api_integrations": [
+      "Turkish Central Bank (TCMB)",
+      "Binance API (real-time crypto)",
+      "CoinGecko API (crypto prices)",
+      "BTCTurk API (Turkish crypto)",
+      "Fallback demo mode"
+    ]
+  },
+  "modules": {
+    "movies": {
+      "version": "1.0",
+      "status": "integrated",
+      "features": [
+        "TMDB/OMDB API integration",
+        "Personal movie collections",
+        "Watchlist management",
+        "User ratings and reviews",
+        "Watch history tracking",
+        "Advanced search and filtering"
+      ]
+    },
+    "music": {
+      "version": "1.0",
+      "status": "integrated",
+      "features": [
+        "Spotify API integration",
+        "Music library management",
+        "Playlist creation",
+        "Listening history",
+        "Music statistics",
+        "Open source artwork support"
+      ]
+    },
+    "restopos": {
+      "version": "1.0",
+      "status": "integrated",
+      "features": [
+        "Table management with QR codes",
+        "Order and receipt handling",
+        "Menu management",
+        "Kitchen display system",
+        "Staff management",
+        "Integration with WIMM and WIMS"
+      ]
+    },
+    "currencies": {
+      "version": "3.0",
+      "features": [
+        "Real-time exchange rates",
+        "10+ fiat currencies",
+        "BTC, ETH, AVAX real-time prices",
+        "Portfolio management",
+        "Price alerts",
+        "Market analysis",
+        "Historical charts",
+        "News feed"
+      ]
+    },
+    "recaria": {
+      "version": "1.0",
+      "status": "integrated"
+    },
+    "birlikteyiz": {
+      "version": "1.0",
+      "status": "integrated"
+    },
+    "kisiselenflasyon": {
+      "version": "1.0",
+      "status": "integrated"
+    },
+    "wimm": {
+      "version": "1.0",
+      "status": "integrated",
+      "features": [
+        "Transaction tracking",
+        "Invoice management",
+        "Budget planning",
+        "Multi-currency accounts",
+        "Financial reports"
+      ]
+    },
+    "wims": {
+      "version": "1.0",
+      "status": "integrated",
+      "features": [
+        "Warehouse management",
+        "Stock tracking",
+        "Batch/Serial numbers",
+        "Expiry alerts",
+        "Stock movements"
+      ]
+    },
+    "cctv": {
+      "version": "1.0",
+      "status": "integrated",
+      "features": [
+        "TP-Link Tapo camera support",
+        "RTSP streaming (port 554)",
+        "Multi-camera grid monitoring",
+        "Recording management",
+        "Motion detection ready",
+        "PTZ control support",
+        "Alert system",
+        "Storage management"
+      ]
+    },
+    "documents": {
+      "version": "1.0",
+      "status": "integrated",
+      "features": [
+        "OCR processing with Tesseract",
+        "Batch document upload (50-100 files)",
+        "Receipt parsing for Turkish stores",
+        "Credit card management",
+        "Subscription tracking",
+        "Cross-module integration",
+        "Automatic inflation tracking",
+        "Document pagination with search"
+      ]
+    },
+    "personal_inflation": {
+      "version": "1.0",
+      "status": "integrated",
+      "features": [
+        "Product and price tracking",
+        "Personal consumption baskets",
+        "Store management",
+        "Inflation rate calculation",
+        "Price alerts",
+        "Category-based analysis",
+        "Integration with Documents module"
+      ]
+    }
+  },
+  "compatibility": {
+    "platforms": [
+      "Windows",
+      "macOS",
+      "Linux"
+    ],
+    "terminal_minimum": "80x24",
+    "terminal_recommended": "120x40"
+  },
+  "changelog": [
+    {
+      "version": "v530",
+      "date": "2025-11-07 15:45",
+      "description": "Database backup system, improved deployment automation, version management enhancements",
+      "changes": [
+        "Feature: Automated database backup system with retention policy (last 3 backups)",
+        "Feature: backup_database.sh - creates versioned SQL dumps separate from archives",
+        "Feature: verify_database_backup.sh - validates and displays backup information",
+        "Enhancement: Archive script excludes SQL dumps and Flutter build artifacts",
+        "Enhancement: Deployment script flexible for both Gunicorn and runserver environments",
+        "Documentation: Comprehensive VERSIONING_RULES.md with best practices",
+        "Documentation: Database backup and restore procedures",
+        "Fix: Archive size anomalies resolved (v527: 87MB → v528-v530: 30-40MB)",
+        "Fix: Flutter build directory exclusion prevents 1.5GB bloat",
+        "Chore: Integrated backup creation into version management workflow"
+      ]
+    },
+    {
+      "version": "v529",
+      "date": "2025-11-07 11:52",
+      "description": "Birlikteyiz earthquake map UI/UX overhaul, manual data fetch system, EMSC WebSocket integration",
+      "changes": [
+        "Feature: Manual data fetch buttons in source admin panel (global and per-source)",
+        "Feature: EMSC WebSocket real-time earthquake data source with systemd service",
+        "Feature: Enhanced EarthquakeDataSource model with comprehensive statistics tracking",
+        "UI/UX: Map legend moved inside map with horizontal layout and dark background",
+        "UI/UX: Clickable source badges for instant filtering with active state highlighting",
+        "UI/UX: Improved earthquake list readability with better backgrounds and contrast",
+        "Fix: Map kadraj persistence - geolocation only on first visit using localStorage",
+        "Fix: Deployment script now properly restarts Gunicorn and Nginx services",
+        "Enhancement: fetch_earthquakes command with --source parameter for single source fetch",
+        "Enhancement: Background threading for non-blocking fetch operations"
+      ]
+    },
+    {
+      "version": "v525",
+      "date": "2025-08-13 13:14",
+      "description": "Bug Fix: Fixed Solitaire card stacking spacing issue",
+      "changes": [
+        "Bug Fix: Fixed Solitaire card stacking spacing issue",
+        "Development Tools: Enhanced version management with automatic restart integration",
+        "Bug Fix: Fixed solitaire game initialization"
+      ]
+    },
+    {
+      "version": "v525",
+      "date": "2025-08-12 18:24",
+      "description": "System Restore: Reverted to v464 with solitaire completed, removed broken versions",
+      "changes": [
+        "System: Restored codebase to v464 stable state",
+        "System: Removed broken versions v465-v468",
+        "UI/UX: Solitaire game working perfectly",
+        "UI/UX: Splash screen restored and working"
+      ]
+    },
+    {
+      "version": "v525",
+      "date": "2025-08-12 12:01",
+      "description": "UI/UX: Removed web forge from dev tools and renamed to web ui",
+      "changes": [
+        "Modules: Created screen lock management system for web UI administration",
+        "UI/UX: Removed web forge from dev tools and renamed to web ui",
+        "Documentation: Renamed web forge to web ui in tools section"
+      ]
+    },
+    {
+      "version": "v525",
+      "date": "2025-08-12 09:59",
+      "description": "UI/UX: Simplified version manager menu by removing unused items",
+      "changes": [
+        "Documentation: Comprehensive documentation review and modernization",
+        "UI/UX: Simplified version manager menu by removing unused items",
+        "UI/UX: Added pause/stop functionality to CLI archive analyzer"
+      ]
+    },
+    {
+      "version": "v525",
+      "date": "2025-08-12 09:40",
+      "description": "UI/UX: Fixed module info display to use standardized documentation format",
+      "changes": [
+        "Documentation: Comprehensive documentation review and modernization",
+        "UI/UX: Fixed module info display to use standardized documentation format",
+        "UI/UX: Implemented full document-format module info display"
+      ]
+    },
+    {
+      "version": "v525",
+      "date": "2025-08-12 09:23",
+      "description": "UI/UX: Enhanced breadcrumb navigation for CLI",
+      "changes": [
+        "Documentation: Comprehensive documentation review and modernization",
+        "UI/UX: Enhanced breadcrumb navigation for CLI",
+        "Modules: Implemented full-featured Solitaire game with security"
+      ]
+    },
+    {
+      "version": "v525",
+      "date": "2025-08-12 07:21",
+      "description": "Bug Fix: Fixed footer overlap in quick release summary",
+      "changes": [
+        "Version Manager: Enhanced quick release with intelligent commit messages",
+        "Bug Fix: Fixed footer overlap in quick release summary",
+        "UI/UX: Changed UNIBOS CLI to lowercase unibos cli throughout codebase"
+      ]
+    }
+  ]
+}

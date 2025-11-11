@@ -1,0 +1,918 @@
+{% extends 'web_ui/base.html' %}
+{% load static %}
+
+{% block title %}currencies - unibos{% endblock %}
+
+{% block header_title %}unibos{% endblock %}
+{% block module_name %}currencies - exchange rates{% endblock %}
+
+{% block content %}
+<div class="module-container">
+    <div class="module-header">
+        <h1>💰 currencies - exchange rates</h1>
+        <p>gerçek zamanlı döviz ve portföy yönetimi</p>
+    </div>
+
+    {% if user.is_authenticated %}
+    <!-- Overview Section -->
+    <div class="section">
+        <h2>market overview</h2>
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-label">usd/try</div>
+                <div class="stat-value">{{ usd_try|default:"32.50"|floatformat:2 }}</div>
+                <div class="stat-change {% if usd_change >= 0 %}positive{% else %}negative{% endif %}">
+                    {{ usd_change|default:"0.15"|floatformat:2 }}%
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">eur/try</div>
+                <div class="stat-value">{{ eur_try|default:"35.20"|floatformat:2 }}</div>
+                <div class="stat-change {% if eur_change >= 0 %}positive{% else %}negative{% endif %}">
+                    {{ eur_change|default:"-0.08"|floatformat:2 }}%
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">gbp/try</div>
+                <div class="stat-value">{{ gbp_try|default:"41.85"|floatformat:2 }}</div>
+                <div class="stat-change {% if gbp_change >= 0 %}positive{% else %}negative{% endif %}">
+                    {{ gbp_change|default:"0.22"|floatformat:2 }}%
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">xau/try</div>
+                <div class="stat-value">{{ xau_try|default:"2185.50"|floatformat:2 }}</div>
+                <div class="stat-change {% if xau_change >= 0 %}positive{% else %}negative{% endif %}">
+                    {{ xau_change|default:"1.05"|floatformat:2 }}%
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quick Actions -->
+    <div class="section">
+        <h2>quick actions</h2>
+        <div class="button-group">
+            <button class="btn btn-primary" onclick="openConverter()">💱 convert</button>
+            <button class="btn btn-secondary" onclick="viewPortfolio()">📊 portfolio</button>
+            <button class="btn btn-secondary" onclick="viewBankRates()">🏦 bank rates</button>
+            <button class="btn btn-secondary" onclick="viewCrypto()">₿ crypto</button>
+            <button class="btn btn-secondary" onclick="refreshRates()">🔄 refresh</button>
+        </div>
+    </div>
+
+    <!-- Currency Converter -->
+    <div class="section">
+        <h2>currency converter</h2>
+        <div class="converter-box">
+            <div class="converter-row">
+                <input type="number" id="convertAmount" class="converter-input" placeholder="amount" value="100">
+                <select id="convertFrom" class="converter-select">
+                    <option value="USD">usd</option>
+                    <option value="EUR">eur</option>
+                    <option value="GBP">gbp</option>
+                    <option value="TRY" selected>try</option>
+                </select>
+                <span class="converter-arrow">→</span>
+                <select id="convertTo" class="converter-select">
+                    <option value="USD" selected>usd</option>
+                    <option value="EUR">eur</option>
+                    <option value="GBP">gbp</option>
+                    <option value="TRY">try</option>
+                </select>
+                <button class="btn btn-sm" onclick="performConversion()">convert</button>
+            </div>
+            <div class="converter-result" id="converterResult">
+                <!-- Result will be shown here -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Live Rates -->
+    <div class="section">
+        <h2>live exchange rates</h2>
+        <div class="rates-filter">
+            <button class="filter-chip active" data-filter="all">all</button>
+            <button class="filter-chip" data-filter="major">major</button>
+            <button class="filter-chip" data-filter="crypto">crypto</button>
+            <button class="filter-chip" data-filter="metal">metals</button>
+        </div>
+        <div class="rates-grid">
+            {% for rate in live_rates %}
+            <div class="rate-card" data-category="{{ rate.category }}">
+                <div class="rate-pair">{{ rate.pair|lower }}</div>
+                <div class="rate-value">{{ rate.value|floatformat:4 }}</div>
+                <div class="rate-change {% if rate.change >= 0 %}positive{% else %}negative{% endif %}">
+                    {% if rate.change >= 0 %}↑{% else %}↓{% endif %} {{ rate.change|floatformat:2 }}%
+                </div>
+                <div class="rate-time">{{ rate.updated|date:"H:i:s" }}</div>
+            </div>
+            {% empty %}
+            <div class="empty-state">
+                <p>loading rates...</p>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <!-- Portfolio Section -->
+    <div class="section">
+        <h2>my portfolio</h2>
+        {% if portfolios %}
+        <div class="portfolio-summary">
+            <div class="portfolio-stat">
+                <span class="label">total value:</span>
+                <span class="value">₺{{ total_portfolio_value|default:"0"|floatformat:2 }}</span>
+            </div>
+            <div class="portfolio-stat">
+                <span class="label">today's change:</span>
+                <span class="value {% if daily_change >= 0 %}positive{% else %}negative{% endif %}">
+                    {{ daily_change|default:"0"|floatformat:2 }}%
+                </span>
+            </div>
+        </div>
+        <div class="portfolio-list">
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>currency</th>
+                        <th>amount</th>
+                        <th>avg cost</th>
+                        <th>current</th>
+                        <th>value (₺)</th>
+                        <th>p&l</th>
+                        <th>%</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for holding in portfolios %}
+                    <tr>
+                        <td>{{ holding.currency|lower }}</td>
+                        <td>{{ holding.amount|floatformat:2 }}</td>
+                        <td>{{ holding.avg_cost|floatformat:4 }}</td>
+                        <td>{{ holding.current_rate|floatformat:4 }}</td>
+                        <td>{{ holding.current_value|floatformat:2 }}</td>
+                        <td class="{% if holding.profit_loss >= 0 %}positive{% else %}negative{% endif %}">
+                            {{ holding.profit_loss|floatformat:2 }}
+                        </td>
+                        <td class="{% if holding.profit_percentage >= 0 %}positive{% else %}negative{% endif %}">
+                            {{ holding.profit_percentage|floatformat:2 }}%
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="empty-state">
+            <p>no portfolio holdings</p>
+            <button class="btn btn-sm" onclick="addHolding()">+ add holding</button>
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- Bank Rates Comparison -->
+    <div class="section">
+        <h2>bank rates comparison</h2>
+        <div class="bank-selector">
+            <button class="bank-chip active" data-bank="all">all banks</button>
+            <button class="bank-chip" data-bank="tcmb">tcmb</button>
+            <button class="bank-chip" data-bank="garanti">garanti</button>
+            <button class="bank-chip" data-bank="isbank">iş bankası</button>
+            <button class="bank-chip" data-bank="akbank">akbank</button>
+            <button class="bank-chip" data-bank="yapi">yapı kredi</button>
+        </div>
+        <div class="bank-rates-table">
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>bank</th>
+                        <th>usd buy</th>
+                        <th>usd sell</th>
+                        <th>eur buy</th>
+                        <th>eur sell</th>
+                        <th>updated</th>
+                    </tr>
+                </thead>
+                <tbody id="bankRatesBody">
+                    {% for bank in bank_rates %}
+                    <tr data-bank="{{ bank.code }}">
+                        <td>{{ bank.name|lower }}</td>
+                        <td>{{ bank.usd_buy|floatformat:4 }}</td>
+                        <td>{{ bank.usd_sell|floatformat:4 }}</td>
+                        <td>{{ bank.eur_buy|floatformat:4 }}</td>
+                        <td>{{ bank.eur_sell|floatformat:4 }}</td>
+                        <td>{{ bank.updated|date:"H:i" }}</td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="6" class="text-center">no bank rates available</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Crypto Section -->
+    <div class="section">
+        <h2>cryptocurrency rates</h2>
+        <div class="crypto-grid">
+            {% for crypto in crypto_rates %}
+            <div class="crypto-card">
+                <div class="crypto-header">
+                    <span class="crypto-symbol">{{ crypto.symbol }}</span>
+                    <span class="crypto-name">{{ crypto.name|lower }}</span>
+                </div>
+                <div class="crypto-price">${{ crypto.price|floatformat:2 }}</div>
+                <div class="crypto-change {% if crypto.change_24h >= 0 %}positive{% else %}negative{% endif %}">
+                    24h: {{ crypto.change_24h|floatformat:2 }}%
+                </div>
+                <div class="crypto-stats">
+                    <span>vol: ${{ crypto.volume_24h|floatformat:0 }}</span>
+                    <span>cap: ${{ crypto.market_cap|floatformat:0 }}</span>
+                </div>
+            </div>
+            {% empty %}
+            <div class="empty-state">
+                <p>crypto rates unavailable</p>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <!-- Historical Chart -->
+    <div class="section">
+        <h2>historical chart</h2>
+        <div class="chart-controls">
+            <select id="chartCurrency" class="chart-select">
+                <option value="USD/TRY">usd/try</option>
+                <option value="EUR/TRY">eur/try</option>
+                <option value="GBP/TRY">gbp/try</option>
+                <option value="XAU/TRY">xau/try</option>
+            </select>
+            <div class="chart-period">
+                <button class="period-btn active" data-period="1D">1d</button>
+                <button class="period-btn" data-period="1W">1w</button>
+                <button class="period-btn" data-period="1M">1m</button>
+                <button class="period-btn" data-period="3M">3m</button>
+                <button class="period-btn" data-period="1Y">1y</button>
+            </div>
+        </div>
+        <div class="chart-container">
+            <canvas id="rateChart"></canvas>
+        </div>
+    </div>
+
+    {% else %}
+    <!-- Not Authenticated -->
+    <div class="section">
+        <div class="empty-state">
+            <h2>authentication required</h2>
+            <p>please login to access currency features</p>
+            <a href="{% url 'login' %}" class="btn btn-primary">login</a>
+        </div>
+    </div>
+    {% endif %}
+</div>
+
+<style>
+.module-container {
+    max-width: 100%;
+    margin: 0;
+    padding: 0;
+}
+
+.module-header {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    margin-bottom: 30px;
+    padding-bottom: 15px;
+    border-bottom: 2px solid var(--orange);
+}
+
+.module-header h1 {
+    display: block;
+    color: var(--orange);
+    font-size: 24px;
+    font-weight: bold;
+    text-transform: lowercase;
+    margin: 0;
+    margin-bottom: 8px;
+    line-height: 1.2;
+}
+
+.module-header p {
+    display: block;
+    color: var(--gray);
+    font-size: 14px;
+    text-transform: lowercase;
+    margin: 0;
+    line-height: 1.4;
+}
+
+.section {
+    background: var(--bg-dark);
+    border: 1px solid var(--dark-gray);
+    border-radius: 8px;
+    padding: 20px;
+    margin-bottom: 20px;
+}
+
+.section h2 {
+    color: var(--orange);
+    font-size: 18px;
+    font-weight: bold;
+    margin-bottom: 15px;
+    text-transform: lowercase;
+}
+
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 15px;
+}
+
+.stat-card {
+    background: var(--bg-black);
+    border: 1px solid var(--dark-gray);
+    border-radius: 5px;
+    padding: 15px;
+    text-align: center;
+}
+
+.stat-label {
+    color: var(--gray);
+    font-size: 12px;
+    text-transform: uppercase;
+    margin-bottom: 5px;
+}
+
+.stat-value {
+    color: var(--white);
+    font-size: 24px;
+    font-weight: bold;
+    margin: 5px 0;
+}
+
+.stat-change {
+    font-size: 14px;
+}
+
+.positive {
+    color: var(--green);
+}
+
+.negative {
+    color: var(--red);
+}
+
+.button-group {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.btn {
+    background: var(--orange);
+    color: var(--bg-black);
+    border: none;
+    padding: 10px 20px;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 14px;
+    transition: all 0.3s;
+}
+
+.btn:hover {
+    background: var(--orange-bright);
+    transform: translateY(-2px);
+}
+
+.btn-secondary {
+    background: var(--dark-gray);
+    color: var(--white);
+}
+
+.btn-secondary:hover {
+    background: var(--gray);
+}
+
+.btn-sm {
+    padding: 5px 10px;
+    font-size: 12px;
+}
+
+.converter-box {
+    background: var(--bg-black);
+    border: 1px solid var(--dark-gray);
+    border-radius: 5px;
+    padding: 20px;
+}
+
+.converter-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.converter-input {
+    background: var(--bg-dark);
+    border: 1px solid var(--dark-gray);
+    color: var(--white);
+    padding: 8px;
+    border-radius: 4px;
+    width: 150px;
+}
+
+.converter-select {
+    background: var(--bg-dark);
+    border: 1px solid var(--dark-gray);
+    color: var(--white);
+    padding: 8px;
+    border-radius: 4px;
+}
+
+.converter-arrow {
+    color: var(--gray);
+    font-size: 20px;
+}
+
+.converter-result {
+    margin-top: 15px;
+    padding: 10px;
+    background: var(--bg-dark);
+    border-radius: 4px;
+    text-align: center;
+    color: var(--cyan);
+    font-size: 20px;
+}
+
+.rates-filter {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 15px;
+}
+
+.filter-chip {
+    background: var(--bg-dark);
+    border: 1px solid var(--dark-gray);
+    color: var(--gray);
+    padding: 6px 12px;
+    border-radius: 15px;
+    cursor: pointer;
+    font-size: 12px;
+    transition: all 0.3s;
+}
+
+.filter-chip:hover {
+    border-color: var(--orange);
+    color: var(--orange);
+}
+
+.filter-chip.active {
+    background: var(--orange);
+    color: var(--bg-black);
+    border-color: var(--orange);
+}
+
+.rates-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    gap: 10px;
+}
+
+.rate-card {
+    background: var(--bg-black);
+    border: 1px solid var(--dark-gray);
+    border-radius: 5px;
+    padding: 10px;
+    text-align: center;
+    transition: all 0.3s;
+}
+
+.rate-card:hover {
+    border-color: var(--orange);
+    transform: translateY(-2px);
+}
+
+.rate-pair {
+    color: var(--orange);
+    font-size: 14px;
+    font-weight: bold;
+    margin-bottom: 5px;
+}
+
+.rate-value {
+    color: var(--white);
+    font-size: 18px;
+    margin: 5px 0;
+}
+
+.rate-change {
+    font-size: 12px;
+    margin: 5px 0;
+}
+
+.rate-time {
+    color: var(--gray);
+    font-size: 10px;
+}
+
+.data-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.data-table th {
+    background: var(--bg-black);
+    color: var(--orange);
+    padding: 10px;
+    text-align: left;
+    font-size: 12px;
+    text-transform: lowercase;
+    border-bottom: 1px solid var(--dark-gray);
+}
+
+.data-table td {
+    padding: 10px;
+    color: var(--white);
+    font-size: 14px;
+    border-bottom: 1px solid rgba(128, 128, 128, 0.1);
+}
+
+.data-table tr:hover {
+    background: rgba(255, 140, 0, 0.05);
+}
+
+.bank-selector {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 15px;
+    flex-wrap: wrap;
+}
+
+.bank-chip {
+    background: var(--bg-dark);
+    border: 1px solid var(--dark-gray);
+    color: var(--gray);
+    padding: 6px 12px;
+    border-radius: 15px;
+    cursor: pointer;
+    font-size: 12px;
+    transition: all 0.3s;
+}
+
+.bank-chip:hover {
+    border-color: var(--orange);
+    color: var(--orange);
+}
+
+.bank-chip.active {
+    background: var(--orange);
+    color: var(--bg-black);
+    border-color: var(--orange);
+}
+
+.crypto-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 15px;
+}
+
+.crypto-card {
+    background: var(--bg-black);
+    border: 1px solid var(--dark-gray);
+    border-radius: 5px;
+    padding: 15px;
+    transition: all 0.3s;
+}
+
+.crypto-card:hover {
+    border-color: var(--orange);
+    transform: translateY(-2px);
+}
+
+.crypto-header {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 10px;
+}
+
+.crypto-symbol {
+    color: var(--orange);
+    font-weight: bold;
+}
+
+.crypto-name {
+    color: var(--gray);
+    font-size: 12px;
+}
+
+.crypto-price {
+    color: var(--white);
+    font-size: 20px;
+    font-weight: bold;
+    margin: 10px 0;
+}
+
+.crypto-change {
+    font-size: 14px;
+    margin: 5px 0;
+}
+
+.crypto-stats {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 10px;
+    font-size: 11px;
+    color: var(--gray);
+}
+
+.chart-controls {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 15px;
+}
+
+.chart-select {
+    background: var(--bg-dark);
+    border: 1px solid var(--dark-gray);
+    color: var(--white);
+    padding: 8px;
+    border-radius: 4px;
+}
+
+.chart-period {
+    display: flex;
+    gap: 5px;
+}
+
+.period-btn {
+    background: var(--bg-dark);
+    border: 1px solid var(--dark-gray);
+    color: var(--gray);
+    padding: 6px 12px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 12px;
+    transition: all 0.3s;
+}
+
+.period-btn:hover {
+    border-color: var(--orange);
+    color: var(--orange);
+}
+
+.period-btn.active {
+    background: var(--orange);
+    color: var(--bg-black);
+    border-color: var(--orange);
+}
+
+.chart-container {
+    background: var(--bg-black);
+    border: 1px solid var(--dark-gray);
+    border-radius: 5px;
+    padding: 15px;
+    height: 300px;
+}
+
+.portfolio-summary {
+    display: flex;
+    justify-content: space-between;
+    background: var(--bg-black);
+    border: 1px solid var(--dark-gray);
+    border-radius: 5px;
+    padding: 15px;
+    margin-bottom: 15px;
+}
+
+.portfolio-stat {
+    display: flex;
+    flex-direction: column;
+}
+
+.portfolio-stat .label {
+    color: var(--gray);
+    font-size: 12px;
+    margin-bottom: 5px;
+}
+
+.portfolio-stat .value {
+    color: var(--white);
+    font-size: 20px;
+    font-weight: bold;
+}
+
+.empty-state {
+    text-align: center;
+    padding: 40px;
+    color: var(--gray);
+}
+
+.empty-state p {
+    margin-bottom: 15px;
+}
+
+.alert {
+    background: rgba(255, 140, 0, 0.1);
+    border-color: var(--orange);
+}
+
+.text-center {
+    text-align: center;
+}
+</style>
+
+<script>
+// Currency Converter
+function performConversion() {
+    const amount = document.getElementById('convertAmount').value;
+    const from = document.getElementById('convertFrom').value;
+    const to = document.getElementById('convertTo').value;
+    
+    fetch(`/api/currencies/convert/?amount=${amount}&from=${from}&to=${to}`)
+        .then(response => response.json())
+        .then(data => {
+            const result = document.getElementById('converterResult');
+            if (data.success) {
+                result.innerHTML = `${amount} ${from} = <strong>${data.result.toFixed(4)} ${to}</strong>`;
+            } else {
+                result.innerHTML = `<span style="color: var(--red);">conversion failed</span>`;
+            }
+        })
+        .catch(error => {
+            console.error('Conversion error:', error);
+        });
+}
+
+// Filter rates
+document.querySelectorAll('.filter-chip').forEach(chip => {
+    chip.addEventListener('click', function() {
+        document.querySelectorAll('.filter-chip').forEach(c => c.classList.remove('active'));
+        this.classList.add('active');
+        
+        const filter = this.dataset.filter;
+        document.querySelectorAll('.rate-card').forEach(card => {
+            if (filter === 'all' || card.dataset.category === filter) {
+                card.style.display = 'block';
+            } else {
+                card.style.display = 'none';
+            }
+        });
+    });
+});
+
+// Bank filter
+document.querySelectorAll('.bank-chip').forEach(chip => {
+    chip.addEventListener('click', function() {
+        document.querySelectorAll('.bank-chip').forEach(c => c.classList.remove('active'));
+        this.classList.add('active');
+        
+        const bank = this.dataset.bank;
+        document.querySelectorAll('#bankRatesBody tr').forEach(row => {
+            if (bank === 'all' || row.dataset.bank === bank) {
+                row.style.display = '';
+            } else {
+                row.style.display = 'none';
+            }
+        });
+    });
+});
+
+// Chart period selector
+document.querySelectorAll('.period-btn').forEach(btn => {
+    btn.addEventListener('click', function() {
+        document.querySelectorAll('.period-btn').forEach(b => b.classList.remove('active'));
+        this.classList.add('active');
+        
+        const period = this.dataset.period;
+        const currency = document.getElementById('chartCurrency').value;
+        loadChart(currency, period);
+    });
+});
+
+// Initialize chart
+let rateChart = null;
+
+function loadChart(pair, period) {
+    const ctx = document.getElementById('rateChart');
+    if (!ctx) return;
+    
+    // Destroy existing chart
+    if (rateChart) {
+        rateChart.destroy();
+    }
+    
+    // Fetch data and create new chart
+    fetch(`/api/currencies/historical/?pair=${pair}&period=${period}`)
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                rateChart = new Chart(ctx, {
+                    type: 'line',
+                    data: {
+                        labels: data.labels,
+                        datasets: [{
+                            label: pair,
+                            data: data.values,
+                            borderColor: 'var(--orange)',
+                            backgroundColor: 'rgba(255, 140, 0, 0.1)',
+                            borderWidth: 2,
+                            tension: 0.1
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: {
+                                display: false
+                            }
+                        },
+                        scales: {
+                            y: {
+                                ticks: {
+                                    color: 'var(--gray)'
+                                },
+                                grid: {
+                                    color: 'rgba(128, 128, 128, 0.1)'
+                                }
+                            },
+                            x: {
+                                ticks: {
+                                    color: 'var(--gray)'
+                                },
+                                grid: {
+                                    color: 'rgba(128, 128, 128, 0.1)'
+                                }
+                            }
+                        }
+                    }
+                });
+            }
+        })
+        .catch(error => {
+            console.error('Chart loading error:', error);
+        });
+}
+
+// Quick action functions
+function openConverter() {
+    document.querySelector('.converter-box').scrollIntoView({ behavior: 'smooth' });
+}
+
+function viewPortfolio() {
+    const section = document.querySelector('.section h2').textContent === 'my portfolio';
+    if (section) {
+        section.parentElement.scrollIntoView({ behavior: 'smooth' });
+    }
+}
+
+function viewBankRates() {
+    const section = Array.from(document.querySelectorAll('.section h2')).find(h => h.textContent === 'bank rates comparison');
+    if (section) {
+        section.parentElement.scrollIntoView({ behavior: 'smooth' });
+    }
+}
+
+function viewCrypto() {
+    const section = Array.from(document.querySelectorAll('.section h2')).find(h => h.textContent === 'cryptocurrency rates');
+    if (section) {
+        section.parentElement.scrollIntoView({ behavior: 'smooth' });
+    }
+}
+
+function refreshRates() {
+    location.reload();
+}
+
+function addHolding() {
+    // Implement add holding modal
+    alert('add holding feature coming soon');
+}
+
+// Auto-refresh rates every 30 seconds
+setInterval(() => {
+    if (document.visibilityState === 'visible') {
+        // Refresh rates via AJAX without page reload
+        fetch('/api/currencies/rates/')
+            .then(response => response.json())
+            .then(data => {
+                // Update rate cards
+                console.log('Rates refreshed');
+            });
+    }
+}, 30000);
+
+// Initialize on load
+document.addEventListener('DOMContentLoaded', function() {
+    // Load initial chart
+    loadChart('USD/TRY', '1D');
+});
+</script>
+{% endblock %}

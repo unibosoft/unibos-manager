@@ -1,0 +1,158 @@
+{% extends 'administration/base_admin.html' %}
+{% load static %}
+
+{% block title %}Administration Dashboard - UNIBOS{% endblock %}
+
+{% block admin_content %}
+<div class="module-header">
+    <h1>⚙️ administration</h1>
+    <p>system control & management dashboard</p>
+</div>
+
+<!-- Statistics Cards -->
+<div class="stats-grid">
+    <div class="stat-card">
+        <div class="stat-value">{{ total_users }}</div>
+        <div class="stat-label">total users</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-value">{{ active_users }}</div>
+        <div class="stat-label">active today</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-value">{{ total_roles }}</div>
+        <div class="stat-label">roles</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-value">{{ pending_requests }}</div>
+        <div class="stat-label">pending requests</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-value">{{ departments_count }}</div>
+        <div class="stat-label">departments</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-value">{{ today_logs }}</div>
+        <div class="stat-label">today's actions</div>
+    </div>
+</div>
+
+<!-- Quick Actions -->
+<div class="section">
+    <h2>quick actions</h2>
+    <div class="button-group">
+        <a href="{% url 'administration:users' %}" class="btn-primary">👥 manage users</a>
+        <a href="{% url 'administration:roles' %}" class="btn-secondary">🎭 manage roles</a>
+        <a href="{% url 'administration:cron_jobs' %}" class="btn-secondary">⏰ cron jobs</a>
+        <a href="{% url 'administration:departments' %}" class="btn-secondary">🏢 departments</a>
+        <a href="{% url 'administration:permission_requests' %}" class="btn-secondary">📋 requests ({{ pending_requests }})</a>
+        <a href="{% url 'administration:audit_logs' %}" class="btn-secondary">📜 audit logs</a>
+        <a href="{% url 'administration:system_logs' %}" class="btn-secondary">📊 system logs</a>
+        <a href="{% url 'administration:system_settings' %}" class="btn-secondary">⚙️ settings</a>
+    </div>
+</div>
+
+<!-- Recent Users -->
+<div class="section">
+    <h2>recent users</h2>
+    <div class="content-box">
+        <div class="user-grid">
+            {% for user in recent_users %}
+            <div class="user-card">
+                <div class="user-info">
+                    <div class="user-avatar">{{ user.username|first|upper }}</div>
+                    <div class="user-details">
+                        <div class="user-name">{{ user.username }}</div>
+                        <div class="user-role">{{ user.primary_role|default:"user" }}</div>
+                    </div>
+                </div>
+                <div class="text-muted" style="margin-top: 10px; font-size: 12px;">joined {{ user.date_joined|timesince }} ago</div>
+            </div>
+            {% empty %}
+            <div class="text-muted">no recent users</div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+
+<!-- Recent Actions -->
+<div class="section">
+    <h2>recent system actions</h2>
+    <div class="content-box">
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th>action</th>
+                    <th>description</th>
+                    <th>user</th>
+                    <th>time</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for log in recent_logs %}
+                <tr>
+                    <td>
+                        {% if log.action == 'login' %}🔑 login
+                        {% elif log.action == 'logout' %}🚪 logout
+                        {% elif log.action == 'create' %}➕ create
+                        {% elif log.action == 'update' %}✏️ update
+                        {% elif log.action == 'delete' %}🗑️ delete
+                        {% else %}📝 {{ log.action }}{% endif %}
+                    </td>
+                    <td>{{ log.description|default:log.action }}</td>
+                    <td>{{ log.user.username|default:"system" }}</td>
+                    <td class="text-muted">{{ log.timestamp|timesince }} ago</td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="4" class="text-center text-muted">no recent actions</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- System Health -->
+<div class="section">
+    <h2>system health</h2>
+    <div class="stats-grid">
+        <div class="stat-card">
+            <div class="stat-value positive">✓</div>
+            <div class="stat-label">database status</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-value positive">✓</div>
+            <div class="stat-label">authentication</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-value positive">✓</div>
+            <div class="stat-label">api services</div>
+        </div>
+    </div>
+</div>
+
+<script>
+// Auto-refresh stats every 30 seconds
+setInterval(() => {
+    fetch('{% url "administration:dashboard" %}', {
+        headers: {
+            'X-Requested-With': 'XMLHttpRequest',
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.stats) {
+            // Update statistics
+            document.querySelectorAll('.stat-value').forEach((el, idx) => {
+                if (data.stats[idx]) {
+                    el.textContent = data.stats[idx];
+                }
+            });
+        }
+    })
+    .catch(err => console.error('Failed to refresh stats:', err));
+}, 30000);
+</script>
+
+{% endblock %}

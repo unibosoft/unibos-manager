@@ -1,41 +1,61 @@
-# unibos - universal integrated backend and operating system
+# UNIBOS - Universal Integrated Backend and Operating System
 
-> comprehensive platform combining cli terminal ui, django web backend, and mobile applications in a modern monorepo structure
+> **v533** - Core-based modular platform with P2P architecture, multi-platform support, and plugin marketplace foundation
 
-## 🗂️ project structure
+## 🗂️ Project Structure (v533)
 
 ```
 unibos/
-├── apps/                          # all deployable applications
-│   ├── cli/                       # terminal ui (python)
-│   ├── web/                       # django web backend
-│   └── mobile/                    # flutter mobile apps
-│       └── birlikteyiz/          # earthquake tracking app
+├── core/                          # Core system infrastructure
+│   ├── backend/                   # Django application (main runtime)
+│   ├── models/                    # Shared domain models (Django app)
+│   ├── system/                    # System modules
+│   │   ├── authentication/        # User auth & permissions
+│   │   ├── users/                 # User management
+│   │   ├── web_ui/                # Web interface
+│   │   ├── common/                # Shared utilities
+│   │   ├── administration/        # System admin
+│   │   ├── logging/               # Audit logs
+│   │   └── version_manager/       # Version control
+│   ├── instance/                  # P2P instance identity
+│   ├── p2p/                       # P2P communication (planned)
+│   ├── sync/                      # Sync engine (planned)
+│   ├── services/                  # Core services
+│   └── sdk/                       # Multi-platform SDK
 │
-├── docs/                          # comprehensive documentation
-│   ├── architecture/              # system design & api docs
-│   ├── development/               # development guides
-│   ├── features/                  # feature documentation
-│   ├── deployment/                # deployment guides
-│   ├── claude/                    # ai assistant instructions
-│   └── archive/                   # historical documentation
+├── modules/                       # Business modules (13 modules)
+│   ├── currencies/                # Currency & crypto tracking
+│   ├── wimm/                      # Financial management
+│   ├── wims/                      # Inventory management
+│   ├── documents/                 # OCR & document scanning
+│   ├── personal_inflation/        # Personal CPI tracker
+│   ├── birlikteyiz/              # Earthquake alerts
+│   ├── cctv/                      # Camera monitoring
+│   ├── recaria/                   # Recipe management
+│   ├── movies/                    # Media library
+│   ├── music/                     # Music player
+│   ├── restopos/                  # Restaurant POS
+│   ├── solitaire/                 # Multiplayer game
+│   └── store/                     # E-commerce
 │
-├── tools/                         # development & deployment tools
-│   ├── scripts/                   # shell scripts
-│   └── legacy/                    # legacy scripts
+├── docs/                          # Documentation
+│   ├── architecture/              # System design
+│   ├── development/               # Dev guides
+│   ├── features/                  # Feature docs
+│   └── deployment/                # Deployment guides
 │
-├── data/                          # runtime data (gitignored)
-│   ├── database/
-│   ├── media/
-│   ├── logs/
-│   └── cache/
+├── tools/                         # Development tools
+│   └── scripts/                   # Automation scripts
 │
-├── archive/                       # version archives
-│   └── versions/
+├── data/                          # Runtime data (gitignored)
 │
-├── packages/                      # shared libraries (future)
+├── archive/                       # Version archives & docs
+│   ├── versions/                  # v529-v533 archives
+│   └── docs/                      # Historical documentation
 │
-└── README.md                      # this file
+├── ARCHITECTURE.md                # v533 architecture guide
+├── RULES.md                       # Project rules & workflow
+└── README.md                      # This file
 ```
 
 ## ⚡ quick start

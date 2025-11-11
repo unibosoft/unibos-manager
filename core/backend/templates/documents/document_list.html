@@ -1,0 +1,384 @@
+{% extends 'web_ui/base.html' %}
+
+{% block title %}all documents - {{ total_count }} files{% endblock %}
+
+{% block header_title %}unibos{% endblock %}
+{% block module_name %}documents{% endblock %}
+
+{% block content %}
+<style>
+    .documents-nav {
+        background: var(--bg-dark);
+        border: 1px solid var(--dark-gray);
+        border-radius: 5px;
+        padding: 15px;
+        margin-bottom: 20px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 10px;
+    }
+    
+    .filter-group {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+    
+    .filter-label {
+        color: var(--gray);
+        font-size: 12px;
+        text-transform: lowercase;
+    }
+    
+    .filter-select {
+        background: #000;
+        color: var(--cyan);
+        border: 1px solid var(--dark-gray);
+        padding: 5px 10px;
+        border-radius: 3px;
+        font-size: 12px;
+    }
+    
+    .search-box {
+        background: #000;
+        color: var(--cyan);
+        border: 1px solid var(--dark-gray);
+        padding: 5px 10px;
+        border-radius: 3px;
+        width: 200px;
+    }
+    
+    .documents-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+        gap: 15px;
+        margin-bottom: 20px;
+    }
+    
+    .document-card {
+        background: var(--bg-dark);
+        border: 1px solid var(--dark-gray);
+        border-radius: 5px;
+        padding: 15px;
+        cursor: pointer;
+        transition: all 0.3s;
+        position: relative;
+        min-height: 150px;
+        display: flex;
+        flex-direction: column;
+    }
+    
+    .document-card:hover {
+        border-color: var(--orange);
+        transform: translateY(-2px);
+        box-shadow: 0 4px 8px rgba(255, 140, 0, 0.2);
+    }
+    
+    .document-icon {
+        font-size: 48px;
+        margin-bottom: 10px;
+        text-align: center;
+    }
+    
+    .document-name {
+        color: var(--cyan);
+        font-size: 14px;
+        font-weight: bold;
+        margin-bottom: 5px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+    
+    .document-meta {
+        color: var(--gray);
+        font-size: 11px;
+        margin-top: auto;
+    }
+    
+    .document-status {
+        position: absolute;
+        top: 10px;
+        right: 10px;
+        padding: 2px 6px;
+        border-radius: 3px;
+        font-size: 10px;
+        font-weight: bold;
+    }
+    
+    .status-completed {
+        background: rgba(0, 255, 0, 0.2);
+        color: var(--green);
+    }
+    
+    .status-pending {
+        background: rgba(255, 255, 0, 0.2);
+        color: var(--yellow);
+    }
+    
+    .status-failed {
+        background: rgba(255, 0, 0, 0.2);
+        color: #ff6666;
+    }
+    
+    .pagination {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        gap: 10px;
+        margin-top: 30px;
+    }
+    
+    .page-link {
+        padding: 8px 12px;
+        background: var(--bg-dark);
+        border: 1px solid var(--dark-gray);
+        color: var(--cyan);
+        text-decoration: none;
+        border-radius: 3px;
+        transition: all 0.3s;
+    }
+    
+    .page-link:hover {
+        border-color: var(--orange);
+        color: var(--orange);
+    }
+    
+    .page-link.active {
+        background: var(--orange);
+        color: #000;
+        border-color: var(--orange);
+        font-weight: bold;
+    }
+    
+    .page-link.disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+        color: var(--gray);
+    }
+    
+    .page-info {
+        color: var(--gray);
+        font-size: 12px;
+    }
+    
+    .ocr-preview {
+        background: #000;
+        border: 1px solid var(--dark-gray);
+        border-radius: 3px;
+        padding: 5px;
+        margin-top: 10px;
+        font-size: 10px;
+        color: var(--green);
+        font-family: monospace;
+        max-height: 60px;
+        overflow: hidden;
+        position: relative;
+    }
+    
+    .ocr-preview::after {
+        content: '...';
+        position: absolute;
+        bottom: 0;
+        right: 5px;
+        background: #000;
+        padding: 0 5px;
+    }
+</style>
+
+<div class="content-box">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+        <h1 class="content-title">📚 all documents</h1>
+        <div>
+            <span style="color: var(--orange); font-size: 24px; font-weight: bold;">{{ total_count }}</span>
+            <span style="color: var(--gray); font-size: 14px;">total files</span>
+        </div>
+    </div>
+    
+    <!-- Filters and Search -->
+    <div class="documents-nav">
+        <div style="display: flex; gap: 20px; flex-wrap: wrap;">
+            <div class="filter-group">
+                <span class="filter-label">type:</span>
+                <select class="filter-select" id="typeFilter" onchange="applyFilters()">
+                    <option value="">all types</option>
+                    {% for value, label in document_types %}
+                    <option value="{{ value }}" {% if doc_type == value %}selected{% endif %}>
+                        {{ label|lower }}
+                    </option>
+                    {% endfor %}
+                </select>
+            </div>
+            
+            <div class="filter-group">
+                <span class="filter-label">status:</span>
+                <select class="filter-select" id="statusFilter" onchange="applyFilters()">
+                    <option value="">all statuses</option>
+                    {% for value, label in status_choices %}
+                    <option value="{{ value }}" {% if status == value %}selected{% endif %}>
+                        {{ label|lower }}
+                    </option>
+                    {% endfor %}
+                </select>
+            </div>
+        </div>
+        
+        <div class="filter-group">
+            <span class="filter-label">🔍</span>
+            <input type="text" class="search-box" id="searchBox" 
+                   placeholder="search files..." value="{{ search }}"
+                   onkeypress="if(event.key==='Enter') applyFilters()">
+        </div>
+    </div>
+</div>
+
+<!-- Documents Grid -->
+{% if documents %}
+<div class="content-box">
+    <div class="documents-grid">
+        {% for doc in documents %}
+        <div class="document-card" onclick="window.location.href='{% url 'documents:document_detail' doc.id %}'">
+            <div class="document-status status-{{ doc.processing_status }}">
+                {% if doc.processing_status == 'completed' %}✓{% elif doc.processing_status == 'pending' %}⏳{% else %}✗{% endif %}
+            </div>
+            
+            <div class="document-icon">
+                {% if doc.document_type == 'receipt' %}🧾
+                {% elif doc.document_type == 'invoice' %}📑
+                {% elif doc.document_type == 'bank_statement' %}🏦
+                {% elif doc.document_type == 'cc_statement' %}💳
+                {% elif doc.document_type == 'contract' %}📜
+                {% else %}📄{% endif %}
+            </div>
+            
+            <div class="document-name" title="{{ doc.original_filename }}">
+                {{ doc.original_filename|truncatechars:30 }}
+            </div>
+            
+            {% if doc.ocr_text %}
+            <div class="ocr-preview">
+                {{ doc.ocr_text|truncatechars:100 }}
+            </div>
+            {% endif %}
+            
+            <div class="document-meta">
+                <div>{{ doc.get_document_type_display|lower }}</div>
+                <div>{{ doc.uploaded_at|date:"d M Y H:i" }}</div>
+                {% if doc.ocr_confidence %}
+                <div>confidence: {{ doc.ocr_confidence|floatformat:0 }}%</div>
+                {% endif %}
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    
+    <!-- Pagination -->
+    {% if page_obj.has_other_pages %}
+    <div class="pagination">
+        {% if page_obj.has_previous %}
+        <a href="?page=1{% if doc_type %}&type={{ doc_type }}{% endif %}{% if status %}&status={{ status }}{% endif %}{% if search %}&search={{ search }}{% endif %}" 
+           class="page-link">« first</a>
+        <a href="?page={{ page_obj.previous_page_number }}{% if doc_type %}&type={{ doc_type }}{% endif %}{% if status %}&status={{ status }}{% endif %}{% if search %}&search={{ search }}{% endif %}" 
+           class="page-link">‹ prev</a>
+        {% else %}
+        <span class="page-link disabled">« first</span>
+        <span class="page-link disabled">‹ prev</span>
+        {% endif %}
+        
+        <span class="page-info">
+            page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}
+        </span>
+        
+        {% if page_obj.has_next %}
+        <a href="?page={{ page_obj.next_page_number }}{% if doc_type %}&type={{ doc_type }}{% endif %}{% if status %}&status={{ status }}{% endif %}{% if search %}&search={{ search }}{% endif %}" 
+           class="page-link">next ›</a>
+        <a href="?page={{ page_obj.paginator.num_pages }}{% if doc_type %}&type={{ doc_type }}{% endif %}{% if status %}&status={{ status }}{% endif %}{% if search %}&search={{ search }}{% endif %}" 
+           class="page-link">last »</a>
+        {% else %}
+        <span class="page-link disabled">next ›</span>
+        <span class="page-link disabled">last »</span>
+        {% endif %}
+    </div>
+    {% endif %}
+</div>
+{% else %}
+<div class="content-box">
+    <div style="text-align: center; padding: 60px 20px; color: var(--gray);">
+        <div style="font-size: 64px; margin-bottom: 20px;">📭</div>
+        <div style="font-size: 18px;">no documents found</div>
+        <div style="font-size: 14px; margin-top: 10px;">
+            {% if search or doc_type or status %}
+            try adjusting your filters
+            {% else %}
+            upload some documents to get started
+            {% endif %}
+        </div>
+        <button class="btn" onclick="window.location.href='{% url 'documents:upload' %}'" style="margin-top: 20px;">
+            📤 upload documents
+        </button>
+    </div>
+</div>
+{% endif %}
+
+<!-- Quick Stats -->
+<div class="content-box">
+    <h2 class="content-title">📊 document statistics</h2>
+    <div class="stats-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 15px;">
+        <div style="background: var(--bg-dark); border: 1px solid var(--dark-gray); border-radius: 5px; padding: 15px; text-align: center;">
+            <div style="font-size: 20px; color: var(--orange); font-weight: bold;">{{ page_obj.paginator.count }}</div>
+            <div style="color: var(--gray); font-size: 11px;">matching docs</div>
+        </div>
+        <div style="background: var(--bg-dark); border: 1px solid var(--dark-gray); border-radius: 5px; padding: 15px; text-align: center;">
+            <div style="font-size: 20px; color: var(--green); font-weight: bold;">{{ page_obj.paginator.num_pages }}</div>
+            <div style="color: var(--gray); font-size: 11px;">total pages</div>
+        </div>
+        <div style="background: var(--bg-dark); border: 1px solid var(--dark-gray); border-radius: 5px; padding: 15px; text-align: center;">
+            <div style="font-size: 20px; color: var(--cyan); font-weight: bold;">{{ page_obj.object_list|length }}</div>
+            <div style="color: var(--gray); font-size: 11px;">on this page</div>
+        </div>
+    </div>
+</div>
+
+
+<script>
+function applyFilters() {
+    const type = document.getElementById('typeFilter').value;
+    const status = document.getElementById('statusFilter').value;
+    const search = document.getElementById('searchBox').value;
+    
+    let url = '{% url "documents:document_list" %}';
+    let params = [];
+    
+    if (type) params.push('type=' + type);
+    if (status) params.push('status=' + status);
+    if (search) params.push('search=' + encodeURIComponent(search));
+    
+    if (params.length > 0) {
+        url += '?' + params.join('&');
+    }
+    
+    window.location.href = url;
+}
+
+// Keyboard shortcuts
+document.addEventListener('keydown', function(e) {
+    // Focus search on '/'
+    if (e.key === '/' && !e.ctrlKey && !e.metaKey) {
+        e.preventDefault();
+        document.getElementById('searchBox').focus();
+    }
+    
+    // Navigate pages with arrow keys
+    if (e.key === 'ArrowLeft' && !e.target.matches('input')) {
+        const prevLink = document.querySelector('.pagination a[href*="previous"]');
+        if (prevLink) window.location.href = prevLink.href;
+    }
+    if (e.key === 'ArrowRight' && !e.target.matches('input')) {
+        const nextLink = document.querySelector('.pagination a[href*="next"]');
+        if (nextLink) window.location.href = nextLink.href;
+    }
+});
+</script>
+{% endblock %}

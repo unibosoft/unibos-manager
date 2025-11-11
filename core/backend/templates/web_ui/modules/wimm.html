@@ -1,0 +1,453 @@
+{% extends "web_ui/base.html" %}
+
+{% block title %}wimm - where is my money{% endblock %}
+
+{% block header_title %}unibos{% endblock %}
+{% block module_name %}wimm - financial management{% endblock %}
+
+{% block content %}
+<div class="module-container">
+    <div class="module-header">
+        <h1>💸 wimm - where is my money</h1>
+        <p>gelir, gider ve fatura takip sistemi</p>
+    </div>
+
+    {% if user.is_authenticated %}
+    <!-- Overview Section -->
+    <div class="section">
+        <h2>overview</h2>
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-label">total balance</div>
+                <div class="stat-value">₺{{ total_balance|floatformat:2 }}</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">this month income</div>
+                <div class="stat-value positive">+₺{{ month_income|floatformat:2 }}</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">this month expense</div>
+                <div class="stat-value negative">-₺{{ month_expense|floatformat:2 }}</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">net</div>
+                <div class="stat-value {% if month_net >= 0 %}positive{% else %}negative{% endif %}">
+                    ₺{{ month_net|floatformat:2 }}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quick Actions -->
+    <div class="section">
+        <h2>quick actions</h2>
+        <div class="button-group">
+            <button class="btn btn-primary" onclick="addTransaction()">+ add transaction</button>
+            <button class="btn btn-secondary" onclick="addInvoice()">+ add invoice</button>
+            <button class="btn btn-secondary" onclick="transferMoney()">↔ transfer</button>
+            <button class="btn btn-secondary" onclick="viewReports()">📊 reports</button>
+        </div>
+    </div>
+
+    <!-- Accounts -->
+    <div class="section">
+        <h2>accounts</h2>
+        <div class="accounts-grid">
+            {% for account in accounts %}
+            <div class="account-card">
+                <div class="account-type">{{ account.get_account_type_display|lower }}</div>
+                <div class="account-name">{{ account.name }}</div>
+                <div class="account-balance">{{ account.currency }} {{ account.balance|floatformat:2 }}</div>
+                {% if account.institution %}
+                <div class="account-institution">{{ account.institution }}</div>
+                {% endif %}
+            </div>
+            {% empty %}
+            <div class="empty-state">
+                <p>no accounts yet</p>
+                <button class="btn btn-sm" onclick="addAccount()">+ add account</button>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <!-- Recent Transactions -->
+    <div class="section">
+        <h2>recent transactions</h2>
+        <div class="transaction-list">
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>date</th>
+                        <th>type</th>
+                        <th>description</th>
+                        <th>category</th>
+                        <th>amount</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for transaction in recent_transactions %}
+                    <tr>
+                        <td>{{ transaction.transaction_date|date:"Y-m-d H:i" }}</td>
+                        <td>
+                            <span class="badge badge-{{ transaction.transaction_type }}">
+                                {{ transaction.get_transaction_type_display|lower }}
+                            </span>
+                        </td>
+                        <td>{{ transaction.description|truncatechars:50 }}</td>
+                        <td>{{ transaction.category.name|default:"-" }}</td>
+                        <td class="amount {% if transaction.transaction_type == 'income' %}positive{% elif transaction.transaction_type == 'expense' %}negative{% endif %}">
+                            {{ transaction.currency }} {{ transaction.amount|floatformat:2 }}
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="5" class="text-center">no transactions yet</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Active Budgets -->
+    <div class="section">
+        <h2>active budgets</h2>
+        <div class="budget-list">
+            {% for budget in active_budgets %}
+            <div class="budget-item">
+                <div class="budget-header">
+                    <span class="budget-name">{{ budget.name }}</span>
+                    <span class="budget-amount">₺{{ budget.amount|floatformat:2 }}</span>
+                </div>
+                <div class="budget-progress">
+                    <div class="progress-bar">
+                        <div class="progress-fill {% if budget.spent_percentage > 100 %}over{% elif budget.spent_percentage > budget.alert_percentage %}warning{% endif %}" 
+                             style="width: {% if budget.spent_percentage > 100 %}100{% else %}{{ budget.spent_percentage }}{% endif %}%">
+                        </div>
+                    </div>
+                    <div class="budget-stats">
+                        <span>spent: ₺{{ budget.spent_amount|floatformat:2 }}</span>
+                        <span>remaining: ₺{{ budget.remaining_amount|floatformat:2 }}</span>
+                        <span>{{ budget.spent_percentage|floatformat:0 }}%</span>
+                    </div>
+                </div>
+            </div>
+            {% empty %}
+            <div class="empty-state">
+                <p>no active budgets</p>
+                <button class="btn btn-sm" onclick="addBudget()">+ add budget</button>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <!-- Pending Invoices Alert -->
+    {% if pending_invoices > 0 %}
+    <div class="section alert">
+        <h2>⚠️ pending invoices</h2>
+        <p>you have {{ pending_invoices }} unpaid invoice{{ pending_invoices|pluralize }}</p>
+        <button class="btn btn-warning" onclick="viewInvoices()">view invoices</button>
+    </div>
+    {% endif %}
+
+    {% else %}
+    <div class="login-prompt">
+        <p>please login to use wimm</p>
+        <a href="/login/" class="btn btn-primary">login</a>
+    </div>
+    {% endif %}
+</div>
+
+<style>
+.module-container {
+    padding: 0;
+    max-width: 100%;
+    margin: 0;
+}
+
+.module-header {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    margin-bottom: 30px;
+    padding-bottom: 15px;
+    border-bottom: 2px solid var(--orange);
+}
+
+.module-header h1 {
+    display: block;
+    color: var(--orange);
+    font-size: 24px;
+    font-weight: bold;
+    text-transform: lowercase;
+    margin: 0;
+    margin-bottom: 8px;
+    line-height: 1.2;
+}
+
+.module-header p {
+    display: block;
+    color: var(--gray);
+    font-size: 14px;
+    text-transform: lowercase;
+    margin: 0;
+    line-height: 1.4;
+}
+
+.section {
+    margin-bottom: 30px;
+    background: rgba(20, 20, 20, 0.5);
+    border: 1px solid #333;
+    padding: 15px;
+    border-radius: 4px;
+}
+
+.section h2 {
+    color: #ff8c00;
+    font-size: 18px;
+    margin: 0 0 15px 0;
+    text-transform: lowercase;
+}
+
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 15px;
+}
+
+.stat-card {
+    background: #000;
+    border: 1px solid #333;
+    padding: 15px;
+}
+
+.stat-label {
+    color: #888;
+    font-size: 12px;
+    text-transform: lowercase;
+}
+
+.stat-value {
+    color: #fff;
+    font-size: 24px;
+    font-weight: bold;
+    margin-top: 5px;
+}
+
+.stat-value.positive { color: #4CAF50; }
+.stat-value.negative { color: #f44336; }
+
+.button-group {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.btn {
+    background: transparent;
+    color: #ff8c00;
+    border: 1px solid #ff8c00;
+    padding: 8px 16px;
+    cursor: pointer;
+    text-transform: lowercase;
+    border-radius: 4px;
+    transition: all 0.3s;
+}
+
+.btn:hover {
+    background: #ff8c00;
+    color: #000;
+    transform: translateY(-2px);
+}
+
+.btn-primary {
+    background: #ff8c00;
+    color: #000;
+}
+
+.btn-primary:hover {
+    background: #ffa500;
+}
+
+.btn-secondary {
+    background: transparent;
+    color: #ff8c00;
+}
+
+.btn-warning {
+    border-color: #ffcc00;
+    color: #ffcc00;
+}
+
+.accounts-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+    gap: 15px;
+}
+
+.account-card {
+    background: #000;
+    border: 1px solid #333;
+    padding: 15px;
+}
+
+.account-type {
+    color: #888;
+    font-size: 12px;
+    text-transform: lowercase;
+}
+
+.account-name {
+    color: #ff8c00;
+    font-size: 16px;
+    margin: 5px 0;
+}
+
+.account-balance {
+    color: #fff;
+    font-size: 20px;
+    font-weight: bold;
+}
+
+.account-institution {
+    color: #666;
+    font-size: 12px;
+    margin-top: 5px;
+}
+
+.data-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.data-table th {
+    background: rgba(255, 140, 0, 0.1);
+    color: #ff8c00;
+    padding: 8px;
+    text-align: left;
+    border: 1px solid #333;
+    text-transform: lowercase;
+}
+
+.data-table td {
+    padding: 8px;
+    border: 1px solid #333;
+    color: #ccc;
+}
+
+.badge {
+    padding: 2px 8px;
+    border-radius: 3px;
+    font-size: 12px;
+    text-transform: lowercase;
+}
+
+.badge-income { background: #4CAF50; color: #fff; }
+.badge-expense { background: #f44336; color: #fff; }
+.badge-transfer { background: #2196F3; color: #fff; }
+
+.amount.positive { color: #4CAF50; }
+.amount.negative { color: #f44336; }
+
+.budget-item {
+    background: #000;
+    border: 1px solid #333;
+    padding: 15px;
+    margin-bottom: 10px;
+}
+
+.budget-header {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 10px;
+}
+
+.budget-name {
+    color: #ff8c00;
+    font-weight: bold;
+}
+
+.budget-amount {
+    color: #888;
+}
+
+.progress-bar {
+    height: 20px;
+    background: #222;
+    border: 1px solid #333;
+    margin-bottom: 10px;
+    border-radius: 2px;
+}
+
+.progress-fill {
+    height: 100%;
+    background: #4CAF50;
+    transition: width 0.3s;
+    border-radius: 2px;
+}
+
+.progress-fill.warning {
+    background: #ffcc00;
+}
+
+.progress-fill.over {
+    background: #f44336;
+}
+
+.budget-stats {
+    display: flex;
+    justify-content: space-between;
+    font-size: 12px;
+    color: #888;
+}
+
+.alert {
+    background: rgba(255, 204, 0, 0.1);
+    border-color: #ffcc00;
+}
+
+.empty-state {
+    text-align: center;
+    padding: 20px;
+    color: #666;
+}
+
+.login-prompt {
+    text-align: center;
+    padding: 50px;
+    color: #888;
+}
+</style>
+
+<script>
+function addTransaction() {
+    window.location.href = '/module/wimm/transactions/add/';
+}
+
+function addInvoice() {
+    window.location.href = '/module/wimm/invoices/add/';
+}
+
+function transferMoney() {
+    window.location.href = '/module/wimm/transfer/';
+}
+
+function viewReports() {
+    window.location.href = '/module/wimm/reports/';
+}
+
+function addAccount() {
+    window.location.href = '/module/wimm/accounts/add/';
+}
+
+function addBudget() {
+    window.location.href = '/module/wimm/budgets/add/';
+}
+
+function viewInvoices() {
+    window.location.href = '/module/wimm/invoices/';
+}
+</script>
+
+{% endblock %}

@@ -1,0 +1,177 @@
+/* UNIBOS Terminal CSS - Additional Styles */
+
+/* CRT Monitor Effect - Optional, can be toggled */
+@keyframes flicker {
+    0% { opacity: 0.97; }
+    5% { opacity: 1; }
+    10% { opacity: 0.98; }
+    15% { opacity: 1; }
+    20% { opacity: 0.99; }
+    100% { opacity: 1; }
+}
+
+/* CRT effect disabled by default - uncomment to enable */
+/*
+body::before {
+    content: " ";
+    display: block;
+    position: fixed;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    right: 0;
+    background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%), 
+                linear-gradient(90deg, rgba(255, 0, 0, 0.06), rgba(0, 255, 0, 0.02), rgba(0, 0, 255, 0.06));
+    z-index: 2;
+    background-size: 100% 2px, 3px 100%;
+    pointer-events: none;
+    animation: flicker 0.15s infinite;
+}
+*/
+
+/* Terminal Glow */
+.terminal-glow {
+    text-shadow: 0 0 5px currentColor;
+}
+
+/* ASCII Art Container */
+.ascii-art {
+    font-family: monospace;
+    white-space: pre;
+    line-height: 1;
+    color: var(--orange);
+    text-align: center;
+    margin: 20px 0;
+}
+
+/* Terminal Input */
+.terminal-input {
+    background: var(--bg-black);
+    border: 1px solid var(--dark-gray);
+    color: var(--green);
+    font-family: inherit;
+    padding: 8px;
+    width: 100%;
+    outline: none;
+}
+
+.terminal-input:focus {
+    border-color: var(--orange);
+    box-shadow: 0 0 5px var(--orange);
+}
+
+/* Terminal Button */
+.terminal-btn {
+    background: var(--bg-dark);
+    color: var(--orange);
+    border: 1px solid var(--orange);
+    padding: 8px 16px;
+    cursor: pointer;
+    font-family: inherit;
+    text-transform: uppercase;
+    transition: all 0.3s;
+}
+
+.terminal-btn:hover {
+    background: var(--orange);
+    color: var(--bg-black);
+    box-shadow: 0 0 10px var(--orange);
+}
+
+/* Terminal Table */
+.terminal-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 20px 0;
+}
+
+.terminal-table th,
+.terminal-table td {
+    border: 1px solid var(--dark-gray);
+    padding: 8px;
+    text-align: left;
+}
+
+.terminal-table th {
+    background: var(--bg-dark);
+    color: var(--orange);
+    text-transform: uppercase;
+}
+
+.terminal-table tr:hover {
+    background: rgba(255, 140, 0, 0.1);
+}
+
+/* Loading Animation */
+@keyframes blink {
+    0%, 50% { opacity: 1; }
+    51%, 100% { opacity: 0; }
+}
+
+.cursor-blink {
+    animation: blink 1s infinite;
+}
+
+/* Module Cards */
+.module-card {
+    background: var(--bg-dark);
+    border: 1px solid var(--dark-gray);
+    padding: 20px;
+    margin: 10px 0;
+    transition: all 0.3s;
+}
+
+.module-card:hover {
+    border-color: var(--orange);
+    box-shadow: 0 0 15px rgba(255, 140, 0, 0.3);
+}
+
+.module-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 8px;
+}
+
+.module-icon {
+    font-size: 28px;
+}
+
+.module-name {
+    color: var(--cyan);
+    font-weight: bold;
+    font-size: 16px;
+}
+
+.module-desc {
+    color: var(--gray);
+    font-size: 14px;
+    margin-top: -4px;
+}
+
+/* Status Indicators */
+.status-online {
+    color: var(--green);
+}
+
+.status-offline {
+    color: var(--gray);
+}
+
+.status-error {
+    color: #ff0000;
+}
+
+/* Terminal Prompt */
+.terminal-prompt {
+    display: flex;
+    align-items: center;
+    margin: 10px 0;
+}
+
+.terminal-prompt::before {
+    content: ">";
+    color: var(--orange);
+    margin-right: 10px;
+    font-weight: bold;
+}

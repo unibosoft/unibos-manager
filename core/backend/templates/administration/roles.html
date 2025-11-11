@@ -1,0 +1,260 @@
+{% extends "administration/base_admin.html" %}
+
+{% block title %}roles & permissions - unibos administration{% endblock %}
+
+{% block admin_content %}
+<!-- Roles List -->
+<div class="section">
+    <div class="section-header">
+        <h2>system roles</h2>
+        <button class="btn-primary" onclick="window.location.href='#'">
+            + create new role
+        </button>
+    </div>
+
+    <div class="content-box">
+        <div class="data-table-container">
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>role name</th>
+                            <th>code</th>
+                            <th>priority</th>
+                            <th>users</th>
+                            <th>permissions</th>
+                            <th>type</th>
+                            <th>status</th>
+                            <th>actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for role in roles %}
+                        <tr>
+                            <td>
+                                <strong>{{ role.name|lower }}</strong>
+                                {% if role.is_system %}
+                                <span class="badge badge-info">system</span>
+                                {% endif %}
+                            </td>
+                            <td><code>{{ role.code }}</code></td>
+                            <td>{{ role.priority }}</td>
+                            <td>
+                                <span class="badge badge-secondary">{{ role.user_count|default:0 }} users</span>
+                            </td>
+                            <td>
+                                <span class="badge badge-secondary">{{ role.permission_count|default:0 }} perms</span>
+                            </td>
+                            <td>
+                                {% if role.is_system %}
+                                <span class="text-cyan">system</span>
+                                {% else %}
+                                <span class="text-orange">custom</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if role.is_active %}
+                                <span class="badge badge-success">active</span>
+                                {% else %}
+                                <span class="badge badge-danger">inactive</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <a href="{% url 'administration:role_detail' role.id %}" class="action-link">view</a>
+                                {% if not role.is_system %}
+                                <a href="{% url 'administration:role_detail' role.id %}" class="action-link">edit</a>
+                                <a href="#" onclick="deleteRole({{ role.id }})" class="action-link text-danger">delete</a>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="8" class="text-center">no roles found</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+        </div>
+    </div>
+</div>
+
+<!-- Role Permissions Matrix -->
+<div class="section">
+    <h2>permission matrix</h2>
+    <div class="content-box">
+        <div class="permission-matrix">
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>permission</th>
+                            {% for role in roles %}
+                            <th class="text-center">{{ role.code }}</th>
+                            {% endfor %}
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>can manage users</td>
+                            {% for role in roles %}
+                            <td class="text-center">
+                                {% if role.can_manage_users %}
+                                <span class="text-success">✓</span>
+                                {% else %}
+                                <span class="text-muted">-</span>
+                                {% endif %}
+                            </td>
+                            {% endfor %}
+                        </tr>
+                        <tr>
+                            <td>can manage roles</td>
+                            {% for role in roles %}
+                            <td class="text-center">
+                                {% if role.can_manage_roles %}
+                                <span class="text-success">✓</span>
+                                {% else %}
+                                <span class="text-muted">-</span>
+                                {% endif %}
+                            </td>
+                            {% endfor %}
+                        </tr>
+                        <tr>
+                            <td>can view logs</td>
+                            {% for role in roles %}
+                            <td class="text-center">
+                                {% if role.can_view_logs %}
+                                <span class="text-success">✓</span>
+                                {% else %}
+                                <span class="text-muted">-</span>
+                                {% endif %}
+                            </td>
+                            {% endfor %}
+                        </tr>
+                        <tr>
+                            <td>can access admin</td>
+                            {% for role in roles %}
+                            <td class="text-center">
+                                {% if role.can_access_admin %}
+                                <span class="text-success">✓</span>
+                                {% else %}
+                                <span class="text-muted">-</span>
+                                {% endif %}
+                            </td>
+                            {% endfor %}
+                        </tr>
+                        <tr>
+                            <td>can export data</td>
+                            {% for role in roles %}
+                            <td class="text-center">
+                                {% if role.can_export_data %}
+                                <span class="text-success">✓</span>
+                                {% else %}
+                                <span class="text-muted">-</span>
+                                {% endif %}
+                            </td>
+                            {% endfor %}
+                        </tr>
+                        <tr>
+                            <td>can import data</td>
+                            {% for role in roles %}
+                            <td class="text-center">
+                                {% if role.can_import_data %}
+                                <span class="text-success">✓</span>
+                                {% else %}
+                                <span class="text-muted">-</span>
+                                {% endif %}
+                            </td>
+                            {% endfor %}
+                        </tr>
+                    </tbody>
+                </table>
+        </div>
+    </div>
+</div>
+
+<!-- Quick Actions -->
+<div class="section">
+    <h2>quick actions</h2>
+    <div class="button-group">
+        <button class="btn-secondary" onclick="exportRoles()">
+            📥 export roles
+        </button>
+        <button class="btn-secondary" onclick="importRoles()">
+            📤 import roles
+        </button>
+        <button class="btn-secondary" onclick="resetToDefault()">
+            🔄 reset to default
+        </button>
+        <button class="btn-secondary" onclick="auditPermissions()">
+            🔍 audit permissions
+        </button>
+    </div>
+</div>
+
+<style>
+.permission-matrix {
+    overflow-x: auto;
+}
+
+.permission-matrix table {
+    min-width: 600px;
+}
+
+.permission-matrix th {
+    font-size: 11px;
+    writing-mode: vertical-lr;
+    text-orientation: mixed;
+    padding: 10px 5px;
+    height: 100px;
+}
+
+.text-success {
+    color: #00ff00;
+}
+
+.text-muted {
+    color: var(--gray);
+}
+
+.text-cyan {
+    color: var(--cyan);
+}
+
+.text-orange {
+    color: var(--orange);
+}
+
+.text-danger {
+    color: #ff4444;
+}
+</style>
+
+<script>
+function deleteRole(roleId) {
+    if (confirm('are you sure you want to delete this role?')) {
+        console.log('deleting role:', roleId);
+        // implement role deletion
+    }
+}
+
+function exportRoles() {
+    console.log('exporting roles...');
+    // implement export
+}
+
+function importRoles() {
+    console.log('importing roles...');
+    // implement import
+}
+
+function resetToDefault() {
+    if (confirm('this will reset all roles to system defaults. continue?')) {
+        console.log('resetting to defaults...');
+        // implement reset
+    }
+}
+
+function auditPermissions() {
+    console.log('auditing permissions...');
+    // implement audit
+}
+</script>
+{% endblock %}

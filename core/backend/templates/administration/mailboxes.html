@@ -1,0 +1,301 @@
+{% extends "administration/base_admin.html" %}
+
+{% block title %}recaria.org mailboxes{% endblock %}
+
+{% block admin_content %}
+<div class="admin-container">
+    <div class="admin-header">
+        <h1 class="admin-title">recaria.org mailboxes</h1>
+        <div class="admin-actions">
+            <button onclick="showCreateModal()" class="btn btn-success">
+                <i class="fas fa-plus"></i> create mailbox
+            </button>
+        </div>
+    </div>
+
+    {% if messages %}
+        <div class="messages">
+            {% for message in messages %}
+                <div class="alert alert-{{ message.tags }}">{{ message }}</div>
+            {% endfor %}
+        </div>
+    {% endif %}
+
+    <div class="admin-stats">
+        <div class="stat-card">
+            <div class="stat-value">{{ mailboxes.count }}</div>
+            <div class="stat-label">total mailboxes</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-value">{{ mailboxes|length }}</div>
+            <div class="stat-label">active mailboxes</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-value">{{ users_without_mailbox.count }}</div>
+            <div class="stat-label">users without mailbox</div>
+        </div>
+    </div>
+
+    <div class="admin-table-container">
+        <table class="admin-table">
+            <thead>
+                <tr>
+                    <th>email address</th>
+                    <th>user</th>
+                    <th>size (mb)</th>
+                    <th>usage</th>
+                    <th>status</th>
+                    <th>created</th>
+                    <th>actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for mailbox in mailboxes %}
+                <tr>
+                    <td>
+                        <strong>{{ mailbox.email_address }}</strong>
+                    </td>
+                    <td>
+                        <a href="{% url 'administration:user_detail' mailbox.user.id %}">
+                            {{ mailbox.user.username }}
+                        </a>
+                    </td>
+                    <td>{{ mailbox.mailbox_size_mb }}</td>
+                    <td>
+                        <div class="progress" style="width: 100px;">
+                            <div class="progress-bar" 
+                                 style="width: {{ mailbox.usage_percentage }}%"
+                                 title="{{ mailbox.current_usage_mb }}mb / {{ mailbox.mailbox_size_mb }}mb">
+                                {{ mailbox.usage_percentage|floatformat:0 }}%
+                            </div>
+                        </div>
+                    </td>
+                    <td>
+                        {% if mailbox.is_active %}
+                            <span class="badge badge-success">active</span>
+                        {% else %}
+                            <span class="badge badge-danger">suspended</span>
+                        {% endif %}
+                        
+                        {% if mailbox.mailbox_created %}
+                            <span class="badge badge-info">created</span>
+                        {% else %}
+                            <span class="badge badge-warning">pending</span>
+                        {% endif %}
+                    </td>
+                    <td>{{ mailbox.created_at|date:"Y-m-d" }}</td>
+                    <td>
+                        <a href="{% url 'administration:mailbox_detail' mailbox.id %}" 
+                           class="btn btn-sm btn-primary">
+                            manage
+                        </a>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="7" class="text-center">no mailboxes created yet</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Create Mailbox Modal -->
+<div id="createMailboxModal" class="modal" style="display: none;">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h2>create recaria.org mailbox</h2>
+            <button onclick="hideCreateModal()" class="modal-close">&times;</button>
+        </div>
+        <form method="post" action="{% url 'administration:mailbox_create' %}">
+            {% csrf_token %}
+            <div class="modal-body">
+                <div class="form-group">
+                    <label>select user</label>
+                    <select name="user_id" class="form-control" required>
+                        <option value="">-- select user --</option>
+                        {% for user in users_without_mailbox %}
+                        <option value="{{ user.id }}">
+                            {{ user.username }} ({{ user.email }})
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label>email prefix</label>
+                    <div class="input-group">
+                        <input type="text" name="email_prefix" 
+                               class="form-control" 
+                               placeholder="username" 
+                               pattern="[a-z0-9.-]+" 
+                               required>
+                        <span class="input-group-addon">@recaria.org</span>
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label>mailbox size (mb)</label>
+                    <input type="number" name="mailbox_size_mb" 
+                           class="form-control" 
+                           value="1024" min="100" max="10240">
+                </div>
+                
+                <div class="form-group">
+                    <label>daily send limit</label>
+                    <input type="number" name="daily_send_limit" 
+                           class="form-control" 
+                           value="500" min="10" max="5000">
+                </div>
+                
+                <div class="form-group">
+                    <label>attachment size limit (mb)</label>
+                    <input type="number" name="attachment_size_limit_mb" 
+                           class="form-control" 
+                           value="25" min="1" max="100">
+                </div>
+                
+                <div class="form-group">
+                    <label>protocols</label>
+                    <div class="checkbox-group">
+                        <label>
+                            <input type="checkbox" name="imap_enabled" checked>
+                            enable imap
+                        </label>
+                        <label>
+                            <input type="checkbox" name="pop3_enabled">
+                            enable pop3
+                        </label>
+                        <label>
+                            <input type="checkbox" name="smtp_enabled" checked>
+                            enable smtp
+                        </label>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" onclick="hideCreateModal()" class="btn btn-secondary">
+                    cancel
+                </button>
+                <button type="submit" class="btn btn-primary">
+                    create mailbox
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<style>
+.progress {
+    background-color: #f0f0f0;
+    border-radius: 4px;
+    height: 20px;
+    overflow: hidden;
+    display: inline-block;
+}
+
+.progress-bar {
+    background-color: #28a745;
+    color: white;
+    text-align: center;
+    line-height: 20px;
+    font-size: 11px;
+    transition: width 0.3s;
+}
+
+.modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0,0,0,0.5);
+    z-index: 1000;
+}
+
+.modal-content {
+    background-color: #1a1a1a;
+    margin: 5% auto;
+    padding: 0;
+    width: 600px;
+    max-width: 90%;
+    border-radius: 8px;
+    color: #e0e0e0;
+}
+
+.modal-header {
+    padding: 20px;
+    border-bottom: 1px solid #333;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.modal-body {
+    padding: 20px;
+}
+
+.modal-footer {
+    padding: 20px;
+    border-top: 1px solid #333;
+    text-align: right;
+}
+
+.modal-close {
+    background: none;
+    border: none;
+    font-size: 28px;
+    cursor: pointer;
+    color: #999;
+}
+
+.form-group {
+    margin-bottom: 15px;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 5px;
+    color: #28a745;
+}
+
+.form-control {
+    width: 100%;
+    padding: 8px 12px;
+    background-color: #2a2a2a;
+    border: 1px solid #444;
+    color: #e0e0e0;
+    border-radius: 4px;
+}
+
+.input-group {
+    display: flex;
+}
+
+.input-group-addon {
+    padding: 8px 12px;
+    background-color: #333;
+    border: 1px solid #444;
+    border-left: none;
+    border-radius: 0 4px 4px 0;
+    color: #28a745;
+}
+
+.checkbox-group label {
+    display: block;
+    margin-bottom: 5px;
+    color: #e0e0e0;
+}
+</style>
+
+<script>
+function showCreateModal() {
+    document.getElementById('createMailboxModal').style.display = 'block';
+}
+
+function hideCreateModal() {
+    document.getElementById('createMailboxModal').style.display = 'none';
+}
+</script>
+{% endblock %}

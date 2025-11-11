@@ -1,0 +1,491 @@
+{% extends "web_ui/base.html" %}
+{% load static %}
+
+{% block title %}cctv dashboard - unibos{% endblock %}
+
+{% block header_title %}unibos{% endblock %}
+{% block module_name %}cctv - surveillance dashboard{% endblock %}
+
+{% block extra_css %}
+<style>
+    .cctv-container {
+        padding: 0;
+        max-width: 100%;
+        margin: 0;
+    }
+
+    .module-header {
+        display: flex;
+        flex-direction: column;
+        align-items: flex-start;
+        margin-bottom: 30px;
+        padding-bottom: 15px;
+        border-bottom: 2px solid var(--orange);
+    }
+
+    .module-header h1 {
+        display: block;
+        color: var(--orange);
+        font-size: 24px;
+        font-weight: bold;
+        text-transform: lowercase;
+        margin: 0;
+        margin-bottom: 8px;
+        line-height: 1.2;
+    }
+
+    .module-subtitle {
+        display: block;
+        color: var(--gray);
+        font-size: 14px;
+        text-transform: lowercase;
+        margin: 0;
+        line-height: 1.4;
+    }
+    
+    .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 15px;
+        margin-bottom: 30px;
+    }
+
+    .stat-card {
+        background: rgba(20, 20, 20, 0.5);
+        border: 1px solid #333;
+        padding: 15px;
+        border-radius: 4px;
+        text-align: center;
+    }
+
+    .stat-value {
+        font-size: 24px;
+        color: var(--orange);
+        font-weight: bold;
+        margin: 10px 0;
+    }
+
+    .stat-label {
+        color: var(--gray);
+        font-size: 12px;
+        text-transform: lowercase;
+    }
+    
+    .camera-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+        gap: 20px;
+        margin-bottom: 30px;
+    }
+    
+    .camera-card {
+        background: rgba(20, 20, 20, 0.5);
+        border: 1px solid #333;
+        border-radius: 4px;
+        overflow: hidden;
+    }
+    
+    .camera-preview {
+        position: relative;
+        height: 200px;
+        background: #000;
+        overflow: hidden;
+    }
+    
+    .camera-preview img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+    
+    .camera-overlay {
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: linear-gradient(to bottom, transparent 60%, rgba(0,0,0,0.8));
+        display: flex;
+        align-items: flex-end;
+        padding: 10px;
+    }
+    
+    .camera-status {
+        position: absolute;
+        top: 10px;
+        right: 10px;
+        padding: 4px 8px;
+        border-radius: 4px;
+        font-size: 0.8em;
+        font-weight: bold;
+        text-transform: uppercase;
+    }
+    
+    .status-online {
+        background: rgba(0, 255, 0, 0.2);
+        color: #00ff00;
+        border: 1px solid #00ff00;
+    }
+    
+    .status-offline {
+        background: rgba(255, 0, 0, 0.2);
+        color: #ff0000;
+        border: 1px solid #ff0000;
+    }
+    
+    .status-recording {
+        background: rgba(255, 0, 0, 0.2);
+        color: #ff0000;
+        border: 1px solid #ff0000;
+        animation: pulse 1.5s infinite;
+    }
+    
+    @keyframes pulse {
+        0%, 100% { opacity: 1; }
+        50% { opacity: 0.5; }
+    }
+    
+    .camera-info {
+        padding: 15px;
+    }
+    
+    .camera-name {
+        font-size: 1.1em;
+        color: #ff8c00;
+        margin-bottom: 5px;
+    }
+    
+    .camera-location {
+        color: #888;
+        font-size: 0.9em;
+        margin-bottom: 10px;
+    }
+    
+    .camera-actions {
+        display: flex;
+        gap: 10px;
+    }
+    
+    .btn-camera {
+        flex: 1;
+        padding: 8px;
+        background: #222;
+        border: 1px solid #444;
+        color: #ff8c00;
+        text-align: center;
+        border-radius: 4px;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        text-decoration: none;
+        font-size: 0.9em;
+    }
+    
+    .btn-camera:hover {
+        background: #ff8c00;
+        color: #000;
+        border-color: #ff8c00;
+    }
+    
+    .alerts-section {
+        background: rgba(20, 20, 20, 0.5);
+        border: 1px solid #333;
+        padding: 15px;
+        border-radius: 4px;
+        margin-bottom: 30px;
+    }
+    
+    .section-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 20px;
+        padding-bottom: 10px;
+        border-bottom: 1px solid #333;
+    }
+
+    .section-title {
+        color: var(--orange);
+        font-size: 18px;
+        text-transform: lowercase;
+        margin: 0;
+    }
+    
+    .alert-item {
+        display: flex;
+        align-items: center;
+        padding: 10px;
+        background: #222;
+        border-radius: 4px;
+        margin-bottom: 10px;
+        border-left: 3px solid #444;
+        transition: all 0.2s ease;
+    }
+    
+    .alert-item.priority-high {
+        border-left-color: #ff0000;
+    }
+    
+    .alert-item.priority-medium {
+        border-left-color: #ff8c00;
+    }
+    
+    .alert-item.priority-low {
+        border-left-color: #00ff00;
+    }
+    
+    .alert-item:hover {
+        background: #2a2a2a;
+    }
+    
+    .alert-icon {
+        width: 40px;
+        text-align: center;
+        font-size: 1.5em;
+    }
+    
+    .alert-content {
+        flex: 1;
+        margin-left: 15px;
+    }
+    
+    .alert-type {
+        color: #ff8c00;
+        font-weight: bold;
+        margin-bottom: 3px;
+    }
+    
+    .alert-details {
+        color: #888;
+        font-size: 0.9em;
+    }
+    
+    .alert-time {
+        color: #666;
+        font-size: 0.8em;
+    }
+    
+    .no-data {
+        text-align: center;
+        color: #666;
+        padding: 40px;
+        font-style: italic;
+    }
+    
+    .action-buttons {
+        display: flex;
+        gap: 10px;
+        margin-bottom: 30px;
+        flex-wrap: wrap;
+    }
+
+    .btn-action {
+        padding: 8px 16px;
+        background: transparent;
+        color: var(--orange);
+        border: 1px solid var(--orange);
+        border-radius: 4px;
+        cursor: pointer;
+        text-transform: lowercase;
+        text-decoration: none;
+        display: inline-block;
+        transition: all 0.3s;
+    }
+
+    .btn-action:hover {
+        background: var(--orange);
+        color: #000;
+        transform: translateY(-2px);
+    }
+    
+    .storage-bar {
+        width: 100%;
+        height: 20px;
+        background: #222;
+        border-radius: 10px;
+        overflow: hidden;
+        margin-top: 10px;
+    }
+    
+    .storage-fill {
+        height: 100%;
+        background: linear-gradient(90deg, #00ff00, #ff8c00);
+        transition: width 0.3s ease;
+    }
+    
+    .storage-fill.warning {
+        background: linear-gradient(90deg, #ff8c00, #ff0000);
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="cctv-container">
+    <div class="module-header">
+        <h1>📹 cctv</h1>
+        <p class="module-subtitle">surveillance & monitoring dashboard</p>
+    </div>
+
+    <!-- Statistics -->
+    <div class="stats-grid">
+        <div class="stat-card">
+            <div class="stat-label">total cameras</div>
+            <div class="stat-value">{{ total_cameras }}</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-label">online</div>
+            <div class="stat-value" style="color: #00ff00;">{{ online_cameras }}</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-label">recording</div>
+            <div class="stat-value" style="color: #ff0000;">{{ recording_cameras }}</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-label">alerts</div>
+            <div class="stat-value" style="color: #ff8c00;">{{ recent_alerts|length }}</div>
+        </div>
+        {% if storage %}
+        <div class="stat-card">
+            <div class="stat-label">storage used</div>
+            <div class="stat-value">{{ storage_percent|floatformat:0 }}%</div>
+            <div class="storage-bar">
+                <div class="storage-fill {% if storage_percent > 80 %}warning{% endif %}" 
+                     style="width: {{ storage_percent }}%;"></div>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+    
+    <!-- Action Buttons -->
+    <div class="action-buttons">
+        <a href="{% url 'cctv:camera_grid' %}" class="btn-action">📹 grid view</a>
+        <a href="{% url 'cctv:recordings' %}" class="btn-action">🎬 recordings</a>
+        <a href="{% url 'cctv:alerts' %}" class="btn-action">🚨 all alerts</a>
+        <a href="{% url 'cctv:settings' %}" class="btn-action">⚙️ settings</a>
+    </div>
+    
+    <!-- Camera Grid -->
+    <div class="section-header">
+        <h2 class="section-title">📹 cameras</h2>
+        <a href="{% url 'cctv:settings' %}" style="color: #888; text-decoration: none;">+ add camera</a>
+    </div>
+    
+    {% if cameras %}
+    <div class="camera-grid">
+        {% for camera in cameras %}
+        <div class="camera-card">
+            <div class="camera-preview">
+                <img src="{% url 'cctv:snapshot' camera.id %}" 
+                     alt="{{ camera.name }}"
+                     onerror="this.src='data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzAwIiBoZWlnaHQ9IjIwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMzAwIiBoZWlnaHQ9IjIwMCIgZmlsbD0iIzFhMWExYSIvPjx0ZXh0IHg9IjUwJSIgeT0iNTAlIiBmaWxsPSIjNjY2IiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBkeT0iLjNlbSIgZm9udC1mYW1pbHk9Im1vbm9zcGFjZSI+bm8gc2lnbmFsPC90ZXh0Pjwvc3ZnPg==';">
+                <div class="camera-overlay"></div>
+                <div class="camera-status status-{{ camera.status }}">
+                    {% if camera.status == 'recording' %}
+                    ⬤ {{ camera.status }}
+                    {% else %}
+                    {{ camera.status }}
+                    {% endif %}
+                </div>
+            </div>
+            <div class="camera-info">
+                <div class="camera-name">{{ camera.name }}</div>
+                <div class="camera-location">📍 {{ camera.location }}</div>
+                <div class="camera-actions">
+                    <a href="{% url 'cctv:camera_detail' camera.id %}" class="btn-camera">view</a>
+                    {% if camera.status == 'online' %}
+                    <button class="btn-camera" onclick="startRecording('{{ camera.id }}')">record</button>
+                    {% elif camera.status == 'recording' %}
+                    <button class="btn-camera" onclick="stopRecording('{{ camera.id }}')">stop</button>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="no-data">
+        no cameras configured yet. <a href="{% url 'cctv:settings' %}" style="color: #ff8c00;">add your first camera →</a>
+    </div>
+    {% endif %}
+    
+    <!-- Recent Alerts -->
+    <div class="alerts-section">
+        <div class="section-header">
+            <h2 class="section-title">🚨 recent alerts</h2>
+            <a href="{% url 'cctv:alerts' %}" style="color: #888; text-decoration: none;">view all →</a>
+        </div>
+        
+        {% if recent_alerts %}
+        <div class="alerts-list">
+            {% for alert in recent_alerts %}
+            <div class="alert-item priority-{{ alert.priority }}">
+                <div class="alert-icon">
+                    {% if alert.alert_type == 'motion' %}🏃
+                    {% elif alert.alert_type == 'person' %}👤
+                    {% elif alert.alert_type == 'vehicle' %}🚗
+                    {% elif alert.alert_type == 'sound' %}🔊
+                    {% else %}⚠️
+                    {% endif %}
+                </div>
+                <div class="alert-content">
+                    <div class="alert-type">{{ alert.get_alert_type_display }}</div>
+                    <div class="alert-details">{{ alert.camera.name }} - {{ alert.description }}</div>
+                    <div class="alert-time">{{ alert.timestamp|timesince }} ago</div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="no-data">no recent alerts</div>
+        {% endif %}
+    </div>
+</div>
+
+<script>
+function startRecording(cameraId) {
+    fetch(`/cctv/record/start/${cameraId}/`, {
+        method: 'POST',
+        headers: {
+            'X-CSRFToken': '{{ csrf_token }}',
+            'Content-Type': 'application/json'
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            location.reload();
+        } else {
+            alert('Failed to start recording: ' + data.error);
+        }
+    });
+}
+
+function stopRecording(cameraId) {
+    fetch(`/cctv/record/stop/${cameraId}/`, {
+        method: 'POST',
+        headers: {
+            'X-CSRFToken': '{{ csrf_token }}',
+            'Content-Type': 'application/json'
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            location.reload();
+        } else {
+            alert('Failed to stop recording: ' + data.error);
+        }
+    });
+}
+
+// Auto-refresh camera status every 30 seconds
+setInterval(() => {
+    fetch('/cctv/api/status/')
+        .then(response => response.json())
+        .then(data => {
+            // Update camera statuses without full page reload
+            console.log('Camera status updated:', data);
+        });
+}, 30000);
+</script>
+
+{% endblock %}

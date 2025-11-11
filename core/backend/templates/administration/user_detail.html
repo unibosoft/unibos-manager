@@ -1,0 +1,375 @@
+{% extends "administration/base_admin.html" %}
+
+{% block title %}{{ target_user.username }} - user details{% endblock %}
+
+{% block admin_content %}
+<!-- User Details Header -->
+<div class="section">
+    <div class="section-header">
+        <h2>user details: {{ target_user.username }}</h2>
+        <div class="section-controls">
+            <a href="{% url 'administration:users' %}" class="btn-secondary">← back to users</a>
+        </div>
+    </div>
+</div>
+
+<!-- User Information -->
+<div class="section">
+    <h2>basic information</h2>
+    <div class="content-box">
+        <form method="post" class="user-form">
+            {% csrf_token %}
+            <input type="hidden" name="action" value="update_user">
+            
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px; margin-bottom: 20px;">
+                <div class="form-group">
+                    <label class="form-label">username</label>
+                    <input type="text" value="{{ target_user.username }}" disabled class="form-input">
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">email</label>
+                    <input type="email" name="email" value="{{ target_user.email }}" class="form-input">
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">first name</label>
+                    <input type="text" name="first_name" value="{{ target_user.first_name }}" class="form-input">
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">last name</label>
+                    <input type="text" name="last_name" value="{{ target_user.last_name }}" class="form-input">
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">status</label>
+                    <label style="display: flex; align-items: center; gap: 10px; cursor: pointer; color: var(--white);">
+                        <input type="checkbox" name="is_active" {% if target_user.is_active %}checked{% endif %}>
+                        <span>active</span>
+                    </label>
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">account type</label>
+                    <div>
+                        {% if target_user.is_superuser %}
+                        <span class="badge badge-admin">super admin</span>
+                        {% endif %}
+                        {% if target_user.is_staff %}
+                        <span class="badge badge-pending">staff</span>
+                        {% endif %}
+                        {% if not target_user.is_superuser and not target_user.is_staff %}
+                        <span class="badge badge-user">regular user</span>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            
+            <div class="button-group">
+                <button type="submit" class="btn-primary">💾 save changes</button>
+                <button type="button" onclick="resetPassword('{{ target_user.id }}')" class="btn-secondary">🔑 reset password</button>
+                {% if not target_user.is_superuser and target_user != request.user %}
+                <button type="button" onclick="deleteUser('{{ target_user.id }}')" class="btn-danger">🗑️ delete user</button>
+                {% endif %}
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- User Roles -->
+<div class="section">
+    <div class="section-header">
+        <h2>assigned roles</h2>
+        <button onclick="toggleAddRole()" class="btn-primary">+ add role</button>
+    </div>
+    
+    <div class="content-box">
+        <!-- Add Role Form (Hidden by default) -->
+        <div id="add-role-form" style="display: none; padding: 15px; margin-bottom: 20px; border: 1px solid var(--dark-gray); border-radius: 3px; background: var(--bg-black);">
+            <form method="post">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="add_role">
+                
+                <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
+                    <select name="role_id" class="form-select" required style="flex: 1; min-width: 200px;">
+                        <option value="">select role...</option>
+                        {% for role in available_roles %}
+                        <option value="{{ role.id }}">{{ role.name|lower }}</option>
+                        {% endfor %}
+                    </select>
+                    
+                    <input type="datetime-local" name="expires_at" class="form-input" placeholder="expires (optional)" style="width: auto;">
+                    
+                    <input type="text" name="notes" class="form-input" placeholder="notes (optional)" style="width: auto;">
+                    
+                    <button type="submit" class="btn-primary">add</button>
+                    <button type="button" onclick="toggleAddRole()" class="btn-secondary">cancel</button>
+                </div>
+            </form>
+        </div>
+        
+        <div>
+            {% for user_role in user_roles %}
+            <div style="display: flex; justify-content: space-between; align-items: center; padding: 15px; background: var(--bg-black); border: 1px solid var(--dark-gray); margin-bottom: 10px; border-radius: 3px;">
+                <div>
+                    <strong style="color: var(--cyan); font-size: 16px;">{{ user_role.role.name|lower }}</strong>
+                    {% if user_role.is_temporary %}
+                    <span class="badge badge-pending">temporary</span>
+                    {% endif %}
+                    <div class="text-muted" style="font-size: 12px; margin-top: 5px;">
+                        assigned by {{ user_role.assigned_by.username }} on {{ user_role.assigned_at|date:"Y-m-d H:i" }}
+                        {% if user_role.expires_at %}
+                        <br>expires: {{ user_role.expires_at|date:"Y-m-d H:i" }}
+                        {% endif %}
+                        {% if user_role.notes %}
+                        <br>notes: {{ user_role.notes }}
+                        {% endif %}
+                    </div>
+                </div>
+                <form method="post" style="display: inline;">
+                    {% csrf_token %}
+                    <input type="hidden" name="action" value="remove_role">
+                    <input type="hidden" name="user_role_id" value="{{ user_role.id }}">
+                    <button type="submit" class="btn-danger" onclick="return confirm('Remove this role?')">remove</button>
+                </form>
+            </div>
+            {% empty %}
+            <p class="text-muted">no roles assigned</p>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+
+<!-- Activity Log -->
+<div class="section">
+    <h2>activity log</h2>
+    <div class="content-box">
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th>date</th>
+                    <th>user</th>
+                    <th>action</th>
+                    <th>details</th>
+                    <th>ip address</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for log in audit_logs %}
+                <tr>
+                    <td>{{ log.timestamp|date:"Y-m-d H:i:s" }}</td>
+                    <td>{{ log.user.username }}</td>
+                    <td>{{ log.get_action_display|default:log.action|lower }}</td>
+                    <td>{{ log.target_object|default:"-" }}</td>
+                    <td class="text-muted">{{ log.ip_address|default:"-" }}</td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="5" class="text-center text-muted">no activity recorded</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Screen Lock Settings -->
+<div class="section">
+    <div class="section-header">
+        <h2>screen lock settings</h2>
+        <div class="section-controls">
+            {% if screen_lock and screen_lock.is_enabled %}
+            <button onclick="resetScreenLock()" class="btn-danger">🔓 reset screen lock</button>
+            {% else %}
+            <button onclick="toggleConfigureScreenLock()" class="btn-primary">🔐 configure screen lock</button>
+            {% endif %}
+        </div>
+    </div>
+    
+    <div class="content-box">
+        {% if screen_lock and screen_lock.is_enabled %}
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px;">
+            <div>
+                <span class="text-muted">status:</span>
+                <span class="badge badge-success">enabled</span>
+            </div>
+            <div>
+                <span class="text-muted">auto-lock:</span>
+                <span>{{ screen_lock.auto_lock|yesno:"yes,no" }}</span>
+            </div>
+            <div>
+                <span class="text-muted">timeout:</span>
+                <span>{{ screen_lock.lock_timeout }} seconds</span>
+            </div>
+            <div>
+                <span class="text-muted">require on startup:</span>
+                <span>{{ screen_lock.require_on_startup|yesno:"yes,no" }}</span>
+            </div>
+            <div>
+                <span class="text-muted">failed attempts:</span>
+                <span>{{ screen_lock.failed_attempts }}</span>
+            </div>
+            {% if screen_lock.locked_until %}
+            <div>
+                <span class="text-muted">locked until:</span>
+                <span class="badge badge-danger">{{ screen_lock.locked_until|date:"Y-m-d H:i:s" }}</span>
+            </div>
+            {% endif %}
+        </div>
+        {% else %}
+        <p class="text-muted">screen lock is not configured for this user</p>
+        {% endif %}
+        
+        <!-- Configure Screen Lock Form (Hidden by default) -->
+        <div id="configure-screen-lock-form" style="display: none; margin-top: 20px; padding: 15px; border: 1px solid var(--dark-gray); border-radius: 3px; background: var(--bg-black);">
+            <form method="post">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="configure_screen_lock">
+                
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 15px; margin-bottom: 15px;">
+                    <div class="form-group">
+                        <label class="form-label">screen lock password</label>
+                        <input type="password" name="screen_lock_password" class="form-input" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label">lock timeout (seconds)</label>
+                        <select name="lock_timeout" class="form-select">
+                            <option value="60">1 minute</option>
+                            <option value="180">3 minutes</option>
+                            <option value="300" selected>5 minutes</option>
+                            <option value="600">10 minutes</option>
+                            <option value="900">15 minutes</option>
+                            <option value="1800">30 minutes</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label style="display: flex; align-items: center; gap: 10px; cursor: pointer; color: var(--white);">
+                            <input type="checkbox" name="auto_lock" checked>
+                            <span>enable auto-lock</span>
+                        </label>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label style="display: flex; align-items: center; gap: 10px; cursor: pointer; color: var(--white);">
+                            <input type="checkbox" name="require_on_startup">
+                            <span>require on startup</span>
+                        </label>
+                    </div>
+                </div>
+                
+                <div class="button-group">
+                    <button type="submit" class="btn-primary">💾 save configuration</button>
+                    <button type="button" onclick="toggleConfigureScreenLock()" class="btn-secondary">cancel</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Account Statistics -->
+<div class="section">
+    <h2>account statistics</h2>
+    <div class="stats-grid">
+        <div class="stat-card">
+            <div class="stat-label">date joined</div>
+            <div class="stat-value">{{ target_user.date_joined|date:"Y-m-d" }}</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-label">last login</div>
+            <div class="stat-value">
+                {% if target_user.last_login %}{{ target_user.last_login|date:"Y-m-d" }}{% else %}never{% endif %}
+            </div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-label">total roles</div>
+            <div class="stat-value">{{ user_roles.count }}</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-label">departments</div>
+            <div class="stat-value">{{ target_user.departments.count }}</div>
+        </div>
+    </div>
+</div>
+
+<script>
+function toggleAddRole() {
+    const form = document.getElementById('add-role-form');
+    form.style.display = form.style.display === 'none' ? 'block' : 'none';
+}
+
+function toggleConfigureScreenLock() {
+    const form = document.getElementById('configure-screen-lock-form');
+    form.style.display = form.style.display === 'none' ? 'block' : 'none';
+}
+
+function resetScreenLock() {
+    if (confirm('Are you sure you want to reset the screen lock for this user?')) {
+        const form = document.createElement('form');
+        form.method = 'POST';
+        form.innerHTML = `
+            {% csrf_token %}
+            <input type="hidden" name="action" value="reset_screen_lock">
+        `;
+        document.body.appendChild(form);
+        form.submit();
+    }
+}
+
+function resetPassword(userId) {
+    if (confirm('send password reset email to this user?')) {
+        fetch(`/administration/users/${userId}/reset-password/`, {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': '{{ csrf_token }}',
+                'Content-Type': 'application/json'
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                // In production, just show success message
+                // For now, show temp password (remove in production!)
+                if (data.temp_password) {
+                    alert(`password reset successfully!\n\ntemporary password: ${data.temp_password}\n\n(save this password - it won't be shown again)`);
+                } else {
+                    alert('password reset email sent successfully!');
+                }
+            } else {
+                alert('error: ' + (data.error || 'failed to send reset email'));
+            }
+        })
+        .catch(error => {
+            console.error('Reset password error:', error);
+            alert('error resetting password: ' + error);
+        });
+    }
+}
+
+function deleteUser(userId) {
+    if (confirm('Are you sure you want to delete this user? This action cannot be undone!')) {
+        if (confirm('Please confirm once more: Delete user {{ target_user.username }}?')) {
+            fetch(`/administration/users/${userId}/delete/`, {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': '{{ csrf_token }}',
+                    'Content-Type': 'application/json'
+                }
+            }).then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    window.location.href = '{% url "administration:users" %}';
+                } else {
+                    alert('Error: ' + (data.error || 'Failed to delete user'));
+                }
+            })
+            .catch(error => {
+                alert('Error deleting user: ' + error);
+            });
+        }
+    }
+}
+</script>
+{% endblock %}

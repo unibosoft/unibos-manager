@@ -1,0 +1,1021 @@
+{% extends 'administration/base_admin.html' %}
+
+{% block admin_content %}
+<div class="section">
+    <div class="section-header">
+        <h2>🎮 live game session - {{ session.session_id|slice:":8" }}...</h2>
+        <div class="section-controls">
+            <a href="{% url 'administration:solitaire_dashboard' %}" class="btn-secondary">back to dashboard</a>
+            {% if not session.is_completed %}
+                <span class="badge badge-pending">in progress</span>
+            {% elif session.is_won %}
+                <span class="badge badge-approved">won</span>
+            {% elif session.is_abandoned %}
+                <span class="badge badge-rejected">abandoned</span>
+            {% else %}
+                <span class="badge badge-inactive">lost</span>
+            {% endif %}
+        </div>
+    </div>
+    
+    <!-- Player Info -->
+    <div class="content-box">
+        <h3 style="color: var(--orange); margin-bottom: 15px;">player information</h3>
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-value">{{ session.player.display_name }}</div>
+                <div class="stat-label">player name</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value">{{ session.player.ip_address }}</div>
+                <div class="stat-label">ip address</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value">{{ session.started_at|date:"H:i:s" }}</div>
+                <div class="stat-label">started at</div>
+                <div style="font-size: 10px; color: #666; margin-top: 3px;">
+                    {{ session.started_at|timesince }} ago
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value">{{ session.player.user_agent|truncatechars:30 }}</div>
+                <div class="stat-label">browser</div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Game Statistics -->
+    <div class="content-box" style="margin-top: 20px;">
+        <h3 style="color: var(--orange); margin-bottom: 15px;">game statistics</h3>
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-value" id="live-score">{{ session.score }}</div>
+                <div class="stat-label">score</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="live-moves">{{ session.moves_count }}</div>
+                <div class="stat-label">moves</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="live-time">{{ session.time_played|floatformat:0 }}s</div>
+                <div class="stat-label">time played</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value">
+                    {% if last_move_time %}
+                        {{ last_move_time|date:"H:i:s" }}
+                        <div style="font-size: 10px; color: #666;">{{ last_move_time|timesince }} ago</div>
+                    {% else %}
+                        <span style="color: #666;">no moves yet</span>
+                    {% endif %}
+                </div>
+                <div class="stat-label">last move</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value">
+                    {% if session.is_completed %}
+                        {{ session.ended_at|date:"H:i:s" }}
+                    {% elif session.is_abandoned %}
+                        <span style="color: #ff6b35;">abandoned</span>
+                    {% else %}
+                        <span id="live-status">playing...</span>
+                    {% endif %}
+                </div>
+                <div class="stat-label">status</div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Move History -->
+    <div class="content-box" style="margin-top: 20px;">
+        <h3 style="color: var(--orange); margin-bottom: 15px;">move history ({{ move_history.count }} moves)</h3>
+        <div style="max-height: 400px; overflow-y: auto;">
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th width="60">move #</th>
+                        <th>from</th>
+                        <th>to</th>
+                        <th width="80">cards</th>
+                        <th width="80">score +/-</th>
+                        <th width="100">time</th>
+                        <th width="60">type</th>
+                    </tr>
+                </thead>
+                <tbody id="moves-tbody">
+                    {% for move in move_history %}
+                    <tr>
+                        <td>{{ move.move_number }}</td>
+                        <td>{{ move.from_pile_type }}{% if move.from_pile_index >= 0 %}-{{ move.from_pile_index }}{% endif %}</td>
+                        <td>{{ move.to_pile_type }}{% if move.to_pile_index >= 0 %}-{{ move.to_pile_index }}{% endif %}</td>
+                        <td>{{ move.num_cards }}</td>
+                        <td>
+                            {% if move.score_change > 0 %}
+                                <span style="color: #4CAF50;">+{{ move.score_change }}</span>
+                            {% elif move.score_change < 0 %}
+                                <span style="color: #f44336;">{{ move.score_change }}</span>
+                            {% else %}
+                                0
+                            {% endif %}
+                        </td>
+                        <td>{{ move.time_since_start|floatformat:0 }}s</td>
+                        <td>
+                            {% if move.is_undo %}
+                                <span class="badge badge-inactive">undo</span>
+                            {% elif move.is_auto_move %}
+                                <span class="badge badge-approved">auto</span>
+                            {% else %}
+                                <span class="badge badge-pending">manual</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="7" style="text-align: center; color: #999;">no moves recorded yet</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    
+    <!-- Game State Visualization -->
+    <div class="content-box" style="margin-top: 20px;">
+        <h3 style="color: var(--orange); margin-bottom: 15px;">current game state</h3>
+        
+        <!-- Visual Game Board Container with Responsive Scaling -->
+        <div class="game-board-wrapper" style="
+            width: 100%;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background: #1a1a1a;
+            border-radius: 8px;
+        ">
+            <!-- Scale Container -->
+            <div class="game-board-scale" style="
+                transform-origin: top left;
+                width: 935px;
+                margin: 0 auto;
+                position: relative;
+            ">
+                <!-- Visual Game Board - Exact UNIBOS Solitaire Style -->
+                <div id="game-board" class="game-area-viz {% if session.is_abandoned %}game-abandoned{% elif session.is_completed %}game-completed{% if session.is_won %} game-won{% endif %}{% endif %}" style="
+                    background: #1e5620;
+                    background-image: radial-gradient(ellipse at center, #2a6f2e 0%, #1e5620 100%);
+                    padding: 20px;
+                    border-radius: 8px;
+                    position: relative;
+                    width: 935px;
+                    height: 600px;
+                ">
+                    <!-- Stock and Waste - TOP LEFT -->
+                    <div class="card-slot stock-viz" style="position: absolute; top: 20px; left: 20px;">
+                        {% if game_state and game_state.stock %}
+                            {% for card in game_state.stock|slice:":3" %}
+                            <div class="card face-down" style="
+                                position: absolute;
+                                top: {{ forloop.counter0|add:forloop.counter0 }}px;
+                                left: {{ forloop.counter0|add:forloop.counter0 }}px;
+                                z-index: {{ forloop.counter }};
+                            "></div>
+                            {% endfor %}
+                            <div style="
+                                position: absolute;
+                                bottom: -25px;
+                                left: 50%;
+                                transform: translateX(-50%);
+                                color: rgba(255,255,255,0.6);
+                                font-size: 11px;
+                                white-space: nowrap;
+                            ">{{ game_state.stock|length }} cards</div>
+                        {% else %}
+                            <div class="card-slot-empty-viz"></div>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="card-slot waste-viz" style="position: absolute; top: 20px; left: 152px;">
+                        {% if game_state and game_state.waste %}
+                            {% for card in game_state.waste|slice:"-3:" %}
+                            <div class="card face-up {% if card.suit == 'hearts' or card.suit == 'diamonds' %}red{% else %}black{% endif %}" 
+                                 style="
+                                position: absolute;
+                                left: {% widthratio forloop.counter0 1 20 %}px;
+                                z-index: {{ forloop.counter }};
+                            ">
+                                <div class="card-corner top-left">
+                                    <span class="card-rank">{{ card.rank }}</span>
+                                    <span class="card-suit">
+                                        {% if card.suit == 'spades' %}♠
+                                        {% elif card.suit == 'hearts' %}♥
+                                        {% elif card.suit == 'diamonds' %}♦
+                                        {% else %}♣{% endif %}
+                                    </span>
+                                </div>
+                                <div class="card-corner bottom-right">
+                                    <span class="card-rank">{{ card.rank }}</span>
+                                    <span class="card-suit">
+                                        {% if card.suit == 'spades' %}♠
+                                        {% elif card.suit == 'hearts' %}♥
+                                        {% elif card.suit == 'diamonds' %}♦
+                                        {% else %}♣{% endif %}
+                                    </span>
+                                </div>
+                                <div class="card-center">
+                                    {% if card.suit == 'spades' %}♠
+                                    {% elif card.suit == 'hearts' %}♥
+                                    {% elif card.suit == 'diamonds' %}♦
+                                    {% else %}♣{% endif %}
+                                </div>
+                            </div>
+                            {% endfor %}
+                        {% else %}
+                            <div class="card-slot-empty-viz"></div>
+                        {% endif %}
+                    </div>
+                    
+                    <!-- Foundations - TOP RIGHT -->
+                    {% if game_state and game_state.foundations %}
+                    {% for foundation_name, foundation_cards in game_state.foundations.items %}
+                    {% if forloop.counter0 == 0 %}
+                        <div class="card-slot foundation-viz-0" style="position: absolute; top: 20px; right: 416px;">
+                    {% elif forloop.counter0 == 1 %}
+                        <div class="card-slot foundation-viz-1" style="position: absolute; top: 20px; right: 284px;">
+                    {% elif forloop.counter0 == 2 %}
+                        <div class="card-slot foundation-viz-2" style="position: absolute; top: 20px; right: 152px;">
+                    {% else %}
+                        <div class="card-slot foundation-viz-3" style="position: absolute; top: 20px; right: 20px;">
+                    {% endif %}
+                        {% if foundation_cards %}
+                            {% with foundation_cards|last as top_card %}
+                            <div class="card face-up {% if foundation_name == 'hearts' or foundation_name == 'diamonds' %}red{% else %}black{% endif %}">
+                                <div class="card-corner top-left">
+                                    <span class="card-rank">{{ top_card.rank }}</span>
+                                    <span class="card-suit">
+                                        {% if foundation_name == 'spades' %}♠
+                                        {% elif foundation_name == 'hearts' %}♥
+                                        {% elif foundation_name == 'diamonds' %}♦
+                                        {% else %}♣{% endif %}
+                                    </span>
+                                </div>
+                                <div class="card-corner bottom-right">
+                                    <span class="card-rank">{{ top_card.rank }}</span>
+                                    <span class="card-suit">
+                                        {% if foundation_name == 'spades' %}♠
+                                        {% elif foundation_name == 'hearts' %}♥
+                                        {% elif foundation_name == 'diamonds' %}♦
+                                        {% else %}♣{% endif %}
+                                    </span>
+                                </div>
+                                <div class="card-center">
+                                    {% if foundation_name == 'spades' %}♠
+                                    {% elif foundation_name == 'hearts' %}♥
+                                    {% elif foundation_name == 'diamonds' %}♦
+                                    {% else %}♣{% endif %}
+                                </div>
+                            </div>
+                            {% endwith %}
+                        {% else %}
+                            <div class="card-slot-empty-viz foundation-empty">
+                                <span style="font-size: 36px; opacity: 0.2;">
+                                    {% if foundation_name == 'spades' %}♠
+                                    {% elif foundation_name == 'hearts' %}♥
+                                    {% elif foundation_name == 'diamonds' %}♦
+                                    {% else %}♣{% endif %}
+                                </span>
+                            </div>
+                        {% endif %}
+                    </div>
+                    {% endfor %}
+                    {% else %}
+                    <!-- Empty foundations when no game state -->
+                    <div class="card-slot foundation-viz-0" style="position: absolute; top: 20px; right: 416px;">
+                        <div class="card-slot-empty-viz foundation-empty">
+                            <span style="font-size: 36px; opacity: 0.2;">♠</span>
+                        </div>
+                    </div>
+                    <div class="card-slot foundation-viz-1" style="position: absolute; top: 20px; right: 284px;">
+                        <div class="card-slot-empty-viz foundation-empty">
+                            <span style="font-size: 36px; opacity: 0.2;">♥</span>
+                        </div>
+                    </div>
+                    <div class="card-slot foundation-viz-2" style="position: absolute; top: 20px; right: 152px;">
+                        <div class="card-slot-empty-viz foundation-empty">
+                            <span style="font-size: 36px; opacity: 0.2;">♦</span>
+                        </div>
+                    </div>
+                    <div class="card-slot foundation-viz-3" style="position: absolute; top: 20px; right: 20px;">
+                        <div class="card-slot-empty-viz foundation-empty">
+                            <span style="font-size: 36px; opacity: 0.2;">♣</span>
+                        </div>
+                    </div>
+                    {% endif %}
+                    
+                    <!-- Tableau - BELOW -->
+                    {% if game_state and game_state.tableau %}
+                    {% for pile in game_state.tableau %}
+                    <div class="tableau-pile-viz" style="
+                        position: absolute; 
+                        top: 196px; 
+                        left: calc(20px + {{ forloop.counter0 }} * 126px);
+                        width: 110px;
+                        height: 380px;
+                    ">
+                        {% if pile %}
+                            {% for card in pile %}
+                            {% if card.rank and card.suit %}
+                            <!-- Card is proper dict with rank and suit -->
+                            <div class="card {% if card.face_up %}face-up{% else %}face-down{% endif %} 
+                                        {% if card.face_up %}
+                                            {% if card.suit == 'hearts' or card.suit == 'diamonds' %}red{% else %}black{% endif %}
+                                        {% endif %}" 
+                                 style="
+                                    position: absolute;
+                                    top: {% widthratio forloop.counter0 1 28 %}px;
+                                    z-index: {{ forloop.counter }};
+                            ">
+                                {% if card.face_up %}
+                                    <div class="card-corner top-left">
+                                        <span class="card-rank">{{ card.rank }}</span>
+                                        <span class="card-suit">
+                                            {% if card.suit == 'spades' %}♠
+                                            {% elif card.suit == 'hearts' %}♥
+                                            {% elif card.suit == 'diamonds' %}♦
+                                            {% elif card.suit == 'clubs' %}♣
+                                            {% else %}{% endif %}
+                                        </span>
+                                    </div>
+                                    <div class="card-corner bottom-right">
+                                        <span class="card-rank">{{ card.rank }}</span>
+                                        <span class="card-suit">
+                                            {% if card.suit == 'spades' %}♠
+                                            {% elif card.suit == 'hearts' %}♥
+                                            {% elif card.suit == 'diamonds' %}♦
+                                            {% elif card.suit == 'clubs' %}♣
+                                            {% else %}{% endif %}
+                                        </span>
+                                    </div>
+                                    <div class="card-center">
+                                        {% if card.suit == 'spades' %}♠
+                                        {% elif card.suit == 'hearts' %}♥
+                                        {% elif card.suit == 'diamonds' %}♦
+                                        {% elif card.suit == 'clubs' %}♣
+                                        {% else %}{% endif %}
+                                    </div>
+                                {% endif %}
+                            </div>
+                            {% elif card.face_up == False %}
+                            <!-- Face down card -->
+                            <div class="card face-down" style="
+                                position: absolute;
+                                top: {% widthratio forloop.counter0 1 28 %}px;
+                                z-index: {{ forloop.counter }};
+                            "></div>
+                            {% else %}
+                            <!-- Fallback: card is string or malformed, show as face down -->
+                            <div class="card face-down" style="
+                                position: absolute;
+                                top: {% widthratio forloop.counter0 1 28 %}px;
+                                z-index: {{ forloop.counter }};
+                            "></div>
+                            {% endif %}
+                            {% endfor %}
+                        {% else %}
+                            <div class="card-slot-empty-viz tableau-empty"></div>
+                        {% endif %}
+                    </div>
+                    {% endfor %}
+                    {% else %}
+                    <!-- Empty tableau when no game state -->
+                    <div class="tableau-pile-viz" style="position: absolute; top: 196px; left: 20px; width: 110px; height: 380px;">
+                        <div class="card-slot-empty-viz tableau-empty"></div>
+                    </div>
+                    <div class="tableau-pile-viz" style="position: absolute; top: 196px; left: 146px; width: 110px; height: 380px;">
+                        <div class="card-slot-empty-viz tableau-empty"></div>
+                    </div>
+                    <div class="tableau-pile-viz" style="position: absolute; top: 196px; left: 272px; width: 110px; height: 380px;">
+                        <div class="card-slot-empty-viz tableau-empty"></div>
+                    </div>
+                    <div class="tableau-pile-viz" style="position: absolute; top: 196px; left: 398px; width: 110px; height: 380px;">
+                        <div class="card-slot-empty-viz tableau-empty"></div>
+                    </div>
+                    <div class="tableau-pile-viz" style="position: absolute; top: 196px; left: 524px; width: 110px; height: 380px;">
+                        <div class="card-slot-empty-viz tableau-empty"></div>
+                    </div>
+                    <div class="tableau-pile-viz" style="position: absolute; top: 196px; left: 650px; width: 110px; height: 380px;">
+                        <div class="card-slot-empty-viz tableau-empty"></div>
+                    </div>
+                    <div class="tableau-pile-viz" style="position: absolute; top: 196px; left: 776px; width: 110px; height: 380px;">
+                        <div class="card-slot-empty-viz tableau-empty"></div>
+                    </div>
+                    {% endif %}
+                </div>
+                
+                <!-- Show game status indicator -->
+                {% if session.is_abandoned %}
+                <div class="abandoned-indicator indicator-abandoned">
+                    <span class="badge badge-rejected">game abandoned</span>
+                    <div class="time">
+                        {% if session.ended_at %}
+                            Abandoned at {{ session.ended_at|date:"H:i:s" }}
+                        {% else %}
+                            Game was abandoned
+                        {% endif %}
+                    </div>
+                </div>
+                {% elif session.is_completed %}
+                <div class="abandoned-indicator {% if session.is_won %}indicator-won{% else %}indicator-lost{% endif %}">
+                    {% if session.is_won %}
+                        <span class="badge badge-approved">game won! 🎉</span>
+                    {% else %}
+                        <span class="badge badge-inactive">game lost</span>
+                    {% endif %}
+                    <div class="time">
+                        {% if session.ended_at %}
+                            Ended at {{ session.ended_at|date:"H:i:s" }}
+                        {% else %}
+                            Game completed
+                        {% endif %}
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+        
+        <!-- Text-based State (existing) -->
+        <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px;">
+            <!-- Stock & Waste -->
+            <div>
+                <h4 style="color: var(--yellow); margin-bottom: 10px;">stock & waste</h4>
+                <div style="background: rgba(0,0,0,0.3); padding: 10px; border: 1px solid var(--border);">
+                    <div>stock: {% if game_state.stock %}{{ game_state.stock|length }}{% else %}0{% endif %} cards</div>
+                    <div>waste: {% if game_state.waste %}{{ game_state.waste|length }}{% else %}0{% endif %} cards</div>
+                </div>
+            </div>
+            
+            <!-- Foundations -->
+            <div>
+                <h4 style="color: var(--yellow); margin-bottom: 10px;">foundations</h4>
+                <div style="background: rgba(0,0,0,0.3); padding: 10px; border: 1px solid var(--border);">
+                    <div>♠ spades: {% if game_state.foundations.spades %}{{ game_state.foundations.spades|length }}{% else %}0{% endif %} cards</div>
+                    <div>♥ hearts: {% if game_state.foundations.hearts %}{{ game_state.foundations.hearts|length }}{% else %}0{% endif %} cards</div>
+                    <div>♦ diamonds: {% if game_state.foundations.diamonds %}{{ game_state.foundations.diamonds|length }}{% else %}0{% endif %} cards</div>
+                    <div>♣ clubs: {% if game_state.foundations.clubs %}{{ game_state.foundations.clubs|length }}{% else %}0{% endif %} cards</div>
+                </div>
+            </div>
+            
+            <!-- Tableau -->
+            <div style="grid-column: span 2;">
+                <h4 style="color: var(--yellow); margin-bottom: 10px;">tableau</h4>
+                <div style="background: rgba(0,0,0,0.3); padding: 10px; border: 1px solid var(--border); display: grid; grid-template-columns: repeat(7, 1fr); gap: 10px;">
+                    {% if game_state.tableau %}
+                    {% for pile in game_state.tableau %}
+                    <div style="min-height: 100px;">
+                        <strong>pile {{ forloop.counter }}</strong><br>
+                        <span style="color: #888; font-size: 0.9em;">{{ pile|length }} cards</span><br>
+                        <div style="margin-top: 5px;">
+                        {% for card in pile %}
+                            {% if card.face_up %}
+                                <div style="display: inline-block; background: white; border: 1px solid #ccc; border-radius: 3px; padding: 2px 4px; margin: 1px; font-size: 14px;">
+                                    <span style="color: {% if card.suit == 'hearts' or card.suit == 'diamonds' %}#d84040{% else %}#4a4a4a{% endif %}; font-weight: 500;">
+                                        {{ card.rank }}{% if card.suit %}{% if card.suit == 'spades' %}♠{% elif card.suit == 'hearts' %}♥{% elif card.suit == 'diamonds' %}♦{% else %}♣{% endif %}{% endif %}
+                                    </span>
+                                </div>
+                            {% else %}
+                                <div style="display: inline-block; background: #2c4a7c; border: 1px solid #1e3250; border-radius: 3px; padding: 2px 6px; margin: 1px; font-size: 14px; color: #5a7fb5;">▓</div>
+                            {% endif %}
+                            {% if not forloop.last %}<br style="line-height: 4px;">{% endif %}
+                        {% endfor %}
+                        </div>
+                    </div>
+                    {% endfor %}
+                    {% else %}
+                    <!-- Empty tableau display -->
+                    <div>
+                        <strong>pile 1</strong><br>
+                        0 cards<br>
+                        <span style="color: #666;">empty</span>
+                    </div>
+                    <div>
+                        <strong>pile 2</strong><br>
+                        0 cards<br>
+                        <span style="color: #666;">empty</span>
+                    </div>
+                    <div>
+                        <strong>pile 3</strong><br>
+                        0 cards<br>
+                        <span style="color: #666;">empty</span>
+                    </div>
+                    <div>
+                        <strong>pile 4</strong><br>
+                        0 cards<br>
+                        <span style="color: #666;">empty</span>
+                    </div>
+                    <div>
+                        <strong>pile 5</strong><br>
+                        0 cards<br>
+                        <span style="color: #666;">empty</span>
+                    </div>
+                    <div>
+                        <strong>pile 6</strong><br>
+                        0 cards<br>
+                        <span style="color: #666;">empty</span>
+                    </div>
+                    <div>
+                        <strong>pile 7</strong><br>
+                        0 cards<br>
+                        <span style="color: #666;">empty</span>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Performance Analysis -->
+    <div class="content-box" style="margin-top: 20px;">
+        <h3 style="color: var(--orange); margin-bottom: 15px;">performance analysis</h3>
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-value">{{ avg_move_time|floatformat:1 }}s</div>
+                <div class="stat-label">avg time per move</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value">{{ undo_count }}</div>
+                <div class="stat-label">undos used</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value">{{ auto_moves }}</div>
+                <div class="stat-label">auto moves</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value">{{ efficiency|floatformat:1 }}%</div>
+                <div class="stat-label">move efficiency</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Auto-refresh for live data (only if game is truly active) -->
+{% if not session.is_completed and not session.is_abandoned %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    let gameAbandoned = false;
+    
+    function updateLiveData() {
+        fetch(`/administration/solitaire/realtime/api/live-data/`)
+            .then(response => response.json())
+            .then(data => {
+                // Find this session in active games
+                const thisGame = data.active_games.find(g => g.session_id === '{{ session.session_id }}');
+                
+                if (thisGame) {
+                    // Update live values
+                    document.getElementById('live-score').textContent = thisGame.score;
+                    document.getElementById('live-moves').textContent = thisGame.moves;
+                    document.getElementById('live-time').textContent = thisGame.time_played + 's';
+                    
+                    // Could also fetch move history updates
+                    fetchMoveHistory();
+                } else if (!gameAbandoned) {
+                    // Game has been abandoned or completed - check which one
+                    gameAbandoned = true;
+                    
+                    // Update status indicator
+                    const statusEl = document.getElementById('live-status');
+                    if (statusEl) {
+                        statusEl.textContent = 'abandoned';
+                        statusEl.style.color = '#ff6b35';
+                    }
+                    
+                    // Add abandoned overlay to game board
+                    const gameBoard = document.getElementById('game-board');
+                    if (gameBoard && !gameBoard.querySelector('.abandoned-overlay')) {
+                        const overlay = document.createElement('div');
+                        overlay.className = 'abandoned-overlay';
+                        overlay.innerHTML = `
+                            <div class="abandoned-message">
+                                <span class="badge badge-rejected">game abandoned</span>
+                                <p>This game was abandoned at ${new Date().toLocaleTimeString('tr-TR')}</p>
+                            </div>
+                        `;
+                        gameBoard.appendChild(overlay);
+                    }
+                    
+                    // Update the status badge in header
+                    const headerBadge = document.querySelector('.section-controls .badge');
+                    if (headerBadge) {
+                        headerBadge.className = 'badge badge-rejected';
+                        headerBadge.textContent = 'abandoned';
+                    }
+                    
+                    clearInterval(updateInterval);
+                }
+            })
+            .catch(error => console.error('Error updating live data:', error));
+    }
+    
+    function fetchMoveHistory() {
+        // Fetch updated move history
+        fetch(`/administration/solitaire/realtime/live/{{ session.session_id }}/moves/`)
+            .then(response => response.json())
+            .then(data => {
+                if (data.moves && data.moves.length > 0) {
+                    updateMoveHistoryTable(data.moves);
+                }
+            })
+            .catch(error => console.error('Error fetching moves:', error));
+    }
+    
+    function updateMoveHistoryTable(moves) {
+        const tbody = document.getElementById('moves-tbody');
+        const currentMoveCount = tbody.rows.length;
+        
+        // Add only new moves
+        moves.slice(currentMoveCount).forEach(move => {
+            const row = tbody.insertRow();
+            row.innerHTML = `
+                <td>${move.move_number}</td>
+                <td>${move.from_pile_type}${move.from_pile_index >= 0 ? '-' + move.from_pile_index : ''}</td>
+                <td>${move.to_pile_type}${move.to_pile_index >= 0 ? '-' + move.to_pile_index : ''}</td>
+                <td>${move.num_cards}</td>
+                <td>
+                    ${move.score_change > 0 ? '<span style="color: #4CAF50;">+' + move.score_change + '</span>' :
+                      move.score_change < 0 ? '<span style="color: #f44336;">' + move.score_change + '</span>' : '0'}
+                </td>
+                <td>${Math.floor(move.time_since_start)}s</td>
+                <td>
+                    ${move.is_undo ? '<span class="badge badge-inactive">undo</span>' :
+                      move.is_auto_move ? '<span class="badge badge-approved">auto</span>' :
+                      '<span class="badge badge-pending">manual</span>'}
+                </td>
+            `;
+        });
+    }
+    
+    // Update every 3 seconds for live games
+    updateLiveData();
+    const updateInterval = setInterval(updateLiveData, 3000);
+    
+    // Clean up on page unload
+    window.addEventListener('beforeunload', () => {
+        if (updateInterval) clearInterval(updateInterval);
+    });
+    
+    // Handle responsive scaling for game board visualization
+    function scaleGameBoard() {
+        const wrapper = document.querySelector('.game-board-wrapper');
+        const scaleContainer = document.querySelector('.game-board-scale');
+        
+        if (!wrapper || !scaleContainer) return;
+        
+        const wrapperWidth = wrapper.offsetWidth - 40; // Subtract padding
+        const originalWidth = 935;
+        
+        let scale = Math.min(1, wrapperWidth / originalWidth);
+        
+        // Apply scale
+        scaleContainer.style.transform = `scale(${scale})`;
+        
+        // Adjust wrapper height based on scale
+        const originalHeight = 600;
+        wrapper.style.height = `${originalHeight * scale + 40}px`;
+    }
+    
+    // Scale on load and resize
+    scaleGameBoard();
+    window.addEventListener('resize', scaleGameBoard);
+});
+</script>
+
+<style>
+    .live-indicator {
+        display: inline-block;
+        width: 8px;
+        height: 8px;
+        background: #4CAF50;
+        border-radius: 50%;
+        animation: pulse 2s infinite;
+        margin-right: 5px;
+    }
+    
+    @keyframes pulse {
+        0% { opacity: 1; }
+        50% { opacity: 0.3; }
+        100% { opacity: 1; }
+    }
+    
+    /* EXACT UNIBOS Solitaire Card Styles */
+    .game-area-viz .card {
+        position: absolute;
+        width: 110px;
+        height: 148px;
+        border-radius: 13px;
+        cursor: default;
+        transition: transform 0.1s;
+        will-change: transform;
+    }
+    
+    /* Card face */
+    .game-area-viz .card.face-up {
+        background: linear-gradient(135deg, #ffffff 0%, #fafafa 100%);
+        border: 1px solid #bbb;
+        box-shadow: 
+            0 2px 5px rgba(0, 0, 0, 0.08),
+            0 1px 2px rgba(0, 0, 0, 0.06),
+            inset 0 1px 0 rgba(255, 255, 255, 0.8);
+        display: flex;
+        flex-direction: column;
+        padding: 6px;
+        font-family: 'Trebuchet MS', 'Lucida Grande', 'Lucida Sans', Tahoma, sans-serif;
+    }
+    
+    /* Card back */
+    .game-area-viz .card.face-down {
+        background: linear-gradient(135deg, #3d3d3d 0%, #2d2d2d 100%);
+        border: 1px solid #222;
+        box-shadow: 
+            0 3px 6px rgba(0, 0, 0, 0.4),
+            0 1px 2px rgba(0, 0, 0, 0.2),
+            inset 0 1px 0 rgba(255, 255, 255, 0.05);
+        position: relative;
+        overflow: hidden;
+    }
+    
+    .game-area-viz .card.face-down::after {
+        content: '🦄';
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        font-size: 40px;
+        opacity: 0.2;
+        filter: contrast(0.8);
+    }
+    
+    /* Card content */
+    .game-area-viz .card-corner {
+        position: absolute;
+        font-size: 13px;
+        font-weight: 400;
+        line-height: 1.1;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        font-family: 'Trebuchet MS', 'Lucida Grande', Tahoma, sans-serif;
+    }
+    
+    .game-area-viz .card-corner.top-left {
+        top: 8px;
+        left: 8px;
+    }
+    
+    .game-area-viz .card-corner.bottom-right {
+        bottom: 8px;
+        right: 8px;
+        transform: rotate(180deg);
+    }
+    
+    .game-area-viz .card-rank {
+        font-size: 20px;
+        font-weight: 400;
+        letter-spacing: 0.5px;
+        text-rendering: optimizeLegibility;
+        -webkit-font-smoothing: antialiased;
+    }
+    
+    .game-area-viz .card-suit {
+        font-size: 18px;
+        margin-top: -1px;
+        filter: brightness(0.95);
+    }
+    
+    .game-area-viz .card-center {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        font-size: 48px;
+        opacity: 0.85;
+        filter: brightness(0.95);
+        text-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+    }
+    
+    .game-area-viz .card.red .card-rank {
+        color: #d84040;
+        text-shadow: 0 0.5px 1px rgba(216, 64, 64, 0.15);
+    }
+    
+    .game-area-viz .card.red .card-suit,
+    .game-area-viz .card.red .card-center {
+        color: #c73636;
+    }
+    
+    .game-area-viz .card.black .card-rank {
+        color: #4a4a4a;
+        text-shadow: 0 0.5px 1px rgba(74, 74, 74, 0.1);
+    }
+    
+    .game-area-viz .card.black .card-suit,
+    .game-area-viz .card.black .card-center {
+        color: #3a3a3a;
+    }
+    
+    /* Card slots */
+    .game-area-viz .card-slot {
+        position: absolute;
+        width: 110px;
+        height: 148px;
+        border: 2px dashed rgba(0, 0, 0, 0.2);
+        border-radius: 13px;
+        background: transparent;
+    }
+    
+    /* Stock and Waste slots */
+    .game-area-viz .stock-viz,
+    .game-area-viz .waste-viz {
+        background: rgba(0, 0, 0, 0.15);
+        border: 2px solid rgba(0, 0, 0, 0.3);
+        width: 110px;
+        height: 148px;
+        border-radius: 13px;
+    }
+    
+    /* Foundation slots */
+    .game-area-viz [class*="foundation-viz"] {
+        background: rgba(0, 0, 0, 0.2);
+        border: 2px solid rgba(0, 0, 0, 0.4);
+        box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.3);
+        width: 110px;
+        height: 148px;
+        border-radius: 13px;
+    }
+    
+    /* Empty slots */
+    .game-area-viz .card-slot-empty-viz {
+        width: 110px;
+        height: 148px;
+        border: 2px dashed rgba(0, 0, 0, 0.2);
+        border-radius: 13px;
+        background: transparent;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+    
+    .game-area-viz .foundation-empty {
+        background: rgba(0, 0, 0, 0.2);
+        border: 2px solid rgba(0, 0, 0, 0.4);
+        box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.3);
+    }
+    
+    .game-area-viz .tableau-empty {
+        border: 2px dashed rgba(0, 0, 0, 0.2);
+        background: transparent;
+    }
+    
+    /* Responsive scaling */
+    @media (max-width: 1000px) {
+        .game-board-scale {
+            transform: scale(0.85);
+            transform-origin: top center;
+        }
+        .game-board-wrapper {
+            height: 520px;
+        }
+    }
+    
+    @media (max-width: 850px) {
+        .game-board-scale {
+            transform: scale(0.7);
+            transform-origin: top center;
+        }
+        .game-board-wrapper {
+            height: 440px;
+        }
+    }
+    
+    @media (max-width: 700px) {
+        .game-board-scale {
+            transform: scale(0.55);
+            transform-origin: top center;
+        }
+        .game-board-wrapper {
+            height: 350px;
+        }
+    }
+    
+    /* Update visual board on live updates */
+    #game-board.updating {
+        opacity: 0.8;
+        transition: opacity 0.3s;
+    }
+    
+    /* Abandoned game overlay */
+    .abandoned-overlay {
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(0, 0, 0, 0.7);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 999;
+        border-radius: 8px;
+        backdrop-filter: blur(2px);
+    }
+    
+    .abandoned-message {
+        text-align: center;
+        padding: 30px;
+        background: rgba(26, 26, 26, 0.95);
+        border-radius: 8px;
+        border: 2px solid #ff6b35;
+    }
+    
+    .abandoned-message .badge {
+        font-size: 16px;
+        padding: 8px 20px;
+        margin-bottom: 10px;
+    }
+    
+    .abandoned-message p {
+        color: #999;
+        font-size: 13px;
+        margin: 10px 0 0 0;
+    }
+    
+    /* Ensure game board stays intact when abandoned */
+    .game-area-viz {
+        position: relative;
+    }
+    
+    /* Keep cards visible under overlay */
+    .abandoned-overlay ~ * {
+        pointer-events: none;
+    }
+</style>
+{% endif %}
+
+<!-- Additional overlay styles - all CSS styles are preserved for all game states -->
+<style>
+    /* Ensure game area is positioned for overlay */
+    .game-area-viz {
+        position: relative;
+    }
+    
+    /* Dark overlay for completed/abandoned games */
+    .game-area-viz.game-abandoned::after,
+    .game-area-viz.game-completed::after {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(0, 0, 0, 0.5);
+        border-radius: 8px;
+        pointer-events: none;
+        z-index: 900;
+    }
+    
+    .game-area-viz.game-completed.game-won::after {
+        background: rgba(0, 0, 0, 0.3);
+    }
+    
+    .abandoned-indicator {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        z-index: 1000;
+        background: rgba(26, 26, 26, 0.95);
+        padding: 20px 40px;
+        border-radius: 8px;
+        border: 2px solid #666;
+        text-align: center;
+    }
+    
+    .abandoned-indicator.indicator-won {
+        border-color: #4CAF50;
+    }
+    
+    .abandoned-indicator.indicator-abandoned {
+        border-color: #ff6b35;
+    }
+    
+    .abandoned-indicator .badge {
+        font-size: 16px;
+        padding: 8px 20px;
+    }
+    
+    .abandoned-indicator .time {
+        color: #999;
+        font-size: 12px;
+        margin-top: 10px;
+    }
+</style>
+
+{% endblock %}
