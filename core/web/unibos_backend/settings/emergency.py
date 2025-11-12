@@ -32,6 +32,7 @@ INSTALLED_APPS = [
     # Core system modules - v533 architecture
     'core.system.web_ui.backend',  # UNIBOS Web UI
     'core.system.version_manager.backend',  # Version archive management
+    'core.system.logging.backend',  # System logging
     'core.system.administration.backend',  # Administration module
     # User modules
     'modules.currencies.backend',  # Currencies module
