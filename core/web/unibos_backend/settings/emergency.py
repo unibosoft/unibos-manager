@@ -26,16 +26,20 @@ INSTALLED_APPS = [
     'rest_framework',
     'rest_framework.authtoken',
     'corsheaders',
-    'modules.core.backend',  # Core shared models
-    'modules.web_ui.backend',  # UNIBOS Web UI
+    # Core shared models
+    'core.models',  # Shared models (Item, Account, etc.) - must be loaded before modules
+    # 'modules.core.backend',  # Removed during v533 migration
+    # Core system modules - v533 architecture
+    'core.system.web_ui.backend',  # UNIBOS Web UI
+    'core.system.version_manager.backend',  # Version archive management
+    'core.system.administration.backend',  # Administration module
+    # User modules
     'modules.currencies.backend',  # Currencies module
     'modules.wimm.backend',  # Where Is My Money - Financial Management
     'modules.wims.backend',  # Where Is My Stuff - Inventory Management
-    'modules.administration.backend',  # Administration module for user/role management
     'modules.cctv.backend',  # CCTV module for camera monitoring and recording
     'modules.documents.backend',  # Documents module for OCR and cross-module integration
     'modules.personal_inflation.backend',  # Personal inflation tracking module
-    'modules.version_manager.backend',  # Version archive management
     'modules.movies.backend',  # Movies/Series collection management
     'modules.music.backend',  # Music library with Spotify integration
     'modules.restopos.backend',  # Restaurant POS system

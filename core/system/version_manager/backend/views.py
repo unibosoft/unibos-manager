@@ -23,7 +23,7 @@ from django.db import transaction
 from django.core.cache import cache
 
 from .models import VersionArchive, ScanSession, GitStatus
-from modules.web_ui.backend.views import BaseUIView
+from core.system.web_ui.backend.views import BaseUIView
 from django.core.paginator import Paginator
 from django.db.models import Q, Avg, Count
 

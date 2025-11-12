@@ -6,7 +6,7 @@ Run this daily via cron: python manage.py cleanup_logs
 from django.core.management.base import BaseCommand
 from django.utils import timezone
 from datetime import timedelta
-from modules.logging.backend.models import SystemLog, ActivityLog, LogRetentionPolicy
+from core.system.logging.backend.models import SystemLog, ActivityLog, LogRetentionPolicy
 import logging
 
 logger = logging.getLogger(__name__)
@@ -86,7 +86,7 @@ class Command(BaseCommand):
         
         # Clean up orphaned aggregations
         cutoff_date = timezone.now() - timedelta(days=180)  # Keep 6 months of aggregations
-        from modules.logging.backend.models import LogAggregation
+        from core.system.logging.backend.models import LogAggregation
         old_aggregations = LogAggregation.objects.filter(date_hour__lt=cutoff_date)
         agg_count = old_aggregations.count()
         

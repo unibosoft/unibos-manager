@@ -73,7 +73,9 @@ THIRD_PARTY_APPS = [
 ]
 
 CORE_APPS = [
-    'modules.core.backend',  # Core models - MUST be first (MIGRATED from apps.core)
+    'core.models',  # Shared models (Item, Account, etc.) - must be loaded before modules
+    # Note: modules.core.backend removed during v533 migration
+    # Core functionality now distributed across individual modules
 ]
 
 UNIBOS_SYSTEM_APPS = [
@@ -97,18 +99,22 @@ UNIBOS_MODULES = [
     'modules.wimm.backend',  # Where Is My Money - Personal finance tracker
     'modules.wims.backend',  # Where Is My Stuff - Inventory management
     'modules.solitaire.backend',  # Solitaire game with session tracking
-    'modules.version_manager.backend',  # Version archive management
-    'modules.administration.backend',  # Administration module for user/role management
-    'modules.logging.backend',  # System and activity logging
+    'modules.store.backend',  # Store - Marketplace Integration & Order Management
+]
+
+CORE_SYSTEM_APPS = [
+    # System modules in core/system/ - v533 architecture
+    'core.system.version_manager.backend',  # Version archive management
+    'core.system.administration.backend',  # Administration module for user/role management
+    'core.system.logging.backend',  # System and activity logging
+    'core.system.authentication.backend',  # Authentication system
+    'core.system.users.backend',  # Custom User model with UUID
+    'core.system.common.backend',  # Common utilities
+    'core.system.web_ui.backend',  # UNIBOS Web UI
 ]
 
 LOCAL_APPS = [
-    # All apps migrated to modules/ structure
-    'modules.authentication.backend',  # MIGRATED from apps.authentication
-    'modules.users.backend',  # Custom User model with UUID - MIGRATED from apps.users
-    'modules.common.backend',  # MIGRATED from apps.common
-    'modules.web_ui.backend',  # MIGRATED from apps.web_ui
-    'modules.store.backend',  # Store - Marketplace Integration & Order Management - MIGRATED from store
+    # All system apps now in CORE_SYSTEM_APPS above
 
     # === ALL APPS SUCCESSFULLY MIGRATED TO MODULES/ ===
     # 'apps.core',  # MIGRATED to modules/core/
@@ -134,7 +140,7 @@ LOCAL_APPS = [
     # 'apps.logging',  # MIGRATED to modules/logging/
 ]
 
-INSTALLED_APPS = DJANGO_APPS + THIRD_PARTY_APPS + CORE_APPS + UNIBOS_SYSTEM_APPS + UNIBOS_MODULES + LOCAL_APPS
+INSTALLED_APPS = DJANGO_APPS + THIRD_PARTY_APPS + CORE_APPS + UNIBOS_SYSTEM_APPS + CORE_SYSTEM_APPS + UNIBOS_MODULES + LOCAL_APPS
 
 MIDDLEWARE = [
     'django_prometheus.middleware.PrometheusBeforeMiddleware',  # Must be first
@@ -147,15 +153,15 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
-    'modules.common.backend.middleware.SecurityHeadersMiddleware',
-    'modules.common.backend.middleware.RequestLoggingMiddleware',
-    'modules.common.backend.middleware.RateLimitMiddleware',
-    'modules.web_ui.backend.middleware.SolitaireSecurityMiddleware',  # Solitaire screen lock security
-    'modules.web_ui.backend.middleware_navigation.NavigationTrackingMiddleware',  # Track last visited page
-    'modules.common.backend.middleware_activity.UserActivityMiddleware',  # Track user activity
-    'modules.common.backend.middleware_activity.APIActivityMiddleware',  # Track API activity
-    'modules.logging.backend.middleware.SystemLoggingMiddleware',  # System logging
-    'modules.logging.backend.middleware.ActivityLoggingMiddleware',  # Activity logging
+    'core.system.common.backend.middleware.SecurityHeadersMiddleware',
+    'core.system.common.backend.middleware.RequestLoggingMiddleware',
+    'core.system.common.backend.middleware.RateLimitMiddleware',
+    'core.system.web_ui.backend.middleware.SolitaireSecurityMiddleware',  # Solitaire screen lock security
+    'core.system.web_ui.backend.middleware_navigation.NavigationTrackingMiddleware',  # Track last visited page
+    'core.system.common.backend.middleware_activity.UserActivityMiddleware',  # Track user activity
+    'core.system.common.backend.middleware_activity.APIActivityMiddleware',  # Track API activity
+    'core.system.logging.backend.middleware.SystemLoggingMiddleware',  # System logging
+    'core.system.logging.backend.middleware.ActivityLoggingMiddleware',  # Activity logging
     'django_prometheus.middleware.PrometheusAfterMiddleware',  # Must be last
 ]
 
@@ -173,9 +179,9 @@ TEMPLATES = [
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
                 # UNIBOS custom context processors
-                'modules.web_ui.backend.context_processors.sidebar_context',
-                'modules.web_ui.backend.context_processors.version_context',
-                'modules.web_ui.backend.context_processors.unibos_context',
+                'core.system.web_ui.backend.context_processors.sidebar_context',
+                'core.system.web_ui.backend.context_processors.version_context',
+                'core.system.web_ui.backend.context_processors.unibos_context',
             ],
         },
     },
@@ -247,7 +253,7 @@ AUTH_PASSWORD_VALIDATORS = [
         'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator',
     },
     {
-        'NAME': 'modules.authentication.backend.validators.CustomPasswordValidator',
+        'NAME': 'core.system.authentication.backend.validators.CustomPasswordValidator',
     },
 ]
 
@@ -333,10 +339,10 @@ REST_FRAMEWORK = {
         'rest_framework.filters.SearchFilter',
         'rest_framework.filters.OrderingFilter',
     ],
-    'DEFAULT_PAGINATION_CLASS': 'modules.common.backend.pagination.StandardResultsSetPagination',
+    'DEFAULT_PAGINATION_CLASS': 'core.system.common.backend.pagination.StandardResultsSetPagination',
     'PAGE_SIZE': 20,
     'DEFAULT_SCHEMA_CLASS': 'drf_spectacular.openapi.AutoSchema',
-    'EXCEPTION_HANDLER': 'modules.common.backend.exceptions.custom_exception_handler',
+    'EXCEPTION_HANDLER': 'core.system.common.backend.exceptions.custom_exception_handler',
     'DEFAULT_THROTTLE_CLASSES': [
         'rest_framework.throttling.AnonRateThrottle',
         'rest_framework.throttling.UserRateThrottle',
@@ -414,7 +420,7 @@ CELERY_WORKER_MAX_TASKS_PER_CHILD = 1000
 # Celery Beat Schedule
 CELERY_BEAT_SCHEDULE = {
     'cleanup-expired-tokens': {
-        'task': 'modules.authentication.backend.tasks.cleanup_expired_tokens',
+        'task': 'core.system.authentication.backend.tasks.cleanup_expired_tokens',
         'schedule': timedelta(hours=24),
     },
     'update-currency-rates': {

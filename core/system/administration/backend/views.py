@@ -408,7 +408,7 @@ def permission_requests(request):
 @user_passes_test(is_admin, login_url='/login/')
 def system_logs(request):
     """System logs viewer with filtering and search"""
-    from modules.logging.backend.models import SystemLog
+    from core.system.logging.backend.models import SystemLog
     
     # Get filter parameters
     level = request.GET.get('level', '')

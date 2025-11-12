@@ -20,7 +20,7 @@ import json
 import os
 import logging
 
-from modules.web_ui.backend.views import BaseUIView
+from core.system.web_ui.backend.views import BaseUIView
 from .models import (
     Document, ParsedReceipt, ReceiptItem, DocumentBatch,
     CreditCard, Subscription, ExpenseCategory, ExpenseGroup, ProcessingStatus
@@ -435,7 +435,7 @@ class DocumentUploadView(LoginRequiredMixin, BaseUIView):
     def create_wimm_transaction(self, user, transaction_data, document=None):
         """Create WIMM transaction from receipt with enhanced data"""
         from modules.wimm.backend.models import Transaction, TransactionCategory
-        from modules.core.backend.models import Account
+        from core.models.base import Account
         
         # Get appropriate account based on payment method
         payment_method = transaction_data.get('payment_method', 'cash')

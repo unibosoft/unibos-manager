@@ -12,7 +12,7 @@ import sys
 
 class CommonConfig(AppConfig):
     default_auto_field = 'django.db.models.BigAutoField'
-    name = 'modules.common.backend'
+    name = 'core.system.common.backend'
     label = 'common'
     verbose_name = 'Common - Shared Utilities'
 

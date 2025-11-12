@@ -21,7 +21,7 @@ import logging
 from decimal import Decimal
 from typing import Dict, List, Optional
 
-from modules.web_ui.backend.views import BaseUIView
+from core.system.web_ui.backend.views import BaseUIView
 
 from .models import Document, ParsedReceipt, ReceiptItem
 from .gamification_models import (
@@ -48,7 +48,7 @@ def receipt_dashboard(request):
     """Main dashboard for receipt processing with gamification"""
     
     # Get base context from BaseUIView
-    from modules.web_ui.backend.views import BaseUIView
+    from core.system.web_ui.backend.views import BaseUIView
     base_view = BaseUIView()
     base_view.request = request  # Set request attribute
     base_context = base_view.get_context_data()
@@ -459,7 +459,7 @@ def leaderboard(request):
     """Display gamification leaderboard"""
     
     # Get base context from BaseUIView for sidebar
-    from modules.web_ui.backend.views import BaseUIView
+    from core.system.web_ui.backend.views import BaseUIView
     base_view = BaseUIView()
     base_view.request = request
     base_context = base_view.get_context_data()
@@ -527,7 +527,7 @@ def achievements(request):
     """Display user achievements and badges"""
     
     # Get base context from BaseUIView for sidebar
-    from modules.web_ui.backend.views import BaseUIView
+    from core.system.web_ui.backend.views import BaseUIView
     base_view = BaseUIView()
     base_view.request = request
     base_context = base_view.get_context_data()
@@ -587,7 +587,7 @@ def challenges(request):
     """Display and manage user challenges"""
     
     # Get base context from BaseUIView for sidebar
-    from modules.web_ui.backend.views import BaseUIView
+    from core.system.web_ui.backend.views import BaseUIView
     base_view = BaseUIView()
     base_view.request = request
     base_context = base_view.get_context_data()
@@ -1126,7 +1126,7 @@ def document_validation(request):
     """Document validation with type detection and sharing capabilities"""
     
     # Get base context from BaseUIView for sidebar
-    from modules.web_ui.backend.views import BaseUIView
+    from core.system.web_ui.backend.views import BaseUIView
     from .document_models import DocumentType, DocumentShare, DEFAULT_DOCUMENT_TYPES
     
     base_view = BaseUIView()

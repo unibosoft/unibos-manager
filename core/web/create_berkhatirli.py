@@ -11,7 +11,7 @@ os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'unibos_backend.settings.emergen
 django.setup()
 
 from django.contrib.auth.models import User
-from modules.core.backend.models import UserProfile
+from core.models.base import UserProfile
 
 # berkhatirli kullanıcısını oluştur/güncelle
 username = 'berkhatirli'

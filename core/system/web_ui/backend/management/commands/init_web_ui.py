@@ -4,7 +4,7 @@ Management command to initialize UNIBOS Web UI
 
 from django.core.management.base import BaseCommand
 from django.utils import timezone
-from modules.web_ui.backend.models import SystemStatus
+from core.system.web_ui.backend.models import SystemStatus
 
 
 class Command(BaseCommand):

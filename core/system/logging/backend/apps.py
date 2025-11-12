@@ -5,7 +5,7 @@ import sys
 
 class LoggingConfig(AppConfig):
     default_auto_field = 'django.db.models.BigAutoField'
-    name = 'modules.logging.backend'
+    name = 'core.system.logging.backend'
     label = 'logging'
     verbose_name = 'System Logging'
     

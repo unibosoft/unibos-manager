@@ -5,7 +5,7 @@ import sys
 
 class VersionManagerConfig(AppConfig):
     default_auto_field = 'django.db.models.BigAutoField'
-    name = 'modules.version_manager.backend'
+    name = 'core.system.version_manager.backend'
     label = 'version_manager'
     verbose_name = 'Version Manager'
     

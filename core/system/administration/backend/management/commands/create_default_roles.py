@@ -1,7 +1,7 @@
 from django.core.management.base import BaseCommand
 from django.contrib.auth import get_user_model
 from django.contrib.auth.models import Group, Permission
-from modules.administration.backend.models import Role, Department, SystemSetting
+from core.system.administration.backend.models import Role, Department, SystemSetting
 
 User = get_user_model()
 
@@ -240,7 +240,7 @@ class Command(BaseCommand):
         # Assign super admin role to berkhatirli if exists
         try:
             berk = User.objects.get(username='berkhatirli')
-            from modules.administration.backend.models import UserRole
+            from core.system.administration.backend.models import UserRole
             user_role, created = UserRole.objects.get_or_create(
                 user=berk,
                 role=super_admin,

@@ -15,7 +15,7 @@ from rest_framework_simplejwt.authentication import JWTAuthentication
 from rest_framework_simplejwt.exceptions import InvalidToken, TokenError
 from channels.db import database_sync_to_async
 from django.contrib.auth.models import AnonymousUser
-from modules.authentication.backend.models import UserSession
+from core.system.authentication.backend.models import UserSession
 
 logger = logging.getLogger(__name__)
 

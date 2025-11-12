@@ -25,7 +25,7 @@ django.setup()
 from channels.auth import AuthMiddlewareStack
 from channels.routing import ProtocolTypeRouter, URLRouter
 from channels.security.websocket import AllowedHostsOriginValidator
-from modules.common.backend.middleware import JWTAuthMiddleware
+from core.system.common.backend.middleware import JWTAuthMiddleware
 import modules.documents.backend.routing
 
 # Django ASGI application
@@ -55,8 +55,8 @@ except (ImportError, AttributeError):
     pass
 
 try:
-    import modules.web_ui.backend.routing
-    websocket_urlpatterns += modules.web_ui.backend.routing.websocket_urlpatterns
+    import core.system.web_ui.backend.routing
+    websocket_urlpatterns += core.system.web_ui.backend.routing.websocket_urlpatterns
 except (ImportError, AttributeError):
     pass
 

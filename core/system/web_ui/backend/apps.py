@@ -12,7 +12,7 @@ import sys
 
 class WebUiConfig(AppConfig):
     default_auto_field = 'django.db.models.BigAutoField'
-    name = 'modules.web_ui.backend'
+    name = 'core.system.web_ui.backend'
     label = 'web_ui'
     verbose_name = 'Web UI - Terminal Interface'
 

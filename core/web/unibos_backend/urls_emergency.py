@@ -18,10 +18,10 @@ urlpatterns = [
     path('documents/', include('modules.documents.backend.urls', namespace='documents')),
 
     # Version Manager Module
-    path('version-manager/', include('modules.version_manager.backend.urls', namespace='version_manager')),
+    path('version-manager/', include('core.system.version_manager.backend.urls', namespace='version_manager')),
 
     # Administration Module
-    path('administration/', include('modules.administration.backend.urls', namespace='administration')),
+    path('administration/', include('core.system.administration.backend.urls', namespace='administration')),
 
     # Movies Module - Movie/Series Collection Management
     path('movies/', include('modules.movies.backend.urls', namespace='movies')),
@@ -42,7 +42,7 @@ urlpatterns = [
     path('store/', include('modules.store.backend.urls', namespace='store')),
 
     # Web UI
-    path('', include('modules.web_ui.backend.urls')),
+    path('', include('core.system.web_ui.backend.urls')),
 ]
 
 # Serve media files

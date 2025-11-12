@@ -12,7 +12,7 @@ import sys
 
 class AuthenticationConfig(AppConfig):
     default_auto_field = 'django.db.models.BigAutoField'
-    name = 'modules.authentication.backend'
+    name = 'core.system.authentication.backend'
     label = 'authentication'
     verbose_name = 'Authentication - Security & Access'
 

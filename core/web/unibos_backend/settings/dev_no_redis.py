@@ -58,7 +58,7 @@ APPS_TO_REMOVE = [
     'modules.personal_inflation.backend',
     'modules.recaria.backend',
     'modules.birlikteyiz.backend',
-    'modules.common.backend',
+    'core.system.common.backend',
 ]
 
 # Basic Django apps only

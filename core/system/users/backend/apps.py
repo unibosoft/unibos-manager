@@ -12,7 +12,7 @@ import sys
 
 class UsersConfig(AppConfig):
     default_auto_field = 'django.db.models.BigAutoField'
-    name = 'modules.users.backend'
+    name = 'core.system.users.backend'
     label = 'users'
     verbose_name = 'Users - User Management'
 

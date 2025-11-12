@@ -41,7 +41,7 @@ from .utils import (
     verify_otp,
     generate_backup_codes,
 )
-from modules.common.backend.throttles import AuthRateThrottle
+from core.system.common.backend.throttles import AuthRateThrottle
 
 User = get_user_model()
 

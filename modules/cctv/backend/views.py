@@ -6,7 +6,7 @@ Web interface for camera monitoring and management
 from django.shortcuts import render, redirect, get_object_or_404
 from django.views.generic import TemplateView, ListView, DetailView, View
 from django.contrib.auth.mixins import LoginRequiredMixin
-from modules.web_ui.backend.views import BaseUIView
+from core.system.web_ui.backend.views import BaseUIView
 from django.contrib.auth.decorators import login_required
 from django.http import JsonResponse, StreamingHttpResponse, HttpResponse
 from django.utils import timezone

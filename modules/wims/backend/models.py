@@ -6,7 +6,7 @@ from django.db import models
 from django.conf import settings
 from django.utils import timezone
 from decimal import Decimal
-from modules.core.backend.models import BaseModel, Item, ItemPrice
+from core.models.base import BaseModel, Item, ItemPrice
 from modules.wimm.backend.models import Invoice, InvoiceItem
 
 

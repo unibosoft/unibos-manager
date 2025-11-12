@@ -24,7 +24,7 @@ urlpatterns = [
     path('lock/', views.lock_screen, name='lock_screen'),
     
     # System and Activity Logging
-    path('system-logs/', include('modules.logging.backend.urls')),
+    path('system-logs/', include('core.system.logging.backend.urls')),
     
     # Solitaire management
     path('solitaire/', views.solitaire_dashboard, name='solitaire_dashboard'),
