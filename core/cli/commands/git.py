@@ -240,7 +240,7 @@ def push_dev(force, branch):
         click.echo("❌ Remote 'origin' not found. Run 'unibos git setup' first.", err=True)
         sys.exit(1)
 
-    # Push
+    # Push to main branch
     cmd = ['git', 'push']
     if force:
         cmd.append('--force')
@@ -254,6 +254,20 @@ def push_dev(force, branch):
         click.echo("   ✅ Everything up-to-date")
     else:
         click.echo("   ✅ Pushed successfully")
+
+    # Also push to v533 branch
+    click.echo(f"\n   Pushing to origin/v533...")
+    cmd_v533 = ['git', 'push']
+    if force:
+        cmd_v533.append('--force')
+    cmd_v533.extend(['origin', f'{current_branch}:v533'])
+
+    result_v533 = run_command(cmd_v533)
+
+    if "Everything up-to-date" in result_v533.stderr:
+        click.echo("   ✅ v533 up-to-date")
+    else:
+        click.echo("   ✅ v533 pushed successfully")
 
     if result.stderr.strip():
         click.echo(f"\n{result.stderr}")
@@ -363,15 +377,25 @@ def push_prod(dry_run, force):
         run_command(['git', 'commit', '-m', f'Production build from {current_commit}',
                     '--allow-empty'])
 
-        # Push to prod
+        # Push to prod main
         cmd = ['git', 'push', 'prod', f'{temp_branch}:main']
         if force:
             cmd.append('--force')
 
-        click.echo("   📤 Pushing to prod remote...")
+        click.echo("   📤 Pushing to prod/main...")
         run_command(cmd)
+        click.echo("   ✅ Pushed to prod/main")
 
-        click.echo("\n✅ Successfully pushed to production repository")
+        # Push to prod v533
+        cmd_v533 = ['git', 'push', 'prod', f'{temp_branch}:v533']
+        if force:
+            cmd_v533.append('--force')
+
+        click.echo("   📤 Pushing to prod/v533...")
+        run_command(cmd_v533)
+        click.echo("   ✅ Pushed to prod/v533")
+
+        click.echo("\n✅ Successfully pushed to production repository (main and v533)")
 
     except Exception as e:
         click.echo(f"\n❌ Error during push: {e}", err=True)
