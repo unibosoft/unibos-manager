@@ -9,6 +9,30 @@ import sys
 from pathlib import Path
 
 
+def get_django_python():
+    """Get Python executable from Django venv, fallback to system Python"""
+    # Use git to find repository root
+    result = subprocess.run(
+        ['git', 'rev-parse', '--show-toplevel'],
+        capture_output=True,
+        text=True,
+        check=False
+    )
+    if result.returncode == 0:
+        root_dir = Path(result.stdout.strip())
+    else:
+        root_dir = Path(__file__).parent.parent.parent.parent
+
+    django_path = root_dir / 'core' / 'web'
+    venv_python = django_path / 'venv' / 'bin' / 'python3'
+
+    if venv_python.exists():
+        return str(venv_python)
+
+    # Fallback to system python3
+    return 'python3'
+
+
 @click.group(name='db')
 def db_group():
     """🗄️  Database commands"""
@@ -81,7 +105,7 @@ def db_migrate():
     env['PYTHONPATH'] = f"{django_path}:{root_dir}"
 
     result = subprocess.run(
-        [sys.executable, 'manage.py', 'migrate'],
+        [get_django_python(), 'manage.py', 'migrate'],
         cwd=str(django_path),
         env=env
     )
@@ -102,7 +126,7 @@ def db_status():
     env['PYTHONPATH'] = f"{django_path}:{root_dir}"
 
     result = subprocess.run(
-        [sys.executable, 'manage.py', 'showmigrations'],
+        [get_django_python(), 'manage.py', 'showmigrations'],
         cwd=str(django_path),
         env=env
     )

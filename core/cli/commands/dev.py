@@ -12,8 +12,33 @@ from pathlib import Path
 
 def get_django_path():
     """Get path to Django manage.py"""
-    root_dir = Path(__file__).parent.parent.parent.parent
+    # Use git to find repository root (works from anywhere in the repo)
+    import subprocess as sp
+    result = sp.run(
+        ['git', 'rev-parse', '--show-toplevel'],
+        capture_output=True,
+        text=True,
+        check=False
+    )
+    if result.returncode == 0:
+        root_dir = Path(result.stdout.strip())
+    else:
+        # Fallback to __file__ based path
+        root_dir = Path(__file__).parent.parent.parent.parent
+
     return root_dir / 'core' / 'web'
+
+
+def get_django_python():
+    """Get Python executable from Django venv, fallback to system Python"""
+    django_path = get_django_path()
+    venv_python = django_path / 'venv' / 'bin' / 'python3'
+
+    if venv_python.exists():
+        return str(venv_python)
+
+    # Fallback to system python3
+    return 'python3'
 
 
 @click.group(name='dev')
@@ -42,7 +67,7 @@ def dev_run(port, host):
 
     try:
         subprocess.run(
-            [sys.executable, 'manage.py', 'runserver', f'{host}:{port}'],
+            [get_django_python(), 'manage.py', 'runserver', f'{host}:{port}'],
             cwd=str(django_path),
             env=env
         )
@@ -63,7 +88,7 @@ def dev_shell():
 
     try:
         subprocess.run(
-            [sys.executable, 'manage.py', 'shell'],
+            [get_django_python(), 'manage.py', 'shell'],
             cwd=str(django_path),
             env=env
         )
@@ -83,7 +108,7 @@ def dev_test(args):
     env['DJANGO_SETTINGS_MODULE'] = 'unibos_backend.settings.development'
     env['PYTHONPATH'] = f"{django_path}:{django_path.parent}"
 
-    cmd = [sys.executable, 'manage.py', 'test'] + list(args)
+    cmd = [get_django_python(), 'manage.py', 'test'] + list(args)
 
     result = subprocess.run(cmd, cwd=str(django_path), env=env)
     sys.exit(result.returncode)
@@ -101,7 +126,7 @@ def dev_migrate(app):
     env['DJANGO_SETTINGS_MODULE'] = 'unibos_backend.settings.development'
     env['PYTHONPATH'] = f"{django_path}:{django_path.parent}"
 
-    cmd = [sys.executable, 'manage.py', 'migrate']
+    cmd = [get_django_python(), 'manage.py', 'migrate']
     if app:
         cmd.append(app)
 
@@ -121,7 +146,7 @@ def dev_makemigrations(app):
     env['DJANGO_SETTINGS_MODULE'] = 'unibos_backend.settings.development'
     env['PYTHONPATH'] = f"{django_path}:{django_path.parent}"
 
-    cmd = [sys.executable, 'manage.py', 'makemigrations']
+    cmd = [get_django_python(), 'manage.py', 'makemigrations']
     if app:
         cmd.append(app)
 
