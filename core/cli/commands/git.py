@@ -287,7 +287,9 @@ def push_prod(dry_run, force):
 
         # Commit changes
         click.echo("   💾 Committing filtered tree...")
-        run_command(['git', 'add', '-A'])
+        # ⚠️ CRITICAL: DO NOT use 'git add -A' here!
+        # 'git rm' already staged the deletions, 'git add -A' would re-add them from working directory
+        # Just commit the staged changes (deletions only)
         run_command(['git', 'commit', '-m', f'Production build from {current_commit}',
                     '--allow-empty'])
 
