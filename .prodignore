@@ -22,6 +22,11 @@ screenshots_archive/
 # ===== ARCHIVES (CRITICAL - Dev Only) =====
 # All archives are development-only
 archive/
+# Additional nested safety (defense in depth)
+archive/code/
+archive/data/
+archive/database/
+archive/versions/
 
 # ===== BUILD ARTIFACTS =====
 build/
@@ -38,6 +43,9 @@ __pycache__/
 data/
 data_db/
 data_db_backup*/
+# Additional nested safety for backups
+data/backups/
+core/data/postgres/backup/
 
 # ===== VIRTUAL ENVIRONMENTS =====
 venv/

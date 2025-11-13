@@ -54,6 +54,58 @@ def check_remote_exists(remote: str) -> bool:
     return remote in result.stdout.split('\n')
 
 
+def verify_no_sensitive_files() -> bool:
+    """Verify no sensitive files are tracked in git before prod push
+
+    This function checks for patterns that should NEVER be in production:
+    - archive/ directories (except allowed planning/ and docs/)
+    - data/ directories (runtime data, backups, databases)
+    - Large SQL files (database backups)
+    - Environment files (.env, secrets)
+
+    Returns:
+        bool: True if safe to push, False if sensitive files detected
+    """
+    # Critical patterns that must not be in git
+    sensitive_patterns = [
+        ('archive/versions/', 'Version archives'),
+        ('archive/code/', 'Archived code'),
+        ('archive/data/', 'Archived data'),
+        ('archive/database/', 'Database archives'),
+        ('data/', 'Runtime data'),
+        ('*.sql', 'SQL database files'),
+        ('*.db', 'SQLite database files'),
+        ('.env', 'Environment files')
+    ]
+
+    issues_found = False
+
+    for pattern, description in sensitive_patterns:
+        result = run_command(['git', 'ls-files', pattern], check=False)
+        if result.stdout.strip():
+            if not issues_found:
+                click.echo("\n❌ CRITICAL: Sensitive files detected in git!\n", err=True)
+                issues_found = True
+
+            # Count files
+            files = result.stdout.strip().split('\n')
+            count = len(files)
+
+            click.echo(f"   ⚠️  {description}: {count} file(s)", err=True)
+            # Show first 3 files as examples
+            for file in files[:3]:
+                click.echo(f"      - {file}", err=True)
+            if count > 3:
+                click.echo(f"      ... and {count - 3} more", err=True)
+
+    if issues_found:
+        click.echo("\n💡 These files should be removed from git before production push.", err=True)
+        click.echo("   Use: git rm --cached <file>  (keeps file on disk)\n", err=True)
+        return False
+
+    return True
+
+
 @click.group()
 def git_group():
     """🔀 Git repository management (dev/prod)
@@ -231,6 +283,14 @@ def push_prod(dry_run, force):
     if not check_remote_exists('prod'):
         click.echo("❌ Remote 'prod' not found. Run 'unibos git setup' first.", err=True)
         sys.exit(1)
+
+    # CRITICAL: Verify no sensitive files in git
+    click.echo("   🔍 Verifying no sensitive files in repository...")
+    if not verify_no_sensitive_files():
+        click.echo("\n❌ Aborting production push due to sensitive files.", err=True)
+        click.echo("   Please clean up git repository before pushing to production.\n", err=True)
+        sys.exit(1)
+    click.echo("   ✅ Repository verification passed\n")
 
     # Get current commit
     result = run_command(['git', 'rev-parse', 'HEAD'])
