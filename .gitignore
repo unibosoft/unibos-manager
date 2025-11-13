@@ -8,12 +8,9 @@ data/
 # data/ is already ignored above (line 4)
 
 # ===== ARŞİVLER =====
-# Ignore all archives except planning and docs
+# CRITICAL: Archive directory is NEVER committed to git (dev or prod)
+# All archive content is local-only for development history
 archive/
-!archive/planning/
-!archive/planning/**
-!archive/docs/
-!archive/docs/**
 archive_backup*/
 
 # ===== PYTHON ORTAMI =====
