@@ -74,14 +74,14 @@ temp/
 *.temp
 
 # Production settings (preserve remote)
-platform/runtime/web/backend/.env
-platform/runtime/web/backend/unibos_backend/settings/production.py
-platform/runtime/web/backend/unibos_backend/settings/production_*.py
+core/web/.env
+core/web/unibos_backend/settings/production.py
+core/web/unibos_backend/settings/production_*.py
 
 # Django generated
-platform/runtime/web/backend/staticfiles/
-platform/runtime/web/backend/media/
-platform/runtime/web/backend/venv/
+core/web/staticfiles/
+core/web/media/
+core/web/venv/
 
 # Flutter/Mobile build artifacts
 modules/birlikteyiz/mobile/build/

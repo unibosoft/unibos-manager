@@ -43,9 +43,6 @@ __pycache__/
 data/
 data_db/
 data_db_backup*/
-# Additional nested safety for backups
-data/backups/
-core/data/postgres/backup/
 
 # ===== VIRTUAL ENVIRONMENTS =====
 venv/
@@ -83,6 +80,7 @@ backups/
 # ===== DJANGO GENERATED =====
 staticfiles/
 core/web/staticfiles/
+core/web/media/
 modules/*/backend/staticfiles/
 modules/*/backend/media/
 modules/*/backend/uploads/

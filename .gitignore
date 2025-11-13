@@ -3,22 +3,9 @@ data_db/
 data_db_backup*/
 data/
 
-# ===== CORE DATA (Selective Ignore) =====
-# Ignore runtime data but keep configs
-core/data/postgres/data/**
-core/data/postgres/backup/daily/**
-core/data/postgres/backup/weekly/**
-core/data/storage/**
-core/data/redis/**
-core/data/logs/**
-
-# Keep these configs and scripts in git
-!core/data/postgres/config/
-!core/data/postgres/init/
-!core/data/postgres/backup/scripts/
-!core/data/postgres/replication/
-!core/data/.gitkeep
-!core/data/README.md
+# ===== V533 Architecture: All data in data/ directory =====
+# Note: In v533, all runtime data moved to data/ (not core/data/)
+# data/ is already ignored above (line 4)
 
 # ===== ARŞİVLER =====
 # Ignore all archives except planning and docs
@@ -62,7 +49,8 @@ logs/
 
 # ===== DJANGO =====
 staticfiles/
-apps/web/backend/staticfiles/
+core/web/staticfiles/
+core/web/media/
 modules/*/backend/staticfiles/
 modules/*/backend/media/
 modules/*/backend/uploads/
@@ -142,6 +130,4 @@ modules/*/mobile/.dart_tool/
 modules/*/mobile/.flutter-plugins
 modules/*/mobile/.flutter-plugins-dependencies
 modules/*/mobile/.packages
-apps/mobile/*/build/
-apps/mobile/*/.dart_tool/
 
