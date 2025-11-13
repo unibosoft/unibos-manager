@@ -206,11 +206,11 @@ def earthquake_map(request):
     import json
 
     # Get filter parameters
-    days = request.GET.get('days', 7)
+    days = request.GET.get('days', 30)
     try:
         days = int(days)
     except:
-        days = 7
+        days = 30
 
     magnitude_min = request.GET.get('magnitude_min', 2.5)
     try:
