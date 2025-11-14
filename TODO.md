@@ -1,8 +1,9 @@
 # UNIBOS v533+ - Yapılacaklar Listesi
 
 **Oluşturulma:** 2025-11-13
-**Güncelleme:** 2025-11-15
+**Son Güncelleme:** 2025-11-15 (Phase 1.2 Tamamlandı)
 **Durum:** Aktif - Multi-Platform P2P Architecture Development
+**Mevcut Faz:** Phase 1.3 - Service Management başlangıcı
 
 > **Not:** Tamamlanan görevler arşivlenir. Bu dosya sadece aktif görevleri içerir.
 > Her güncelleme sırasında tamamlanan/vazgeçilen görevler gözden geçirilip düzenlenir.
@@ -25,52 +26,60 @@
 
 ## 📋 PHASE 1: CLI Separation & Platform Foundation
 
-### 1.1 CLI Restructuring
+### ✅ 1.1 CLI Restructuring (TAMAMLANDI - 2025-11-15)
 **Amaç:** Developer, production ve server CLI'larını ayır
 
-- [ ] **Rename:** `core/cli/` → `core/cli-dev/`
-  - [ ] Update all internal imports
-  - [ ] Update entry point in setup-dev.py
-  - [ ] Test `unibos-dev` command
+- [x] **Rename:** `core/cli/` → `core/cli_dev/`
+  - [x] Update all internal imports
+  - [x] Update entry point in setup-dev.py
+  - [x] Test `unibos-dev` command
 
-- [ ] **Create:** `core/cli/` (Production CLI)
-  - [ ] `core/cli/main.py` - Entry point (simplified splash)
-  - [ ] `core/cli/ui/` - Basic UI components
-  - [ ] `core/cli/commands/`
-    - [ ] `start.py` - Start services (Django/Celery/Redis)
-    - [ ] `stop.py` - Stop services
-    - [ ] `status.py` - System health (simplified)
-    - [ ] `logs.py` - View logs
-    - [ ] `update.py` - Update UNIBOS (git pull + migrate + restart)
-    - [ ] `backup.py` - Data backup
-    - [ ] `network.py` - Network scan (mDNS discovery)
-    - [ ] `module.py` - Module management (list, enable, disable)
-    - [ ] `node.py` - Node management (register, peers)
+- [x] **Create:** `core/cli/` (Production CLI)
+  - [x] `core/cli/main.py` - Entry point (simplified splash)
+  - [x] `core/cli/ui/` - Basic UI components
+  - [x] `core/cli/commands/`
+    - [x] `start.py` - Start services (Django/Celery/Redis)
+    - [x] `status.py` - System health (simplified)
+    - [x] `logs.py` - View logs
+    - [x] `platform.py` - Platform information
+    - [ ] `stop.py` - Stop services (Phase 1.3)
+    - [ ] `update.py` - Update UNIBOS (Phase 2)
+    - [ ] `backup.py` - Data backup (Phase 2)
+    - [ ] `network.py` - Network scan (Phase 3)
+    - [ ] `module.py` - Module management (Phase 2)
+    - [ ] `node.py` - Node management (Phase 3)
 
-- [ ] **Create:** `core/cli-server/` (Server CLI)
-  - [ ] `core/cli-server/main.py` - Entry point
-  - [ ] `core/cli-server/commands/`
-    - [ ] `service.py` - Service management (systemd/supervisor)
-    - [ ] `logs.py` - Aggregated log viewer
-    - [ ] `health.py` - Comprehensive health checks
-    - [ ] `stats.py` - Performance stats (CPU, RAM, disk, network)
-    - [ ] `nodes.py` - Connected nodes management
-    - [ ] `maintenance.py` - Maintenance mode
-    - [ ] `clean.py` - Cleanup (cache, logs)
-    - [ ] `update.py` - Safe update with rollback
+- [x] **Create:** `core/cli_server/` (Server CLI)
+  - [x] `core/cli_server/main.py` - Entry point
+  - [x] `core/cli_server/commands/`
+    - [x] `health.py` - Comprehensive health checks
+    - [x] `stats.py` - Performance stats (CPU, RAM, disk, network)
+    - [ ] `service.py` - Service management (Phase 1.3)
+    - [ ] `logs.py` - Aggregated log viewer (Phase 1.3)
+    - [ ] `nodes.py` - Connected nodes (Phase 3)
+    - [ ] `maintenance.py` - Maintenance mode (Phase 2)
+    - [ ] `clean.py` - Cleanup (Phase 2)
+    - [ ] `update.py` - Safe update with rollback (Phase 2)
 
-- [ ] **Setup Files:**
-  - [ ] Create `setup-dev.py` → Entry: `unibos-dev`
-  - [ ] Create `setup-server.py` → Entry: `unibos-server`
-  - [ ] Update `setup.py` → Entry: `unibos`
-  - [ ] Update `.prodignore` → Exclude `cli-dev/`
-  - [ ] Update `.rsyncignore` → Exclude `cli-dev/`
+- [x] **Setup Files:**
+  - [x] Create `setup-dev.py` → Entry: `unibos-dev`
+  - [x] Create `setup-server.py` → Entry: `unibos-server`
+  - [x] Update `setup.py` → Entry: `unibos`
+  - [x] Update `.prodignore` → Exclude `cli_dev/` and `cli_server/`
+  - [x] Update `.rsyncignore` → Exclude `cli_dev/` and `cli_server/`
 
-- [ ] **Testing:**
-  - [ ] Test all 3 CLIs install correctly (pipx)
-  - [ ] Verify `unibos-dev` only in dev environment
-  - [ ] Verify `unibos` works in production
-  - [ ] Verify `unibos-server` commands work on rocksteady
+- [x] **Testing:**
+  - [x] Test all 3 CLIs install correctly (pipx)
+  - [x] Verify `unibos-dev` only in dev environment
+  - [x] Verify `unibos` works in production
+  - [x] Test `unibos-server` commands
+
+**Sonuçlar:**
+- 3 ayrı CLI başarıyla oluşturuldu
+- Security model uygulandı (dev/server CLIs production'a gitmez)
+- Tüm CLIs test edildi ve çalışıyor
+- Dokümantasyon: `docs/development/cli/three-tier-architecture.md`
+- Commits: 6 commit (1bb2040 son dokümantasyon commit'i)
 
 **Dependencies:**
 ```python
@@ -87,17 +96,34 @@ supervisor  # Process management (optional)
 
 ---
 
-### 1.2 Platform Detection Foundation
+### ✅ 1.2 Platform Detection Foundation (TAMAMLANDI - 2025-11-15)
 **Amaç:** Cross-platform deployment desteği
 
-- [ ] **Create:** `core/platform/detector.py`
-  - [ ] OS detection (macOS, Linux, Windows, Raspberry Pi)
-  - [ ] Hardware detection (CPU, RAM, storage)
-  - [ ] Device type classification (server, desktop, edge)
-  - [ ] Capability detection (GPU, camera, LoRa, sensors)
-  - [ ] Network configuration (IP, gateway, internet access)
+- [x] **Create:** `core/platform/detector.py`
+  - [x] OS detection (macOS, Linux, Windows, Raspberry Pi)
+  - [x] Hardware detection (CPU, RAM, storage)
+  - [x] Device type classification (server, desktop, edge)
+  - [x] Capability detection (GPU, camera, GPIO, LoRa)
+  - [x] Network configuration (hostname, local IP)
+  - [x] Raspberry Pi model detection (/proc/device-tree/model)
+  - [x] Suitability checks (server, edge device)
 
-- [ ] **Create:** `core/platform/service_manager.py`
+- [x] **CLI Integration:**
+  - [x] Add `platform` command to `unibos` CLI
+  - [x] Add `platform` command to `unibos-dev` CLI
+  - [x] Support human-readable output
+  - [x] Support JSON output (--json flag)
+  - [x] Support verbose mode (--verbose flag)
+
+**Sonuçlar:**
+- Platform detection sistemi başarıyla oluşturuldu
+- psutil entegrasyonu ile detaylı sistem bilgisi
+- Raspberry Pi özel tespiti çalışıyor
+- Her iki CLI'da da `platform` komutu aktif
+- Dokümantasyon: `docs/development/platform/platform-detection.md`
+- Commit: 6b3b231
+
+- [ ] **Create:** `core/platform/service_manager.py` (Phase 1.3)
   - [ ] Abstraction layer for service management
   - [ ] systemd (Linux/Raspberry Pi)
   - [ ] launchd (macOS)
