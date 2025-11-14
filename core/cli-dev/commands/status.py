@@ -99,6 +99,6 @@ def status_command(detailed):
     if detailed:
         click.echo()
         click.echo(click.style('💡 Tip:', fg='yellow'))
-        click.echo('  Run "unibos deploy check" for deployment health check')
-        click.echo('  Run "unibos dev run" to start development server')
-        click.echo('  Run "unibos --help" for all available commands')
+        click.echo('  Run "unibos-dev deploy check" for deployment health check')
+        click.echo('  Run "unibos-dev dev run" to start development server')
+        click.echo('  Run "unibos-dev --help" for all available commands')

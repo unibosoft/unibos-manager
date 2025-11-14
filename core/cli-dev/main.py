@@ -12,31 +12,31 @@ from pathlib import Path
 project_root = Path(__file__).parent.parent.parent
 sys.path.insert(0, str(project_root))
 
-from core.cli.ui.splash import show_splash_screen, show_compact_header
-from core.cli.commands.deploy import deploy_group
-from core.cli.commands.dev import dev_group
-from core.cli.commands.db import db_group
-from core.cli.commands.status import status_command
-from core.cli.commands.git import git_group
+from core.cli_dev.ui.splash import show_splash_screen, show_compact_header
+from core.cli_dev.commands.deploy import deploy_group
+from core.cli_dev.commands.dev import dev_group
+from core.cli_dev.commands.db import db_group
+from core.cli_dev.commands.status import status_command
+from core.cli_dev.commands.git import git_group
 
 
 @click.group()
-@click.version_option(version='533+', prog_name='unibos')
+@click.version_option(version='533+', prog_name='unibos-dev')
 @click.option('--no-splash', is_flag=True, help='Skip splash screen')
 @click.pass_context
 def cli(ctx, no_splash):
-    """🪐 UNIBOS - Universal Integrated Backend and Operating System
+    """🔧 UNIBOS Developer CLI - Development & Deployment Tools
 
-    Modern CLI for managing UNIBOS infrastructure, development,
-    and deployment operations.
+    Developer-focused CLI for UNIBOS development, git workflows,
+    versioning, and deployment operations.
 
     Examples:
-        unibos status              # Show system status
-        unibos dev run             # Start development server
-        unibos deploy rocksteady   # Deploy to production
-        unibos db backup           # Create database backup
-        unibos git push-dev        # Push to dev repository
-        unibos git sync-prod       # Sync to local prod directory
+        unibos-dev status              # Show system status
+        unibos-dev dev run             # Start development server
+        unibos-dev deploy rocksteady   # Deploy to production
+        unibos-dev db backup           # Create database backup
+        unibos-dev git push-dev        # Push to dev repository
+        unibos-dev git sync-prod       # Sync to local prod directory
     """
     # Store context for subcommands
     ctx.ensure_object(dict)
@@ -46,7 +46,7 @@ def cli(ctx, no_splash):
     if ctx.invoked_subcommand is None and not no_splash:
         show_splash_screen(quick=False)
         click.echo()
-        click.echo("💡 Run 'unibos --help' to see available commands")
+        click.echo("💡 Run 'unibos-dev --help' to see available commands")
     elif ctx.invoked_subcommand and not no_splash:
         # Show compact header for subcommands
         show_compact_header()

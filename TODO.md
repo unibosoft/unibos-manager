@@ -1,189 +1,424 @@
 # UNIBOS v533+ - Yapılacaklar Listesi
 
 **Oluşturulma:** 2025-11-13
-**Güncelleme:** 2025-11-13
-**Durum:** Aktif
+**Güncelleme:** 2025-11-15
+**Durum:** Aktif - Multi-Platform P2P Architecture Development
 
 > **Not:** Tamamlanan görevler arşivlenir. Bu dosya sadece aktif görevleri içerir.
+> Her güncelleme sırasında tamamlanan/vazgeçilen görevler gözden geçirilip düzenlenir.
 
 ---
 
-## ✅ TAMAMLANDI: CLI Tool (2025-11-13)
+## 🎯 AKTİF ÖNCELIK: Three-Tier CLI Architecture
 
-### 1.1 Eski CLI'yı Analiz Et ve Adapte Et ✅
-- [x] Eski main.py'yi bul (`archive/versions/unibos_v533_20251110_1400/apps/cli/src/main.py`)
-- [x] Splash screen ve logo'yu analiz et
-- [x] Modül yapısını incele (version_manager, setup_manager, git_manager)
-- [x] Dependencies'i belirle (Click, terminal UI libs)
+### KARAR: 3 Ayrı CLI Yapısı
+- ✅ **unibos** → Production CLI (son kullanıcılar: local desktop, Raspberry Pi)
+- ✅ **unibos-dev** → Developer CLI (geliştirici: git, version, build)
+- ✅ **unibos-server** → Server CLI (rocksteady yönetimi: services, monitoring)
 
-### 1.2 Modern CLI Yapısını Oluştur ✅
-- [x] `core/cli/main.py` - Ana entry point (splash + command router)
-- [x] `core/cli/ui/` - UI components
-  - [x] `splash.py` - Animated splash screen with UNIBOS ASCII logo
-  - [x] `colors.py` - ANSI color definitions (256 colors + RGB)
-  - [x] `layout.py` - Terminal layout utilities (cursor, boxes, centering)
-  - [x] `__init__.py` - Package initialization
-- [x] `core/cli/commands/` - Command modules
-  - [x] `__init__.py`
-  - [x] `deploy.py` - Deployment commands
-  - [x] `dev.py` - Development commands
-  - [x] `db.py` - Database commands
-  - [x] `status.py` - Health check commands
-
-### 1.3 Deployment Entegrasyonu ✅
-- [x] `core/cli/commands/deploy.py`:
-  - [x] `unibos deploy rocksteady` → calls `core/deployment/rocksteady_deploy.sh`
-  - [x] `unibos deploy rocksteady --quick` → quick sync mode
-  - [x] `unibos deploy rocksteady --check-only` → pre-flight check
-  - [x] `unibos deploy local` → placeholder for local deployment
-  - [x] `unibos deploy raspberry <target>` → placeholder for Pi deployment
-  - [x] `unibos deploy check` → health check integration
-
-### 1.4 Development Commands ✅
-- [x] `core/cli/commands/dev.py`:
-  - [x] `unibos dev run` → Django dev server (with --port, --host options)
-  - [x] `unibos dev shell` → Django shell
-  - [x] `unibos dev test` → runs tests
-  - [x] `unibos dev migrate` → runs migrations
-  - [x] `unibos dev makemigrations` → creates migrations
-  - [x] `unibos dev logs` → view/tail logs
-
-### 1.5 Database Commands ✅
-- [x] `core/cli/commands/db.py`:
-  - [x] `unibos db backup` → calls `tools/scripts/backup_database.sh`
-  - [x] `unibos db backup --verify` → backup + verification
-  - [x] `unibos db restore <file>` → placeholder for restore
-  - [x] `unibos db migrate` → runs migrations
-  - [x] `unibos db status` → showmigrations
-
-### 1.6 Setup ve Installation ✅
-- [x] `setup.py` - Python package setup (updated entry point)
-- [x] `core/__init__.py` - Package structure fix
-- [x] Entry point: `console_scripts = ['unibos = core.cli.main:main']`
-- [x] Test: `pip install -e .` works
-- [x] Test: `unibos` command available globally
-- [x] Test: All commands verified (status, deploy, dev, db)
-
-**Result:** CLI tool fully functional! Global `unibos` command available with splash screen, comprehensive commands, and script integration.
+### KARAR: Teknoloji Stack
+- ✅ **psutil** → Platform detection ve system monitoring
+- ✅ **JSON** → Module metadata (YAML yerine - standart ve net)
+- ✅ **Hybrid P2P** → mDNS + REST API + WebSocket (phase-based implementation)
 
 ---
 
-## ✅ TAMAMLANDI: Module Path Migration (2025-11-13)
+## 📋 PHASE 1: CLI Separation & Platform Foundation
 
-**Result:** ✅ No code migration needed! Module FileFields already correct, only Django settings fix required.
+### 1.1 CLI Restructuring
+**Amaç:** Developer, production ve server CLI'larını ayır
 
-### 2.1 Audit Current State ✅
-- [x] Analyzed all 13 modules for FileField usage
-- [x] Found only 3 modules with FileFields (documents, music, personal_inflation)
-- [x] All FileField paths already correctly structured
-- [x] Documented in [MODULE_PATH_MIGRATION_ANALYSIS.md](docs/development/MODULE_PATH_MIGRATION_ANALYSIS.md)
+- [ ] **Rename:** `core/cli/` → `core/cli-dev/`
+  - [ ] Update all internal imports
+  - [ ] Update entry point in setup-dev.py
+  - [ ] Test `unibos-dev` command
 
-### 2.2 FileField Status (13 modules analyzed) ✅
-**Modules with FileFields (3/13):**
-- [x] **documents** - ✅ Correct (`documents/uploads/`, `documents/thumbnails/`)
-- [x] **music** - ✅ Correct (`music/artwork/`, `music/playlists/`)
-- [x] **personal_inflation** - ✅ Correct (`wimm/receipts/`)
+- [ ] **Create:** `core/cli/` (Production CLI)
+  - [ ] `core/cli/main.py` - Entry point (simplified splash)
+  - [ ] `core/cli/ui/` - Basic UI components
+  - [ ] `core/cli/commands/`
+    - [ ] `start.py` - Start services (Django/Celery/Redis)
+    - [ ] `stop.py` - Stop services
+    - [ ] `status.py` - System health (simplified)
+    - [ ] `logs.py` - View logs
+    - [ ] `update.py` - Update UNIBOS (git pull + migrate + restart)
+    - [ ] `backup.py` - Data backup
+    - [ ] `network.py` - Network scan (mDNS discovery)
+    - [ ] `module.py` - Module management (list, enable, disable)
+    - [ ] `node.py` - Node management (register, peers)
 
-**Modules without FileFields (10/13):**
-- [x] birlikteyiz, cctv, currencies, movies, recaria, restopos, solitaire, store, wimm, wims
+- [ ] **Create:** `core/cli-server/` (Server CLI)
+  - [ ] `core/cli-server/main.py` - Entry point
+  - [ ] `core/cli-server/commands/`
+    - [ ] `service.py` - Service management (systemd/supervisor)
+    - [ ] `logs.py` - Aggregated log viewer
+    - [ ] `health.py` - Comprehensive health checks
+    - [ ] `stats.py` - Performance stats (CPU, RAM, disk, network)
+    - [ ] `nodes.py` - Connected nodes management
+    - [ ] `maintenance.py` - Maintenance mode
+    - [ ] `clean.py` - Cleanup (cache, logs)
+    - [ ] `update.py` - Safe update with rollback
 
-### 2.3 Django Settings Fix ✅
-**Problem:** MEDIA_ROOT was `data/shared/media` instead of `data/modules`
+- [ ] **Setup Files:**
+  - [ ] Create `setup-dev.py` → Entry: `unibos-dev`
+  - [ ] Create `setup-server.py` → Entry: `unibos-server`
+  - [ ] Update `setup.py` → Entry: `unibos`
+  - [ ] Update `.prodignore` → Exclude `cli-dev/`
+  - [ ] Update `.rsyncignore` → Exclude `cli-dev/`
 
-**Files Updated:**
-- [x] [core/web/unibos_backend/settings/base.py](core/web/unibos_backend/settings/base.py:287) → `MEDIA_ROOT = data/modules`
-- [x] [core/web/unibos_backend/settings/emergency.py](core/web/unibos_backend/settings/emergency.py:135) → `MEDIA_ROOT = data/modules`
-- [x] [core/web/unibos_backend/settings/dev_simple.py](core/web/unibos_backend/settings/dev_simple.py:56) → `MEDIA_ROOT = data/modules`
+- [ ] **Testing:**
+  - [ ] Test all 3 CLIs install correctly (pipx)
+  - [ ] Verify `unibos-dev` only in dev environment
+  - [ ] Verify `unibos` works in production
+  - [ ] Verify `unibos-server` commands work on rocksteady
 
-### 2.4 No Migration Script Needed ✅
-- [x] No code changes required (FileField paths already correct)
-- [x] No data to migrate (fresh v533 setup, no old files)
-- [x] Directory structure verified (`data/modules/` with all subdirs exist)
-- [x] Zero risk - configuration change only
-
-**Path Example:**
+**Dependencies:**
 ```python
-# FileField: documents/uploads/receipts/2025/11/invoice.pdf
-# MEDIA_ROOT: /data/modules/
-# Final: /data/modules/documents/uploads/receipts/2025/11/invoice.pdf ✅
+# All CLIs
+click>=8.0
+
+# unibos (production)
+psutil>=5.9  # Platform detection, system monitoring
+zeroconf>=0.80  # mDNS discovery
+
+# unibos-server (additional)
+supervisor  # Process management (optional)
 ```
 
 ---
 
-## 🎯 ÖNCELIK 3: Production Cleanup (1 gün)
+### 1.2 Platform Detection Foundation
+**Amaç:** Cross-platform deployment desteği
 
-### 3.1 Local Cleanup
-- [ ] Remove Flutter build artifacts (if any)
-- [ ] Clean large log files (>10MB)
-- [ ] Remove database backups from code directory
-- [ ] Verify .gitignore is comprehensive
+- [ ] **Create:** `core/platform/detector.py`
+  - [ ] OS detection (macOS, Linux, Windows, Raspberry Pi)
+  - [ ] Hardware detection (CPU, RAM, storage)
+  - [ ] Device type classification (server, desktop, edge)
+  - [ ] Capability detection (GPU, camera, LoRa, sensors)
+  - [ ] Network configuration (IP, gateway, internet access)
 
-### 3.2 Remote Cleanup (Rocksteady)
-- [ ] Already done: Flutter build removed (-1.6GB)
-- [ ] Check for other bloat
-- [ ] Verify data/ structure
+- [ ] **Create:** `core/platform/service_manager.py`
+  - [ ] Abstraction layer for service management
+  - [ ] systemd (Linux/Raspberry Pi)
+  - [ ] launchd (macOS)
+  - [ ] Windows Services (Windows)
+  - [ ] Supervisor (fallback)
 
-### 3.3 Archive Optimization
-- [ ] Review archive sizes
-- [ ] Ensure .archiveignore is comprehensive
-- [ ] Document archive retention policy
+- [ ] **CLI Integration:**
+  - [ ] `unibos platform info` → Show platform details
+  - [ ] `unibos-server service start/stop` → Use service_manager
 
----
-
-## 🎯 ÖNCELIK 4: Documentation Updates
-
-### 4.1 CLI Documentation
-- [ ] Create `core/cli/README.md`
-- [ ] Document all commands with examples
-- [ ] Add troubleshooting section
-
-### 4.2 Deployment Documentation
-- [ ] Update `core/deployment/README.md` with CLI commands
-- [ ] Add screenshots/examples
-- [ ] Document common issues
-
-### 4.3 Development Guide
-- [ ] Update developer onboarding docs
-- [ ] Document new CLI usage
-- [ ] Update architecture diagrams
+**Test Cases:**
+- [ ] Test on macOS (development)
+- [ ] Test on Ubuntu (rocksteady)
+- [ ] Test on Raspberry Pi OS (when available)
 
 ---
 
-## 📋 İLERİ TARİHLİ GÖREVLER (Phase 3-5)
+### 1.3 Node Identity & Persistence
+**Amaç:** Her UNIBOS instance unique identity
 
-### Platform Infrastructure (Week 3)
-- [ ] Task Distribution System
-  - [ ] `core/platform/orchestration/`
-  - [ ] Celery task queue
-  - [ ] Worker registry
-  - [ ] Health monitoring
+- [ ] **Extend:** `core/instance/identity.py`
+  - [ ] UUID persistence (save to `data/core/node.uuid`)
+  - [ ] Node type detection (central, local, edge)
+  - [ ] Platform integration (use PlatformInfo)
+  - [ ] Capability declaration (modules, hardware, services)
+  - [ ] Registration method (register with central server)
 
-- [ ] Connection Routing
-  - [ ] `core/platform/routing/`
-  - [ ] Local-first policy
-  - [ ] Performance-based routing
-  - [ ] Load balancing
+- [ ] **Create:** Django app `core/system/nodes/`
+  - [ ] Models: `Node`, `NodeCapability`, `NodeStatus`
+  - [ ] API: `/api/nodes/register`, `/api/nodes/list`, `/api/nodes/<uuid>/`
+  - [ ] Admin interface
+  - [ ] WebSocket for real-time status updates
 
-- [ ] Offline Mode
-  - [ ] `core/platform/offline/`
-  - [ ] Offline detection
-  - [ ] Sync queue
-  - [ ] Conflict resolution (CRDT)
+- [ ] **CLI Commands:**
+  - [ ] `unibos node info` → Show this node's identity
+  - [ ] `unibos node register <central-url>` → Register with central
+  - [ ] `unibos node peers` → List known peers
+  - [ ] `unibos-server nodes list` → List all registered nodes (central only)
 
-### Production Deployments (Week 4)
-- [ ] Local Production (`/Users/berkhatirli/Applications/unibos/`)
-- [ ] Rocksteady VPS (already done, but needs CLI integration)
-- [ ] Raspberry Pi edge device
+---
 
-### Testing & Documentation (Week 5)
-- [ ] Unit tests for all modules
-- [ ] Integration tests
-- [ ] Deployment tests
-- [ ] Performance tests
-- [ ] Security audit
-- [ ] User acceptance testing
-- [ ] Final documentation
-- [ ] v533 release tag
+## 📋 PHASE 2: Module System Enhancement
+
+### 2.1 Module Metadata (JSON)
+**Amaç:** Standardize module metadata
+
+- [ ] **Create template:** `module.json` schema
+  ```json
+  {
+    "name": "string",
+    "version": "semver",
+    "description": "string",
+    "author": "string",
+    "license": "string",
+    "category": "emergency|finance|media|iot|game",
+    "dependencies": {
+      "core": ">=version",
+      "modules": ["module_name"]
+    },
+    "capabilities": {
+      "requires_lora": false,
+      "requires_gps": false,
+      "requires_camera": false,
+      "offline_capable": true,
+      "p2p_enabled": false
+    },
+    "platforms": ["linux", "macos", "windows", "raspberry_pi"],
+    "entry_points": {
+      "backend": "modules.name.backend",
+      "cli": "modules.name.cli",
+      "mobile": "modules.name.mobile"
+    },
+    "settings": {
+      "SETTING_NAME": "default_value"
+    }
+  }
+  ```
+
+- [ ] **Add to all modules:** (13 modules)
+  - [ ] birlikteyiz/module.json
+  - [ ] cctv/module.json
+  - [ ] currencies/module.json
+  - [ ] documents/module.json
+  - [ ] movies/module.json
+  - [ ] music/module.json
+  - [ ] personal_inflation/module.json
+  - [ ] recaria/module.json *(Not: MMORPG game, Ultima Online benzeri)*
+  - [ ] restopos/module.json
+  - [ ] solitaire/module.json
+  - [ ] store/module.json
+  - [ ] wimm/module.json
+  - [ ] wims/module.json
+
+- [ ] **Create:** `core/system/modules/registry.py`
+  - [ ] Auto-discovery (scan `modules/*/module.json`)
+  - [ ] Dependency resolution
+  - [ ] Platform compatibility check
+  - [ ] Capability matching
+  - [ ] Dynamic INSTALLED_APPS generation
+
+- [ ] **CLI Commands:**
+  - [ ] `unibos module list` → List all modules (installed, available)
+  - [ ] `unibos module info <name>` → Show module details
+  - [ ] `unibos module enable <name>` → Enable module
+  - [ ] `unibos module disable <name>` → Disable module
+  - [ ] `unibos-dev module create <name>` → Create new module template
+
+**Integration with settings:**
+```python
+# settings/base.py
+from core.system.modules.registry import ModuleRegistry
+
+registry = ModuleRegistry()
+UNIBOS_MODULES = registry.get_installable_apps()
+INSTALLED_APPS = DJANGO_APPS + THIRD_PARTY_APPS + CORE_APPS + UNIBOS_modules
+```
+
+---
+
+## 📋 PHASE 3: P2P Network Foundation (Hybrid Approach)
+
+### 3.1 Local Network Discovery (mDNS/Zeroconf)
+**Amaç:** Auto-discover UNIBOS nodes on local network
+
+- [ ] **Install:** `pip install zeroconf`
+
+- [ ] **Create:** `core/p2p/discovery.py`
+  - [ ] `NodeDiscovery` class
+  - [ ] Advertise this node (`_unibos._tcp.local.`)
+  - [ ] Scan for other nodes
+  - [ ] Callback handlers (on_service_added, on_service_removed)
+  - [ ] Maintain peer list
+
+- [ ] **CLI Commands:**
+  - [ ] `unibos network scan` → Scan local network for nodes
+  - [ ] `unibos network advertise` → Start advertising this node
+
+**Test:**
+- [ ] Test with 2 nodes on same WiFi (MacBook + another machine)
+- [ ] Verify auto-discovery works
+- [ ] Verify peer list updates
+
+---
+
+### 3.2 Central Registry (REST API)
+**Amaç:** Central server tracks all nodes
+
+- [ ] **API Endpoints:** (Already in 1.3)
+  - [ ] POST `/api/nodes/register` → Register node
+  - [ ] GET `/api/nodes/list` → List all nodes
+  - [ ] GET `/api/nodes/<uuid>/` → Node details
+  - [ ] PUT `/api/nodes/<uuid>/heartbeat` → Update last_seen
+  - [ ] DELETE `/api/nodes/<uuid>/` → Unregister
+
+- [ ] **Heartbeat System:**
+  - [ ] Celery beat task (every 60s)
+  - [ ] Send heartbeat to central server
+  - [ ] Mark nodes offline if no heartbeat >5min
+
+---
+
+### 3.3 Real-Time Communication (WebSocket)
+**Amaç:** Real-time node-to-node messaging
+
+- [ ] **Extend:** Django Channels (already installed)
+  - [ ] `core/p2p/consumers.py` → WebSocket consumer
+  - [ ] Routing: `/ws/p2p/<node_uuid>/`
+  - [ ] Message types: ping, data, command, status
+
+- [ ] **Node-to-Node:**
+  - [ ] Direct connection (if local network)
+  - [ ] Relay via central (if internet only)
+
+**Messages:**
+```json
+{
+  "type": "ping",
+  "from": "node-uuid-123",
+  "to": "node-uuid-456",
+  "timestamp": "2025-11-15T12:00:00Z"
+}
+```
+
+---
+
+### 3.4 WebRTC (Future - Remote Access)
+**Deferred to Phase 4+**
+
+- [ ] Research `aiortc` library
+- [ ] STUN/TURN server setup
+- [ ] Signaling server (via Rocksteady)
+- [ ] Use case: Remote CCTV streaming
+
+---
+
+## 📋 PHASE 4: Deployment Target Configurations
+
+### 4.1 Environment-Specific Settings
+**Amaç:** Settings for different deployment targets
+
+- [ ] **Create:** `core/web/unibos_backend/settings/targets/`
+  - [ ] `raspberry_pi.py` → Lightweight, edge device
+  - [ ] `central_server.py` → Full features, orchestrator
+  - [ ] `local_desktop.py` → User-selected modules
+
+**raspberry_pi.py example:**
+```python
+from ..base import *
+
+DEBUG = False
+ALLOWED_HOSTS = ['*']  # Local network
+
+# Minimal modules
+ENABLED_MODULES = ['birlikteyiz', 'cctv', 'wimm']
+
+# Hardware-specific
+BIRLIKTEYIZ_LORA_ENABLED = True
+CCTV_CAMERA_DEVICE = '/dev/video0'
+
+# Performance
+DATABASES['default']['CONN_MAX_AGE'] = 0
+CELERY_WORKER_CONCURRENCY = 2
+```
+
+- [ ] **CLI Detection:**
+  - [ ] Auto-detect platform on first run
+  - [ ] Suggest appropriate settings file
+  - [ ] `DJANGO_SETTINGS_MODULE=unibos_backend.settings.targets.raspberry_pi`
+
+---
+
+### 4.2 Deployment Implementations
+
+- [ ] **Local Production:**
+  - [ ] Implement `unibos-dev deploy local`
+  - [ ] Target: `/Users/berkhatirli/Applications/unibos/`
+  - [ ] Use rsync with `.prodignore`
+  - [ ] Setup systemd/launchd service
+
+- [ ] **Raspberry Pi:**
+  - [ ] Implement `unibos-dev deploy raspberry <ip>`
+  - [ ] SSH deployment
+  - [ ] Platform-specific setup script
+  - [ ] Service installation (systemd)
+  - [ ] Test on actual Raspberry Pi hardware
+
+- [ ] **Rocksteady (Enhanced):**
+  - [ ] Already works, but integrate with CLI
+  - [ ] `unibos-dev deploy rocksteady` (already exists)
+  - [ ] Add rollback support
+  - [ ] Health checks post-deployment
+
+---
+
+## 📋 PHASE 5: Raspberry Pi Hardware Integration
+
+### 5.1 Birlikteyiz - LoRa Mesh Network
+**Priority: HIGH** (Emergency network proof-of-concept)
+
+- [ ] **Hardware:**
+  - [ ] LoRa module (SX1276/SX1278, 868MHz EU)
+  - [ ] GPS module (NEO-6M)
+  - [ ] Test on Raspberry Pi Zero 2 W
+
+- [ ] **Software:**
+  - [ ] Python LoRa library (pyLoRa or CircuitPython)
+  - [ ] GPS library (gpsd)
+  - [ ] Mesh protocol implementation
+  - [ ] Message relay algorithm
+  - [ ] Deduplication logic
+
+- [ ] **Integration:**
+  - [ ] `modules/birlikteyiz/backend/lora_gateway.py`
+  - [ ] Celery task for message processing
+  - [ ] WebSocket for real-time updates
+
+**Test:**
+- [ ] 2-node mesh test (send message A→B)
+- [ ] 3-node relay test (A→B→C)
+- [ ] Offline queue test
+
+---
+
+### 5.2 CCTV - Camera Monitoring
+
+- [ ] **Hardware:**
+  - [ ] USB camera or Pi Camera Module
+  - [ ] Test on Raspberry Pi 4
+
+- [ ] **Software:**
+  - [ ] OpenCV for camera access
+  - [ ] Motion detection
+  - [ ] Video recording (H.264)
+  - [ ] Thumbnail generation
+
+- [ ] **Integration:**
+  - [ ] `modules/cctv/backend/camera_manager.py`
+  - [ ] Stream via WebSocket (for live view)
+  - [ ] Future: WebRTC for remote access
+
+---
+
+## 📋 İLERİ TARİHLİ GÖREVLER (Phase 6+)
+
+### Offline Mode & Sync
+- [ ] Offline detection
+- [ ] Operation queue
+- [ ] CRDT-based conflict resolution (research Automerge, Yjs)
+- [ ] Sync engine (`core/sync/`)
+
+### Module Marketplace
+- [ ] Module package format (.zip with module.json)
+- [ ] Installation mechanism
+- [ ] Marketplace server (registry)
+- [ ] Security scanning
+
+### Multi-Platform Installers
+- [ ] macOS: .dmg or Homebrew formula
+- [ ] Linux: .deb and .rpm packages
+- [ ] Windows: .exe installer (PyInstaller)
+- [ ] Raspberry Pi: Custom OS image
 
 ---
 
@@ -191,38 +426,88 @@
 
 ### TODO Dosyası Yönetimi
 1. **Ana dizinde sadece bu dosya** (`TODO.md`)
-2. **Tamamlanan görevler** → `archive/planning/completed/`
-3. **Eski roadmap'ler** → `archive/planning/`
-4. **Her hafta güncelleme**: Completed → Archive, New → TODO
-5. **Atomik commits**: TODO + ilgili code/docs birlikte
+2. **Güncellemeler sırasında:**
+   - Tamamlanan görevler → `✅` işaretle ve "TAMAMLANDI" bölümüne taşı
+   - Vazgeçilen görevler → Sil veya "VAZGEÇILDI" notu ile arşivle
+   - Değişen öncelikler → Yeniden sırala
+   - Yeni detaylar → İlgili bölüme ekle
+3. **Tamamlanan phase'ler** → `archive/planning/completed/phase-N.md`
+4. **Eski roadmap'ler** → `archive/planning/`
+5. **Her hafta gözden geçirme**: Tamamlanan görevler arşivlenir, yeni görevler eklenir
+6. **Atomik commits**: TODO + ilgili code/docs birlikte commit edilir
 
 ### Commit Kuralı
 ```bash
 # Todo'yu güncelle + ilgili değişiklikleri yap
-git add TODO.md core/cli/main.py core/cli/ui/splash.py
-git commit -m "feat(cli): implement splash screen with logo
+git add TODO.md core/cli-dev/main.py
+git commit -m "feat(cli): rename cli to cli-dev for developer commands
 
-- Created splash.py with animated unibos logo
-- Updated TODO.md to mark task complete
-- Refs: TODO.md section 1.2"
+- Renamed core/cli/ → core/cli-dev/
+- Updated TODO.md Phase 1.1 progress
+- Entry point now: unibos-dev
+
+Refs: TODO.md Phase 1.1"
 ```
+
+### Todo Gözden Geçirme Checklistü
+Her güncelleme sırasında:
+- [ ] Tamamlanan görevler işaretlendi mi?
+- [ ] Vazgeçilen görevler silindi/not düşüldü mü?
+- [ ] Yeni keşfedilen görevler eklendi mi?
+- [ ] Öncelikler güncellendi mi?
+- [ ] Tarihler doğru mu?
+- [ ] Bağlantılar (refs) eksiksiz mi?
+- [ ] Bölümler organize mi? (TAMAMLANDI yukarı, aktif ortada, ilerisi altta)
 
 ---
 
 ## 📅 Haftalık Gözden Geçirme
 
 **Her Pazartesi:**
-1. Completed tasks → `archive/planning/completed/YYYY-MM-DD.md`
-2. Update priorities
-3. Add new tasks if needed
-4. Review blockers
+1. Geçen hafta tamamlananları arşivle
+2. Bu haftaki öncelikleri belirle
+3. Engelleyicileri (blockers) tespit et
 
 **Her Cuma:**
-1. Weekly progress summary
-2. Next week planning
-3. Risk assessment
+1. Haftalık ilerleme özeti
+2. Gelecek hafta planlaması
+3. Risk değerlendirmesi
 
 ---
 
-**Son Güncelleme:** 2025-11-13
+## 📊 GÜNCEL DURUM
+
+**Tamamlanan Phase'ler:**
+- ✅ Phase 0: CLI Tool (2025-11-13)
+- ✅ Phase 0: Module Path Migration (2025-11-13)
+
+**Aktif Phase:**
+- 🔄 Phase 1: CLI Separation & Platform Foundation (başladı 2025-11-15)
+
+**Sonraki Phase:**
+- 📋 Phase 2: Module System Enhancement
+- 📋 Phase 3: P2P Network Foundation
+
+---
+
+## 🎯 KARARLAR VE NOTLAR
+
+### CLI Architecture (2025-11-15)
+- ✅ **3 ayrı CLI**: unibos, unibos-dev, unibos-server
+- ✅ **psutil kullanımı**: Platform detection ve monitoring için onaylandı
+- ✅ **JSON metadata**: Module.json için YAML yerine JSON tercih edildi
+- ✅ **Hybrid P2P**: mDNS (local) + REST API (central) + WebSocket (real-time) + WebRTC (future)
+
+### Module Corrections (2025-11-15)
+- ✅ **Recaria:** MMORPG game project (Ultima Online benzeri), henüz başlanmadı
+
+### Platform Priorities (2025-11-15)
+- 🔴 **Phase 1:** Raspberry Pi + Birlikteyiz (LoRa mesh) - Emergency network PoC
+- 🟡 **Phase 2:** CCTV camera monitoring
+- 🟢 **Phase 3:** Full home server (tüm modüller)
+
+---
+
+**Son Güncelleme:** 2025-11-15
 **Sonraki Gözden Geçirme:** 2025-11-18 (Pazartesi)
+**Aktif Çalışma:** Phase 1 - CLI Separation
