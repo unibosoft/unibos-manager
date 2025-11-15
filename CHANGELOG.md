@@ -7,11 +7,86 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-### Planned for v1.0.0
-- Service management (Phase 1.3)
-- Module metadata system (Phase 2)
-- Enhanced documentation
-- Production deployment guides
+---
+
+## [1.0.0] - 2025-11-15
+
+### 🚀 First Public Release - "Foundation"
+**Production-ready personal operating system with modular architecture**
+
+### Added
+
+- **Service Management (Phase 1.3)**
+  - Cross-platform service manager (systemd, launchd, supervisor)
+  - `unibos stop` command with graceful/force modes
+  - `unibos-server service` commands (start, stop, restart, status)
+  - Automatic service manager detection
+  - Support for macOS (launchd), Linux (systemd), Supervisor fallback
+
+- **Node Identity & Persistence (Phase 1.4)**
+  - Unique UUID for each UNIBOS instance
+  - Node type auto-detection (CENTRAL, LOCAL, EDGE, DESKTOP)
+  - Platform-integrated capability detection
+  - Persistent identity storage (`data/core/node.json`)
+  - `unibos node info` - Show node identity and capabilities
+  - `unibos node register` - Register with central server
+  - `unibos node peers` - List peer nodes (placeholder)
+
+- **Module System (Phase 2.1 & 2.2)**
+  - Auto-discovery of 13 modules from `modules/` directory
+  - Dynamic module loading with `.enabled` marker system
+  - Module metadata from `module.json` files
+  - `unibos module list` - List all/enabled/available modules
+  - `unibos module info <name>` - Detailed module information
+  - `unibos module enable/disable <name>` - Runtime module control
+  - `unibos module stats` - Module statistics
+  - Django integration with dynamic INSTALLED_APPS
+  - Git root detection for pipx installations
+  - UNIBOS_ROOT environment variable support
+
+- **13 Production Modules**
+  - 🌍 **birlikteyiz** - Emergency mesh network & earthquake alerts
+  - 📄 **documents** - OCR & document management with AI
+  - 💱 **currencies** - Cryptocurrency & currency tracking
+  - 📈 **personal_inflation** - Personal inflation tracking
+  - 🎮 **recaria** - Medieval MMORPG (Ultima Online inspired)
+  - 📹 **cctv** - Security camera management
+  - 🎬 **movies** - Movie & TV series collection
+  - 🎵 **music** - Music collection with Spotify integration
+  - 🍽️ **restopos** - Restaurant POS system
+  - 💰 **wimm** - Personal finance tracker
+  - 📦 **wims** - Inventory management
+  - 🃏 **solitaire** - Card game with multiplayer
+  - 🛒 **store** - Marketplace integration
+
+### Changed
+- Module loading now dynamic based on `.enabled` status
+- Django settings use ModuleRegistry for INSTALLED_APPS
+- Improved version management with semantic versioning
+- Updated archive structure (`archive/versions/old/` for pre-1.0.0)
+
+### Technical Details
+- **CLI Tools**: 3 distinct CLIs (unibos, unibos-dev, unibos-server)
+- **Module Discovery**: Automatic scan of `modules/` directory
+- **Platform Support**: macOS, Linux, Windows, Raspberry Pi
+- **Python**: 3.9, 3.10, 3.11, 3.12, 3.13
+- **Installation**: pipx for isolated environments
+- **Architecture**: Modular, extensible, production-ready
+
+### Breaking Changes
+- None (first public release)
+
+### Migration Notes
+- Pre-1.0.0 versions (v0.1.0-v0.533.0) archived in `archive/versions/old/`
+- 533 development iterations leading to this release
+- All development history preserved in git
+
+### Documentation
+- Module system documentation
+- Node identity guide
+- Service management guide
+- Installation and deployment guides
+- Semantic versioning adoption
 
 ---
 
