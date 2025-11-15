@@ -18,9 +18,13 @@ def deploy_group():
 @deploy_group.command(name='rocksteady')
 @click.option('--quick', is_flag=True, help='Skip pre-flight checks')
 @click.option('--check-only', is_flag=True, help='Only run health checks')
-def deploy_rocksteady(quick, check_only):
+@click.option('--setup', is_flag=True, help='Initial setup (first-time deployment)')
+def deploy_rocksteady(quick, check_only, setup):
     """Deploy to Rocksteady VPS (production)"""
-    click.echo(click.style('🚀 Deploying to Rocksteady...', fg='cyan', bold=True))
+    if setup:
+        click.echo(click.style('🔧 Running initial setup on Rocksteady...', fg='cyan', bold=True))
+    else:
+        click.echo(click.style('🚀 Deploying to Rocksteady...', fg='cyan', bold=True))
 
     # Get repository root
     root_dir = Path(__file__).parent.parent.parent.parent
@@ -33,7 +37,9 @@ def deploy_rocksteady(quick, check_only):
     # Build command
     cmd = [str(deploy_script)]
 
-    if check_only:
+    if setup:
+        cmd.append('setup')
+    elif check_only:
         cmd.append('check')
     elif quick:
         cmd.append('sync')  # Quick sync without full checks
