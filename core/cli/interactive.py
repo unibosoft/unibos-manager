@@ -226,6 +226,17 @@ class InteractiveMode(ABC):
             else:
                 return False
 
+        elif key == '\t' or key == Keys.TAB:  # TAB to switch sections (v527 exact)
+            if not self.state.in_submenu:
+                # Cycle to next section
+                self.state.current_section = (self.state.current_section + 1) % len(self.state.sections)
+                self.state.selected_index = 0
+                self.state.previous_index = None
+                self.render()
+
+        elif key and key.lower() == 'q':  # Q to quit (v527 exact)
+            return False
+
         elif key and key.isdigit():
             # Quick select by number
             num = int(key)
@@ -256,12 +267,8 @@ class InteractiveMode(ABC):
             if show_splash:
                 show_splash_screen(quick=False)
 
-            # Initialize menu structure
+            # Initialize menu structure (v527 exact - sections manage their own items)
             self.state.sections = self.get_sections()
-
-            # Extract all items from first section for initial state
-            if self.state.sections:
-                self.state.items = self.state.sections[0].get('items', [])
 
             # Hide cursor for cleaner UI
             hide_cursor()

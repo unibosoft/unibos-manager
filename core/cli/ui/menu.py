@@ -69,7 +69,7 @@ class MenuState:
         self.update_buffer: List[Any] = []  # For batching updates
 
     def get_selected_item(self) -> Optional[MenuItem]:
-        """Get the currently selected menu item"""
+        """Get the currently selected menu item (v527 exact)"""
         if self.in_submenu:
             # In submenu - return submenu item
             if self.in_submenu.get('items'):
@@ -77,9 +77,12 @@ class MenuState:
                 if 0 <= self.submenu_index < len(items):
                     return items[self.submenu_index]
         else:
-            # In main menu - return main item
-            if 0 <= self.selected_index < len(self.items):
-                return self.items[self.selected_index]
+            # In main menu - return item from current section (v527 style)
+            current_section = self.get_current_section()
+            if current_section:
+                items = current_section.get('items', [])
+                if 0 <= self.selected_index < len(items):
+                    return items[self.selected_index]
         return None
 
     def get_current_section(self) -> Optional[Dict[str, Any]]:
@@ -200,7 +203,7 @@ class MenuState:
 
     def quick_select(self, number: int) -> Optional[MenuItem]:
         """
-        Quick select item by number (0-9)
+        Quick select item by number (0-9) - v527 exact
 
         Args:
             number: Number key pressed (0-9)
@@ -214,10 +217,14 @@ class MenuState:
                 self.submenu_index = number
                 return items[number]
         else:
-            if 0 <= number < len(self.items):
-                self.selected_index = number
-                self.previous_index = None
-                return self.items[number]
+            # Use current section items (v527 style)
+            current_section = self.get_current_section()
+            if current_section:
+                items = current_section.get('items', [])
+                if 0 <= number < len(items):
+                    self.selected_index = number
+                    self.previous_index = None
+                    return items[number]
         return None
 
     def terminal_resized(self, cols: int, lines: int) -> bool:
