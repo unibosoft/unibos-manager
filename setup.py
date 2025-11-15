@@ -27,7 +27,7 @@ setup(
     include_package_data=True,
     entry_points={
         'console_scripts': [
-            'unibos=core.cli.main:main',
+            'unibos=core.profiles.prod.main:main',
         ],
     },
     install_requires=[
