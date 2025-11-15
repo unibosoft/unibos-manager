@@ -57,8 +57,19 @@ unibos-dev = "core.profiles.dev.main:main"
 unibos-server = "core.profiles.server.main:main"
 
 [tool.setuptools]
-packages = {find = {}}
 include-package-data = true
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["core*", "modules*"]
+exclude = [
+    "archive*",
+    "deployment*",
+    "data*",
+    "*.venv*",
+    "**/venv/**",
+    "core.clients.web.venv*",
+]
 
 [tool.setuptools.dynamic]
 version = {attr = "core.version.__version__"}

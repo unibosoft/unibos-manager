@@ -12,14 +12,14 @@ from pathlib import Path
 project_root = Path(__file__).parent.parent.parent
 sys.path.insert(0, str(project_root))
 
-from core.cli.ui.splash import show_splash, show_header
-from core.cli.commands.status import status_command
-from core.cli.commands.start import start_command
-from core.cli.commands.stop import stop_command
-from core.cli.commands.logs import logs_command
-from core.cli.commands.platform import platform_command
-from core.cli.commands.node import node_group
-from core.cli.commands.module import module_group
+from core.clients.cli.framework.ui.splash import show_splash, show_header
+from core.clients.cli.framework.commands.status import status_command
+from core.clients.cli.framework.commands.start import start_command
+from core.clients.cli.framework.commands.stop import stop_command
+from core.clients.cli.framework.commands.logs import logs_command
+from core.clients.cli.framework.commands.platform import platform_command
+from core.clients.cli.framework.commands.node import node_group
+from core.clients.cli.framework.commands.module import module_group
 from core.version import __version__
 
 

@@ -16,8 +16,8 @@ from pathlib import Path
 project_root = Path(__file__).parent.parent.parent
 sys.path.insert(0, str(project_root))
 
-from core.cli.interactive import InteractiveMode
-from core.cli.ui import MenuItem, Colors
+from core.clients.cli.framework.interactive import InteractiveMode
+from core.clients.cli.framework.ui import MenuItem, Colors
 from core.version import __version__
 
 
@@ -49,12 +49,12 @@ class UnibosServerInteractive(InteractiveMode):
             {
                 'id': 'services',
                 'label': 'services',
-                'icon': '™',
+                'icon': 'ï¿½',
                 'items': [
                     MenuItem(
                         id='service_status',
                         label='service status',
-                        icon='=Ê',
+                        icon='=ï¿½',
                         description='show status of all services (django, postgres, redis, celery)'
                     ),
                     MenuItem(
@@ -66,13 +66,13 @@ class UnibosServerInteractive(InteractiveMode):
                     MenuItem(
                         id='service_logs',
                         label='view logs',
-                        icon='=Ü',
+                        icon='=ï¿½',
                         description='view service logs (django, gunicorn, celery)'
                     ),
                     MenuItem(
                         id='service_health',
                         label='health check',
-                        icon='<å',
+                        icon='<ï¿½',
                         description='comprehensive health check (database, redis, disk, memory)'
                     ),
                 ]
@@ -85,13 +85,13 @@ class UnibosServerInteractive(InteractiveMode):
                     MenuItem(
                         id='nodes_list',
                         label='list nodes',
-                        icon='=Ë',
+                        icon='=ï¿½',
                         description='show all registered nodes in the network'
                     ),
                     MenuItem(
                         id='nodes_health',
                         label='node health',
-                        icon='=Š',
+                        icon='=ï¿½',
                         description='health status of all connected nodes'
                     ),
                     MenuItem(
@@ -105,18 +105,18 @@ class UnibosServerInteractive(InteractiveMode):
             {
                 'id': 'database',
                 'label': 'database',
-                'icon': '=Ä',
+                'icon': '=ï¿½',
                 'items': [
                     MenuItem(
                         id='db_backup',
                         label='create backup',
-                        icon='=¾',
+                        icon='=ï¿½',
                         description='create postgresql backup'
                     ),
                     MenuItem(
                         id='db_restore',
                         label='restore backup',
-                        icon='=å',
+                        icon='=ï¿½',
                         description='restore from backup file'
                     ),
                     MenuItem(
@@ -128,7 +128,7 @@ class UnibosServerInteractive(InteractiveMode):
                     MenuItem(
                         id='db_vacuum',
                         label='vacuum database',
-                        icon='>ù',
+                        icon='>ï¿½',
                         description='optimize postgresql performance'
                     ),
                 ]
@@ -136,12 +136,12 @@ class UnibosServerInteractive(InteractiveMode):
             {
                 'id': 'monitoring',
                 'label': 'monitoring',
-                'icon': '=È',
+                'icon': '=ï¿½',
                 'items': [
                     MenuItem(
                         id='mon_stats',
                         label='system stats',
-                        icon='=Ê',
+                        icon='=ï¿½',
                         description='cpu, memory, disk usage'
                     ),
                     MenuItem(
@@ -153,7 +153,7 @@ class UnibosServerInteractive(InteractiveMode):
                     MenuItem(
                         id='mon_performance',
                         label='performance metrics',
-                        icon='¡',
+                        icon='ï¿½',
                         description='request rate, response time, cache hits'
                     ),
                 ]
@@ -172,10 +172,10 @@ class UnibosServerInteractive(InteractiveMode):
         """
         import subprocess
         import os
-        from core.cli.ui import clear_screen, Colors
+        from core.clients.cli.framework.ui import clear_screen, Colors
 
         clear_screen()
-        print(f"{Colors.ORANGE}{Colors.BOLD}¶ {item.label}{Colors.RESET}\n")
+        print(f"{Colors.ORANGE}{Colors.BOLD}ï¿½ {item.label}{Colors.RESET}\n")
 
         try:
             # Service management
@@ -225,12 +225,12 @@ class UnibosServerInteractive(InteractiveMode):
                 subprocess.run(['unibos-server', 'stats'], check=True)
 
             else:
-                print(f"{Colors.YELLOW}  action not yet implemented: {item.id}{Colors.RESET}")
+                print(f"{Colors.YELLOW}ï¿½ action not yet implemented: {item.id}{Colors.RESET}")
 
         except subprocess.CalledProcessError as e:
             print(f"\n{Colors.RED}L command failed with exit code {e.returncode}{Colors.RESET}")
         except KeyboardInterrupt:
-            print(f"\n{Colors.YELLOW}  interrupted{Colors.RESET}")
+            print(f"\n{Colors.YELLOW}ï¿½ interrupted{Colors.RESET}")
         except Exception as e:
             print(f"\n{Colors.RED}L error: {e}{Colors.RESET}")
 

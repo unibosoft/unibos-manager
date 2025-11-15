@@ -16,8 +16,8 @@ from pathlib import Path
 project_root = Path(__file__).parent.parent.parent
 sys.path.insert(0, str(project_root))
 
-from core.cli.interactive import InteractiveMode
-from core.cli.ui import MenuItem, Colors
+from core.clients.cli.framework.interactive import InteractiveMode
+from core.clients.cli.framework.ui import MenuItem, Colors
 from core.version import __version__
 
 
@@ -49,12 +49,12 @@ class UnibosNodeInteractive(InteractiveMode):
             {
                 'id': 'node',
                 'label': 'node management',
-                'icon': '=¥',
+                'icon': '=ï¿½',
                 'items': [
                     MenuItem(
                         id='node_status',
                         label='node status',
-                        icon='=Ê',
+                        icon='=ï¿½',
                         description='show node health, services, and system info'
                     ),
                     MenuItem(
@@ -66,7 +66,7 @@ class UnibosNodeInteractive(InteractiveMode):
                     MenuItem(
                         id='node_services',
                         label='local services',
-                        icon='™',
+                        icon='ï¿½',
                         description='manage local django, postgresql, redis'
                     ),
                     MenuItem(
@@ -97,7 +97,7 @@ class UnibosNodeInteractive(InteractiveMode):
                     MenuItem(
                         id='p2p_broadcast',
                         label='broadcast message',
-                        icon='=á',
+                        icon='=ï¿½',
                         description='send message to all peers in network'
                     ),
                     MenuItem(
@@ -111,30 +111,30 @@ class UnibosNodeInteractive(InteractiveMode):
             {
                 'id': 'modules',
                 'label': 'modules',
-                'icon': '=æ',
+                'icon': '=ï¿½',
                 'items': [
                     MenuItem(
                         id='mod_list',
                         label='installed modules',
-                        icon='=Ë',
+                        icon='=ï¿½',
                         description='show all installed modules and their status'
                     ),
                     MenuItem(
                         id='mod_start',
                         label='start module',
-                        icon='¶',
+                        icon='ï¿½',
                         description='start a specific module'
                     ),
                     MenuItem(
                         id='mod_stop',
                         label='stop module',
-                        icon='ù',
+                        icon='ï¿½',
                         description='stop a running module'
                     ),
                     MenuItem(
                         id='mod_config',
                         label='module config',
-                        icon='™',
+                        icon='ï¿½',
                         description='configure module settings'
                     ),
                 ]
@@ -147,7 +147,7 @@ class UnibosNodeInteractive(InteractiveMode):
                     MenuItem(
                         id='sync_status',
                         label='sync status',
-                        icon='=Ê',
+                        icon='=ï¿½',
                         description='show connection status to central server'
                     ),
                     MenuItem(
@@ -159,13 +159,13 @@ class UnibosNodeInteractive(InteractiveMode):
                     MenuItem(
                         id='sync_queue',
                         label='offline queue',
-                        icon='=Ë',
+                        icon='=ï¿½',
                         description='show queued operations waiting for sync'
                     ),
                     MenuItem(
                         id='sync_config',
                         label='sync settings',
-                        icon='™',
+                        icon='ï¿½',
                         description='configure sync frequency and options'
                     ),
                 ]
@@ -184,10 +184,10 @@ class UnibosNodeInteractive(InteractiveMode):
         """
         import subprocess
         import os
-        from core.cli.ui import clear_screen, Colors
+        from core.clients.cli.framework.ui import clear_screen, Colors
 
         clear_screen()
-        print(f"{Colors.ORANGE}{Colors.BOLD}¶ {item.label}{Colors.RESET}\n")
+        print(f"{Colors.ORANGE}{Colors.BOLD}ï¿½ {item.label}{Colors.RESET}\n")
 
         try:
             # Node management
@@ -241,12 +241,12 @@ class UnibosNodeInteractive(InteractiveMode):
                 print(f"{Colors.DIM}sync not yet implemented{Colors.RESET}")
 
             else:
-                print(f"{Colors.YELLOW}  action not yet implemented: {item.id}{Colors.RESET}")
+                print(f"{Colors.YELLOW}ï¿½ action not yet implemented: {item.id}{Colors.RESET}")
 
         except subprocess.CalledProcessError as e:
             print(f"\n{Colors.RED}L command failed with exit code {e.returncode}{Colors.RESET}")
         except KeyboardInterrupt:
-            print(f"\n{Colors.YELLOW}  interrupted{Colors.RESET}")
+            print(f"\n{Colors.YELLOW}ï¿½ interrupted{Colors.RESET}")
         except Exception as e:
             print(f"\n{Colors.RED}L error: {e}{Colors.RESET}")
 

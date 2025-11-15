@@ -12,8 +12,8 @@ from pathlib import Path
 project_root = Path(__file__).parent.parent.parent
 sys.path.insert(0, str(project_root))
 
-from core.cli.interactive import InteractiveMode
-from core.cli.ui import MenuItem, Colors
+from core.clients.cli.framework.interactive import InteractiveMode
+from core.clients.cli.framework.ui import MenuItem, Colors
 from core.version import __version__
 
 
@@ -192,7 +192,7 @@ class UnibosDevInteractive(InteractiveMode):
         """
         import subprocess
         import os
-        from core.cli.ui import clear_screen, Colors
+        from core.clients.cli.framework.ui import clear_screen, Colors
 
         clear_screen()
         print(f"{Colors.ORANGE}{Colors.BOLD}▶ {item.label}{Colors.RESET}\n")
