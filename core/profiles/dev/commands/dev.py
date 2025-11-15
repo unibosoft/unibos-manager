@@ -60,10 +60,13 @@ def dev_run(port, host):
         click.echo(click.style(f'❌ Error: manage.py not found in {django_path}', fg='red'))
         sys.exit(1)
 
+    # Get project root (3 levels up from web dir)
+    root_dir = django_path.parent.parent.parent
+
     # Set environment
     env = os.environ.copy()
     env['DJANGO_SETTINGS_MODULE'] = 'unibos_backend.settings.development'
-    env['PYTHONPATH'] = f"{django_path}:{django_path.parent}"
+    env['PYTHONPATH'] = f"{django_path}:{root_dir}"
 
     try:
         subprocess.run(
@@ -101,10 +104,11 @@ def dev_shell():
     click.echo(click.style('🐚 Opening Django shell...', fg='cyan'))
 
     django_path = get_django_path()
+    root_dir = django_path.parent.parent.parent
 
     env = os.environ.copy()
     env['DJANGO_SETTINGS_MODULE'] = 'unibos_backend.settings.development'
-    env['PYTHONPATH'] = f"{django_path}:{django_path.parent}"
+    env['PYTHONPATH'] = f"{django_path}:{root_dir}"
 
     try:
         subprocess.run(
@@ -123,10 +127,11 @@ def dev_test(args):
     click.echo(click.style('🧪 Running tests...', fg='cyan'))
 
     django_path = get_django_path()
+    root_dir = django_path.parent.parent.parent
 
     env = os.environ.copy()
     env['DJANGO_SETTINGS_MODULE'] = 'unibos_backend.settings.development'
-    env['PYTHONPATH'] = f"{django_path}:{django_path.parent}"
+    env['PYTHONPATH'] = f"{django_path}:{root_dir}"
 
     cmd = [get_django_python(), 'manage.py', 'test'] + list(args)
 
@@ -141,10 +146,11 @@ def dev_migrate(app):
     click.echo(click.style('🔄 Running migrations...', fg='cyan'))
 
     django_path = get_django_path()
+    root_dir = django_path.parent.parent.parent
 
     env = os.environ.copy()
     env['DJANGO_SETTINGS_MODULE'] = 'unibos_backend.settings.development'
-    env['PYTHONPATH'] = f"{django_path}:{django_path.parent}"
+    env['PYTHONPATH'] = f"{django_path}:{root_dir}"
 
     cmd = [get_django_python(), 'manage.py', 'migrate']
     if app:
@@ -161,10 +167,11 @@ def dev_makemigrations(app):
     click.echo(click.style('📝 Creating migrations...', fg='cyan'))
 
     django_path = get_django_path()
+    root_dir = django_path.parent.parent.parent
 
     env = os.environ.copy()
     env['DJANGO_SETTINGS_MODULE'] = 'unibos_backend.settings.development'
-    env['PYTHONPATH'] = f"{django_path}:{django_path.parent}"
+    env['PYTHONPATH'] = f"{django_path}:{root_dir}"
 
     cmd = [get_django_python(), 'manage.py', 'makemigrations']
     if app:

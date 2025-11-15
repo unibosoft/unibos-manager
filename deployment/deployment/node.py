@@ -281,7 +281,7 @@ After=network.target postgresql.service
 [Service]
 Type=notify
 User={os.getlogin()}
-WorkingDirectory={self.install_path}/core/web
+WorkingDirectory={self.install_path}/core/clients/web
 Environment="DJANGO_SETTINGS_MODULE=unibos_backend.settings.node"
 Environment="PATH={self.venv_path}/bin:/usr/local/bin:/usr/bin:/bin"
 ExecStart={self.venv_path}/bin/gunicorn unibos_backend.wsgi:application \\

@@ -23,7 +23,7 @@ def get_django_path():
     else:
         root_dir = Path(__file__).parent.parent.parent.parent
 
-    return root_dir / 'core' / 'web'
+    return root_dir / 'core' / 'clients' / 'web'
 
 
 def get_django_python():
@@ -44,11 +44,12 @@ def start_command(port):
     click.echo()
 
     django_path = get_django_path()
+    root_dir = django_path.parent.parent.parent
 
     # Set environment
     env = os.environ.copy()
     env['DJANGO_SETTINGS_MODULE'] = 'unibos_backend.settings.development'
-    env['PYTHONPATH'] = f"{django_path}:{django_path.parent}"
+    env['PYTHONPATH'] = f"{django_path}:{root_dir}"
 
     click.echo(f"  📡 Starting Django on port {port}...")
 

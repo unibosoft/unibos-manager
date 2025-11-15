@@ -102,7 +102,7 @@ class ServerDeployment:
             bool: True if successful
         """
         cmd = (
-            f"cd {self.deploy_path}/core/web && "
+            f"cd {self.deploy_path}/core/clients/web && "
             f"source ../venv/bin/activate && "
             f"DJANGO_SETTINGS_MODULE=unibos_backend.settings.server "
             f"python manage.py migrate"
@@ -122,7 +122,7 @@ class ServerDeployment:
             bool: True if successful
         """
         cmd = (
-            f"cd {self.deploy_path}/core/web && "
+            f"cd {self.deploy_path}/core/clients/web && "
             f"source ../venv/bin/activate && "
             f"DJANGO_SETTINGS_MODULE=unibos_backend.settings.server "
             f"python manage.py collectstatic --noinput"
