@@ -68,11 +68,11 @@ def draw_sidebar_section(
     sidebar_width: int = 25
 ):
     """
-    Draw a sidebar section with items
+    Draw a sidebar section with items (v527 exact style)
 
     Args:
         y_start: Starting Y position
-        title: Section title
+        title: Section title (will be lowercased)
         items: List of (key, label) tuples
         selected_index: Currently selected item index (-1 for none)
         is_dimmed: Whether section should be dimmed
@@ -83,9 +83,10 @@ def draw_sidebar_section(
     """
     cols, lines = get_terminal_size()
 
-    # Section header
+    # Section header (lowercase, v527 style)
     move_cursor(1, y_start)
-    sys.stdout.write(f"{Colors.BG_DARK}{Colors.ORANGE}{Colors.BOLD} {title:<{sidebar_width-2}} {Colors.RESET}")
+    title_lower = title.lower()
+    sys.stdout.write(f"{Colors.BG_DARK}{Colors.ORANGE}{Colors.BOLD} {title_lower:<{sidebar_width-2}} {Colors.RESET}")
 
     # Items
     y = y_start + 1
@@ -93,12 +94,15 @@ def draw_sidebar_section(
         if y >= lines - 1:  # Leave room for footer
             break
 
+        # Ensure label is lowercase
+        label_lower = label.lower()
+
         # Truncate label if too long
         max_label_len = sidebar_width - 3
-        if len(label) > max_label_len:
-            label = label[:max_label_len - 3] + "..."
+        if len(label_lower) > max_label_len:
+            label_lower = label_lower[:max_label_len - 3] + "..."
 
-        # Determine colors
+        # Determine colors (v527 exact)
         if i == selected_index and not is_dimmed:
             bg = Colors.BG_ORANGE
             fg = Colors.WHITE + Colors.BOLD
@@ -106,11 +110,11 @@ def draw_sidebar_section(
             bg = Colors.BG_DARK
             fg = Colors.DIM if is_dimmed else Colors.WHITE
 
-        # Draw item
+        # Draw item (v527 exact: full width background, then text at x=2)
         move_cursor(1, y)
         sys.stdout.write(f"{bg}{' ' * sidebar_width}{Colors.RESET}")
         move_cursor(2, y)
-        sys.stdout.write(f"{bg}{fg} {label}{Colors.RESET}")
+        sys.stdout.write(f"{bg}{fg} {label_lower}{Colors.RESET}")
 
         y += 1
 
@@ -167,11 +171,11 @@ def draw_content_area(
     content_bg: str = ""
 ):
     """
-    Draw content area (right side of screen)
+    Draw content area (right side, v527 exact style)
 
     Args:
-        title: Content area title
-        lines: List of content lines to display
+        title: Content area title (will be lowercased)
+        lines: List of content lines to display (will be lowercased)
         sidebar_width: Width of sidebar (to calculate content position)
         content_bg: Optional background color
     """
@@ -181,61 +185,84 @@ def draw_content_area(
     content_width = cols - content_x - 2
     content_y_start = 3
 
-    # Title bar
+    # Title bar (lowercase, v527 style - no border, just title)
     move_cursor(content_x, content_y_start)
-    title_bar = f" {title} "
-    title_bar += "─" * (content_width - len(title) - 2)
-    sys.stdout.write(f"{Colors.CYAN}{Colors.BOLD}{title_bar}{Colors.RESET}")
+    title_lower = title.lower()
+    sys.stdout.write(f"{Colors.CYAN}{Colors.BOLD}{title_lower}{Colors.RESET}")
 
-    # Content lines
+    # Content lines (lowercase)
     y = content_y_start + 2
     for line in lines:
         if y >= term_lines - 1:
             break
 
+        # Ensure lowercase
+        line_lower = line.lower()
+
         # Wrap line if too long
-        if len(line) > content_width:
-            line = line[:content_width - 3] + "..."
+        if len(line_lower) > content_width:
+            line_lower = line_lower[:content_width - 3] + "..."
 
         move_cursor(content_x, y)
         if content_bg:
-            sys.stdout.write(f"{content_bg}{line}{Colors.RESET}")
+            sys.stdout.write(f"{content_bg}{Colors.DIM}{line_lower}{Colors.RESET}")
         else:
-            sys.stdout.write(line)
+            sys.stdout.write(f"{Colors.DIM}{line_lower}{Colors.RESET}")
 
         y += 1
 
     sys.stdout.flush()
 
 
-def draw_footer(hints: str = "", show_time: bool = True):
+def draw_footer(hints: str = "", location: str = "bitez, bodrum", hostname: str = ""):
     """
-    Draw v527-style footer with navigation hints and time
+    Draw v527-style footer with full details
 
     Args:
-        hints: Navigation hints text
-        show_time: Whether to show current time
+        hints: Navigation hints text (lowercase)
+        location: Location text (lowercase)
+        hostname: Hostname (lowercase)
     """
+    import socket
+
     cols, lines = get_terminal_size()
 
-    # Full dark gray background
+    # Full dark background
     move_cursor(1, lines)
-    sys.stdout.write(f"{Colors.BG_DARK_GRAY}{' ' * cols}{Colors.RESET}")
+    sys.stdout.write(f"{Colors.BG_DARK}{' ' * cols}{Colors.RESET}")
 
-    # Left side: Navigation hints
-    if hints:
-        move_cursor(2, lines)
-        sys.stdout.write(f"{Colors.BG_DARK_GRAY}{Colors.DIM}{hints}{Colors.RESET}")
+    # Left side: Navigation hints (lowercase, v527 exact format)
+    if not hints:
+        hints = "↑↓ navigate | enter/→ select | esc/← back | tab switch | q quit"
 
-    # Right side: Time (Istanbul timezone)
-    if show_time:
-        # Get Istanbul time (UTC+3)
-        now = datetime.now()
-        time_str = now.strftime("%H:%M")
-        time_pos = cols - len(time_str) - 2
+    move_cursor(2, lines)
+    sys.stdout.write(f"{Colors.BG_DARK}{Colors.DIM}{hints}{Colors.RESET}")
 
-        move_cursor(time_pos, lines)
-        sys.stdout.write(f"{Colors.BG_DARK_GRAY}{Colors.WHITE}{time_str}{Colors.RESET}")
+    # Get hostname if not provided
+    if not hostname:
+        try:
+            hostname = socket.gethostname().lower()
+        except:
+            hostname = "localhost"
+
+    # Right side: hostname | location | date | time | status
+    now = datetime.now()
+    current_date = now.strftime("%Y-%m-%d")
+    current_time = now.strftime("%H:%M:%S")
+    status_text = "online"
+    status_led = "●"  # Green LED
+
+    # Build right side (lowercase)
+    right_side = f"{hostname} | {location} | {current_date} | {current_time} | {status_text} "
+    right_side_len = len(right_side) + 1  # +1 for LED
+
+    # Calculate position
+    right_pos = cols - right_side_len - 2
+    right_pos = max(2, right_pos)
+
+    # Draw right side
+    move_cursor(right_pos, lines)
+    sys.stdout.write(f"{Colors.BG_DARK}{Colors.WHITE}{right_side}{Colors.GREEN}{status_led}{Colors.RESET}")
 
     sys.stdout.flush()
 

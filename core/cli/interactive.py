@@ -108,12 +108,13 @@ class InteractiveMode(ABC):
 
     def render_footer(self):
         """
-        Render v527-style footer with navigation hints and time
+        Render v527-style footer with full details
 
-        Override in subclass for custom hints
+        Override in subclass for custom location/hostname
         """
-        hints = "↑↓: Navigate  ←→: Sections  Enter: Select  ESC: Exit"
-        draw_footer(hints=hints, show_time=True)
+        # v527 exact format (lowercase)
+        hints = "↑↓ navigate | enter/→ select | esc/← back | tab switch | q quit"
+        draw_footer(hints=hints, location="dev environment", hostname="")
 
     def render_sidebar(self):
         """
