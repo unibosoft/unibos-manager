@@ -1,15 +1,15 @@
 # =============================================================================
-# UNIBOS-DEV Repository .gitignore TEMPLATE (KAYNAK ŞABLON)
-# Development environment - Mac local development
+# UNIBOS-MANAGER Repository .gitignore TEMPLATE (KAYNAK ŞABLON)
+# Remote management CLI - For managing UNIBOS servers remotely
 # =============================================================================
 # ⚠️  BU DOSYA KAYNAK TEMPLATE'DIR
 #
 # Bu template .gitignore dosyasına kopyalanarak kullanılır:
-#   cp .gitignore.dev .gitignore
+#   cp .gitignore.manager .gitignore
 #
 # TEMPLATE ÇALIŞMA MANTIĞI (4-Repo Architecture):
-# - .gitignore.dev     → unibos-dev repo için (bu dosya)
-# - .gitignore.manager → unibos-manager repo için
+# - .gitignore.dev     → unibos-dev repo için
+# - .gitignore.manager → unibos-manager repo için (bu dosya)
 # - .gitignore.server  → unibos-server repo için
 # - .gitignore.prod    → unibos (prod) repo için
 #
@@ -20,29 +20,43 @@
 #   prod    → cp .gitignore.prod .gitignore    → push to prod
 #
 # DEĞİŞİKLİK YAPARKEN:
-# ✅ Bu template'i (.gitignore.dev) düzenleyebilirsiniz
-# ✅ Ortak değişiklikleri diğer template'lere (.manager, .server, .prod) de ekleyin
-# ✅ cp .gitignore.dev .gitignore ile aktif hale getirin
+# ✅ Bu template'i (.gitignore.manager) düzenleyebilirsiniz
+# ✅ Ortak değişiklikleri diğer template'lere de ekleyin
 #
-# Bu şablon unibos-dev repo'su için tasarlanmıştır.
-# Tüm development tools, tüm profiller (dev, manager, server, prod), tüm modüller dahildir.
+# Bu şablon unibos-manager repo'su için tasarlanmıştır.
+# Uzaktan sunucu yönetimi için (SSH, deployment, monitoring).
 #
-# Repo: https://github.com/unibosoft/unibos-dev
-# Purpose: Full development environment with all tools and profiles
-# Includes: All 4 profiles (dev, manager, server, prod), all modules, all settings
+# Repo: https://github.com/unibosoft/unibos-manager
+# Purpose: Remote server management CLI
+# Includes: manager profile ONLY, SSH tools, deployment scripts
+# Excludes: dev/server/prod profiles (GÜVENLİK), modules/, archive/, data/
 # =============================================================================
 
-# ===== CRITICAL: DEVELOPMENT-ONLY DATA (NEVER COMMIT) =====
-# Archives are LOCAL ONLY - never push to any repo
+# ===== CRITICAL: EXCLUDE OTHER PROFILES (SECURITY) =====
+# Only manager profile should be in manager repo
+core/profiles/dev/
+core/profiles/server/
+core/profiles/prod/
+setup-dev.py
+setup-server.py
+setup-prod.py
+
+# ===== CRITICAL: NO MODULES IN MANAGER =====
+# Manager doesn't need business modules (only management tools)
+modules/
+
+# ===== CRITICAL: NO ARCHIVES ON MANAGER =====
+# Archives are development-only
 archive/
 archive_backup*/
 
-# Runtime data is LOCAL ONLY
+# ===== CRITICAL: NO RUNTIME DATA IN REPO =====
+# All data managed separately
 data/
 data_db/
 data_db_backup*/
 
-# Build artifacts (pipx, setuptools) - LOCAL ONLY
+# Build artifacts - LOCAL ONLY
 /build/
 /dist/
 
@@ -97,14 +111,6 @@ server.log
 unibos.log
 debug_output.txt
 
-# ===== DJANGO GENERATED =====
-staticfiles/
-core/web/staticfiles/
-core/web/media/
-modules/*/backend/staticfiles/
-modules/*/backend/media/
-modules/*/backend/uploads/
-
 # ===== ENVIRONMENT & SECRETS =====
 .env
 .env.*
@@ -157,27 +163,6 @@ yarn-error.log
 package-lock.json
 yarn.lock
 
-# ===== FLUTTER/MOBILE BUILD ARTIFACTS =====
-**/build/
-.dart_tool/
-.flutter-plugins
-.flutter-plugins-dependencies
-.packages
-.pub-cache/
-.pub/
-modules/*/mobile/build/
-modules/*/mobile/.dart_tool/
-modules/*/mobile/.flutter-plugins
-modules/*/mobile/.flutter-plugins-dependencies
-modules/*/mobile/.packages
-modules/*/mobile/pubspec.lock
-modules/*/mobile/android/build/
-modules/*/mobile/ios/build/
-modules/*/mobile/ios/Pods/
-modules/*/mobile/macos/build/
-modules/*/mobile/windows/build/
-modules/*/mobile/linux/build/
-
 # ===== TEST & COVERAGE =====
 .pytest_cache/
 .coverage
@@ -210,7 +195,6 @@ test_*.html
 # ===== SQL BACKUPS =====
 *.sql
 *.sql.gz
-archive/database_backups/
 
 # ===== TEMPORARY DATA FILES =====
 all_versions.txt
@@ -218,11 +202,10 @@ missing_versions.txt
 pushed_versions.txt
 screenshot_move_log.json
 
-# ===== MODULE STATUS MARKERS (USER-SPECIFIC) =====
-modules/*/.enabled
-
 # ===== IGNORE FILES THEMSELVES (META) =====
-# NOTE: All .gitignore.* templates SHOULD be in dev repo (single source of truth)
-# This is the ONLY repo that contains all 4 templates:
-#   .gitignore.dev, .gitignore.manager, .gitignore.server, .gitignore.prod
-# Other repos will ignore these templates and only use active .gitignore
+# NOTE: .gitignore.* templates SHOULD be in dev repo only
+# Manager repo only needs active .gitignore
+.gitignore.dev
+.gitignore.server
+.gitignore.prod
+.gitignore.manager
