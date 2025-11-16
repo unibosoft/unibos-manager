@@ -27,7 +27,7 @@ INSTALLED_APPS = [
     'rest_framework.authtoken',
     'corsheaders',
     # Core shared models
-    'core.models',  # Shared models (Item, Account, etc.) - must be loaded before modules
+    # 'core.models',  # Shared models - removed as directory doesn't exist
     # 'modules.core.backend',  # Removed during v533 migration
     # Core system modules - v533 architecture
     'core.system.web_ui.backend',  # UNIBOS Web UI
@@ -74,9 +74,9 @@ TEMPLATES = [
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
                 # UNIBOS custom context processors
-                'modules.web_ui.backend.context_processors.sidebar_context',
-                'modules.web_ui.backend.context_processors.version_context',
-                'modules.web_ui.backend.context_processors.unibos_context',
+                'core.system.web_ui.backend.context_processors.sidebar_context',
+                'core.system.web_ui.backend.context_processors.version_context',
+                'core.system.web_ui.backend.context_processors.unibos_context',
             ],
         },
     },

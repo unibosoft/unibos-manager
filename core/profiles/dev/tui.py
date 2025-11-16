@@ -330,191 +330,620 @@ class UnibosDevTUI(BaseTUI):
     # Development handlers
     def handle_dev_run(self, item):
         """Start development server"""
-        result = self.execute_command(['unibos-dev', 'dev', 'run'])
-        self.show_command_output(result)
+        import subprocess
+        import os
+        import time
+
+        # Check if server is already running
+        check_result = subprocess.run(
+            ['pgrep', '-f', 'manage.py runserver'],
+            capture_output=True
+        )
+
+        if check_result.returncode == 0:
+            # Server already running
+            self.update_content(
+                title="Development Server Status",
+                lines=[
+                    "⚠️  Development server is already running!",
+                    "",
+                    "Server is accessible at: http://127.0.0.1:8000",
+                    "Use 'Stop Server' to stop it first."
+                ],
+                color=Colors.YELLOW
+            )
+        else:
+            # Start server in background, redirect output to log file
+            log_file = '/tmp/unibos_django_server.log'
+
+            try:
+                with open(log_file, 'w') as f:
+                    process = subprocess.Popen(
+                        ['unibos-dev', 'dev', 'run'],
+                        stdout=f,
+                        stderr=subprocess.STDOUT,
+                        preexec_fn=os.setsid  # Create new process group
+                    )
+
+                # Wait a moment to check if it started
+                time.sleep(2)
+
+                if process.poll() is None:
+                    # Server started successfully
+                    self.update_content(
+                        title="Development Server Started",
+                        lines=[
+                            "✅ Development server started!",
+                            "",
+                            "🌐 Server running at: http://127.0.0.1:8000",
+                            "📋 Logs: /tmp/unibos_django_server.log",
+                            "⏹️  Use 'Stop Server' to stop it",
+                            "",
+                            "The server is running in the background."
+                        ],
+                        color=Colors.GREEN
+                    )
+                else:
+                    # Server failed to start, show log
+                    with open(log_file, 'r') as f:
+                        log_content = f.read()[-500:]  # Last 500 chars
+
+                    self.update_content(
+                        title="Server Start Failed",
+                        lines=[
+                            "❌ Failed to start server!",
+                            "",
+                            "Error output:",
+                            "─" * 40,
+                            log_content
+                        ],
+                        color=Colors.RED
+                    )
+            except Exception as e:
+                self.update_content(
+                    title="Server Start Error",
+                    lines=[
+                        "❌ Failed to start server!",
+                        "",
+                        f"Error: {e}"
+                    ],
+                    color=Colors.RED
+                )
+
+        self.render()
         return True
 
     def handle_dev_stop(self, item):
         """Stop development server"""
-        result = self.execute_command(['unibos-dev', 'dev', 'stop'])
-        self.show_command_output(result)
+        import subprocess
+
+        # Kill all Django runserver processes
+        result = subprocess.run(
+            ['pkill', '-f', 'manage.py runserver'],
+            capture_output=True,
+            text=True
+        )
+
+        if result.returncode == 0:
+            self.update_content(
+                title="Development Server Stopped",
+                lines=[
+                    "✅ Development server stopped!",
+                    "",
+                    "The Django development server has been terminated.",
+                    "",
+                    "Use 'Start Server' to start it again."
+                ],
+                color=Colors.GREEN
+            )
+        else:
+            # Check if server was running
+            check_result = subprocess.run(
+                ['pgrep', '-f', 'manage.py runserver'],
+                capture_output=True
+            )
+
+            if check_result.returncode != 0:
+                self.update_content(
+                    title="Server Status",
+                    lines=[
+                        "ℹ️  No development server is running.",
+                        "",
+                        "Use 'Start Server' to start it."
+                    ],
+                    color=Colors.CYAN
+                )
+            else:
+                self.update_content(
+                    title="Stop Server Failed",
+                    lines=[
+                        "❌ Failed to stop server!",
+                        "",
+                        "You may need to manually kill the process.",
+                        "",
+                        "Try: pkill -f 'manage.py runserver'"
+                    ],
+                    color=Colors.RED
+                )
+
+        self.render()
         return True
 
     def handle_dev_shell(self, item):
         """Open Django shell"""
-        # Use subprocess.call for interactive shell
-        subprocess.call(['unibos-dev', 'dev', 'shell'])
+        # Run a simple Django shell command to get context
+        result = self.execute_command(['unibos-dev', 'dev', 'shell', '--help'])
+
+        # Since shell is interactive, provide instructions
+        self.update_content(
+            title="Django Shell",
+            lines=[
+                "Django Shell requires interactive terminal access.",
+                "",
+                "To use Django shell:",
+                "1. Exit the TUI (press 'q' or ESC)",
+                "2. Run: unibos-dev dev shell",
+                "",
+                "The shell provides:",
+                "→ Full Django environment loaded",
+                "→ Access to all models and settings",
+                "→ IPython enhanced if available",
+                "",
+                "Alternative: Use the command line outside TUI for interactive shells."
+            ]
+        )
+        self.render()
         return True
 
     def handle_dev_test(self, item):
         """Run tests"""
+        self.update_content(
+            title="Running Tests...",
+            lines=["⏳ Running Django test suite...", "", "This may take a moment..."]
+        )
+        self.render()
+
         result = self.execute_command(['unibos-dev', 'dev', 'test'])
         self.show_command_output(result)
         return True
 
     def handle_dev_logs(self, item):
         """View logs"""
-        result = self.execute_command(['unibos-dev', 'dev', 'logs'])
-        self.show_command_output(result)
+        import os
+
+        log_file = '/tmp/unibos_django_server.log'
+
+        if os.path.exists(log_file):
+            # Read last 50 lines of log for content area
+            with open(log_file, 'r') as f:
+                lines = f.readlines()
+                last_lines = lines[-50:] if len(lines) > 50 else lines
+
+            # Format lines for content area
+            content = [
+                f"Server logs (last {len(last_lines)} lines):",
+                f"File: {log_file}",
+                "",
+                "─" * 40,
+                ""
+            ]
+
+            for line in last_lines:
+                # Keep full lines for scrolling support
+                line = line.rstrip()
+                if line:
+                    content.append(line)
+
+            self.update_content(
+                title="Development Server Logs",
+                lines=content,
+                color=Colors.CYAN
+            )
+        else:
+            self.update_content(
+                title="No Logs Available",
+                lines=[
+                    "ℹ️  No log file found.",
+                    "",
+                    "The server may not have been started yet.",
+                    "Use 'Start Server' to start it first."
+                ],
+                color=Colors.CYAN
+            )
+
+        self.render()
         return True
 
     # Git handlers
     def handle_git_status(self, item):
         """Show git status"""
         result = self.execute_command(['git', 'status'])
-        self.show_command_output(result)
+
+        if result.returncode == 0:
+            lines = result.stdout.split('\n')
+            self.update_content(
+                title="Git Status",
+                lines=lines,
+                color=Colors.CYAN
+            )
+        else:
+            self.update_content(
+                title="Git Status Error",
+                lines=[
+                    "❌ Failed to get git status",
+                    "",
+                    "Error:",
+                    result.stderr
+                ],
+                color=Colors.RED
+            )
+
+        self.render()
         return True
 
     def handle_git_pull(self, item):
         """Pull from remote"""
+        self.update_content(
+            title="Pulling from Remote...",
+            lines=["⏳ Fetching latest changes...", "", "This may take a moment..."]
+        )
+        self.render()
+
         result = self.execute_command(['git', 'pull'])
         self.show_command_output(result)
         return True
 
     def handle_git_commit(self, item):
         """Commit changes"""
-        # Get commit message
-        clear_screen()
-        print(f"{Colors.YELLOW}Enter commit message:{Colors.RESET} ", end='')
-        message = input().strip()
+        # First show git status for context
+        status_result = self.execute_command(['git', 'status', '--short'])
 
-        if message:
-            # Stage all changes
-            self.execute_command(['git', 'add', '-A'])
-            # Commit
-            result = self.execute_command(['git', 'commit', '-m', message])
-            self.show_command_output(result)
+        if status_result.stdout.strip():
+            lines = [
+                "Current changes to be committed:",
+                "",
+                "─" * 40,
+                ""
+            ]
+            lines.extend(status_result.stdout.split('\n'))
+            lines.extend([
+                "",
+                "─" * 40,
+                "",
+                "ℹ️  To commit these changes:",
+                "1. Exit TUI (press 'q')",
+                "2. Run: git add -A && git commit -m 'your message'",
+                "",
+                "Or use 'Push to all repos' for automated commit and push."
+            ])
+
+            self.update_content(
+                title="Git Commit",
+                lines=lines
+            )
         else:
-            self.show_error("Commit message required")
+            self.update_content(
+                title="No Changes",
+                lines=[
+                    "ℹ️  No changes to commit.",
+                    "",
+                    "Working directory is clean."
+                ],
+                color=Colors.CYAN
+            )
 
+        self.render()
         return True
 
     def handle_git_push_all(self, item):
         """Push to all repositories"""
-        clear_screen()
-        print(f"{Colors.YELLOW}Enter commit message:{Colors.RESET} ", end='')
-        message = input().strip()
+        # Show current status first
+        status_result = self.execute_command(['git', 'status', '--short'])
 
-        if message:
-            result = self.execute_command(['unibos-dev', 'git', 'push-all', message])
-            self.show_command_output(result)
+        lines = [
+            "Push to All Repositories",
+            "",
+            "This will:",
+            "→ Commit all current changes",
+            "→ Push to dev repository",
+            "→ Push to server repository",
+            "→ Push to prod repository",
+            "",
+            "Current changes:",
+            "─" * 40,
+            ""
+        ]
+
+        if status_result.stdout.strip():
+            lines.extend(status_result.stdout.split('\n'))
         else:
-            self.show_error("Commit message required")
+            lines.append("No uncommitted changes")
 
+        lines.extend([
+            "",
+            "─" * 40,
+            "",
+            "ℹ️  To push to all repos:",
+            "1. Exit TUI (press 'q')",
+            "2. Run: unibos-dev git push-all 'your commit message'"
+        ])
+
+        self.update_content(
+            title="Push to All Repos",
+            lines=lines
+        )
+        self.render()
         return True
 
     def handle_deploy_rocksteady(self, item):
         """Deploy to rocksteady"""
-        if self.confirm("Deploy to rocksteady server?"):
-            result = self.execute_command(['unibos-dev', 'deploy', 'rocksteady'])
-            self.show_command_output(result)
+        lines = [
+            "Deploy to Rocksteady Server",
+            "",
+            "This deployment will:",
+            "→ SSH to rocksteady.fun",
+            "→ Pull latest changes",
+            "→ Run database migrations",
+            "→ Collect static files",
+            "→ Restart systemd services",
+            "",
+            "⚠️  This is a production deployment!",
+            "",
+            "Prerequisites:",
+            "✓ SSH key configured for rocksteady.fun",
+            "✓ Latest changes pushed to server repo",
+            "✓ Database migrations tested locally",
+            "",
+            "─" * 40,
+            "",
+            "To deploy:",
+            "1. Exit TUI (press 'q')",
+            "2. Run: unibos-dev deploy rocksteady",
+            "",
+            "The deployment will show real-time progress."
+        ]
+
+        self.update_content(
+            title="Production Deployment",
+            lines=lines,
+            color=Colors.YELLOW
+        )
+        self.render()
         return True
 
     # Database handlers
     def handle_db_migrate(self, item):
         """Run migrations"""
+        self.update_content(
+            title="Running Migrations...",
+            lines=["⏳ Applying database migrations...", "", "This may take a moment..."]
+        )
+        self.render()
+
         result = self.execute_command(['unibos-dev', 'db', 'migrate'])
         self.show_command_output(result)
         return True
 
     def handle_db_makemigrations(self, item):
         """Make migrations"""
+        self.update_content(
+            title="Creating Migrations...",
+            lines=["⏳ Detecting model changes...", "", "Creating migration files..."]
+        )
+        self.render()
+
         result = self.execute_command(['unibos-dev', 'db', 'makemigrations'])
         self.show_command_output(result)
         return True
 
     def handle_db_backup(self, item):
         """Backup database"""
+        self.update_content(
+            title="Creating Database Backup...",
+            lines=["⏳ Backing up database...", "", "This may take a moment..."]
+        )
+        self.render()
+
         result = self.execute_command(['unibos-dev', 'db', 'backup'])
         self.show_command_output(result)
         return True
 
     def handle_db_restore(self, item):
         """Restore database"""
-        clear_screen()
-        print(f"{Colors.YELLOW}Enter backup file path:{Colors.RESET} ", end='')
-        backup_file = input().strip()
+        # List available backups first
+        import os
+        backup_dir = "/Users/berkhatirli/Desktop/unibos-dev/archive/database_backups"
 
-        if backup_file:
-            if self.confirm(f"Restore from {backup_file}?"):
-                result = self.execute_command(['unibos-dev', 'db', 'restore', backup_file])
-                self.show_command_output(result)
+        lines = [
+            "Database Restore",
+            "",
+            "Available backups:",
+            "─" * 40,
+            ""
+        ]
+
+        if os.path.exists(backup_dir):
+            backups = sorted([f for f in os.listdir(backup_dir) if f.endswith(('.sql', '.dump', '.gz'))])[-10:]
+            if backups:
+                for backup in backups:
+                    lines.append(f"  • {backup}")
+            else:
+                lines.append("  No backups found")
         else:
-            self.show_error("Backup file required")
+            lines.append("  Backup directory not found")
 
+        lines.extend([
+            "",
+            "─" * 40,
+            "",
+            "⚠️  Restoring will replace all current data!",
+            "",
+            "To restore a backup:",
+            "1. Exit TUI (press 'q')",
+            "2. Run: unibos-dev db restore <backup_file>",
+            "",
+            "Example: unibos-dev db restore backup_2024-11-16.sql"
+        ])
+
+        self.update_content(
+            title="Database Restore",
+            lines=lines,
+            color=Colors.YELLOW
+        )
+        self.render()
         return True
 
     def handle_db_shell(self, item):
         """Open database shell"""
-        subprocess.call(['unibos-dev', 'db', 'shell'])
+        lines = [
+            "Database Shell",
+            "",
+            "The database shell provides direct SQL access.",
+            "",
+            "Features:",
+            "→ Direct PostgreSQL psql client",
+            "→ Full SQL query capabilities",
+            "→ Database administration",
+            "",
+            "To use database shell:",
+            "1. Exit TUI (press 'q')",
+            "2. Run: unibos-dev db shell",
+            "",
+            "You'll be connected to the configured database.",
+            "",
+            "Common commands:",
+            "  \\dt     - List all tables",
+            "  \\d table - Describe table structure",
+            "  \\q      - Exit shell"
+        ]
+
+        self.update_content(
+            title="Database Shell",
+            lines=lines
+        )
+        self.render()
         return True
 
     # Platform handlers
     def handle_platform_status(self, item):
         """Show platform status"""
-        result = self.execute_command(['unibos-dev', 'status', '--detailed'])
+        self.update_content(
+            title="Loading Platform Status...",
+            lines=["⏳ Gathering system information...", "", "This may take a moment..."]
+        )
+        self.render()
+
+        result = self.execute_command(['unibos-dev', 'status'])
         self.show_command_output(result)
         return True
 
     def handle_platform_modules(self, item):
         """Manage modules"""
+        self.update_content(
+            title="Loading Modules...",
+            lines=["⏳ Scanning module registry...", "", "Checking dependencies..."]
+        )
+        self.render()
+
         result = self.execute_command(['unibos-dev', 'platform', '-v'])
         self.show_command_output(result)
         return True
 
     def handle_platform_config(self, item):
         """Show configuration"""
+        self.update_content(
+            title="Loading Configuration...",
+            lines=["⏳ Reading configuration files...", "", "Processing settings..."]
+        )
+        self.render()
+
         result = self.execute_command(['unibos-dev', 'platform', '-v', '--json'])
-        self.show_command_output(result)
+
+        if result.returncode == 0:
+            # Format JSON output for better readability
+            try:
+                import json
+                config_data = json.loads(result.stdout)
+                lines = [
+                    "Platform Configuration",
+                    "─" * 40,
+                    ""
+                ]
+
+                def format_dict(d, indent=0):
+                    result_lines = []
+                    for key, value in d.items():
+                        if isinstance(value, dict):
+                            result_lines.append(" " * indent + f"{key}:")
+                            result_lines.extend(format_dict(value, indent + 2))
+                        elif isinstance(value, list):
+                            result_lines.append(" " * indent + f"{key}:")
+                            for item in value:
+                                result_lines.append(" " * (indent + 2) + f"• {item}")
+                        else:
+                            result_lines.append(" " * indent + f"{key}: {value}")
+                    return result_lines
+
+                lines.extend(format_dict(config_data))
+                self.update_content("Platform Configuration", lines)
+            except json.JSONDecodeError:
+                # Fall back to raw output
+                self.show_command_output(result)
+        else:
+            self.show_command_output(result)
+
+        self.render()
         return True
 
     def handle_platform_identity(self, item):
         """Show node identity"""
-        clear_screen()
-        print(f"{Colors.CYAN}Node Identity Information:{Colors.RESET}\n")
+        lines = ["Node Identity Information", "", "─" * 40, ""]
 
         try:
             from core.base.identity import get_instance_identity
             instance = get_instance_identity()
             identity = instance.get_identity()
 
-            print(f"  Node UUID: {Colors.BOLD}{identity.uuid}{Colors.RESET}")
-            print(f"  Node Type: {identity.node_type.value}")
-            print(f"  Hostname: {identity.hostname}")
-            print(f"  Platform: {identity.platform}")
-            print(f"  Created: {identity.created_at}")
-            print(f"  Last Seen: {identity.last_seen}")
+            lines.extend([
+                f"Node UUID: {identity.uuid}",
+                f"Node Type: {identity.node_type.value}",
+                f"Hostname: {identity.hostname}",
+                f"Platform: {identity.platform}",
+                f"Created: {identity.created_at}",
+                f"Last Seen: {identity.last_seen}"
+            ])
 
             if identity.registered_to:
-                print(f"  Registered To: {identity.registered_to}")
-        except Exception as e:
-            print(f"{Colors.RED}Error loading identity: {e}{Colors.RESET}")
+                lines.append(f"Registered To: {identity.registered_to}")
 
-        print(f"\n{Colors.DIM}Press Enter to continue...{Colors.RESET}")
-        input()
+            lines.extend([
+                "",
+                "─" * 40,
+                "",
+                "This identity is persistent and unique to this node.",
+                "It's used for:",
+                "→ Node registration",
+                "→ Inter-node communication",
+                "→ Service discovery",
+                "→ Access control"
+            ])
+        except Exception as e:
+            lines.extend([
+                f"❌ Error loading identity: {e}",
+                "",
+                "The identity system may not be initialized.",
+                "Try running: unibos-dev platform init"
+            ])
+
+        self.update_content(
+            title="Node Identity",
+            lines=lines,
+            color=Colors.CYAN
+        )
+        self.render()
         return True
 
-    # Helper methods
-    def show_command_output(self, result):
-        """Show command output with formatting"""
-        clear_screen()
-
-        if result.stdout:
-            print(result.stdout)
-
-        if result.stderr:
-            print(f"{Colors.RED}{result.stderr}{Colors.RESET}")
-
-        if result.returncode != 0:
-            print(f"\n{Colors.RED}Command failed with exit code {result.returncode}{Colors.RESET}")
-
-        print(f"\n{Colors.DIM}Press Enter to continue...{Colors.RESET}")
-        input()
-
-    def confirm(self, message):
-        """Get user confirmation"""
-        response = input(f"{Colors.YELLOW}{message} (y/n):{Colors.RESET} ").strip().lower()
-        return response in ['y', 'yes']
+    # Helper methods are inherited from BaseTUI
 
 
 def run_interactive():

@@ -4,7 +4,7 @@ Shared models used across all modules
 """
 
 # Django app configuration
-default_app_config = 'core.models.apps.CoreModelsConfig'
+default_app_config = 'core.base.models.apps.CoreModelsConfig'
 
 __all__ = [
     'BaseModel',

@@ -73,7 +73,7 @@ THIRD_PARTY_APPS = [
 ]
 
 CORE_APPS = [
-    'core.models',  # Shared models (Item, Account, etc.) - must be loaded before modules
+    'core.base.models',  # Shared models (Item, Account, etc.) - must be loaded before modules
     # Note: modules.core.backend removed during v533 migration
     # Core functionality now distributed across individual modules
 ]

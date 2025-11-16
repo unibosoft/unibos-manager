@@ -102,6 +102,15 @@ class BaseTUI(ABC):
             'system_info': None
         }
 
+        # Content storage for persistent display
+        self.content_buffer = {
+            'title': '',
+            'lines': [],
+            'color': Colors.RESET,
+            'last_command': None,
+            'last_result': None
+        }
+
     @abstractmethod
     def get_menu_sections(self) -> List[MenuSection]:
         """
@@ -209,7 +218,17 @@ class BaseTUI(ABC):
             selected_index=self.state.selected_index
         )
 
-        if selected_item:
+        # Render content area with persistent buffer or selected item description
+        if self.content_buffer['lines']:
+            # Show buffered content from last command
+            content = '\n'.join(self.content_buffer['lines'])
+            self.content_area.draw(
+                title=self.content_buffer['title'],
+                content=content,
+                item=None
+            )
+        elif selected_item:
+            # Show selected item description
             self.content_area.draw(
                 title=selected_item.label,
                 content=selected_item.description,
@@ -279,6 +298,7 @@ class BaseTUI(ABC):
         Returns:
             True to continue, False to exit
         """
+
         sections = self.get_menu_sections()
 
         if key == Keys.UP:
@@ -308,7 +328,7 @@ class BaseTUI(ABC):
                 self.state.selected_index = 0
                 self.render()
 
-        elif key == Keys.ENTER or key == '\r':
+        elif key == Keys.ENTER or key == '\r' or key == '\n':
             # Get current section and item
             current_section = sections[self.state.current_section] if sections else None
             if current_section and 0 <= self.state.selected_index < len(current_section.items):
@@ -390,54 +410,66 @@ class BaseTUI(ABC):
         """Cleanup on exit"""
         pass
 
+    def update_content(self, title: str, lines: List[str], color: str = Colors.RESET):
+        """Update the content buffer with new information"""
+        self.content_buffer['title'] = title
+        self.content_buffer['lines'] = lines
+        self.content_buffer['color'] = color
+        # Content will be displayed on next render
+
     def show_message(self, message: str, color: str = Colors.GREEN):
         """Show a message in content area"""
-        clear_screen()
-        print(f"{color}{message}{Colors.RESET}")
-        print(f"\n{Colors.DIM}Press Enter to continue...{Colors.RESET}")
-        input()
+        # Handle both string and list inputs
+        if isinstance(message, list):
+            lines = message
+        else:
+            lines = message.split('\n') if message else []
+        self.update_content("Message", lines, color)
         self.render()
 
     def show_error(self, message: str):
         """Show an error message"""
-        self.show_message(f"❌ {message}", Colors.RED)
+        self.update_content("Error", [f"❌ {message}"], Colors.RED)
+        self.render()
 
     def show_help_screen(self):
         """Show help screen"""
-        help_text = """
-UNIBOS TUI Help
-
-NAVIGATION:
-  ↑/↓        Navigate items
-  ←/→        Navigate sections
-  TAB        Switch sections
-  Enter      Select item
-  ESC        Back/Cancel
-  Q          Quit
-
-QUICK SELECT:
-  0-9        Select item by number
-
-SHORTCUTS:
-  Ctrl+R     Refresh
-  Ctrl+L     Clear screen
-  F1         Help
-"""
-        self.show_message(help_text, Colors.CYAN)
+        help_lines = [
+            "UNIBOS TUI Help",
+            "",
+            "NAVIGATION:",
+            "  ↑/↓        Navigate items",
+            "  ←/→        Navigate sections",
+            "  TAB        Switch sections",
+            "  Enter      Select item",
+            "  ESC        Back/Cancel",
+            "  Q          Quit",
+            "",
+            "QUICK SELECT:",
+            "  0-9        Select item by number",
+            "",
+            "SHORTCUTS:",
+            "  Ctrl+R     Refresh",
+            "  Ctrl+L     Clear screen",
+            "  F1         Help"
+        ]
+        self.update_content("Help", help_lines, Colors.CYAN)
+        self.render()
 
     def show_about_screen(self):
         """Show about screen"""
-        about_text = f"""
-{self.config.title.upper()} {self.config.version}
-Unicorn Bodrum Operating System
-
-Created by Berk Hatırlı
-Bitez, Bodrum, Muğla, Turkey
-
-Profile: {self.get_profile_name()}
-Build: 534
-"""
-        self.show_message(about_text, Colors.ORANGE)
+        about_lines = [
+            f"{self.config.title.upper()} {self.config.version}",
+            "Unicorn Bodrum Operating System",
+            "",
+            "Created by Berk Hatırlı",
+            "Bitez, Bodrum, Muğla, Turkey",
+            "",
+            f"Profile: {self.get_profile_name()}",
+            "Build: 534"
+        ]
+        self.update_content("About", about_lines, Colors.ORANGE)
+        self.render()
 
     def clear_cache(self):
         """Clear all cached data"""
@@ -473,24 +505,34 @@ Build: 534
         Args:
             result: CompletedProcess object from execute_command
         """
-        clear_screen()
+        lines = []
 
         # Show command
         if hasattr(result, 'args'):
-            print(f"{Colors.DIM}Command: {' '.join(result.args if isinstance(result.args, list) else [str(result.args)])}{Colors.RESET}\n")
+            cmd = ' '.join(result.args if isinstance(result.args, list) else [str(result.args)])
+            lines.append(f"Command: {cmd}")
+            lines.append("─" * 40)
+            lines.append("")
 
         # Show output
         if result.stdout:
-            print(result.stdout)
+            stdout_lines = result.stdout.split('\n')
+            lines.extend(stdout_lines)
 
         # Show errors if any
         if result.stderr:
-            print(f"{Colors.RED}{result.stderr}{Colors.RESET}")
+            lines.append("")
+            lines.append("Errors:")
+            stderr_lines = result.stderr.split('\n')
+            lines.extend(stderr_lines)
 
         # Show exit status if non-zero
         if result.returncode != 0:
-            print(f"\n{Colors.RED}Exit code: {result.returncode}{Colors.RESET}")
+            lines.append("")
+            lines.append(f"❌ Exit code: {result.returncode}")
+        else:
+            lines.append("")
+            lines.append("✅ Command completed successfully")
 
-        # Wait for user
-        print(f"\n{Colors.DIM}Press Enter to continue...{Colors.RESET}")
-        input()
+        self.update_content("Command Output", lines)
+        self.render()
