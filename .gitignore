@@ -1,17 +1,17 @@
 # =============================================================================
-# UNIBOS-SERVER Repository .gitignore TEMPLATE (KAYNAK ŞABLON)
-# Production server environment - Rocksteady
+# UNIBOS Repository .gitignore TEMPLATE (KAYNAK ŞABLON)
+# Production nodes - Raspberry Pi / Local Mac standalone
 # =============================================================================
 # ⚠️  BU DOSYA KAYNAK TEMPLATE'DIR
 #
 # Bu template .gitignore dosyasına kopyalanarak kullanılır:
-#   cp .gitignore.server .gitignore
+#   cp .gitignore.prod .gitignore
 #
 # TEMPLATE ÇALIŞMA MANTIĞI (4-Repo Architecture):
 # - .gitignore.dev     → unibos-dev repo için
 # - .gitignore.manager → unibos-manager repo için
-# - .gitignore.server  → unibos-server repo için (bu dosya)
-# - .gitignore.prod    → unibos (prod) repo için
+# - .gitignore.server  → unibos-server repo için
+# - .gitignore.prod    → unibos (prod) repo için (bu dosya)
 #
 # push-all komutu her repo'ya push ederken doğru template'i otomatik kopyalar:
 #   dev     → cp .gitignore.dev .gitignore     → push to dev
@@ -20,42 +20,43 @@
 #   prod    → cp .gitignore.prod .gitignore    → push to prod
 #
 # DEĞİŞİKLİK YAPARKEN:
-# ✅ Bu template'i (.gitignore.server) düzenleyebilirsiniz
+# ✅ Bu template'i (.gitignore.prod) düzenleyebilirsiniz
 # ✅ Ortak değişiklikleri diğer template'lere de ekleyin
 #
-# Bu şablon unibos-server repo'su için tasarlanmıştır.
-# Merkezi production server (rocksteady) için.
+# Bu şablon unibos (production nodes) repo'su için tasarlanmıştır.
+# Standalone node deployment (raspberry pi, local mac) için.
 #
-# Repo: https://github.com/unibosoft/unibos-server
-# Purpose: Production server deployment (central hub)
-# Includes: server profile, prod profile, all modules (backend)
-# Excludes: dev profile, manager profile (GÜVENLİK), archive/, data/
+# Repo: https://github.com/unibosoft/unibos
+# Purpose: Standalone node deployment (offline-first, P2P)
+# Includes: prod profile ONLY, all modules
+# Excludes: dev, manager, server profiles (GÜVENLİK), archive/, data/
 # =============================================================================
 
-# ===== CRITICAL: EXCLUDE DEV & MANAGER PROFILES (SECURITY) =====
-# Development and manager profiles should NEVER be on production server
+# ===== CRITICAL: EXCLUDE DEV, MANAGER & SERVER PROFILES (SECURITY) =====
+# Only prod profile should be on production nodes
 core/profiles/dev/
 core/profiles/manager/
+core/profiles/server/
 setup-dev.py
 setup-manager.py
+setup-server.py
 
-# ===== CRITICAL: NO ARCHIVES ON SERVER =====
-# Archives are development-only, never on production
+# ===== CRITICAL: NO ARCHIVES ON NODES =====
+# Archives are development-only
 archive/
 archive_backup*/
 
 # ===== CRITICAL: NO RUNTIME DATA IN REPO =====
-# All data is managed separately on server
+# All data managed locally on each node
 data/
 data_db/
 data_db_backup*/
 
-# Build artifacts - never on server
+# Build artifacts - never on nodes
 /build/
 /dist/
 
 # ===== EXCLUDE DEV-ONLY FILES =====
-# Claude and development artifacts
 .claude/
 CLAUDE_COMMUNICATION_LOG_*.md
 Screenshot*.png
@@ -100,7 +101,6 @@ db.sqlite3*
 *.log
 *.log.*
 logs/
-core/web/logs/
 
 # ===== DJANGO GENERATED =====
 staticfiles/
@@ -159,6 +159,9 @@ modules/*/mobile/.flutter-plugins-dependencies
 modules/*/mobile/android/build/
 modules/*/mobile/ios/build/
 modules/*/mobile/ios/Pods/
+modules/*/mobile/macos/build/
+modules/*/mobile/windows/build/
+modules/*/mobile/linux/build/
 
 # ===== TEST FILES =====
 .pytest_cache/
@@ -182,29 +185,27 @@ test_*.py
 *.sql
 *.sql.gz
 
-# ===== TEMPORARY DATA =====
-all_versions.txt
-missing_versions.txt
-pushed_versions.txt
-
-# ===== EXCLUDE DEV-ONLY SETTINGS =====
-# Keep: server.py, node.py, base.py
-# Exclude: development.py, dev_*.py
+# ===== EXCLUDE DEV/SERVER SETTINGS =====
+# Keep: node.py, base.py
+# Exclude: development.py, server.py, and all dev_*.py
 core/web/unibos_backend/settings/development.py
+core/web/unibos_backend/settings/server.py
 core/web/unibos_backend/settings/dev_*.py
 core/web/unibos_backend/settings/emergency.py
 core/web/unibos_backend/settings/dev_postgres.py
 core/web/unibos_backend/settings/dev_simple.py
 core/web/unibos_backend/settings/dev_no_redis.py
+core/web/unibos_backend/settings/production.py
+core/web/unibos_backend/settings/production_*.py
 
-# ===== EXCLUDE NODE DEPLOYMENT (SERVER DOESN'T NEED IT) =====
-# Keep server deployment, exclude node deployment
-# Actually, keep both since server can also be node
-# core/deployment/node.py  # KEEP - server can be node too
+# ===== EXCLUDE SERVER DEPLOYMENT =====
+# Keep: node deployment
+# Exclude: server deployment
+core/deployment/server.py
 
 # ===== IGNORE FILES THEMSELVES (META) =====
 # NOTE: .gitignore.* templates SHOULD be in dev repo only
-# Server repo only needs active .gitignore
+# Prod repo only needs active .gitignore
 .gitignore.dev
 .gitignore.manager
 .gitignore.server
