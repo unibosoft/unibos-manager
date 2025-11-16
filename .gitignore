@@ -1,16 +1,16 @@
 # =============================================================================
-# UNIBOS-SERVER Repository .gitignore TEMPLATE (KAYNAK ŞABLON)
-# Production server environment - Rocksteady
+# UNIBOS-MANAGER Repository .gitignore TEMPLATE (KAYNAK ŞABLON)
+# Remote management CLI - For managing UNIBOS servers remotely
 # =============================================================================
 # ⚠️  BU DOSYA KAYNAK TEMPLATE'DIR
 #
 # Bu template .gitignore dosyasına kopyalanarak kullanılır:
-#   cp .gitignore.server .gitignore
+#   cp .gitignore.manager .gitignore
 #
 # TEMPLATE ÇALIŞMA MANTIĞI (4-Repo Architecture):
 # - .gitignore.dev     → unibos-dev repo için
-# - .gitignore.manager → unibos-manager repo için
-# - .gitignore.server  → unibos-server repo için (bu dosya)
+# - .gitignore.manager → unibos-manager repo için (bu dosya)
+# - .gitignore.server  → unibos-server repo için
 # - .gitignore.prod    → unibos (prod) repo için
 #
 # push-all komutu her repo'ya push ederken doğru template'i otomatik kopyalar:
@@ -20,55 +20,49 @@
 #   prod    → cp .gitignore.prod .gitignore    → push to prod
 #
 # DEĞİŞİKLİK YAPARKEN:
-# ✅ Bu template'i (.gitignore.server) düzenleyebilirsiniz
+# ✅ Bu template'i (.gitignore.manager) düzenleyebilirsiniz
 # ✅ Ortak değişiklikleri diğer template'lere de ekleyin
 #
-# Bu şablon unibos-server repo'su için tasarlanmıştır.
-# Merkezi production server (rocksteady) için.
+# Bu şablon unibos-manager repo'su için tasarlanmıştır.
+# Uzaktan sunucu yönetimi için (SSH, deployment, monitoring).
 #
-# Repo: https://github.com/unibosoft/unibos-server
-# Purpose: Production server deployment (central hub)
-# Includes: server profile, prod profile, all modules (backend)
-# Excludes: dev profile, manager profile (GÜVENLİK), archive/, data/
+# Repo: https://github.com/unibosoft/unibos-manager
+# Purpose: Remote server management CLI
+# Includes: manager profile ONLY, SSH tools, deployment scripts
+# Excludes: dev/server/prod profiles (GÜVENLİK), modules/, archive/, data/
 # =============================================================================
 
-# ===== CRITICAL: EXCLUDE DEV & MANAGER PROFILES (SECURITY) =====
-# Development and manager profiles should NEVER be on production server
+# ===== CRITICAL: EXCLUDE OTHER PROFILES (SECURITY) =====
+# Only manager profile should be in manager repo
 core/profiles/dev/
-core/profiles/manager/
+core/profiles/server/
+core/profiles/prod/
 setup-dev.py
-setup-manager.py
+setup-server.py
+setup-prod.py
 
-# ===== CRITICAL: NO ARCHIVES ON SERVER =====
-# Archives are development-only, never on production
+# ===== CRITICAL: NO MODULES IN MANAGER =====
+# Manager doesn't need business modules (only management tools)
+modules/
+
+# ===== CRITICAL: NO ARCHIVES ON MANAGER =====
+# Archives are development-only
 archive/
 archive_backup*/
 
 # ===== CRITICAL: NO RUNTIME DATA IN REPO =====
-# All data is managed separately on server
+# All data managed separately
 data/
 data_db/
 data_db_backup*/
 
-# Build artifacts - never on server
+# Build artifacts - LOCAL ONLY
 /build/
 /dist/
 
-# ===== EXCLUDE DEV-ONLY FILES =====
-# Claude and development artifacts
-.claude/
-CLAUDE_COMMUNICATION_LOG_*.md
-Screenshot*.png
-*.screenshot.png
-screenshots_archive/
+# Quarantine and temporary pools
 quarantine/
 berk_claude_file_pool_DONT_DELETE/
-
-# ===== EXCLUDE DEV-ONLY DOCS =====
-TODO.md
-RULES.md
-docs/rules/
-docs/design/decisions/
 
 # ===== PYTHON ENVIRONMENT =====
 venv/
@@ -76,6 +70,7 @@ venv/
 env/
 .env/
 ENV/
+*.virtualenv
 
 # ===== PYTHON CACHE & BUILD =====
 __pycache__/
@@ -87,6 +82,18 @@ __pycache__/
 dist/
 build/
 *.egg
+.Python
+develop-eggs/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+.installed.cfg
 
 # ===== DATABASE FILES =====
 *.sqlite3
@@ -100,15 +107,9 @@ db.sqlite3*
 *.log
 *.log.*
 logs/
-core/web/logs/
-
-# ===== DJANGO GENERATED =====
-staticfiles/
-core/web/staticfiles/
-core/web/media/
-modules/*/backend/staticfiles/
-modules/*/backend/media/
-modules/*/backend/uploads/
+server.log
+unibos.log
+debug_output.txt
 
 # ===== ENVIRONMENT & SECRETS =====
 .env
@@ -142,6 +143,15 @@ desktop.ini
 tmp/
 temp/
 
+# ===== CLAUDE & AI =====
+.claude/
+CLAUDE_COMMUNICATION_LOG_*.md
+
+# ===== SCREENSHOTS =====
+Screenshot*.png
+*.screenshot.png
+screenshots_archive/
+
 # ===== BACKUP DIRECTORIES =====
 backup/
 backups/
@@ -150,67 +160,52 @@ backups/
 node_modules/
 npm-debug.log
 yarn-error.log
+package-lock.json
+yarn.lock
 
-# ===== FLUTTER/MOBILE BUILD =====
-modules/*/mobile/build/
-modules/*/mobile/.dart_tool/
-modules/*/mobile/.flutter-plugins
-modules/*/mobile/.flutter-plugins-dependencies
-modules/*/mobile/android/build/
-modules/*/mobile/ios/build/
-modules/*/mobile/ios/Pods/
-
-# ===== TEST FILES =====
+# ===== TEST & COVERAGE =====
 .pytest_cache/
 .coverage
+.coverage.*
 htmlcov/
+.tox/
+.cache
+nosetests.xml
+coverage.xml
+*.cover
 *.test.html
 *_test.html
 test_*.html
-test_*.py
-*_test.py
 
-# ===== LARGE MEDIA =====
+# ===== IDE & EDITORS =====
+.vscode/
+.idea/
+*.iml
+
+# ===== LARGE MEDIA FILES =====
 *.mp4
 *.avi
 *.mov
+*.mkv
 *.zip
 *.tar.gz
 *.rar
+*.7z
 
 # ===== SQL BACKUPS =====
 *.sql
 *.sql.gz
 
-# ===== TEMPORARY DATA =====
+# ===== TEMPORARY DATA FILES =====
 all_versions.txt
 missing_versions.txt
 pushed_versions.txt
-
-# ===== EXCLUDE DEV-ONLY SETTINGS =====
-# Keep: server.py, node.py, base.py
-# Exclude: development.py, dev_*.py
-core/web/unibos_backend/settings/development.py
-core/web/unibos_backend/settings/dev_*.py
-core/web/unibos_backend/settings/emergency.py
-core/web/unibos_backend/settings/dev_postgres.py
-core/web/unibos_backend/settings/dev_simple.py
-core/web/unibos_backend/settings/dev_no_redis.py
-
-# ===== EXCLUDE NODE DEPLOYMENT (SERVER DOESN'T NEED IT) =====
-# Keep server deployment, exclude node deployment
-# Actually, keep both since server can also be node
-# core/deployment/node.py  # KEEP - server can be node too
+screenshot_move_log.json
 
 # ===== IGNORE FILES THEMSELVES (META) =====
 # NOTE: .gitignore.* templates SHOULD be in dev repo only
-# Server repo only needs active .gitignore
+# Manager repo only needs active .gitignore
 .gitignore.dev
-.gitignore.manager
 .gitignore.server
 .gitignore.prod
-
-# Legacy ignore files
-.archiveignore
-.rsyncignore
-.prodignore
+.gitignore.manager
