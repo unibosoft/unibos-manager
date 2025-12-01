@@ -1229,10 +1229,6 @@ class UnibosDevTUI(BaseTUI):
             else:
                 lines.append(f"   {label}")
 
-        lines.extend([
-            "",
-            "↑↓ navigate · enter select · esc back"
-        ])
 
         self.update_content(
             title="version manager",
@@ -1277,11 +1273,6 @@ class UnibosDevTUI(BaseTUI):
             status = "✓" if enabled else "·"
             lines.append(f"  {status} {feature}")
 
-        lines.extend([
-            "",
-            "esc to return"
-        ])
-
         self.update_content(title="version info", lines=lines, color=Colors.CYAN)
         self.render()
 
@@ -1315,8 +1306,6 @@ class UnibosDevTUI(BaseTUI):
                     lines.append(f" → {label}  ·  {preview}")
                 else:
                     lines.append(f"   {label}")
-
-            lines.extend(["", "↑↓ select · enter confirm · esc cancel"])
 
             self.update_content(title="quick release", lines=lines, color=Colors.CYAN)
             self.render()
@@ -1365,9 +1354,7 @@ class UnibosDevTUI(BaseTUI):
             f"  2. core/version.py → __build__ = \"{new_build}\"",
             "  3. git commit & tag",
             "",
-            "🚧 auto-release coming soon",
-            "",
-            "esc to return"
+            "🚧 auto-release coming soon"
         ]
 
         self.update_content(title="release", lines=lines, color=Colors.YELLOW)
@@ -1400,8 +1387,6 @@ class UnibosDevTUI(BaseTUI):
                 else:
                     lines.append(f"   {label}")
 
-            lines.extend(["", "↑↓ select · enter confirm · esc cancel"])
-
             self.update_content(title="increment", lines=lines, color=Colors.CYAN)
             self.render()
 
@@ -1428,9 +1413,7 @@ class UnibosDevTUI(BaseTUI):
             f"  git tag -a v{__version__} -m \"v{__version__}\"",
             f"  git push --tags",
             "",
-            "or: unibos-dev git push-dev --tags",
-            "",
-            "esc to return"
+            "or: unibos-dev git push-dev --tags"
         ]
 
         self.update_content(title="git tag", lines=lines, color=Colors.CYAN)
@@ -1541,8 +1524,6 @@ class UnibosDevTUI(BaseTUI):
         else:
             lines.append("  no archives found")
 
-        lines.extend(["", "esc to return"])
-
         self.update_content(title="archives", lines=lines, color=Colors.CYAN)
         self.render()
 
@@ -1567,7 +1548,7 @@ class UnibosDevTUI(BaseTUI):
             return f"{size}b"
 
         if not archive_dir.exists():
-            lines = ["archive directory not found", "", "esc to return"]
+            lines = ["archive directory not found"]
         else:
             total_size = 0
             sizes = []
@@ -1597,8 +1578,6 @@ class UnibosDevTUI(BaseTUI):
                 anomalies = [s for s in sizes if s[1] > avg_size * 2]
                 if anomalies:
                     lines.extend(["", f"⚠ {len(anomalies)} anomalies (>2x avg)"])
-
-            lines.extend(["", "esc to return"])
 
         self.update_content(title="analyzer", lines=lines, color=Colors.CYAN)
         self.render()
