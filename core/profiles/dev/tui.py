@@ -1123,16 +1123,14 @@ class UnibosDevTUI(BaseTUI):
 
     def _show_version_manager_submenu(self) -> bool:
         """show interactive Version Manager submenu"""
+        import sys
         import time
         from pathlib import Path
         from core.version import (
             __version__, __build__, get_full_version,
             parse_build_timestamp, get_archive_name, RELEASE_TYPE, VERSION_CODENAME
         )
-
-        # Check if archive directory exists
-        archive_dir = Path("/Users/berkhatirli/Desktop/unibos-dev/archive/versions")
-        archive_exists = archive_dir.exists()
+        from core.clients.cli.framework.ui import get_single_key, Keys, hide_cursor
 
         # Menu options
         options = [
@@ -1147,57 +1145,29 @@ class UnibosDevTUI(BaseTUI):
         ]
 
         selected = 0
+        need_redraw = True
 
         while True:
-            # Get current version info
-            build_info = parse_build_timestamp(__build__)
-            build_display = build_info['short'] if build_info else __build__
+            # Only redraw when needed
+            if need_redraw:
+                self._draw_version_submenu(options, selected, __version__, __build__, VERSION_CODENAME, RELEASE_TYPE)
+                need_redraw = False
 
-            # Build menu display
-            lines = [
-                "📋 version manager",
-                "",
-                "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━",
-                f"  current: v{__version__} {build_display}",
-                f"  codename: {VERSION_CODENAME.lower()}",
-                f"  type: {RELEASE_TYPE.lower()}",
-            ]
+            # Get input - use raw key reading
+            hide_cursor()
+            key = get_single_key(timeout=0.1)
 
-            if build_info:
-                lines.append(f"  built: {build_info['date']} {build_info['time']}")
+            if not key:
+                continue  # no input, just wait
 
-            lines.append("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
-            lines.append("")
-
-            for i, (key, label, desc) in enumerate(options):
-                if i == selected:
-                    lines.append(f"  → {label}")
-                    lines.append(f"    {desc}")
-                else:
-                    lines.append(f"    {label}")
-                lines.append("")
-
-            lines.extend([
-                "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━",
-                "",
-                "navigation: ↑↓ to move, enter to select, esc to go back"
-            ])
-
-            self.update_content(
-                title="version manager",
-                lines=lines,
-                color=Colors.CYAN
-            )
-            self.render()
-
-            # Get input
-            key = self.get_key()
-
-            if key == 'UP':
+            # Handle navigation
+            if key == Keys.UP:
                 selected = (selected - 1) % len(options)
-            elif key == 'DOWN':
+                need_redraw = True
+            elif key == Keys.DOWN:
                 selected = (selected + 1) % len(options)
-            elif key == 'ENTER' or key == 'RIGHT':
+                need_redraw = True
+            elif key == Keys.ENTER or key == '\r' or key == '\n' or key == Keys.RIGHT:
                 # v527: both enter and right arrow select item
                 option_key = options[selected][0]
 
@@ -1218,12 +1188,63 @@ class UnibosDevTUI(BaseTUI):
                 elif option_key == 'git_tag':
                     self._version_create_tag()
 
-                # after sub-action, continue showing version manager menu
-            elif key == 'ESC' or key == 'LEFT':
+                # after sub-action, redraw version manager menu
+                need_redraw = True
+            elif key == Keys.ESC or key == '\x1b' or key == Keys.LEFT:
                 # v527: both esc and left arrow go back
                 return True
 
         return True
+
+    def _draw_version_submenu(self, options, selected, version, build, codename, release_type):
+        """Draw version manager submenu content"""
+        from core.version import parse_build_timestamp
+
+        build_info = parse_build_timestamp(build)
+        build_display = build_info['short'] if build_info else build
+
+        lines = [
+            "📋 version manager",
+            "",
+            "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━",
+            f"  current: v{version} {build_display}",
+            f"  codename: {codename.lower()}",
+            f"  type: {release_type.lower()}",
+        ]
+
+        if build_info:
+            lines.append(f"  built: {build_info['date']} {build_info['time']}")
+
+        lines.append("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
+        lines.append("")
+
+        for i, (key, label, desc) in enumerate(options):
+            if i == selected:
+                lines.append(f"  → {label}")
+                lines.append(f"    {desc}")
+            else:
+                lines.append(f"    {label}")
+            lines.append("")
+
+        lines.extend([
+            "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━",
+            "",
+            "navigation: ↑↓ move, enter/→ select, esc/← back"
+        ])
+
+        self.update_content(
+            title="version manager",
+            lines=lines,
+            color=Colors.CYAN
+        )
+        # Only draw content area, not full render
+        self.content_area.draw(
+            title="version manager",
+            content='\n'.join(lines),
+            item=None
+        )
+        import sys
+        sys.stdout.flush()
 
     def _version_show_info(self):
         """Show detailed version information"""
