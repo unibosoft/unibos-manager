@@ -119,7 +119,7 @@ class BaseTUI(ABC):
 
         # V527: Keypress debouncing to prevent rapid navigation corruption
         self.last_keypress_time = 0
-        self.min_keypress_interval = 0.05  # 50ms debounce (v527 exact value) (v527 Protection 2)
+        self.min_keypress_interval = 0.08  # 80ms debounce (increased from 50ms for stability)
 
         # V527: Navigation lock to prevent concurrent rendering (Protection 1)
         self._rendering = False
@@ -312,19 +312,34 @@ class BaseTUI(ABC):
 
     def _navigation_redraw(self, sections):
         """Atomic redraw for navigation - prevents flicker and escape sequence leaks"""
-        # Hide cursor for entire operation
-        sys.stdout.write('\033[?25l')
-        sys.stdout.flush()
-
-        # Flush any pending input
-        flush_input_buffer(times=3)
+        # Prevent concurrent rendering
+        if self._rendering:
+            return
+        self._rendering = True
 
         try:
-            # Draw all components without intermediate flushes
+            cols, lines = get_terminal_size()
+
+            # Hide cursor and disable line wrap
+            sys.stdout.write('\033[?25l\033[?7l')
+            sys.stdout.flush()
+
+            # Aggressive input flush
+            flush_input_buffer(times=5)
+            try:
+                import select
+                while select.select([sys.stdin], [], [], 0)[0]:
+                    sys.stdin.read(1)
+            except:
+                pass
+
+            # Draw sidebar
             self.sidebar.draw(
                 sections, self.state.current_section,
                 self.state.selected_index, bool(self.state.in_submenu)
             )
+
+            # Update content
             self.update_content_for_selection()
 
             # Get language display
@@ -333,25 +348,28 @@ class BaseTUI(ABC):
             lang_name = self.i18n.get_language_display_name(lang_code)
             language_display = f"{lang_flag} {lang_name}"
 
-            # Redraw header
+            # Redraw header at line 1 (explicit position)
+            sys.stdout.write('\033[1;1H')
             self.header.draw(
                 breadcrumb=self.get_breadcrumb(),
                 username=self.get_username(),
                 language=language_display
             )
 
-            # Redraw footer
+            # Redraw footer at last line (explicit position)
+            sys.stdout.write(f'\033[{lines};1H')
             self.footer.draw(
                 hints=self.get_navigation_hints(),
                 status=self.get_system_status()
             )
 
-            # Single final flush
+            # Final flush
             sys.stdout.flush()
         finally:
-            # Always show cursor
-            sys.stdout.write('\033[?25h')
+            # Re-enable line wrap and show cursor
+            sys.stdout.write('\033[?7h\033[?25h')
             sys.stdout.flush()
+            self._rendering = False
 
     def get_breadcrumb(self) -> str:
         """Get current navigation breadcrumb"""
