@@ -20,10 +20,11 @@ class UnibosDevTUI(BaseTUI):
     def __init__(self):
         """Initialize dev TUI with proper config"""
         from core.clients.tui.base import TUIConfig
+        from core.version import __version__, __build__, get_short_version_string
 
         config = TUIConfig(
             title="unibos-dev",
-            version="v0.534.0",
+            version=get_short_version_string(),  # Dynamic: "v1.0.0 @22:25"
             location="dev environment",
             sidebar_width=25,  # V527 spec: exactly 25 characters
             show_splash=True,
@@ -1124,6 +1125,10 @@ class UnibosDevTUI(BaseTUI):
         """show interactive Version Manager submenu"""
         import time
         from pathlib import Path
+        from core.version import (
+            __version__, __build__, get_full_version,
+            parse_build_timestamp, get_archive_name, RELEASE_TYPE, VERSION_CODENAME
+        )
 
         # Check if archive directory exists
         archive_dir = Path("/Users/berkhatirli/Desktop/unibos-dev/archive/versions")
@@ -1131,34 +1136,38 @@ class UnibosDevTUI(BaseTUI):
 
         # Menu options
         options = [
-            ("browse", "📋 Browse Archives", "View version archive history"),
-            ("create", "📦 Create Archive", "create new version archive"),
-            ("analyze", "📊 Archive Analyzer", "Analyze archive statistics"),
+            ("info", "📊 Current Version Info", "show detailed version information"),
+            ("browse", "📋 Browse Archives", "view version archive history"),
+            ("create", "📦 Quick Release", "create new version archive with wizard"),
+            ("increment", "🔼 Increment Version", "bump version number"),
+            ("analyze", "📈 Archive Analyzer", "analyze archive statistics"),
             ("git_status", "🔀 Git Status", "show git repository status"),
-            ("git_sync", "🔄 Git Sync", "Sync with git repositories"),
-            ("validate", "✅ Validate Versions", "Validate version integrity"),
+            ("git_tag", "🏷️  Create Git Tag", "create and push git tag"),
             ("back", "← Back to Dev Tools", "return to main menu"),
         ]
 
         selected = 0
 
         while True:
+            # Get current version info
+            build_info = parse_build_timestamp(__build__)
+            build_display = build_info['short'] if build_info else __build__
+
             # Build menu display
             lines = [
                 "📋 Version Manager",
                 "",
-                "Archive & Git Management:",
-                ""
+                "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━",
+                f"  current: v{__version__} {build_display}",
+                f"  codename: {VERSION_CODENAME}",
+                f"  type: {RELEASE_TYPE}",
             ]
 
-            # Show archive status
-            if archive_exists:
-                archive_count = len(list(archive_dir.glob("*/VERSION.json")))
-                lines.append(f"📁 Archives found: {archive_count}")
-                lines.append("")
-            else:
-                lines.append("⚠️ Archive directory not found")
-                lines.append("")
+            if build_info:
+                lines.append(f"  built: {build_info['date']} {build_info['time']}")
+
+            lines.append("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
+            lines.append("")
 
             for i, (key, label, desc) in enumerate(options):
                 if i == selected:
@@ -1193,18 +1202,20 @@ class UnibosDevTUI(BaseTUI):
 
                 if option_key == 'back':
                     return True
+                elif option_key == 'info':
+                    self._version_show_info()
                 elif option_key == 'browse':
                     self._version_browse_archives()
                 elif option_key == 'create':
-                    self._version_create_archive()
+                    self._version_quick_release()
+                elif option_key == 'increment':
+                    self._version_increment()
                 elif option_key == 'analyze':
                     self._version_analyze()
                 elif option_key == 'git_status':
                     self._version_git_status()
-                elif option_key == 'git_sync':
-                    self._version_git_sync()
-                elif option_key == 'validate':
-                    self._version_validate()
+                elif option_key == 'git_tag':
+                    self._version_create_tag()
 
                 # Wait for user to read output
                 time.sleep(0.5)
@@ -1213,10 +1224,319 @@ class UnibosDevTUI(BaseTUI):
 
         return True
 
+    def _version_show_info(self):
+        """Show detailed version information"""
+        from core.version import (
+            __version__, __build__, get_full_version, get_version_string,
+            parse_build_timestamp, get_archive_name, FEATURES, DEVELOPMENT_HISTORY,
+            VERSION_NAME, VERSION_CODENAME, RELEASE_DATE, RELEASE_TYPE,
+            NEXT_VERSION, NEXT_RELEASE_NAME
+        )
+
+        build_info = parse_build_timestamp(__build__)
+
+        lines = [
+            "📊 Current Version Information",
+            "",
+            "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━",
+            "",
+            "  version details:",
+            f"    semantic:  v{__version__}",
+            f"    build:     {__build__}",
+            f"    full:      v{__version__}+build.{__build__}",
+            "",
+            f"    name:      {VERSION_NAME}",
+            f"    codename:  {VERSION_CODENAME}",
+            f"    type:      {RELEASE_TYPE}",
+            f"    date:      {RELEASE_DATE}",
+            "",
+        ]
+
+        if build_info:
+            lines.extend([
+                "  build timestamp:",
+                f"    date:      {build_info['date']}",
+                f"    time:      {build_info['time']}",
+                f"    readable:  {build_info['readable']}",
+                "",
+            ])
+
+        lines.extend([
+            "  archive:",
+            f"    name:      {get_archive_name()}",
+            "",
+            "  development history:",
+            f"    total iterations: {DEVELOPMENT_HISTORY.get('total_iterations', 'N/A')}",
+            f"    version range:    {DEVELOPMENT_HISTORY.get('version_range', 'N/A')}",
+            "",
+            "  next milestone:",
+            f"    version:   {NEXT_VERSION}",
+            f"    name:      {NEXT_RELEASE_NAME}",
+            "",
+            "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━",
+            "",
+            "  enabled features:",
+        ])
+
+        for feature, enabled in FEATURES.items():
+            status = "+" if enabled else "-"
+            lines.append(f"    {status} {feature}")
+
+        lines.extend([
+            "",
+            "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━",
+            "",
+            "press esc to continue"
+        ])
+
+        self.update_content(
+            title="version information",
+            lines=lines,
+            color=Colors.CYAN
+        )
+        self.render()
+
+    def _version_quick_release(self):
+        """Quick release wizard"""
+        import time
+        from core.version import __version__, __build__, get_archive_name, get_new_build
+
+        # Release type options
+        options = [
+            ("build", "📦 Build Only", "new build, same version (daily work)"),
+            ("patch", "🔧 Patch Release", "bug fix (v1.0.0 → v1.0.1)"),
+            ("minor", "✨ Minor Release", "new feature (v1.0.0 → v1.1.0)"),
+            ("major", "🚀 Major Release", "breaking change (v1.0.0 → v2.0.0)"),
+            ("back", "← Cancel", "return without changes"),
+        ]
+
+        selected = 0
+
+        while True:
+            new_build = get_new_build()
+
+            lines = [
+                "📦 Quick Release Wizard",
+                "",
+                "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━",
+                f"  current version: v{__version__}",
+                f"  current build:   {__build__}",
+                f"  new build:       {new_build}",
+                "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━",
+                "",
+                "  select release type:",
+                ""
+            ]
+
+            for i, (key, label, desc) in enumerate(options):
+                if i == selected:
+                    lines.append(f"  → {label}")
+                    lines.append(f"    {desc}")
+                else:
+                    lines.append(f"    {label}")
+                lines.append("")
+
+            lines.extend([
+                "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━",
+                "",
+                "navigation: ↑↓ to move, Enter to select, ESC to cancel"
+            ])
+
+            self.update_content(
+                title="quick release",
+                lines=lines,
+                color=Colors.CYAN
+            )
+            self.render()
+
+            key = self.get_key()
+
+            if key == 'UP':
+                selected = (selected - 1) % len(options)
+            elif key == 'DOWN':
+                selected = (selected + 1) % len(options)
+            elif key == 'ENTER':
+                option_key = options[selected][0]
+
+                if option_key == 'back':
+                    return
+                else:
+                    self._execute_release(option_key)
+                    return
+            elif key == 'ESC':
+                return
+
+    def _execute_release(self, release_type: str):
+        """Execute the release process"""
+        from core.version import __version__, get_new_build
+
+        new_build = get_new_build()
+
+        # Calculate new version
+        parts = [int(x) for x in __version__.split('.')]
+        if release_type == 'build':
+            new_version = __version__
+        elif release_type == 'patch':
+            parts[2] += 1
+            new_version = '.'.join(map(str, parts))
+        elif release_type == 'minor':
+            parts[1] += 1
+            parts[2] = 0
+            new_version = '.'.join(map(str, parts))
+        elif release_type == 'major':
+            parts[0] += 1
+            parts[1] = 0
+            parts[2] = 0
+            new_version = '.'.join(map(str, parts))
+        else:
+            new_version = __version__
+
+        archive_name = f"unibos_v{new_version}_b{new_build}"
+
+        lines = [
+            "🚀 Release Process",
+            "",
+            "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━",
+            f"  release type: {release_type}",
+            f"  new version:  v{new_version}",
+            f"  new build:    {new_build}",
+            f"  archive:      {archive_name}/",
+            "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━",
+            "",
+            "  steps to complete:",
+            "",
+            "  1. update VERSION.json and core/version.py",
+            "  2. create archive directory",
+            "  3. git commit changes",
+            "  4. create git tag",
+            "  5. push to repositories",
+            "",
+            "  🚧 automatic release coming soon!",
+            "",
+            "  for now, manually update:",
+            f"    VERSION.json: build = \"{new_build}\"",
+            f"    core/version.py: __build__ = \"{new_build}\"",
+            "",
+            "press esc to continue"
+        ]
+
+        self.update_content(
+            title="release process",
+            lines=lines,
+            color=Colors.YELLOW
+        )
+        self.render()
+
+    def _version_increment(self):
+        """Version increment wizard"""
+        import time
+        from core.version import __version__, __build__
+
+        parts = [int(x) for x in __version__.split('.')]
+
+        options = [
+            ("patch", f"🔧 Patch: v{parts[0]}.{parts[1]}.{parts[2]+1}", "bug fixes, small improvements"),
+            ("minor", f"✨ Minor: v{parts[0]}.{parts[1]+1}.0", "new features"),
+            ("major", f"🚀 Major: v{parts[0]+1}.0.0", "breaking changes"),
+            ("back", "← Cancel", "return without changes"),
+        ]
+
+        selected = 0
+
+        while True:
+            lines = [
+                "🔼 Version Increment",
+                "",
+                "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━",
+                f"  current version: v{__version__}",
+                "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━",
+                "",
+                "  select increment type:",
+                ""
+            ]
+
+            for i, (key, label, desc) in enumerate(options):
+                if i == selected:
+                    lines.append(f"  → {label}")
+                    lines.append(f"    {desc}")
+                else:
+                    lines.append(f"    {label}")
+                lines.append("")
+
+            lines.extend([
+                "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━",
+                "",
+                "  when to use:",
+                "    patch: bug fix, security patch",
+                "    minor: new feature, enhancement",
+                "    major: breaking API change, rewrite",
+                "",
+                "navigation: ↑↓ to move, Enter to select, ESC to cancel"
+            ])
+
+            self.update_content(
+                title="increment version",
+                lines=lines,
+                color=Colors.CYAN
+            )
+            self.render()
+
+            key = self.get_key()
+
+            if key == 'UP':
+                selected = (selected - 1) % len(options)
+            elif key == 'DOWN':
+                selected = (selected + 1) % len(options)
+            elif key == 'ENTER':
+                option_key = options[selected][0]
+
+                if option_key == 'back':
+                    return
+                else:
+                    self._execute_release(option_key)
+                    return
+            elif key == 'ESC':
+                return
+
+    def _version_create_tag(self):
+        """Create git tag"""
+        from core.version import __version__, __build__, VERSION_CODENAME
+
+        lines = [
+            "🏷️  Create Git Tag",
+            "",
+            "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━",
+            f"  tag name:    v{__version__}",
+            f"  build:       {__build__}",
+            f"  codename:    {VERSION_CODENAME}",
+            "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━",
+            "",
+            "  commands to run:",
+            "",
+            f"  git tag -a v{__version__} -m \"UNIBOS v{__version__}\"",
+            f"  git push dev v{__version__}",
+            f"  git push server v{__version__}",
+            f"  git push manager v{__version__}",
+            f"  git push prod v{__version__}",
+            "",
+            "  or use:",
+            "    unibos-dev git push-dev --tags",
+            "",
+            "press esc to continue"
+        ]
+
+        self.update_content(
+            title="create git tag",
+            lines=lines,
+            color=Colors.CYAN
+        )
+        self.render()
+
     def _version_browse_archives(self):
-        """Browse version archives"""
+        """Browse version archives with new format support"""
         from pathlib import Path
         import json
+        import re
 
         archive_dir = Path("/Users/berkhatirli/Desktop/unibos-dev/archive/versions")
 
@@ -1224,7 +1544,7 @@ class UnibosDevTUI(BaseTUI):
             self.update_content(
                 title="browse archives",
                 lines=[
-                    "⚠️ Archive directory not found",
+                    "   archive directory not found",
                     "",
                     f"expected location: {archive_dir}",
                     "",
@@ -1235,45 +1555,115 @@ class UnibosDevTUI(BaseTUI):
             self.render()
             return
 
-        # Find all version archives
+        # Find all archives - both old and new format
         archives = []
-        for version_file in sorted(archive_dir.glob("*/VERSION.json"), reverse=True):
-            try:
-                with open(version_file) as f:
-                    data = json.load(f)
-                    archives.append({
-                        'path': version_file.parent,
-                        'version': data.get('version', 'unknown'),
-                        'date': data.get('release_date', 'unknown'),
-                        'description': data.get('description', '')
-                    })
-            except:
-                pass
+
+        # Scan archive directory
+        for item in sorted(archive_dir.iterdir(), reverse=True):
+            if item.is_dir():
+                archive_info = {
+                    'path': item,
+                    'name': item.name,
+                    'version': 'unknown',
+                    'build': None,
+                    'date': None,
+                    'format': 'unknown'
+                }
+
+                # Try to read VERSION.json
+                version_file = item / 'VERSION.json'
+                if version_file.exists():
+                    try:
+                        with open(version_file) as f:
+                            data = json.load(f)
+
+                            # New format (v1.0.0+)
+                            if 'version' in data and isinstance(data['version'], dict):
+                                v = data['version']
+                                archive_info['version'] = f"{v.get('major', 0)}.{v.get('minor', 0)}.{v.get('patch', 0)}"
+                                archive_info['build'] = v.get('build')
+                                archive_info['format'] = 'new'
+                                if 'build_info' in data:
+                                    archive_info['date'] = data['build_info'].get('date')
+                            # Old format
+                            else:
+                                archive_info['version'] = data.get('version', 'unknown')
+                                archive_info['build'] = data.get('build_number') or data.get('build')
+                                archive_info['date'] = data.get('release_date', '')[:10] if data.get('release_date') else None
+                                archive_info['format'] = 'old'
+                    except:
+                        pass
+
+                # Parse version from directory name if not found in VERSION.json
+                if archive_info['version'] == 'unknown':
+                    # New format: unibos_v1.0.0_b20251201222554
+                    new_match = re.match(r'unibos_v(\d+\.\d+\.\d+)_b(\d{14})', item.name)
+                    if new_match:
+                        archive_info['version'] = new_match.group(1)
+                        archive_info['build'] = new_match.group(2)
+                        archive_info['format'] = 'new'
+                    else:
+                        # Old format: unibos_v534_20251116_...
+                        old_match = re.match(r'unibos_v(\d+)_(\d{8})', item.name)
+                        if old_match:
+                            archive_info['version'] = f"0.{old_match.group(1)}.0"
+                            archive_info['date'] = f"{old_match.group(2)[:4]}-{old_match.group(2)[4:6]}-{old_match.group(2)[6:8]}"
+                            archive_info['format'] = 'old'
+
+                archives.append(archive_info)
 
         # Build display
-        lines = ["📋 Version Archive History", "", ""]
+        lines = [
+            "📋 Version Archive History",
+            "",
+            "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━",
+        ]
 
         if archives:
-            lines.append(f"total archives: {len(archives)}")
+            # Count by format
+            new_count = sum(1 for a in archives if a['format'] == 'new')
+            old_count = sum(1 for a in archives if a['format'] == 'old')
+
+            lines.append(f"  total: {len(archives)} archives")
+            if new_count > 0:
+                lines.append(f"  new format (v1.0.0+): {new_count}")
+            if old_count > 0:
+                lines.append(f"  old format (pre-1.0): {old_count}")
+
+            lines.append("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
             lines.append("")
-            lines.append("recent versions:")
+            lines.append("  recent archives:")
             lines.append("")
 
-            for i, archive in enumerate(archives[:10]):  # Show last 10
-                lines.append(f"  {i+1}. v{archive['version']} - {archive['date']}")
-                if archive['description']:
-                    lines.append(f"     {archive['description'][:60]}")
-                lines.append("")
+            for i, archive in enumerate(archives[:12]):  # Show last 12
+                # Format display based on archive type
+                if archive['format'] == 'new' and archive['build']:
+                    # Parse timestamp for display
+                    b = archive['build']
+                    if len(b) == 14:
+                        time_str = f"{b[8:10]}:{b[10:12]}"
+                        date_str = f"{b[0:4]}-{b[4:6]}-{b[6:8]}"
+                        lines.append(f"  {i+1:2}. v{archive['version']} @{time_str} ({date_str})")
+                    else:
+                        lines.append(f"  {i+1:2}. v{archive['version']} b{archive['build']}")
+                else:
+                    date_str = archive['date'] or ''
+                    lines.append(f"  {i+1:2}. v{archive['version']} {date_str}")
 
-            if len(archives) > 10:
-                lines.append(f"... and {len(archives) - 10} more")
+            if len(archives) > 12:
                 lines.append("")
+                lines.append(f"  ... and {len(archives) - 12} more")
+
+            lines.append("")
         else:
-            lines.append("no archives found")
+            lines.append("  no archives found")
             lines.append("")
 
         lines.extend([
             "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━",
+            "",
+            "  archive location:",
+            f"  {archive_dir}",
             "",
             "press esc to continue"
         ])
@@ -1285,49 +1675,89 @@ class UnibosDevTUI(BaseTUI):
         )
         self.render()
 
-    def _version_create_archive(self):
-        """create new version archive"""
-        self.update_content(
-            title="create archive",
-            lines=[
-                "📦 Creating version archive...",
-                "",
-                "this will create a snapshot of the current codebase.",
-                "",
-                "use the archive_daily_check.sh script:",
-                "",
-                "  ./tools/archive_daily_check.sh",
-                "",
-                "or use git to create a version tag:",
-                "",
-                "  git tag v0.534.1",
-                "  git push --tags",
-                "",
-                "press esc to continue"
-            ],
-            color=Colors.YELLOW
-        )
-        self.render()
-
     def _version_analyze(self):
-        """Analyze archives"""
+        """Analyze archives with statistics"""
+        from pathlib import Path
+        import os
+
+        archive_dir = Path("/Users/berkhatirli/Desktop/unibos-dev/archive/versions")
+
+        lines = [
+            "📈 Archive Analyzer",
+            "",
+            "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━",
+        ]
+
+        if archive_dir.exists():
+            # Calculate sizes
+            total_size = 0
+            archive_count = 0
+            sizes = []
+
+            for item in archive_dir.iterdir():
+                if item.is_dir():
+                    # Calculate directory size
+                    dir_size = sum(
+                        f.stat().st_size for f in item.rglob('*') if f.is_file()
+                    )
+                    total_size += dir_size
+                    sizes.append((item.name, dir_size))
+                    archive_count += 1
+
+            # Format sizes
+            def format_size(size):
+                if size >= 1024 * 1024 * 1024:
+                    return f"{size / (1024*1024*1024):.1f} GB"
+                elif size >= 1024 * 1024:
+                    return f"{size / (1024*1024):.1f} MB"
+                elif size >= 1024:
+                    return f"{size / 1024:.1f} KB"
+                return f"{size} B"
+
+            lines.extend([
+                f"  total archives:  {archive_count}",
+                f"  total size:      {format_size(total_size)}",
+                "",
+            ])
+
+            if sizes:
+                avg_size = total_size / len(sizes)
+                lines.append(f"  average size:    {format_size(int(avg_size))}")
+
+                # Find largest
+                sizes.sort(key=lambda x: x[1], reverse=True)
+                lines.extend([
+                    "",
+                    "  largest archives:",
+                ])
+                for name, size in sizes[:5]:
+                    lines.append(f"    {format_size(size):>10}  {name[:40]}")
+
+                # Check for anomalies (>2x average)
+                anomalies = [s for s in sizes if s[1] > avg_size * 2]
+                if anomalies:
+                    lines.extend([
+                        "",
+                        f"  ⚠️  {len(anomalies)} size anomalies detected (>2x avg)",
+                    ])
+
+            lines.append("")
+        else:
+            lines.append("  archive directory not found")
+            lines.append("")
+
+        lines.extend([
+            "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━",
+            "",
+            "  for detailed analysis, run:",
+            "    ./tools/archive_daily_check.sh",
+            "",
+            "press esc to continue"
+        ])
+
         self.update_content(
             title="archive analyzer",
-            lines=[
-                "📊 Analyzing version archives...",
-                "",
-                "Run the archive analyzer script:",
-                "",
-                "  ./tools/archive_daily_check.sh",
-                "",
-                "this will show:",
-                "  • archive statistics",
-                "  • size trends",
-                "  • anomaly detection",
-                "  • protection status",
-                "",
-                "press esc to continue"
-            ],
+            lines=lines,
             color=Colors.CYAN
         )
         self.render()
@@ -1343,40 +1773,6 @@ class UnibosDevTUI(BaseTUI):
 
         result = self.execute_command(['unibos-dev', 'git', 'status'])
         self.show_command_output(result)
-
-    def _version_git_sync(self):
-        """Sync with git"""
-        self.update_content(
-            title="git sync",
-            lines=["🔄 Syncing with git repositories...", ""],
-            color=Colors.CYAN
-        )
-        self.render()
-
-        result = self.execute_command(['unibos-dev', 'git', 'sync-prod'])
-        self.show_command_output(result)
-
-    def _version_validate(self):
-        """Validate versions"""
-        self.update_content(
-            title="validate versions",
-            lines=[
-                "✅ Version Validation",
-                "",
-                "this checks:",
-                "  • version number sequence",
-                "  • archive integrity",
-                "  • git tag consistency",
-                "  • file completeness",
-                "",
-                "🚧 Full validation coming soon!",
-                "",
-                "press esc to continue"
-            ],
-            color=Colors.YELLOW
-        )
-        self.render()
-
 
 def run_interactive():
     """Run the dev TUI"""
