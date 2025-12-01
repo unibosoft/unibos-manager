@@ -1209,39 +1209,29 @@ class UnibosDevTUI(BaseTUI):
         return True
 
     def _draw_version_submenu(self, options, selected, version, build, codename, release_type):
-        """Draw version manager submenu content"""
+        """Draw version manager submenu content - clean and minimal"""
         from core.version import parse_build_timestamp
 
         build_info = parse_build_timestamp(build)
         build_display = build_info['short'] if build_info else build
 
         lines = [
-            "📋 version manager",
+            f"v{version} · {build_display} · {codename.lower()}",
             "",
-            "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━",
-            f"  current: v{version} {build_display}",
-            f"  codename: {codename.lower()}",
-            f"  type: {release_type.lower()}",
         ]
 
-        if build_info:
-            lines.append(f"  built: {build_info['date']} {build_info['time']}")
-
-        lines.append("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
-        lines.append("")
-
         for i, (key, label, desc) in enumerate(options):
+            # Skip back option in menu list (handled by esc/left)
+            if key == 'back':
+                continue
             if i == selected:
-                lines.append(f"  → {label}")
-                lines.append(f"    {desc}")
+                lines.append(f" → {label}  ·  {desc}")
             else:
-                lines.append(f"    {label}")
-            lines.append("")
+                lines.append(f"   {label}")
 
         lines.extend([
-            "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━",
             "",
-            "navigation: ↑↓ move, enter/→ select, esc/← back"
+            "↑↓ navigate · enter select · esc back"
         ])
 
         self.update_content(
@@ -1259,134 +1249,76 @@ class UnibosDevTUI(BaseTUI):
         sys.stdout.flush()
 
     def _version_show_info(self):
-        """Show detailed version information"""
+        """Show detailed version information - clean format"""
         from core.version import (
-            __version__, __build__, get_full_version, get_version_string,
-            parse_build_timestamp, get_archive_name, FEATURES, DEVELOPMENT_HISTORY,
-            VERSION_NAME, VERSION_CODENAME, RELEASE_DATE, RELEASE_TYPE,
-            NEXT_VERSION, NEXT_RELEASE_NAME
+            __version__, __build__, parse_build_timestamp, get_archive_name,
+            FEATURES, VERSION_CODENAME, RELEASE_DATE, RELEASE_TYPE
         )
 
         build_info = parse_build_timestamp(__build__)
 
         lines = [
-            "📊 current version information",
-            "",
-            "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━",
-            "",
-            "  version details:",
-            f"    semantic:  v{__version__}",
-            f"    build:     {__build__}",
-            f"    full:      v{__version__}+build.{__build__}",
-            "",
-            f"    name:      {VERSION_NAME.lower()}",
-            f"    codename:  {VERSION_CODENAME.lower()}",
-            f"    type:      {RELEASE_TYPE.lower()}",
-            f"    date:      {RELEASE_DATE}",
+            f"v{__version__}+build.{__build__}",
+            f"{VERSION_CODENAME.lower()} · {RELEASE_TYPE.lower()} · {RELEASE_DATE}",
             "",
         ]
 
         if build_info:
-            lines.extend([
-                "  build timestamp:",
-                f"    date:      {build_info['date']}",
-                f"    time:      {build_info['time']}",
-                f"    readable:  {build_info['readable'].lower()}",
-                "",
-            ])
+            lines.append(f"built: {build_info['date']} {build_info['time']}")
+            lines.append("")
 
         lines.extend([
-            "  archive:",
-            f"    name:      {get_archive_name()}",
+            f"archive: {get_archive_name()}",
             "",
-            "  development history:",
-            f"    total iterations: {DEVELOPMENT_HISTORY.get('total_iterations', 'N/A')}",
-            f"    version range:    {DEVELOPMENT_HISTORY.get('version_range', 'N/A')}",
-            "",
-            "  next milestone:",
-            f"    version:   {NEXT_VERSION}",
-            f"    name:      {NEXT_RELEASE_NAME.lower()}",
-            "",
-            "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━",
-            "",
-            "  enabled features:",
+            "features:",
         ])
 
         for feature, enabled in FEATURES.items():
-            status = "+" if enabled else "-"
-            lines.append(f"    {status} {feature}")
+            status = "✓" if enabled else "·"
+            lines.append(f"  {status} {feature}")
 
         lines.extend([
             "",
-            "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━",
-            "",
-            "press esc to continue"
+            "esc to return"
         ])
 
-        self.update_content(
-            title="version information",
-            lines=lines,
-            color=Colors.CYAN
-        )
+        self.update_content(title="version info", lines=lines, color=Colors.CYAN)
         self.render()
 
-        # wait for esc to return
         while True:
             key = self.get_key()
             if key == 'ESC':
                 break
 
     def _version_quick_release(self):
-        """Quick release wizard"""
-        import time
-        from core.version import __version__, __build__, get_archive_name, get_new_build
+        """Quick release wizard - simplified"""
+        from core.version import __version__, get_new_build
 
-        # Release type options
+        parts = [int(x) for x in __version__.split('.')]
         options = [
-            ("build", "📦 build only", "new build, same version (daily work)"),
-            ("patch", "🔧 patch release", "bug fix (v1.0.0 → v1.0.1)"),
-            ("minor", "✨ minor release", "new feature (v1.0.0 → v1.1.0)"),
-            ("major", "🚀 major release", "breaking change (v1.0.0 → v2.0.0)"),
-            ("back", "← cancel", "return without changes"),
+            ("build", "📦 build", f"v{__version__} (new timestamp)"),
+            ("patch", "🔧 patch", f"v{parts[0]}.{parts[1]}.{parts[2]+1}"),
+            ("minor", "✨ minor", f"v{parts[0]}.{parts[1]+1}.0"),
+            ("major", "🚀 major", f"v{parts[0]+1}.0.0"),
         ]
 
         selected = 0
 
         while True:
-            new_build = get_new_build()
-
             lines = [
-                "📦 quick release wizard",
+                f"current: v{__version__}",
                 "",
-                "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━",
-                f"  current version: v{__version__}",
-                f"  current build:   {__build__}",
-                f"  new build:       {new_build}",
-                "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━",
-                "",
-                "  select release type:",
-                ""
             ]
 
-            for i, (key, label, desc) in enumerate(options):
+            for i, (key, label, preview) in enumerate(options):
                 if i == selected:
-                    lines.append(f"  → {label}")
-                    lines.append(f"    {desc}")
+                    lines.append(f" → {label}  ·  {preview}")
                 else:
-                    lines.append(f"    {label}")
-                lines.append("")
+                    lines.append(f"   {label}")
 
-            lines.extend([
-                "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━",
-                "",
-                "navigation: ↑↓ to move, enter to select, esc to cancel"
-            ])
+            lines.extend(["", "↑↓ select · enter confirm · esc cancel"])
 
-            self.update_content(
-                title="quick release",
-                lines=lines,
-                color=Colors.CYAN
-            )
+            self.update_content(title="quick release", lines=lines, color=Colors.CYAN)
             self.render()
 
             key = self.get_key()
@@ -1396,24 +1328,18 @@ class UnibosDevTUI(BaseTUI):
             elif key == 'DOWN':
                 selected = (selected + 1) % len(options)
             elif key == 'ENTER' or key == 'RIGHT':
-                option_key = options[selected][0]
-
-                if option_key == 'back':
-                    return
-                else:
-                    self._execute_release(option_key)
-                    return
+                self._execute_release(options[selected][0])
+                return
             elif key == 'ESC' or key == 'LEFT':
                 return
 
     def _execute_release(self, release_type: str):
-        """Execute the release process"""
+        """Execute the release process - simplified"""
         from core.version import __version__, get_new_build
 
         new_build = get_new_build()
-
-        # Calculate new version
         parts = [int(x) for x in __version__.split('.')]
+
         if release_type == 'build':
             new_version = __version__
         elif release_type == 'patch':
@@ -1431,100 +1357,52 @@ class UnibosDevTUI(BaseTUI):
         else:
             new_version = __version__
 
-        archive_name = f"unibos_v{new_version}_b{new_build}"
-
         lines = [
-            "🚀 release process",
+            f"v{new_version}+build.{new_build}",
             "",
-            "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━",
-            f"  release type: {release_type}",
-            f"  new version:  v{new_version}",
-            f"  new build:    {new_build}",
-            f"  archive:      {archive_name}/",
-            "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━",
+            "manual steps:",
+            f"  1. VERSION.json → build: \"{new_build}\"",
+            f"  2. core/version.py → __build__ = \"{new_build}\"",
+            "  3. git commit & tag",
             "",
-            "  steps to complete:",
+            "🚧 auto-release coming soon",
             "",
-            "  1. update VERSION.json and core/version.py",
-            "  2. create archive directory",
-            "  3. git commit changes",
-            "  4. create git tag",
-            "  5. push to repositories",
-            "",
-            "  🚧 automatic release coming soon!",
-            "",
-            "  for now, manually update:",
-            f"    VERSION.json: build = \"{new_build}\"",
-            f"    core/version.py: __build__ = \"{new_build}\"",
-            "",
-            "press esc to continue"
+            "esc to return"
         ]
 
-        self.update_content(
-            title="release process",
-            lines=lines,
-            color=Colors.YELLOW
-        )
+        self.update_content(title="release", lines=lines, color=Colors.YELLOW)
         self.render()
 
-        # wait for esc to return
         while True:
             key = self.get_key()
             if key == 'ESC':
                 break
 
     def _version_increment(self):
-        """Version increment wizard"""
-        import time
-        from core.version import __version__, __build__
+        """Version increment wizard - simplified"""
+        from core.version import __version__
 
         parts = [int(x) for x in __version__.split('.')]
-
         options = [
-            ("patch", f"🔧 patch: v{parts[0]}.{parts[1]}.{parts[2]+1}", "bug fixes, small improvements"),
-            ("minor", f"✨ minor: v{parts[0]}.{parts[1]+1}.0", "new features"),
-            ("major", f"🚀 major: v{parts[0]+1}.0.0", "breaking changes"),
-            ("back", "← cancel", "return without changes"),
+            ("patch", "🔧 patch", f"v{parts[0]}.{parts[1]}.{parts[2]+1} (bugfix)"),
+            ("minor", "✨ minor", f"v{parts[0]}.{parts[1]+1}.0 (feature)"),
+            ("major", "🚀 major", f"v{parts[0]+1}.0.0 (breaking)"),
         ]
 
         selected = 0
 
         while True:
-            lines = [
-                "🔼 version increment",
-                "",
-                "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━",
-                f"  current version: v{__version__}",
-                "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━",
-                "",
-                "  select increment type:",
-                ""
-            ]
+            lines = [f"current: v{__version__}", ""]
 
-            for i, (key, label, desc) in enumerate(options):
+            for i, (key, label, preview) in enumerate(options):
                 if i == selected:
-                    lines.append(f"  → {label}")
-                    lines.append(f"    {desc}")
+                    lines.append(f" → {label}  ·  {preview}")
                 else:
-                    lines.append(f"    {label}")
-                lines.append("")
+                    lines.append(f"   {label}")
 
-            lines.extend([
-                "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━",
-                "",
-                "  when to use:",
-                "    patch: bug fix, security patch",
-                "    minor: new feature, enhancement",
-                "    major: breaking api change, rewrite",
-                "",
-                "navigation: ↑↓ to move, enter to select, esc to cancel"
-            ])
+            lines.extend(["", "↑↓ select · enter confirm · esc cancel"])
 
-            self.update_content(
-                title="increment version",
-                lines=lines,
-                color=Colors.CYAN
-            )
+            self.update_content(title="increment", lines=lines, color=Colors.CYAN)
             self.render()
 
             key = self.get_key()
@@ -1534,51 +1412,30 @@ class UnibosDevTUI(BaseTUI):
             elif key == 'DOWN':
                 selected = (selected + 1) % len(options)
             elif key == 'ENTER' or key == 'RIGHT':
-                option_key = options[selected][0]
-
-                if option_key == 'back':
-                    return
-                else:
-                    self._execute_release(option_key)
-                    return
+                self._execute_release(options[selected][0])
+                return
             elif key == 'ESC' or key == 'LEFT':
                 return
 
     def _version_create_tag(self):
-        """Create git tag"""
-        from core.version import __version__, __build__, VERSION_CODENAME
+        """Create git tag - simplified"""
+        from core.version import __version__
 
         lines = [
-            "🏷️  create git tag",
+            f"tag: v{__version__}",
             "",
-            "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━",
-            f"  tag name:    v{__version__}",
-            f"  build:       {__build__}",
-            f"  codename:    {VERSION_CODENAME.lower()}",
-            "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━",
+            "commands:",
+            f"  git tag -a v{__version__} -m \"v{__version__}\"",
+            f"  git push --tags",
             "",
-            "  commands to run:",
+            "or: unibos-dev git push-dev --tags",
             "",
-            f"  git tag -a v{__version__} -m \"unibos v{__version__}\"",
-            f"  git push dev v{__version__}",
-            f"  git push server v{__version__}",
-            f"  git push manager v{__version__}",
-            f"  git push prod v{__version__}",
-            "",
-            "  or use:",
-            "    unibos-dev git push-dev --tags",
-            "",
-            "press esc to continue"
+            "esc to return"
         ]
 
-        self.update_content(
-            title="create git tag",
-            lines=lines,
-            color=Colors.CYAN
-        )
+        self.update_content(title="git tag", lines=lines, color=Colors.CYAN)
         self.render()
 
-        # wait for esc to return
         while True:
             key = self.get_key()
             if key == 'ESC':
@@ -1664,175 +1521,96 @@ class UnibosDevTUI(BaseTUI):
 
                 archives.append(archive_info)
 
-        # Build display
-        lines = [
-            "📋 version archive history",
-            "",
-            "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━",
-        ]
+        # Build display - simplified
+        lines = [f"{len(archives)} archives", ""]
 
         if archives:
-            # Count by format
-            new_count = sum(1 for a in archives if a['format'] == 'new')
-            old_count = sum(1 for a in archives if a['format'] == 'old')
-
-            lines.append(f"  total: {len(archives)} archives")
-            if new_count > 0:
-                lines.append(f"  new format (v1.0.0+): {new_count}")
-            if old_count > 0:
-                lines.append(f"  old format (pre-1.0): {old_count}")
-
-            lines.append("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
-            lines.append("")
-            lines.append("  recent archives:")
-            lines.append("")
-
-            for i, archive in enumerate(archives[:12]):  # Show last 12
-                # Format display based on archive type
+            for i, archive in enumerate(archives[:15]):  # Show last 15
                 if archive['format'] == 'new' and archive['build']:
-                    # Parse timestamp for display
                     b = archive['build']
                     if len(b) == 14:
-                        time_str = f"{b[8:10]}:{b[10:12]}"
-                        date_str = f"{b[0:4]}-{b[4:6]}-{b[6:8]}"
-                        lines.append(f"  {i+1:2}. v{archive['version']} @{time_str} ({date_str})")
+                        lines.append(f"  v{archive['version']} · {b[0:4]}-{b[4:6]}-{b[6:8]} {b[8:10]}:{b[10:12]}")
                     else:
-                        lines.append(f"  {i+1:2}. v{archive['version']} b{archive['build']}")
+                        lines.append(f"  v{archive['version']} · b{archive['build']}")
                 else:
                     date_str = archive['date'] or ''
-                    lines.append(f"  {i+1:2}. v{archive['version']} {date_str}")
+                    lines.append(f"  v{archive['version']} · {date_str}")
 
-            if len(archives) > 12:
-                lines.append("")
-                lines.append(f"  ... and {len(archives) - 12} more")
-
-            lines.append("")
+            if len(archives) > 15:
+                lines.extend(["", f"  +{len(archives) - 15} more"])
         else:
             lines.append("  no archives found")
-            lines.append("")
 
-        lines.extend([
-            "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━",
-            "",
-            "  archive location:",
-            f"  {archive_dir}",
-            "",
-            "press esc to continue"
-        ])
+        lines.extend(["", "esc to return"])
 
-        self.update_content(
-            title="browse archives",
-            lines=lines,
-            color=Colors.CYAN
-        )
+        self.update_content(title="archives", lines=lines, color=Colors.CYAN)
         self.render()
 
-        # wait for esc to return
         while True:
             key = self.get_key()
             if key == 'ESC':
                 break
 
     def _version_analyze(self):
-        """Analyze archives with statistics"""
+        """Analyze archives with statistics - simplified"""
         from pathlib import Path
-        import os
 
         archive_dir = Path("/Users/berkhatirli/Desktop/unibos-dev/archive/versions")
 
-        lines = [
-            "📈 archive analyzer",
-            "",
-            "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━",
-        ]
+        def format_size(size):
+            if size >= 1024 * 1024 * 1024:
+                return f"{size / (1024*1024*1024):.1f}gb"
+            elif size >= 1024 * 1024:
+                return f"{size / (1024*1024):.1f}mb"
+            elif size >= 1024:
+                return f"{size / 1024:.1f}kb"
+            return f"{size}b"
 
-        if archive_dir.exists():
-            # Calculate sizes
+        if not archive_dir.exists():
+            lines = ["archive directory not found", "", "esc to return"]
+        else:
             total_size = 0
-            archive_count = 0
             sizes = []
 
             for item in archive_dir.iterdir():
                 if item.is_dir():
-                    # Calculate directory size
-                    dir_size = sum(
-                        f.stat().st_size for f in item.rglob('*') if f.is_file()
-                    )
+                    dir_size = sum(f.stat().st_size for f in item.rglob('*') if f.is_file())
                     total_size += dir_size
                     sizes.append((item.name, dir_size))
-                    archive_count += 1
 
-            # Format sizes
-            def format_size(size):
-                if size >= 1024 * 1024 * 1024:
-                    return f"{size / (1024*1024*1024):.1f} GB"
-                elif size >= 1024 * 1024:
-                    return f"{size / (1024*1024):.1f} MB"
-                elif size >= 1024:
-                    return f"{size / 1024:.1f} KB"
-                return f"{size} B"
-
-            lines.extend([
-                f"  total archives:  {archive_count}",
-                f"  total size:      {format_size(total_size)}",
+            lines = [
+                f"{len(sizes)} archives · {format_size(total_size)} total",
                 "",
-            ])
+            ]
 
             if sizes:
                 avg_size = total_size / len(sizes)
-                lines.append(f"  average size:    {format_size(int(avg_size))}")
+                lines.append(f"avg: {format_size(int(avg_size))}")
+                lines.append("")
 
-                # Find largest
                 sizes.sort(key=lambda x: x[1], reverse=True)
-                lines.extend([
-                    "",
-                    "  largest archives:",
-                ])
+                lines.append("largest:")
                 for name, size in sizes[:5]:
-                    lines.append(f"    {format_size(size):>10}  {name[:40]}")
+                    short_name = name[:35] + "..." if len(name) > 38 else name
+                    lines.append(f"  {format_size(size):>8} {short_name}")
 
-                # Check for anomalies (>2x average)
                 anomalies = [s for s in sizes if s[1] > avg_size * 2]
                 if anomalies:
-                    lines.extend([
-                        "",
-                        f"  ⚠️  {len(anomalies)} size anomalies detected (>2x avg)",
-                    ])
+                    lines.extend(["", f"⚠ {len(anomalies)} anomalies (>2x avg)"])
 
-            lines.append("")
-        else:
-            lines.append("  archive directory not found")
-            lines.append("")
+            lines.extend(["", "esc to return"])
 
-        lines.extend([
-            "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━",
-            "",
-            "  for detailed analysis, run:",
-            "    ./tools/archive_daily_check.sh",
-            "",
-            "press esc to continue"
-        ])
-
-        self.update_content(
-            title="archive analyzer",
-            lines=lines,
-            color=Colors.CYAN
-        )
+        self.update_content(title="analyzer", lines=lines, color=Colors.CYAN)
         self.render()
 
-        # wait for esc to return
         while True:
             key = self.get_key()
             if key == 'ESC':
                 break
 
     def _version_git_status(self):
-        """show git status"""
-        self.update_content(
-            title="git status",
-            lines=["🔀 Loading git status...", ""],
-            color=Colors.CYAN
-        )
+        """show git status - simplified"""
+        self.update_content(title="git status", lines=["loading..."], color=Colors.CYAN)
         self.render()
 
         result = self.execute_command(['unibos-dev', 'git', 'status'])
