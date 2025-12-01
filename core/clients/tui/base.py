@@ -403,8 +403,17 @@ class BaseTUI(ABC):
                 return False  # Exit on left at top level
 
         elif key == Keys.RIGHT:
-            if self.state.navigate_right(len(sections)):
-                self.render()
+            # v527: Right arrow acts like Enter - selects current item
+            current_section = sections[self.state.current_section] if sections else None
+            if current_section and 0 <= self.state.selected_index < len(current_section.items):
+                item = current_section.items[self.state.selected_index]
+                if item and item.enabled:
+                    show_cursor()
+                    result = self.handle_action(item)
+                    hide_cursor()
+                    if not result:
+                        return False
+                    self.render()
 
         elif key == Keys.TAB:
             # Switch sections

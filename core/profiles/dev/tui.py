@@ -1197,7 +1197,8 @@ class UnibosDevTUI(BaseTUI):
                 selected = (selected - 1) % len(options)
             elif key == 'DOWN':
                 selected = (selected + 1) % len(options)
-            elif key == 'ENTER':
+            elif key == 'ENTER' or key == 'RIGHT':
+                # v527: both enter and right arrow select item
                 option_key = options[selected][0]
 
                 if option_key == 'back':
@@ -1217,9 +1218,9 @@ class UnibosDevTUI(BaseTUI):
                 elif option_key == 'git_tag':
                     self._version_create_tag()
 
-                # Wait for user to read output
-                time.sleep(0.5)
-            elif key == 'ESC':
+                # after sub-action, continue showing version manager menu
+            elif key == 'ESC' or key == 'LEFT':
+                # v527: both esc and left arrow go back
                 return True
 
         return True
@@ -1361,7 +1362,7 @@ class UnibosDevTUI(BaseTUI):
                 selected = (selected - 1) % len(options)
             elif key == 'DOWN':
                 selected = (selected + 1) % len(options)
-            elif key == 'ENTER':
+            elif key == 'ENTER' or key == 'RIGHT':
                 option_key = options[selected][0]
 
                 if option_key == 'back':
@@ -1369,7 +1370,7 @@ class UnibosDevTUI(BaseTUI):
                 else:
                     self._execute_release(option_key)
                     return
-            elif key == 'ESC':
+            elif key == 'ESC' or key == 'LEFT':
                 return
 
     def _execute_release(self, release_type: str):
@@ -1499,7 +1500,7 @@ class UnibosDevTUI(BaseTUI):
                 selected = (selected - 1) % len(options)
             elif key == 'DOWN':
                 selected = (selected + 1) % len(options)
-            elif key == 'ENTER':
+            elif key == 'ENTER' or key == 'RIGHT':
                 option_key = options[selected][0]
 
                 if option_key == 'back':
@@ -1507,7 +1508,7 @@ class UnibosDevTUI(BaseTUI):
                 else:
                     self._execute_release(option_key)
                     return
-            elif key == 'ESC':
+            elif key == 'ESC' or key == 'LEFT':
                 return
 
     def _version_create_tag(self):
