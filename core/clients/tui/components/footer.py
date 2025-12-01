@@ -49,11 +49,7 @@ class Footer:
         except Exception:
             pass
 
-        # V527 CRITICAL: Clear footer line AND line above it to catch any overflow
-        # Clear line above footer first (catches escape sequences that leaked)
-        if footer_y > 1:
-            sys.stdout.write(f"\033[{footer_y - 1};1H\033[K")
-        # Clear footer line completely
+        # V527 CRITICAL: Clear footer line completely
         sys.stdout.write(f"\033[{footer_y};1H\033[2K")
         sys.stdout.write(f"\033[{footer_y};1H{Colors.BG_DARK}{' ' * cols}{Colors.RESET}")
         sys.stdout.flush()
