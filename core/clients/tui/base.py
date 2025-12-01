@@ -310,6 +310,28 @@ class BaseTUI(ABC):
             # V527 Protection 8: Mark render as complete
             self._last_render_complete = True
 
+    def _redraw_header_footer(self):
+        """Redraw only header and footer to prevent disappearing during navigation"""
+        # Get language display
+        lang_code = self.i18n.get_language()
+        lang_flag = self.i18n.get_language_flag(lang_code)
+        lang_name = self.i18n.get_language_display_name(lang_code)
+        language_display = f"{lang_flag} {lang_name}"
+
+        # Redraw header
+        self.header.draw(
+            breadcrumb=self.get_breadcrumb(),
+            username=self.get_username(),
+            language=language_display
+        )
+
+        # Redraw footer
+        self.footer.draw(
+            hints=self.get_navigation_hints(),
+            status=self.get_system_status()
+        )
+        sys.stdout.flush()
+
     def get_breadcrumb(self) -> str:
         """Get current navigation breadcrumb"""
         sections = self.get_menu_sections()
@@ -375,34 +397,28 @@ class BaseTUI(ABC):
         sections = self.get_menu_sections()
 
         if key == Keys.UP:
-            old_section = self.state.current_section
             if self.state.navigate_up():
-                if self.state.current_section != old_section:
-                    # Section changed (including circular wrap) - full render needed
-                    self.render()
-                else:
-                    # Same section - just redraw sidebar and content
-                    self.sidebar.draw(
-                        sections, self.state.current_section,
-                        self.state.selected_index, bool(self.state.in_submenu)
-                    )
-                    self.update_content_for_selection()
+                # Redraw sidebar
+                self.sidebar.draw(
+                    sections, self.state.current_section,
+                    self.state.selected_index, bool(self.state.in_submenu)
+                )
+                self.update_content_for_selection()
+                # Always redraw header/footer after sidebar to prevent disappearing
+                self._redraw_header_footer()
 
         elif key == Keys.DOWN:
             current_section = sections[self.state.current_section] if sections else None
             max_items = len(current_section.items) if current_section else 0
-            old_section = self.state.current_section
             if self.state.navigate_down(max_items):
-                if self.state.current_section != old_section:
-                    # Section changed (including circular wrap) - full render needed
-                    self.render()
-                else:
-                    # Same section - just redraw sidebar and content
-                    self.sidebar.draw(
-                        sections, self.state.current_section,
-                        self.state.selected_index, bool(self.state.in_submenu)
-                    )
-                    self.update_content_for_selection()
+                # Redraw sidebar
+                self.sidebar.draw(
+                    sections, self.state.current_section,
+                    self.state.selected_index, bool(self.state.in_submenu)
+                )
+                self.update_content_for_selection()
+                # Always redraw header/footer after sidebar to prevent disappearing
+                self._redraw_header_footer()
 
         elif key == Keys.LEFT:
             if self.state.navigate_left():
