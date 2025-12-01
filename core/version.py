@@ -18,7 +18,7 @@ import os
 # Current version
 __version__ = "1.0.0"
 __version_info__ = (1, 0, 0)
-__build__ = "20251202003028"
+__build__ = "20251202004443"
 
 # Version metadata
 VERSION_NAME = "First Stable Release"
@@ -160,8 +160,8 @@ def parse_build_timestamp(build: str) -> dict:
             'minute': build[10:12],
             'second': build[12:14],
             'readable': dt.strftime("%d %B %Y, %H:%M:%S"),
-            'short': dt.strftime("@%H:%M"),
-            'compact': dt.strftime("%m%d@%H%M"),
+            'short': dt.strftime("%H:%M"),
+            'compact': dt.strftime("%m%d.%H%M"),
         }
     except ValueError:
         return None
@@ -180,16 +180,16 @@ def format_build_display(build: str, style: str = 'short') -> str:
 
     Example:
         >>> format_build_display('20251201222554', 'short')
-        '@22:25'
+        '22:25'
     """
     info = parse_build_timestamp(build)
     if not info:
         return build
 
     if style == 'short':
-        return info['short']  # "@22:25"
+        return info['short']  # "22:25"
     elif style == 'compact':
-        return info['compact']  # "1201@2225"
+        return info['compact']  # "1201.2225"
     elif style == 'date':
         return info['date']  # "2025-12-01"
     elif style == 'full':
@@ -272,15 +272,13 @@ def get_short_version_string():
     Get short version string for TUI header
 
     Returns:
-        str: Short version string
+        str: Short version string with date and time
 
     Example:
         >>> get_short_version_string()
-        'v1.0.0 @22:25'
+        'v1.0.0'
     """
-    build_info = parse_build_timestamp(__build__)
-    if build_info:
-        return f"v{__version__} {build_info['short']}"
+    # Only return version, build date+time is added separately in header
     return f"v{__version__}"
 
 

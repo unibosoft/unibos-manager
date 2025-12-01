@@ -24,7 +24,7 @@ class UnibosDevTUI(BaseTUI):
 
         config = TUIConfig(
             title="unibos-dev",
-            version=get_short_version_string(),  # Dynamic: "v1.0.0 @22:25"
+            version=get_short_version_string(),  # Dynamic: "v1.0.0 22:25"
             location="dev environment",
             sidebar_width=25,  # V527 spec: exactly 25 characters
             show_splash=True,
@@ -1210,13 +1210,9 @@ class UnibosDevTUI(BaseTUI):
 
     def _draw_version_submenu(self, options, selected, version, build, codename, release_type):
         """Draw version manager submenu content - clean and minimal"""
-        from core.version import parse_build_timestamp
-
-        build_info = parse_build_timestamp(build)
-        build_display = build_info['short'] if build_info else build
-
+        # Format: v1.0.0+20251202003028 · phoenix rising
         lines = [
-            f"v{version} · {build_display} · {codename.lower()}",
+            f"v{version}+{build} · {codename.lower()}",
             "",
         ]
 
@@ -1659,11 +1655,70 @@ class UnibosDevTUI(BaseTUI):
 
     def _version_git_status(self):
         """show git status - simplified"""
+        import subprocess
+        from pathlib import Path
+
+        project_root = Path(__file__).parent.parent.parent.parent
+
         self.update_content(title="git status", lines=["loading..."], color=Colors.CYAN)
         self.render()
 
-        result = self.execute_command(['unibos-dev', 'git', 'status'])
-        self.show_command_output(result)
+        try:
+            # Get git status
+            result = subprocess.run(
+                ['git', 'status', '--short', '--branch'],
+                capture_output=True, text=True, cwd=project_root
+            )
+
+            lines = []
+
+            # Parse branch info
+            status_lines = result.stdout.strip().split('\n') if result.stdout.strip() else []
+
+            if status_lines:
+                branch_line = status_lines[0]
+                lines.append(f"branch: {branch_line.replace('## ', '')}")
+                lines.append("")
+
+                # File changes
+                changes = status_lines[1:] if len(status_lines) > 1 else []
+                if changes:
+                    lines.append(f"changes ({len(changes)}):")
+                    for change in changes[:15]:  # Limit to 15 lines
+                        lines.append(f"  {change}")
+                    if len(changes) > 15:
+                        lines.append(f"  ... and {len(changes) - 15} more")
+                else:
+                    lines.append("✓ working tree clean")
+
+            # Get recent commits
+            commits_result = subprocess.run(
+                ['git', 'log', '--oneline', '-5'],
+                capture_output=True, text=True, cwd=project_root
+            )
+
+            if commits_result.stdout.strip():
+                lines.append("")
+                lines.append("recent commits:")
+                for commit in commits_result.stdout.strip().split('\n'):
+                    lines.append(f"  {commit}")
+
+            self.update_content(title="git status", lines=lines, color=Colors.CYAN)
+            self.render()
+
+        except Exception as e:
+            self.update_content(
+                title="git status",
+                lines=[f"error: {e}"],
+                color=Colors.RED
+            )
+            self.render()
+
+        # Wait for key
+        while True:
+            key = self.get_key()
+            if key == 'ESC':
+                break
 
 def run_interactive():
     """Run the dev TUI"""

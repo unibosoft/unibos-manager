@@ -8,6 +8,7 @@ from datetime import datetime
 from typing import Optional
 
 from core.clients.cli.framework.ui import Colors, get_terminal_size, move_cursor
+from core.version import __build__
 
 
 class Header:
@@ -22,7 +23,7 @@ class Header:
         """
         Draw v527-style header with orange background
 
-        Format: 🦄 unibos v0.534.0 b533 › [breadcrumb] | 🇹🇷 Türkçe | berkhatirli
+        Format: 🦄 unibos v1.0.0+20251202003028 › [breadcrumb] | 🇹🇷 Türkçe | berkhatirli
         NO CLOCK IN HEADER (clock is in footer)
 
         Args:
@@ -46,12 +47,10 @@ class Header:
         sys.stdout.flush()
 
         # Left side: Icon + Title + Version + Build + Breadcrumb
-        # Using unicorn icon (🦄) instead of planet (🪐) to match v527
-        build_num = "533"  # Extract from version or config
+        # Format: v1.0.0+20251202003028
         title_text = f"  🦄 {self.config.title}"
         if self.config.version:
-            title_text += f" {self.config.version}"
-        title_text += f" b{build_num}"
+            title_text += f" {self.config.version}+{__build__}"
 
         if breadcrumb and self.config.show_breadcrumbs:
             # Make breadcrumb lowercase if config says so
