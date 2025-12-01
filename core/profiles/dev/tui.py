@@ -1296,6 +1296,12 @@ class UnibosDevTUI(BaseTUI):
         )
         self.render()
 
+        # wait for esc to return
+        while True:
+            key = self.get_key()
+            if key == 'ESC':
+                break
+
     def _version_quick_release(self):
         """Quick release wizard"""
         import time
@@ -1427,6 +1433,12 @@ class UnibosDevTUI(BaseTUI):
         )
         self.render()
 
+        # wait for esc to return
+        while True:
+            key = self.get_key()
+            if key == 'ESC':
+                break
+
     def _version_increment(self):
         """Version increment wizard"""
         import time
@@ -1531,6 +1543,12 @@ class UnibosDevTUI(BaseTUI):
             color=Colors.CYAN
         )
         self.render()
+
+        # wait for esc to return
+        while True:
+            key = self.get_key()
+            if key == 'ESC':
+                break
 
     def _version_browse_archives(self):
         """Browse version archives with new format support"""
@@ -1675,6 +1693,12 @@ class UnibosDevTUI(BaseTUI):
         )
         self.render()
 
+        # wait for esc to return
+        while True:
+            key = self.get_key()
+            if key == 'ESC':
+                break
+
     def _version_analyze(self):
         """Analyze archives with statistics"""
         from pathlib import Path
@@ -1761,6 +1785,12 @@ class UnibosDevTUI(BaseTUI):
             color=Colors.CYAN
         )
         self.render()
+
+        # wait for esc to return
+        while True:
+            key = self.get_key()
+            if key == 'ESC':
+                break
 
     def _version_git_status(self):
         """show git status"""

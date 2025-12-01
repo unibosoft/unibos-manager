@@ -93,14 +93,16 @@ class MenuState:
 
     def navigate_up(self) -> bool:
         """
-        Navigate up in the menu (v527 style - wraps to previous section)
+        Navigate up in the menu (v527 style - circular wrap)
 
         Returns:
-            True if navigation occurred, False if at top
+            True if navigation occurred
         """
         if self.in_submenu:
-            if self.submenu_index > 0:
-                self.submenu_index -= 1
+            submenu_items = len(self.in_submenu.get('items', []))
+            if submenu_items > 0:
+                # Circular wrap in submenu
+                self.submenu_index = (self.submenu_index - 1) % submenu_items
                 return True
         else:
             if self.selected_index > 0:
@@ -116,22 +118,31 @@ class MenuState:
                     self.previous_index = self.selected_index
                     self.selected_index = len(prev_section.get('items', [])) - 1
                     return True
+            elif self.sections:
+                # At very top - wrap to last section, last item (circular)
+                self.current_section = len(self.sections) - 1
+                last_section = self.sections[self.current_section]
+                if last_section:
+                    self.previous_index = self.selected_index
+                    self.selected_index = len(last_section.get('items', [])) - 1
+                    return True
         return False
 
     def navigate_down(self, max_items: int) -> bool:
         """
-        Navigate down in the menu (v527 style - wraps to next section)
+        Navigate down in the menu (v527 style - circular wrap)
 
         Args:
             max_items: Maximum number of items in current context
 
         Returns:
-            True if navigation occurred, False if at bottom
+            True if navigation occurred
         """
         if self.in_submenu:
             submenu_items = len(self.in_submenu.get('items', []))
-            if self.submenu_index < submenu_items - 1:
-                self.submenu_index += 1
+            if submenu_items > 0:
+                # Circular wrap in submenu
+                self.submenu_index = (self.submenu_index + 1) % submenu_items
                 return True
         else:
             if self.selected_index < max_items - 1:
@@ -142,6 +153,12 @@ class MenuState:
             elif self.current_section < len(self.sections) - 1:
                 # At bottom of section, jump to next section (first item)
                 self.current_section += 1
+                self.previous_index = self.selected_index
+                self.selected_index = 0
+                return True
+            elif self.sections:
+                # At very bottom - wrap to first section, first item (circular)
+                self.current_section = 0
                 self.previous_index = self.selected_index
                 self.selected_index = 0
                 return True
