@@ -4,10 +4,70 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}UNIBOS - Universal Basic Operating System{% endblock %}</title>
-    
+
+    <!--
+        Q+W Solitaire Shortcut (Screen Lock)
+        ====================================
+        This script MUST be loaded before any other scripts (especially HTMX) to ensure
+        the keyboard shortcut works reliably.
+
+        How it works:
+        - Tracks timestamps of Q and W key presses
+        - If both keys are pressed within 400ms, navigates to solitaire
+        - Uses ?qw=1 parameter to bypass the solitaire_exited session check
+
+        Why ?qw=1 parameter?
+        - When user exits solitaire with password, server sets solitaire_exited=True
+        - This flag prevents returning to solitaire via browser back button (security)
+        - But Q+W shortcut is intentional user action, so we bypass with ?qw=1
+        - Server checks for this parameter in views.py solitaire_view()
+        - Security is maintained: entering solitaire is easy, EXITING requires password
+    -->
+    <script>
+    (function() {
+        var lastQ = 0, lastW = 0, navigating = false;
+
+        window.addEventListener('keydown', function(e) {
+            // Skip if typing in form fields
+            var tag = document.activeElement ? document.activeElement.tagName : '';
+            if (tag === 'INPUT' || tag === 'TEXTAREA') return;
+
+            var key = e.key ? e.key.toLowerCase() : '';
+            var now = Date.now();
+
+            // Track key press timestamps
+            if (key === 'q') lastQ = now;
+            if (key === 'w') lastW = now;
+
+            // Check if both keys pressed within 400ms window
+            var qOK = (now - lastQ) < 400;
+            var wOK = (now - lastW) < 400;
+
+            if (qOK && wOK) {
+                if (navigating) return; // Prevent double navigation
+
+                e.preventDefault();
+                e.stopPropagation();
+                e.stopImmediatePropagation();
+                navigating = true;
+
+                // ?qw=1 bypasses solitaire_exited check (see views.py solitaire_view)
+                window.location.href = '{% url "web_ui:solitaire" %}?qw=1';
+            }
+        }, true); // Capture phase - get events before other handlers
+
+        // Reset state when page is shown (handles bfcache)
+        window.addEventListener('pageshow', function() {
+            navigating = false;
+            lastQ = 0;
+            lastW = 0;
+        });
+    })();
+    </script>
+
     <!-- Terminal Font -->
     <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
-    
+
     <!-- HTMX for interactivity -->
     <script src="https://unpkg.com/htmx.org@1.9.10"></script>
     
@@ -794,20 +854,22 @@
         let isFullscreen = false;
         
         async function toggleMinimize() {
+            console.log('[toggleMinimize] Called from:', window.location.pathname);
             // If we're in solitaire page, save the game first
             if (window.location.pathname.includes('/solitaire/')) {
                 // Check if saveGameStateSync function exists (from solitaire page)
                 if (typeof saveGameStateSync === 'function') {
-                    console.log('Saving solitaire game before minimize...');
+                    console.log('[toggleMinimize] Saving solitaire game before minimize...');
                     await saveGameStateSync();
                 }
             } else {
                 // Save current page URL to session storage before going to solitaire
                 const currentUrl = window.location.href;
                 sessionStorage.setItem('pre_solitaire_url', currentUrl);
-                console.log('Saved current page for return:', currentUrl);
+                console.log('[toggleMinimize] Saved current page for return:', currentUrl);
             }
             // Redirect to solitaire game (screen saver mode)
+            console.log('[toggleMinimize] Redirecting to solitaire...');
             window.location.href = '{% url "web_ui:solitaire" %}';
         }
         
@@ -838,12 +900,6 @@
         
         // Apply saved preferences on load
         document.addEventListener('DOMContentLoaded', function() {
-            // Check if sidebar was minimized
-            const wasMinimized = localStorage.getItem('sidebarMinimized') === 'true';
-            if (wasMinimized) {
-                toggleMinimize();
-            }
-            
             // Apply saved theme
             const savedTheme = localStorage.getItem('preferredTheme') || 'dark';
             const savedLang = localStorage.getItem('preferredLanguage') || navigator.language.split('-')[0];
@@ -877,37 +933,15 @@
             document.documentElement.lang = savedLang;
         });
         
-        // Global keyboard shortcuts
-        let globalKeysPressed = {};
-        
-        // Keyboard navigation
+        // Other keyboard shortcuts (Q+W is handled in head script)
         document.addEventListener('keydown', function(e) {
-            const key = e.key.toLowerCase();
-            globalKeysPressed[key] = true;
-            
             // Check if typing in an input field
-            const isTypingInInput = document.activeElement.tagName === 'INPUT' || 
-                                   document.activeElement.tagName === 'TEXTAREA';
-            
-            // Q+W combination for solitaire toggle/minimize from ANY screen
-            if (!isTypingInInput && globalKeysPressed['q'] && globalKeysPressed['w'] && !globalKeysPressed['e']) {
-                console.log('Q+W combination detected, toggling solitaire/minimize');
-                e.preventDefault();
-                toggleMinimize();
-                return;
-            }
-            
-            // Q+W+E combination to exit unibos from ANY screen
-            if (!isTypingInInput && globalKeysPressed['q'] && globalKeysPressed['w'] && globalKeysPressed['e']) {
-                console.log('Q+W+E combination detected, exiting unibos completely');
-                globalKeysPressed = {};
-                e.preventDefault();
-                if (confirm('are you sure you want to exit unibos?')) {
-                    window.location.href = '{% url "web_ui:logout" %}';
-                }
-                return;
-            }
-            
+            const isTypingInInput = document.activeElement.tagName === 'INPUT' ||
+                                   document.activeElement.tagName === 'TEXTAREA' ||
+                                   document.activeElement.isContentEditable;
+
+            if (isTypingInInput) return;
+
             // ESC key - go back or exit fullscreen
             if (e.key === 'Escape') {
                 if (document.fullscreenElement) {
@@ -916,25 +950,20 @@
                     window.history.back();
                 }
             }
-            
+
             // F11 key for fullscreen toggle
             if (e.key === 'F11') {
                 e.preventDefault();
                 toggleFullscreen();
             }
-            
+
             // Tab navigation through sidebar items
             if (e.key === 'Tab') {
                 e.preventDefault();
                 navigateSidebar(e.shiftKey ? -1 : 1);
             }
-        });
-        
-        document.addEventListener('keyup', function(e) {
-            const key = e.key.toLowerCase();
-            delete globalKeysPressed[key];
-        });
-        
+        }, true);
+
         function navigateSidebar(direction) {
             const items = document.querySelectorAll('.sidebar-item');
             const active = document.querySelector('.sidebar-item.active');

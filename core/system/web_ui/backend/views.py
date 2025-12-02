@@ -822,18 +822,40 @@ def solitaire_view(request):
     # Set up logger at the beginning of the function
     logger = logging.getLogger(__name__)
     
-    # Check if user has exited solitaire and is trying to return
-    if request.session.get('solitaire_exited', False):
+    # ==========================================================================
+    # Q+W Shortcut Bypass for solitaire_exited Flag
+    # ==========================================================================
+    # When user exits solitaire with password, we set solitaire_exited=True to
+    # prevent returning via browser back button (security measure).
+    #
+    # However, the Q+W keyboard shortcut is an intentional user action to enter
+    # solitaire, so we allow it by checking for ?qw=1 parameter.
+    #
+    # Security note: This is safe because:
+    # - Entering solitaire doesn't expose any data
+    # - EXITING solitaire still requires the password
+    # - The screen lock protection is on EXIT, not on ENTRY
+    #
+    # Related code: base.html and base_with_header.html Q+W shortcut scripts
+    # ==========================================================================
+    is_qw_shortcut = request.GET.get('qw') == '1'
+
+    if request.session.get('solitaire_exited', False) and not is_qw_shortcut:
         # User has properly exited, don't allow return via browser navigation
         request.session['solitaire_exited'] = False  # Reset the flag
         request.session.save()
-        
+
         # Redirect to main page or last known page
         return_url = request.session.get('last_unibos_page', '/')
         logger.warning(f"Blocked attempt to return to solitaire via browser navigation by {request.user.username}")
-        
+
         from django.shortcuts import redirect
         return redirect(return_url)
+
+    # Clear the exit flag if using Q+W shortcut (intentional re-entry)
+    if is_qw_shortcut and request.session.get('solitaire_exited', False):
+        request.session['solitaire_exited'] = False
+        request.session.save()
     
     # Store the previous URL before entering solitaire (for returning after exit)
     # Use a tab-specific key based on a unique identifier

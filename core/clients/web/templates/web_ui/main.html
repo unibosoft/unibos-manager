@@ -124,54 +124,10 @@
                 alert('system status:\n' + JSON.stringify(data, null, 2));
             });
     }
-    
+
     function viewLogs() {
         alert('log viewer will be implemented soon');
     }
-    
-    // Keyboard shortcuts for unibos main screen
-    let keysPressed = {};
-    let exitDialogShowing = false;
-    
-    document.addEventListener('keydown', function(e) {
-        const key = e.key.toLowerCase();
-        keysPressed[key] = true;
-        
-        // Check if typing in an input field
-        const isTypingInInput = document.activeElement.tagName === 'INPUT' || 
-                               document.activeElement.tagName === 'TEXTAREA';
-        
-        if (isTypingInInput) return;
-        
-        // Q+W combination to go to solitaire (play solitaire)
-        if (keysPressed['q'] && keysPressed['w'] && !keysPressed['e'] && !exitDialogShowing) {
-            console.log('Q+W combination detected, going to solitaire');
-            keysPressed = {};
-            e.preventDefault();
-            window.location.href = '{% url "web_ui:solitaire" %}';
-        }
-        
-        // Q+W+E combination to exit unibos completely
-        if (keysPressed['q'] && keysPressed['w'] && keysPressed['e'] && !exitDialogShowing) {
-            console.log('Q+W+E combination detected, exiting unibos');
-            keysPressed = {};
-            e.preventDefault();
-            showExitDialog();
-        }
-    });
-    
-    document.addEventListener('keyup', function(e) {
-        const key = e.key.toLowerCase();
-        delete keysPressed[key];
-    });
-    
-    function showExitDialog() {
-        exitDialogShowing = true;
-        if (confirm('are you sure you want to exit unibos?')) {
-            // Log out the user
-            window.location.href = '{% url "web_ui:logout" %}';
-        }
-        exitDialogShowing = false;
-    }
+    // Note: Q+W keyboard shortcuts are handled globally in base.html
 </script>
 {% endblock %}

@@ -521,13 +521,11 @@
                     return false;
                 }
                 
-                // Allow F5 refresh but save state first
+                // Block F5 refresh - require screen lock password to exit
                 if (e.key === 'F5' || (e.ctrlKey && e.key === 'r')) {
-                    // Save game state before refresh
-                    if (typeof saveGameStateSync === 'function') {
-                        saveGameStateSync();
-                    }
-                    // Allow refresh
+                    e.preventDefault();
+                    showScreenLockDialog();
+                    return false;
                 }
                 
                 // Block Escape key navigation
@@ -540,27 +538,23 @@
             
             // Prevent navigation unless explicitly allowed
             window.addEventListener('beforeunload', function(e) {
-                // Always try to save game state
-                if (typeof saveGameStateSync === 'function') {
-                    saveGameStateSync();
+                // If navigation is allowed (user unlocked via password), skip save
+                // Save was already done in checkScreenLockPassword/confirmExit
+                if (allowNavigation) {
+                    return undefined;
                 }
-                
+
                 // If navigation is not allowed, show warning
-                if (!allowNavigation) {
-                    const message = 'You must enter password to exit solitaire!';
-                    e.preventDefault();
-                    e.returnValue = message;
-                    
-                    // Show screen lock dialog after a small delay
-                    setTimeout(function() {
-                        showScreenLockDialog();
-                    }, 100);
-                    
-                    return message;
-                }
-                
-                // Don't show warning - allow smooth duplicate tab functionality
-                return undefined;
+                const message = 'You must enter password to exit solitaire!';
+                e.preventDefault();
+                e.returnValue = message;
+
+                // Show screen lock dialog after a small delay
+                setTimeout(function() {
+                    showScreenLockDialog();
+                }, 100);
+
+                return message;
             });
         })();
         
@@ -2565,23 +2559,29 @@
             }
         }
         
-        function checkScreenLockPassword() {
+        async function checkScreenLockPassword() {
             const password = document.getElementById('screenLockPassword').value;
-            
-            fetch('/solitaire/exit/', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/x-www-form-urlencoded',
-                    'X-CSRFToken': getCookie('csrftoken')
-                },
-                body: 'code=' + encodeURIComponent(password) + '&tab_id=' + encodeURIComponent(tabId)
-            })
-            .then(response => response.json())
-            .then(data => {
+
+            try {
+                // First, save the game state before attempting exit
+                await saveGameStateSync();
+
+                // Then verify password and exit
+                const response = await fetch('/solitaire/exit/', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                        'X-CSRFToken': getCookie('csrftoken')
+                    },
+                    body: 'code=' + encodeURIComponent(password) + '&tab_id=' + encodeURIComponent(tabId)
+                });
+
+                const data = await response.json();
+
                 if (data.success) {
                     // Allow navigation without warning
                     allowNavigation = true;
-                    
+
                     // Clear solitaire from browser history
                     // Use replace instead of href to prevent forward navigation
                     window.location.replace(data.redirect_url || '/');
@@ -2590,11 +2590,10 @@
                     document.getElementById('screenLockPassword').value = '';
                     document.getElementById('screenLockPassword').focus();
                 }
-            })
-            .catch(error => {
+            } catch (error) {
                 console.error('Error checking password:', error);
                 alert('Error checking password');
-            });
+            }
         }
         
         function getCookie(name) {
