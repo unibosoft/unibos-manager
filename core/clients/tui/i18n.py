@@ -7,6 +7,10 @@ import json
 from pathlib import Path
 from typing import Dict, Optional, Any
 
+# Config directory for persistent settings
+CONFIG_DIR = Path.home() / '.config' / 'unibos'
+LANGUAGE_PREF_FILE = CONFIG_DIR / 'language.json'
+
 
 class TranslationManager:
     """
@@ -23,12 +27,38 @@ class TranslationManager:
         Args:
             default_language: Default language code (tr, en, etc.)
         """
-        self.current_language = default_language
         self.translations: Dict[str, Dict[str, str]] = {}
         self.translations_dir = Path(__file__).parent / 'translations'
 
         # Load all available translations
         self.load_translations()
+
+        # Load saved language preference, or use default
+        saved_lang = self._load_language_preference()
+        self.current_language = saved_lang if saved_lang else default_language
+
+    def _load_language_preference(self) -> Optional[str]:
+        """Load saved language preference from config file"""
+        try:
+            if LANGUAGE_PREF_FILE.exists():
+                with open(LANGUAGE_PREF_FILE, 'r', encoding='utf-8') as f:
+                    data = json.load(f)
+                    return data.get('language')
+        except (json.JSONDecodeError, IOError, OSError):
+            pass
+        return None
+
+    def _save_language_preference(self, lang_code: str) -> bool:
+        """Save language preference to config file"""
+        try:
+            # Create config directory if it doesn't exist
+            CONFIG_DIR.mkdir(parents=True, exist_ok=True)
+
+            with open(LANGUAGE_PREF_FILE, 'w', encoding='utf-8') as f:
+                json.dump({'language': lang_code}, f, indent=2)
+            return True
+        except (IOError, OSError):
+            return False
 
     def load_translations(self):
         """Load all translation files from translations directory"""
@@ -46,12 +76,13 @@ class TranslationManager:
                     # Skip invalid files
                     pass
 
-    def set_language(self, language_code: str) -> bool:
+    def set_language(self, language_code: str, save: bool = True) -> bool:
         """
         Set current language
 
         Args:
             language_code: Language code (tr, en, de, etc.)
+            save: Whether to save preference to disk (default True)
 
         Returns:
             True if language was set successfully, False otherwise
@@ -62,14 +93,20 @@ class TranslationManager:
         # Check if translations exist for this language
         if language_code in self.translations:
             self.current_language = language_code
+            if save:
+                self._save_language_preference(language_code)
             return True
 
         # Default to English or Turkish if not found
         if language_code not in ['en', 'tr']:
             self.current_language = 'en'
+            if save:
+                self._save_language_preference('en')
             return False
 
         self.current_language = language_code
+        if save:
+            self._save_language_preference(language_code)
         return True
 
     def get_language(self) -> str:

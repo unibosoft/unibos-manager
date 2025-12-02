@@ -849,3 +849,171 @@ class BaseTUI(ABC):
 
         self.update_content(self.i18n.translate('command_output'), lines)
         self.render()
+
+    def show_submenu(
+        self,
+        title: str,
+        subtitle: str,
+        options: List[tuple],
+        handlers: Dict[str, Callable],
+        back_label: str = "← back"
+    ) -> bool:
+        """
+        Show a standard submenu in content area
+
+        This is the standard submenu style used throughout UNIBOS TUI.
+        Based on version_manager submenu design.
+
+        Args:
+            title: Submenu title (shown in content header)
+            subtitle: Subtitle shown at top of content (e.g., version info)
+            options: List of tuples: (key, icon_label, description)
+                     Example: ("check", "🔍 check status", "check database status")
+            handlers: Dict mapping option key to handler function
+                     Example: {"check": self._db_check_status}
+            back_label: Label for back option (default "← back")
+
+        Returns:
+            True when submenu exits
+
+        Example usage:
+            options = [
+                ("check", "🔍 check status", "check database status"),
+                ("install", "📥 install", "install postgresql"),
+            ]
+            handlers = {
+                "check": self._db_check_status,
+                "install": self._db_install,
+            }
+            return self.show_submenu("database", "postgresql setup", options, handlers)
+        """
+        selected = 0
+        need_redraw = True
+        last_cols, last_lines = get_terminal_size()
+
+        while True:
+            # Check for terminal resize
+            cols, lines = get_terminal_size()
+            if cols != last_cols or lines != last_lines:
+                last_cols, last_lines = cols, lines
+                self.render()
+                need_redraw = True
+
+            if need_redraw:
+                self._draw_submenu(title, subtitle, options, selected, back_label)
+                need_redraw = False
+
+            # Get input
+            hide_cursor()
+            key = get_single_key(timeout=0.1)
+
+            if not key:
+                continue
+
+            # Handle navigation
+            if key == Keys.UP:
+                selected = (selected - 1) % len(options)
+                need_redraw = True
+            elif key == Keys.DOWN:
+                selected = (selected + 1) % len(options)
+                need_redraw = True
+            elif key == Keys.ENTER or key == '\r' or key == '\n' or key == Keys.RIGHT:
+                option_key = options[selected][0]
+
+                if option_key == 'back':
+                    return True
+
+                # Execute handler if exists
+                if option_key in handlers:
+                    handlers[option_key]()
+
+                # Full redraw after action
+                self.render()
+                need_redraw = True
+            elif key == Keys.ESC or key == '\x1b' or key == Keys.LEFT:
+                return True
+
+        return True
+
+    def _draw_submenu(
+        self,
+        title: str,
+        subtitle: str,
+        options: List[tuple],
+        selected: int,
+        back_label: str
+    ):
+        """Draw submenu content - clean and minimal style with scroll protection"""
+        # V527 CRITICAL: Hide cursor during entire draw to prevent artifacts
+        sys.stdout.write('\033[?25l')
+        sys.stdout.flush()
+
+        content_lines = []
+
+        # Subtitle at top
+        if subtitle:
+            content_lines.append(subtitle)
+            content_lines.append("")
+
+        # Menu options
+        for i, (key, label, desc) in enumerate(options):
+            # Skip back option in visual list (handled by esc/left)
+            if key == 'back':
+                continue
+
+            if i == selected:
+                content_lines.append(f" → {label}  ·  {desc}")
+            else:
+                content_lines.append(f"   {label}")
+
+        # Update content buffer
+        self.update_content(
+            title=title,
+            lines=content_lines,
+            color=Colors.CYAN
+        )
+
+        # V527 CRITICAL: Redraw header FIRST to ensure it persists
+        # Get language display for header
+        lang_code = self.i18n.get_language()
+        lang_flag = self.i18n.get_language_flag(lang_code)
+        lang_name = self.i18n.get_language_display_name(lang_code)
+        language_display = f"{lang_flag} {lang_name}"
+
+        self.header.draw(
+            breadcrumb=self.get_breadcrumb(),
+            username=self.get_username(),
+            language=language_display
+        )
+
+        # Get terminal size for layout calculations
+        cols, lines = get_terminal_size()
+
+        # V527: Redraw sidebar to maintain visual integrity
+        sections = self.get_menu_sections()
+        self.sidebar.draw(
+            sections=sections,
+            current_section=self.state.current_section,
+            selected_index=self.state.selected_index
+        )
+
+        # Draw content area
+        self.content_area.draw(
+            title=title,
+            content='\n'.join(content_lines),
+            item=None
+        )
+
+        # V527 CRITICAL: Redraw footer at exact bottom line
+        self.footer.draw(
+            hints=self.get_navigation_hints(),
+            status=self.get_system_status()
+        )
+
+        # V527: Position cursor safely in content area to prevent scroll
+        move_cursor(27, 5)
+        sys.stdout.flush()
+
+        # Show cursor again
+        sys.stdout.write('\033[?25h')
+        sys.stdout.flush()

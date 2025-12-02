@@ -30,26 +30,16 @@ class Footer:
         cols, lines = get_terminal_size()
         footer_y = lines
 
-        # V527: Hide cursor during draw
-        sys.stdout.write('\033[?25l')
+        # V527 CRITICAL: Prevent terminal scroll by disabling scroll region first
+        # Set scroll region to exclude footer line
+        sys.stdout.write(f'\033[1;{lines-1}r')  # Set scroll region to lines 1 to lines-1
         sys.stdout.flush()
 
-        # CRITICAL: Aggressive flush - both termios and reading any pending bytes
-        try:
-            import termios
-            termios.tcflush(sys.stdin, termios.TCIFLUSH)
-        except Exception:
-            pass
+        # V527: Hide cursor during draw
+        sys.stdout.write('\033[?25l')
 
-        # Also try to drain stdin non-blocking
-        try:
-            import select
-            while select.select([sys.stdin], [], [], 0)[0]:
-                sys.stdin.read(1)
-        except Exception:
-            pass
-
-        # V527 CRITICAL: Clear footer line completely
+        # V527 CRITICAL: Clear footer line completely FIRST
+        # Use direct escape sequence - no flush between clear operations
         sys.stdout.write(f"\033[{footer_y};1H\033[2K")
         sys.stdout.write(f"\033[{footer_y};1H{Colors.BG_DARK}{' ' * cols}{Colors.RESET}")
         sys.stdout.flush()
@@ -143,7 +133,8 @@ class Footer:
                 sys.stdout.write(Colors.RESET)
             sys.stdout.flush()
 
-        # V527: Final flush and show cursor
+        # V527: Reset scroll region to full screen and show cursor
+        sys.stdout.write(f'\033[1;{footer_y}r')  # Reset scroll region
         sys.stdout.flush()
         sys.stdout.write('\033[?25h')
         sys.stdout.flush()

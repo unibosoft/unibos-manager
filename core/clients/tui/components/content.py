@@ -50,10 +50,11 @@ class ContentArea:
         content_height = lines - content_y_start - 1  # Fill to line before footer
 
         # PERMANENT FIX: Clear content area with proper buffering
-        # BUGFIX: Clear from line 2 to line 'lines - 1' (footer is at line 'lines')
+        # V527 CRITICAL: Clear from line 3 to line 'lines - 1' (footer is at line 'lines')
+        # Line 1 = header, Line 2 = header separator, preserve both
         # Build clear buffer first, then write all at once
         clear_buffer = []
-        for y in range(2, lines):  # Clear lines 2 to lines-1
+        for y in range(3, lines):  # Clear lines 3 to lines-1, preserve header (lines 1-2)
             clear_buffer.append(f"\033[{y};{content_x}H{' ' * content_width}")
 
         # Write all clear operations in one buffer

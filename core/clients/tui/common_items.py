@@ -84,7 +84,7 @@ class CommonItems:
         Returns:
             MenuItem for database setup
         """
-        label = '🗄️  ' + (i18n.translate('menu.database') if i18n else 'database')
+        label = i18n.translate('menu.database') if i18n else '🗄️  database'
 
         if profile_type == 'dev':
             description = 'postgresql installer\n\n' \
@@ -110,7 +110,7 @@ class CommonItems:
         return MenuItem(
             id='database_setup' if profile_type == 'dev' else 'postgresql_service',
             label=label,
-            icon='',
+            icon='🗄️',
             description=description,
             enabled=True
         )
@@ -126,12 +126,12 @@ class CommonItems:
         Returns:
             MenuItem for web UI management
         """
-        label = '🌐 ' + (i18n.translate('menu.web_ui') if i18n else 'web ui')
+        label = i18n.translate('menu.web_ui') if i18n else '🌐 web ui'
 
         return MenuItem(
             id='web_ui',
             label=label,
-            icon='',
+            icon='🌐',
             description='web interface manager\n\n'
                        '→ start django server\n'
                        '→ stop django server\n'
@@ -152,12 +152,12 @@ class CommonItems:
         Returns:
             MenuItem for administration
         """
-        label = '👑 ' + (i18n.translate('menu.admin') if i18n else 'admin')
+        label = i18n.translate('menu.admin') if i18n else '👑 admin'
 
         return MenuItem(
             id='administration',
             label=label,
-            icon='',
+            icon='👑',
             description='system administration\n\n'
                        '→ user management\n'
                        '→ permissions\n'
@@ -180,7 +180,7 @@ class CommonItems:
             MenuItem for git operations
         """
         if menu_id == 'code_forge':
-            label = '⚙️  ' + (i18n.translate('menu.git') if i18n else 'git')
+            label = i18n.translate('menu.git') if i18n else '⚙️  git'
             description = 'version chronicles\n\n' \
                          '→ git operations\n' \
                          '→ version control\n' \
