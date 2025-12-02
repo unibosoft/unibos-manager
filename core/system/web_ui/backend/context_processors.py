@@ -59,7 +59,7 @@ def sidebar_context(request):
 def version_context(request):
     """
     Provides version information for all templates
-    Tries multiple paths: project root, backend, src
+    Supports both old and new VERSION.json formats
     """
     import json
     from pathlib import Path
@@ -82,37 +82,49 @@ def version_context(request):
                     version_data = json.load(f)
                 break
 
-        # If still not found, use fallback with proper format
-        if not version_data:
-            version_data = {
-                "version": "v0.534.0",
-                "build": "20251116_0550",
-                "build_number": "20251116_0550",
-                "release_date": "2025-11-16"
-            }
-    except Exception as e:
-        # Fallback version on any error with proper format
-        version_data = {
-            "version": "v0.534.0",
-            "build": "20251116_0550",
-            "build_number": "20251116_0550",
-            "release_date": "2025-11-16"
-        }
+    except Exception:
+        pass
 
-    # Ensure consistent format for version and build number
-    version = version_data.get('version', 'v0.534.0')
+    # Parse version data - support both old and new formats
+    if version_data:
+        version_field = version_data.get('version')
 
-    # Get build number from either 'build' or 'build_number' field
-    # Build format should be YYYYMMDD_HHMM (e.g., 20251116_0550)
-    build = version_data.get('build') or version_data.get('build_number', '20251116_0550')
+        # New format: version is a dict with major/minor/patch/build
+        if isinstance(version_field, dict):
+            major = version_field.get('major', 0)
+            minor = version_field.get('minor', 0)
+            patch = version_field.get('patch', 0)
+            version = f"v{major}.{minor}.{patch}"
 
-    # Keep the timestamp format as-is - this is the standard UNIBOS build format
-    # Format: YYYYMMDD_HHMM represents the exact time when the version was created
+            # Get build from version dict or build_info
+            build = version_field.get('build', '')
+            if not build and 'build_info' in version_data:
+                build = version_data['build_info'].get('timestamp', '')
+
+            # Format build as YYYYMMDD_HHMM for display
+            if build and len(build) == 14:
+                build = f"{build[:8]}_{build[8:12]}"
+
+            # Get release date
+            release_date = version_data.get('build_info', {}).get('date', '')
+            if not release_date:
+                release_date = version_data.get('release_info', {}).get('release_date', '2025-12-01')
+
+        # Old format: version is a string
+        else:
+            version = version_field if version_field else 'v0.534.0'
+            build = version_data.get('build') or version_data.get('build_number', '20251116_0550')
+            release_date = version_data.get('release_date', '2025-11-16')
+    else:
+        # Fallback
+        version = 'v1.0.0'
+        build = '20251201_2225'
+        release_date = '2025-12-01'
 
     return {
         'version': version,
         'build_number': build,
-        'release_date': version_data.get('release_date', '2025-11-16'),
+        'release_date': release_date,
     }
 
 

@@ -678,11 +678,17 @@ def unlock_screen(request):
             screen_lock.reset_failed_attempts()
             screen_lock.last_unlocked = timezone.now()
             screen_lock.save()
-            
+
             # Clear session lock flag
             request.session['screen_locked'] = False
-            
-            return JsonResponse({'success': True})
+
+            # Get redirect URL from referer or default to home
+            redirect_url = request.META.get('HTTP_REFERER', '/')
+            # If coming from solitaire, redirect to home
+            if 'solitaire' in redirect_url.lower():
+                redirect_url = '/'
+
+            return JsonResponse({'success': True, 'redirect_url': redirect_url})
         else:
             screen_lock.record_failed_attempt()
             remaining = screen_lock.max_failed_attempts - screen_lock.failed_attempts
