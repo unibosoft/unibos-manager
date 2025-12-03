@@ -1,6 +1,6 @@
 # UNIBOS Development Roadmap
 
-**Version:** v1.0.10
+**Version:** v1.1.0
 **Last Update:** 2025-12-03
 **Current Phase:** Production Ready - Active Development
 **Architecture:** 4-Tier CLI (dev, manager, server, prod)
@@ -115,13 +115,19 @@
 
 ## Active Development Tasks
 
-### Priority 1: Node Registry Django App (IN PROGRESS)
+### Priority 1: Node Registry Django App - COMPLETED ✅
 
-- [ ] Create Django app `core/system/nodes/`
-  - Models: Node, NodeCapability, NodeStatus
-  - API: `/api/nodes/register`, `/api/nodes/list`
-  - Admin interface
-  - WebSocket for real-time status
+- [x] Create Django app `core/system/nodes/`
+  - [x] Models: Node, NodeCapability, NodeMetric, NodeEvent
+  - [x] API: `/api/nodes/register`, `/api/nodes/discover`, `/api/nodes/{id}/heartbeat`
+  - [x] Admin interface
+  - [x] Celery tasks for heartbeat monitoring
+  - [ ] WebSocket for real-time status (Phase 3.3)
+
+### Priority 2: P2P Network Foundation (NEXT)
+
+- [ ] mDNS local network discovery
+- [ ] WebSocket node-to-node messaging
 
 ---
 
@@ -145,9 +151,11 @@
 - [x] Platform detection integration
 - [x] Registration method foundation
 
-#### Remaining (Phase 1.5)
+#### Phase 1.5: Node Registry - COMPLETED ✅
 
-- [ ] Django app `core/system/nodes/` for centralized node management
+- [x] Django app `core/system/nodes/` for centralized node management
+- [x] Celery tasks for heartbeat monitoring
+- [x] REST API for register/heartbeat/discover
 
 ### Phase 2: Module System Enhancement
 
@@ -780,4 +788,4 @@ unibos-dev/
 
 **Last Update:** 2025-12-03
 **Next Review:** Weekly Monday
-**Current Focus:** TUI bug fixes, middleware completion
+**Current Focus:** P2P Network Foundation (mDNS, WebSocket)
