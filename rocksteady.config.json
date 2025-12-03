@@ -1,0 +1,23 @@
+{
+  "name": "rocksteady",
+  "host": "rocksteady",
+  "user": "ubuntu",
+  "port": 22,
+  "deploy_path": "/home/ubuntu/unibos",
+  "venv_path": "/home/ubuntu/unibos/core/clients/web/venv",
+  "repo_url": "git@github.com:unibosoft/unibos-server.git",
+  "branch": "main",
+  "django_settings": "unibos_backend.settings.server",
+  "server_port": 8000,
+  "server_host": "0.0.0.0",
+  "service_name": "unibos",
+  "env_vars": {
+    "SECRET_KEY": "your-secret-key-here-change-in-production",
+    "DEBUG": "False",
+    "ALLOWED_HOSTS": "*",
+    "DB_NAME": "unibos_rocksteady",
+    "DB_USER": "unibos",
+    "DB_PASSWORD": "unibos_secure_password"
+  },
+  "enabled_modules": []
+}

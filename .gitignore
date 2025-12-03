@@ -33,10 +33,6 @@
 # =============================================================================
 
 # ===== CRITICAL: DEVELOPMENT-ONLY DATA (NEVER COMMIT) =====
-# Server deployment configs (contain secrets) - root level
-# These are JSON files with server connection details (SSH, secrets, etc.)
-*.config.json
-
 # Archives are LOCAL ONLY - never push to any repo
 archive/
 archive_backup*/

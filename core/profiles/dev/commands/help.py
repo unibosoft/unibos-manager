@@ -87,11 +87,12 @@ database commands (unibos-dev db ...)
 git commands (unibos-dev git ...)
 ────────────────────────────────────────────────────────────────────────────────
 
-  status                            show repository status
-  push-dev                          push to dev remote
-  push-prod                         push to prod remote
-  pull                              pull from remote
-  sync                              sync all remotes
+  status                            show dev/prod repository status
+  push-dev                          push to dev remote (origin)
+  push-all                          push to dev, server, manager, prod
+  push-prod                         push filtered to production
+  sync-prod                         sync code to local prod directory
+  setup                             configure git remotes
 
 ────────────────────────────────────────────────────────────────────────────────
 release commands (unibos-dev release ...)
@@ -160,6 +161,8 @@ examples
   # git workflow
   unibos-dev git status             # check git status
   unibos-dev git push-dev           # push to dev remote
+  unibos-dev git push-all           # push to all remotes
+  unibos-dev git push-prod          # push to production
 
 ────────────────────────────────────────────────────────────────────────────────
 interactive mode
@@ -357,25 +360,49 @@ git commands
 ════════════
 
   unibos-dev git status
-      show current repository status (branch, changes, remotes)
+      show dev and prod repository status (branch, changes, remotes)
 
   unibos-dev git push-dev
-      push current branch to 'dev' remote repository
+      push current branch to 'origin' (development repository)
+      includes all files in the repository
+
+  unibos-dev git push-all [MESSAGE]
+      push to multiple repositories with correct .gitignore templates:
+      - dev     : full codebase (3 CLIs)
+      - server  : excludes cli_dev (2 CLIs)
+      - prod    : cli_node only, minimal (1 CLI)
+
+      options:
+        MESSAGE               optional commit message (if omitted, pushes existing)
+        -r, --repos REPO      target specific repo (dev/server/prod/all)
+        -d, --dry-run         simulate without pushing
 
   unibos-dev git push-prod
-      push current branch to 'prod' remote repository
+      push filtered code to production repository
+      uses .prodignore to exclude development files
 
-  unibos-dev git pull
-      pull latest changes from remote
+  unibos-dev git sync-prod
+      sync current code to local production directory (filtered)
+      useful for testing production builds locally
 
-  unibos-dev git sync
-      synchronize all configured remotes
+  unibos-dev git setup
+      configure git remotes for dev, server, manager, and prod repositories
+      sets up all required remotes for push operations
 
 configured remotes
-  dev      development repository (full codebase)
+  origin   development repository (full codebase)
+  dev      alias for origin
   server   server deployment (excludes dev tools)
   manager  manager tools repository
-  prod     production nodes (minimal)
+  prod     production nodes (minimal, filtered)
+
+examples
+  unibos-dev git status                        # check repo status
+  unibos-dev git push-dev                      # push to development
+  unibos-dev git push-all                      # push existing to all repos
+  unibos-dev git push-all "feat: new feature"  # commit and push to all
+  unibos-dev git push-all --repos dev          # push to dev only
+  unibos-dev git push-prod                     # push to production only
 """,
         'deploy': """
 deploy commands

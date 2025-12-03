@@ -18,7 +18,7 @@ import os
 # Current version
 __version__ = "1.0.1"
 __version_info__ = (1, 0, 1)
-__build__ = "20251203035045"
+__build__ = "20251203040725"
 
 # Version metadata
 VERSION_NAME = "First Stable Release"

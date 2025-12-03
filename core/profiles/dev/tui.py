@@ -166,22 +166,26 @@ class UnibosDevTUI(BaseTUI):
     def handle_code_forge(self, item: MenuItem) -> bool:
         """Git and version control"""
         options = [
-            ("status", "📊 git status", "show current repository status"),
-            ("commit", "💾 commit changes", "create a new commit"),
-            ("push", "⬆️  push to remote", "push commits to remote repository"),
-            ("pull", "⬇️  pull from remote", "pull latest changes"),
-            ("branch", "🌿 branch info", "show branch information"),
-            ("log", "📜 commit log", "show recent commits"),
+            ("status", "📊 git status", "show dev/prod repository status"),
+            ("push_dev", "⬆️  push dev", "push to development (origin)"),
+            ("push_all", "🔄 push all", "push to dev, server, manager, prod"),
+            ("push_prod", "📦 push prod", "push filtered to production"),
+            ("pull", "⬇️  pull", "pull latest changes"),
+            ("branch", "🌿 branches", "show branch information"),
+            ("log", "📜 log", "show recent commits"),
+            ("setup", "⚙️  setup", "configure git remotes"),
             ("back", "← back", "return to dev tools"),
         ]
 
         handlers = {
             "status": self._git_show_status,
-            "commit": self._git_commit,
-            "push": self._git_push,
+            "push_dev": self._git_push_dev,
+            "push_all": self._git_push_all,
+            "push_prod": self._git_push_prod,
             "pull": self._git_pull,
             "branch": self._git_branch_info,
             "log": self._git_show_log,
+            "setup": self._git_setup,
         }
 
         return self.show_submenu(
@@ -192,45 +196,65 @@ class UnibosDevTUI(BaseTUI):
         )
 
     def _git_show_status(self):
-        """Show git status"""
-        self.update_content(title="git status", lines=["⏳ loading..."], color=Colors.CYAN)
-        self.render()
-        result = self.execute_command(['unibos-dev', 'git', 'status'])
+        """Show git status for dev and prod"""
+        result = self.execute_command_streaming(
+            ['unibos-dev', 'git', 'status'],
+            title="git status"
+        )
         self.show_command_output(result)
 
-    def _git_commit(self):
-        """Create git commit"""
-        self.update_content(title="git commit", lines=["⏳ preparing commit..."], color=Colors.CYAN)
-        self.render()
-        result = self.execute_command(['unibos-dev', 'git', 'commit'])
+    def _git_push_dev(self):
+        """Push to development repository (origin)"""
+        result = self.execute_command_streaming(
+            ['unibos-dev', 'git', 'push-dev'],
+            title="pushing to dev"
+        )
         self.show_command_output(result)
 
-    def _git_push(self):
-        """Push to remote"""
-        self.update_content(title="git push", lines=["⏳ pushing..."], color=Colors.CYAN)
-        self.render()
-        result = self.execute_command(['unibos-dev', 'git', 'push-dev'])
+    def _git_push_all(self):
+        """Push to all repositories"""
+        result = self.execute_command_streaming(
+            ['unibos-dev', 'git', 'push-all'],
+            title="pushing to all repos"
+        )
+        self.show_command_output(result)
+
+    def _git_push_prod(self):
+        """Push filtered to production"""
+        result = self.execute_command_streaming(
+            ['unibos-dev', 'git', 'push-prod'],
+            title="pushing to prod"
+        )
         self.show_command_output(result)
 
     def _git_pull(self):
         """Pull from remote"""
-        self.update_content(title="git pull", lines=["⏳ pulling..."], color=Colors.CYAN)
-        self.render()
-        result = self.execute_command(['git', 'pull'])
+        result = self.execute_command_streaming(
+            ['git', 'pull'],
+            title="pulling changes"
+        )
         self.show_command_output(result)
 
     def _git_branch_info(self):
         """Show branch info"""
-        self.update_content(title="git branches", lines=["⏳ loading..."], color=Colors.CYAN)
+        self.update_content(title="branches", lines=["⏳ loading..."], color=Colors.CYAN)
         self.render()
         result = self.execute_command(['git', 'branch', '-vv'])
         self.show_command_output(result)
 
     def _git_show_log(self):
         """Show commit log"""
-        self.update_content(title="git log", lines=["⏳ loading..."], color=Colors.CYAN)
+        self.update_content(title="commit log", lines=["⏳ loading..."], color=Colors.CYAN)
         self.render()
         result = self.execute_command(['git', 'log', '--oneline', '-20'])
+        self.show_command_output(result)
+
+    def _git_setup(self):
+        """Setup git remotes"""
+        result = self.execute_command_streaming(
+            ['unibos-dev', 'git', 'setup'],
+            title="git setup"
+        )
         self.show_command_output(result)
 
     def handle_web_ui(self, item: MenuItem) -> bool:
