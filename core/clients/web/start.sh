@@ -42,16 +42,10 @@ source $VENV_PATH/bin/activate
 echo "📦 Checking dependencies..."
 pip install --quiet --upgrade pip
 
-# Determine which settings to use based on available services
-SETTINGS_MODULE=""
-REQUIREMENTS_FILE=""
-
 # Check for PostgreSQL (REQUIRED)
 if command_exists psql && psql -U postgres -c '\l' >/dev/null 2>&1; then
-    POSTGRES_AVAILABLE=true
     echo -e "${GREEN}✓ PostgreSQL detected${NC}"
 else
-    POSTGRES_AVAILABLE=false
     echo -e "${RED}❌ PostgreSQL not available${NC}"
     echo -e "${RED}PostgreSQL is required to run UNIBOS backend.${NC}"
     echo "Please install and start PostgreSQL before running this script."
@@ -60,30 +54,17 @@ fi
 
 # Check for Redis
 if command_exists redis-cli && redis-cli ping >/dev/null 2>&1; then
-    REDIS_AVAILABLE=true
     echo -e "${GREEN}✓ Redis detected${NC}"
 else
-    REDIS_AVAILABLE=false
-    echo -e "${YELLOW}⚠ Redis not available${NC}"
+    echo -e "${YELLOW}⚠ Redis not available - some features may not work${NC}"
 fi
 
-# Select appropriate settings and requirements
-if [ "$REDIS_AVAILABLE" = true ]; then
-    SETTINGS_MODULE="unibos_backend.settings.development"
-    REQUIREMENTS_FILE="requirements.txt"
-    echo -e "${GREEN}✓ Using full development settings (PostgreSQL + Redis)${NC}"
-else
-    SETTINGS_MODULE="unibos_backend.settings.dev_no_redis"
-    REQUIREMENTS_FILE="requirements-minimal.txt"
-    echo -e "${YELLOW}⚠ Using settings without Redis (PostgreSQL only)${NC}"
-fi
+# Use development settings
+export DJANGO_SETTINGS_MODULE="unibos_backend.settings.development"
 
-# Install appropriate requirements
-echo "📦 Installing requirements from $REQUIREMENTS_FILE..."
-pip install -q -r $REQUIREMENTS_FILE
-
-# Export Django settings
-export DJANGO_SETTINGS_MODULE=$SETTINGS_MODULE
+# Install requirements
+echo "📦 Installing requirements..."
+pip install -q -r requirements.txt
 
 # Check if port 8000 is available
 if ! check_port 8000; then

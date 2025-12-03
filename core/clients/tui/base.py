@@ -175,6 +175,9 @@ class BaseTUI(ABC):
         Returns:
             True to continue, False to exit
         """
+        # Mark sidebar as inactive immediately when action is triggered
+        self.set_sidebar_inactive()
+
         # Check for registered handler
         if item.id in self.action_handlers:
             try:
@@ -363,6 +366,9 @@ class BaseTUI(ABC):
                 status=self.get_system_status()
             )
 
+            # Position cursor safely off-screen (bottom-left, invisible area)
+            sys.stdout.write(f'\033[{lines};1H')
+
             # Single final flush
             sys.stdout.flush()
         finally:
@@ -372,8 +378,8 @@ class BaseTUI(ABC):
                     termios.tcsetattr(fd, termios.TCSANOW, old_settings)
                 except:
                     pass
-            # Show cursor
-            sys.stdout.write('\033[?25h')
+            # Keep cursor hidden during navigation (no blink)
+            sys.stdout.write('\033[?25l')
             sys.stdout.flush()
             self._rendering = False
 
@@ -468,7 +474,8 @@ class BaseTUI(ABC):
                     hide_cursor()
                     if not result:
                         return False
-                    self.render()
+                    # Use navigation redraw instead of full render to prevent blink
+                    self._navigation_redraw(sections)
 
         elif key == Keys.TAB:
             # Switch sections
@@ -488,12 +495,14 @@ class BaseTUI(ABC):
                     hide_cursor()
                     if not result:
                         return False
-                    self.render()
+                    # Use navigation redraw instead of full render to prevent blink
+                    self._navigation_redraw(sections)
 
         elif key == Keys.ESC or key == '\x1b':
             if self.state.in_submenu:
                 self.state.exit_submenu()
-                self.render()
+                # Use navigation redraw instead of full render to prevent blink
+                self._navigation_redraw(sections)
             else:
                 return False
 
@@ -528,6 +537,10 @@ class BaseTUI(ABC):
             # Show splash screen
             if self.config.show_splash:
                 show_splash_screen(quick=self.config.quick_splash)
+
+            # Switch to alternate screen buffer to prevent scroll pollution
+            sys.stdout.write('\033[?1049h')
+            sys.stdout.flush()
 
             # Initialize menu structure
             sections = self.get_menu_sections()
@@ -582,7 +595,9 @@ class BaseTUI(ABC):
         finally:
             # Cleanup
             show_cursor()
-            clear_screen()
+            # Switch back from alternate screen buffer
+            sys.stdout.write('\033[?1049l')
+            sys.stdout.flush()
             self.cleanup()
 
     def cleanup(self):
@@ -625,6 +640,22 @@ class BaseTUI(ABC):
         self.content_buffer['lines'] = lines
         self.content_buffer['color'] = color
         # Content will be displayed on next render
+
+    def set_sidebar_inactive(self):
+        """Mark sidebar selection as inactive (gray) when content area has focus"""
+        sections = self.get_menu_sections()
+        self.sidebar.draw(
+            sections, self.state.current_section,
+            self.state.selected_index, True  # in_submenu=True
+        )
+
+    def set_sidebar_active(self):
+        """Mark sidebar selection as active (orange) when sidebar has focus"""
+        sections = self.get_menu_sections()
+        self.sidebar.draw(
+            sections, self.state.current_section,
+            self.state.selected_index, False  # in_submenu=False
+        )
 
     def show_message(self, message: str, color: str = Colors.GREEN):
         """Show a message in content area"""
@@ -799,9 +830,195 @@ class BaseTUI(ABC):
         defaults.update(kwargs)
         return subprocess.run(command, **defaults)
 
+    def execute_command_streaming(self, command: List[str], title: str = "running...") -> subprocess.CompletedProcess:
+        """
+        Execute a command with live streaming output to content area
+
+        Args:
+            command: Command to execute
+            title: Title to show in content area
+
+        Returns:
+            CompletedProcess-like object with captured output
+        """
+        from core.clients.cli.framework.ui import get_terminal_size
+        import sys
+        import os
+        import select
+        import time
+
+        # Mark sidebar as inactive
+        self.set_sidebar_inactive()
+
+        # Hide cursor during streaming
+        sys.stdout.write('\033[?25l')
+        sys.stdout.flush()
+
+        # Show initial message
+        self.update_content(title, ["starting..."])
+        self.content_area.draw(
+            self.content_buffer['title'],
+            self.content_buffer['lines']
+        )
+        sys.stdout.flush()
+
+        # Start process with pipes
+        process = subprocess.Popen(
+            command,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.STDOUT,
+            text=True,
+            bufsize=1,  # Line buffered
+            env={**os.environ, 'PYTHONUNBUFFERED': '1'}  # Force unbuffered output
+        )
+
+        output_lines = []
+        last_cols, last_lines = get_terminal_size()
+        spinner_chars = ['⠋', '⠙', '⠹', '⠸', '⠼', '⠴', '⠦', '⠧', '⠇', '⠏']
+        spinner_idx = 0
+        last_spinner_update = time.time()
+        last_footer_update = time.time()
+
+        def draw_spinner():
+            """Draw spinner in content area bottom-left"""
+            nonlocal spinner_idx
+            cols, lines = get_terminal_size()
+            # Position: content area bottom-left (line before footer, column 27 = content start)
+            spinner_line = lines - 1
+            spinner_col = 27
+            sys.stdout.write(f"\033[{spinner_line};{spinner_col}H\033[33m{spinner_chars[spinner_idx]} working\033[0m")
+            spinner_idx = (spinner_idx + 1) % len(spinner_chars)
+
+        try:
+            # Read output line by line with non-blocking check
+            import fcntl
+            fd = process.stdout.fileno()
+            fl = fcntl.fcntl(fd, fcntl.F_GETFL)
+            fcntl.fcntl(fd, fcntl.F_SETFL, fl | os.O_NONBLOCK)
+
+            while True:
+                # Check for resize
+                cols, term_lines = get_terminal_size()
+                if cols != last_cols or term_lines != last_lines:
+                    last_cols, last_lines = cols, term_lines
+                    # Full redraw on resize - header, sidebar, content, footer
+                    # Clear screen first
+                    sys.stdout.write('\033[2J')
+                    sys.stdout.flush()
+
+                    # Redraw header
+                    lang_code = self.i18n.get_language()
+                    lang_flag = self.i18n.get_language_flag(lang_code)
+                    lang_name = self.i18n.get_language_display_name(lang_code)
+                    language_display = f"{lang_flag} {lang_name}"
+                    self.header.draw(
+                        breadcrumb=self.get_breadcrumb(),
+                        username=self.get_username(),
+                        language=language_display
+                    )
+
+                    # Redraw sidebar with inactive state
+                    self.set_sidebar_inactive()
+
+                    # Redraw content
+                    max_visible = term_lines - 8
+                    if len(output_lines) > max_visible:
+                        visible_lines = output_lines[-max_visible:]
+                    else:
+                        visible_lines = output_lines
+                    self.update_content(title, visible_lines)
+                    self.content_area.draw(
+                        self.content_buffer['title'],
+                        self.content_buffer['lines']
+                    )
+
+                    # Redraw footer
+                    self.footer.draw(
+                        hints=self.get_navigation_hints(),
+                        status=self.get_system_status()
+                    )
+                    # Reset footer update timer to prevent immediate redraw
+                    last_footer_update = time.time()
+
+                # Update spinner every 100ms
+                current_time = time.time()
+                if current_time - last_spinner_update >= 0.1:
+                    draw_spinner()
+                    sys.stdout.flush()
+                    last_spinner_update = current_time
+
+                # Update footer time every second
+                if current_time - last_footer_update >= 1.0:
+                    self.footer.draw(
+                        hints=self.get_navigation_hints(),
+                        status=self.get_system_status()
+                    )
+                    last_footer_update = current_time
+
+                # Try to read a line (non-blocking)
+                try:
+                    line = process.stdout.readline()
+                    if line:
+                        line = line.rstrip()
+                        output_lines.append(line)
+
+                        max_visible = term_lines - 8
+
+                        if len(output_lines) > max_visible:
+                            visible_lines = output_lines[-max_visible:]
+                        else:
+                            visible_lines = output_lines
+
+                        self.content_area.scroll_position = 0
+                        self.update_content(title, visible_lines)
+                        self.content_area.draw(
+                            self.content_buffer['title'],
+                            self.content_buffer['lines']
+                        )
+                        sys.stdout.flush()
+
+                    elif process.poll() is not None:
+                        break
+                    else:
+                        time.sleep(0.05)  # Small delay when no data
+
+                except (IOError, BlockingIOError):
+                    if process.poll() is not None:
+                        break
+                    time.sleep(0.05)
+
+            # Read any remaining output
+            remaining = process.stdout.read()
+            if remaining:
+                for line in remaining.split('\n'):
+                    if line:
+                        output_lines.append(line.rstrip())
+
+        except Exception as e:
+            output_lines.append(f"Error: {str(e)}")
+        finally:
+            # Show cursor again
+            sys.stdout.write('\033[?25h')
+            sys.stdout.flush()
+
+        # Create a CompletedProcess-like result
+        class StreamingResult:
+            def __init__(self, args, returncode, stdout, stderr):
+                self.args = args
+                self.returncode = returncode
+                self.stdout = stdout
+                self.stderr = stderr
+
+        return StreamingResult(
+            args=command,
+            returncode=process.returncode,
+            stdout='\n'.join(output_lines),
+            stderr=''
+        )
+
     def show_command_output(self, result: subprocess.CompletedProcess):
         """
-        Display command output
+        Display command output with scrolling support
 
         Args:
             result: CompletedProcess object from execute_command
@@ -847,8 +1064,103 @@ class BaseTUI(ABC):
             lines.append("")
             lines.append(self.i18n.translate('command_completed'))
 
-        self.update_content(self.i18n.translate('command_output'), lines)
-        self.render()
+        # Add hint for scrolling and exit
+        lines.append("")
+        lines.append(self.i18n.translate('scroll_hint'))
+
+        # Reset scroll position for new content
+        self.content_area.scroll_position = 0
+
+        # Mark sidebar as inactive (content area has focus)
+        self.set_sidebar_inactive()
+
+        last_footer_update = time.time()
+        last_cols, last_lines = get_terminal_size()
+
+        # Interactive scroll loop
+        while True:
+            # Check for terminal resize
+            cols, term_lines = get_terminal_size()
+            if cols != last_cols or term_lines != last_lines:
+                last_cols, last_lines = cols, term_lines
+                # Full redraw on resize - clear and redraw all components
+                sys.stdout.write('\033[2J')
+                sys.stdout.flush()
+
+                # Redraw header
+                lang_code = self.i18n.get_language()
+                lang_flag = self.i18n.get_language_flag(lang_code)
+                lang_name = self.i18n.get_language_display_name(lang_code)
+                language_display = f"{lang_flag} {lang_name}"
+                self.header.draw(
+                    breadcrumb=self.get_breadcrumb(),
+                    username=self.get_username(),
+                    language=language_display
+                )
+
+                # Redraw sidebar with inactive state
+                self.set_sidebar_inactive()
+
+                # Redraw footer
+                self.footer.draw(
+                    hints=self.get_navigation_hints(),
+                    status=self.get_system_status()
+                )
+                # Reset footer update timer to prevent immediate redraw
+                last_footer_update = time.time()
+
+            self.update_content(self.i18n.translate('command_output'), lines)
+            # Only redraw content area, not sidebar
+            self.content_area.draw(
+                self.content_buffer['title'],
+                self.content_buffer['lines']
+            )
+
+            # Update footer time every second
+            current_time = time.time()
+            if current_time - last_footer_update >= 1.0:
+                self.footer.draw(
+                    hints=self.get_navigation_hints(),
+                    status=self.get_system_status()
+                )
+                last_footer_update = current_time
+
+            # Use timeout-based key reading
+            hide_cursor()
+            key = get_single_key(timeout=0.1)
+
+            if not key:
+                continue
+
+            # Calculate page size for Page Up/Down
+            page_size = term_lines - 10
+            total_lines = len(self.content_area.content_lines)
+            max_scroll = max(0, total_lines - 5)
+
+            if key == Keys.ESC or key == '\x1b' or key == Keys.LEFT:
+                # Exit and return to previous menu
+                self.content_area.scroll_position = 0
+                break
+            elif key == Keys.UP:
+                # Scroll up one line
+                if self.content_area.scroll_position > 0:
+                    self.content_area.scroll_position -= 1
+            elif key == Keys.DOWN:
+                # Scroll down one line
+                if self.content_area.scroll_position < max_scroll:
+                    self.content_area.scroll_position += 1
+            elif key == Keys.PAGE_UP:
+                # Scroll up one page
+                self.content_area.scroll_position = max(0, self.content_area.scroll_position - page_size)
+            elif key == Keys.PAGE_DOWN:
+                # Scroll down one page
+                self.content_area.scroll_position = min(max_scroll, self.content_area.scroll_position + page_size)
+            elif key == 'g' or key == '<':
+                # Go to top (Home)
+                self.content_area.scroll_position = 0
+            elif key == 'G' or key == '>':
+                # Go to bottom (End)
+                self.content_area.scroll_position = max_scroll
 
     def show_submenu(
         self,
@@ -890,18 +1202,34 @@ class BaseTUI(ABC):
         selected = 0
         need_redraw = True
         last_cols, last_lines = get_terminal_size()
+        last_footer_update = time.time()
+
+        # Mark sidebar as inactive (content area has focus)
+        self.set_sidebar_inactive()
 
         while True:
             # Check for terminal resize
             cols, lines = get_terminal_size()
             if cols != last_cols or lines != last_lines:
                 last_cols, last_lines = cols, lines
-                self.render()
+                # Redraw sidebar with inactive state on resize
+                self.set_sidebar_inactive()
                 need_redraw = True
 
             if need_redraw:
                 self._draw_submenu(title, subtitle, options, selected, back_label)
                 need_redraw = False
+                # Reset footer update timer since _draw_submenu already drew footer
+                last_footer_update = time.time()
+
+            # Update footer time every second
+            current_time = time.time()
+            if current_time - last_footer_update >= 1.0:
+                self.footer.draw(
+                    hints=self.get_navigation_hints(),
+                    status=self.get_system_status()
+                )
+                last_footer_update = current_time
 
             # Get input
             hide_cursor()
@@ -927,8 +1255,9 @@ class BaseTUI(ABC):
                 if option_key in handlers:
                     handlers[option_key]()
 
-                # Full redraw after action
-                self.render()
+                # Navigation redraw instead of full render to prevent blink
+                sections = self.get_menu_sections()
+                self._navigation_redraw(sections)
                 need_redraw = True
             elif key == Keys.ESC or key == '\x1b' or key == Keys.LEFT:
                 return True
@@ -989,12 +1318,13 @@ class BaseTUI(ABC):
         # Get terminal size for layout calculations
         cols, lines = get_terminal_size()
 
-        # V527: Redraw sidebar to maintain visual integrity
+        # V527: Redraw sidebar with inactive state (submenu has focus)
         sections = self.get_menu_sections()
         self.sidebar.draw(
             sections=sections,
             current_section=self.state.current_section,
-            selected_index=self.state.selected_index
+            selected_index=self.state.selected_index,
+            in_submenu=True  # Sidebar is inactive when submenu is open
         )
 
         # Draw content area
@@ -1010,10 +1340,6 @@ class BaseTUI(ABC):
             status=self.get_system_status()
         )
 
-        # V527: Position cursor safely in content area to prevent scroll
-        move_cursor(27, 5)
-        sys.stdout.flush()
-
-        # Show cursor again
-        sys.stdout.write('\033[?25h')
+        # Keep cursor hidden during submenu navigation (no blink)
+        sys.stdout.write('\033[?25l')
         sys.stdout.flush()

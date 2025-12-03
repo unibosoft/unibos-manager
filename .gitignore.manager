@@ -41,6 +41,12 @@ setup-dev.py
 setup-server.py
 setup-prod.py
 
+# Deploy system is dev-only
+deploy/
+
+# Server deployment configs (contain secrets)
+*.config.json
+
 # ===== CRITICAL: NO MODULES IN MANAGER =====
 # Manager doesn't need business modules (only management tools)
 modules/

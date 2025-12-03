@@ -133,8 +133,6 @@ class Footer:
                 sys.stdout.write(Colors.RESET)
             sys.stdout.flush()
 
-        # V527: Reset scroll region to full screen and show cursor
+        # V527: Reset scroll region to full screen (keep cursor hidden)
         sys.stdout.write(f'\033[1;{footer_y}r')  # Reset scroll region
-        sys.stdout.flush()
-        sys.stdout.write('\033[?25h')
         sys.stdout.flush()

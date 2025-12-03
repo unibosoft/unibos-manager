@@ -41,6 +41,12 @@ setup-dev.py
 setup-manager.py
 setup-server.py
 
+# Deploy system is dev-only
+deploy/
+
+# Server deployment configs (contain secrets)
+*.config.json
+
 # ===== CRITICAL: NO ARCHIVES ON NODES =====
 # Archives are development-only
 archive/

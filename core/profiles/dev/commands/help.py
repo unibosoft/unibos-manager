@@ -381,36 +381,82 @@ configured remotes
 deploy commands
 ═══════════════
 
-  unibos-dev deploy rocksteady
-      deploy unibos to rocksteady production server
+  unibos-dev deploy run [server] [options]
+      run full deployment to a server
 
-      this command:
-      1. syncs files via rsync (respecting .rsyncignore)
-      2. runs migrations on server
-      3. restarts services
-      4. verifies deployment
+      options:
+        --dry-run     simulate without making changes
+
+      pipeline steps:
+        1. validate configuration
+        2. check ssh connectivity
+        3. clone repository from git
+        4. setup python venv
+        5. install dependencies
+        6. create .env file
+        7. setup module registry
+        8. setup data directory
+        9. setup postgresql database
+        10. run migrations
+        11. collect static files
+        12. setup systemd service
+        13. start service
+        14. health check
+
+      examples:
+        unibos-dev deploy run                  # deploy to rocksteady
+        unibos-dev deploy run rocksteady       # deploy to rocksteady
+        unibos-dev deploy run --dry-run        # simulate deployment
 
   unibos-dev deploy status [server]
-      check deployment status on server
+      check service status on server
 
-      example:
-        unibos-dev deploy status rocksteady
+  unibos-dev deploy start [server]
+      start unibos service
 
-  unibos-dev deploy logs [server]
-      view production server logs
+  unibos-dev deploy stop [server]
+      stop unibos service
 
-      example:
-        unibos-dev deploy logs rocksteady
+  unibos-dev deploy restart [server]
+      restart unibos service
+
+  unibos-dev deploy logs [server] [options]
+      view service logs from server
+
+      options:
+        -n, --lines INTEGER   number of lines (default: 50)
+        -f, --follow          follow log output
 
   unibos-dev deploy backup [server]
-      create backup on production server
+      create database backup on server
+      backups are stored in data/backups/ on the server
+
+  unibos-dev deploy backups [server]
+      list available backups on server
 
   unibos-dev deploy ssh [server]
       open ssh connection to server
 
+  unibos-dev deploy list
+      list available server configurations
+
 server configuration
-  servers are configured in: core/profiles/dev/servers.json
-  ssh config should be set up in: ~/.ssh/config
+  servers are configured via *.config.json files in project root
+  example: rocksteady.config.json
+
+  config file structure:
+    {
+      "name": "rocksteady",
+      "host": "rocksteady",
+      "user": "ubuntu",
+      "deploy_path": "/home/ubuntu/unibos",
+      "env_vars": {
+        "SECRET_KEY": "...",
+        "DB_NAME": "unibos_rocksteady",
+        "DB_USER": "unibos",
+        "DB_PASSWORD": "..."
+      }
+    }
 """,
         'platform': """
 platform command

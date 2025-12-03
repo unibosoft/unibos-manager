@@ -26,6 +26,8 @@
   "loading": "yükleniyor",
   "please_wait": "lütfen bekleyin",
   "press_enter_continue": "devam etmek için enter'a basın",
+  "press_any_key_continue": "devam etmek için bir tuşa basın",
+  "scroll_hint": "↑↓ kaydır | pgup/pgdn sayfa | g/G başa/sona | esc geri",
   "press_esc_back": "geri dönmek için esc'ye basın",
   "select_language": "dil seçimi",
   "language_changed": "dil değiştirildi: {flag} {name}",
@@ -50,7 +52,7 @@
   "menu.database": "veritabanı",
   "menu.git": "git",
   "menu.versions": "sürümler",
-  "menu.deployment": "yayınlama",
+  "menu.deploy": "deploy",
   "menu.ai_builder": "ai geliştirici",
   "menu.admin": "yönetim"
 }

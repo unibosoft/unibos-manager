@@ -26,6 +26,8 @@
   "loading": "loading",
   "please_wait": "please wait",
   "press_enter_continue": "press enter to continue",
+  "press_any_key_continue": "press any key to continue",
+  "scroll_hint": "↑↓ scroll | pgup/pgdn page | g/G top/bottom | esc back",
   "press_esc_back": "press esc to go back",
   "select_language": "select language",
   "language_changed": "language changed to: {flag} {name}",
@@ -50,7 +52,7 @@
   "menu.database": "database",
   "menu.git": "git",
   "menu.versions": "versions",
-  "menu.deployment": "deployment",
+  "menu.deploy": "deploy",
   "menu.ai_builder": "ai builder",
   "menu.admin": "admin"
 }

@@ -40,6 +40,7 @@ class Colors:
     # Improved contrast colors - WCAG compliant
     BG_GRAY = "\033[48;5;240m"      # Lighter gray for better contrast
     BG_ORANGE = "\033[48;5;208m"    # Orange background for UNIBOS branding
+    BG_ORANGE_DIM = "\033[48;5;95m" # Muted purple/mauve for inactive selection
     BG_DARK = "\033[48;5;234m"      # Darker background for header/footer
     BG_CONTENT = "\033[48;5;236m"   # Dark but visible content background
     BG_DARK_GRAY = "\033[48;5;235m" # Status bar background

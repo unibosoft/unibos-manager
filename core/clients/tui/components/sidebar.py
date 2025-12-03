@@ -47,66 +47,51 @@ class Sidebar:
         """
         cols, lines = get_terminal_size()
 
-        # V527 CRITICAL: Check if sidebar should be dimmed
+        # V527 CRITICAL: Check if content area has focus
         is_dimmed = in_submenu
-        text_color = Colors.DIM if is_dimmed else Colors.WHITE
-        title_color = Colors.DIM if is_dimmed else Colors.CYAN
+        text_color = Colors.WHITE
+        title_color = Colors.CYAN
 
-        # V527 STEP 1: Clear entire sidebar area first (lines 2 to lines-1)
-        # BUGFIX: Use range(2, lines) to extend to line lines-1 (footer is at line 'lines')
+        # Build entire sidebar in buffer to prevent flickering
+        output_buffer = []
+
+        # Clear entire sidebar area
         for y in range(2, lines):
-            sys.stdout.write(f"\033[{y};1H{Colors.BG_DARK}{' ' * self.width}{Colors.RESET}")
-        sys.stdout.flush()
+            output_buffer.append(f"\033[{y};1H{Colors.BG_DARK}{' ' * self.width}{Colors.RESET}")
 
-        # V527 STEP 2: Draw sections
-        y_pos = 3  # Start at line 3 (after header at line 1)
+        # Draw sections
+        y_pos = 3
 
         for section_idx, section in enumerate(sections):
-            # BUGFIX: Stop at line 'lines' (footer position), not 'lines - 1'
             if y_pos >= lines:
                 break
 
-            # Draw section title (NO icon/emoji for section headers)
+            # Section title
             title = section.label
             if self.config.lowercase_ui:
                 title = title.lower()
-
-            # V527: Use emoji_safe_slice for section title (max 22 chars)
             safe_title = emoji_safe_slice(title, 22)
 
-            # Draw section header - two-step for consistent background
-            # Step 1: Clear with background
-            sys.stdout.write(f"\033[{y_pos};1H{Colors.BG_DARK}{' ' * self.width}{Colors.RESET}")
-            # Step 2: Draw text at column 2
-            sys.stdout.write(f"\033[{y_pos};2H{Colors.BG_DARK}{Colors.BOLD}{title_color} {safe_title}{Colors.RESET}")
-            y_pos += 1
+            output_buffer.append(f"\033[{y_pos};1H{Colors.BG_DARK}{' ' * self.width}{Colors.RESET}")
+            output_buffer.append(f"\033[{y_pos};2H{Colors.BG_DARK}{Colors.BOLD}{title_color} {safe_title}{Colors.RESET}")
+            y_pos += 2  # Title + blank line
 
-            # Skip 1 line after section header (v527 has items start at +2 from section)
-            y_pos += 1
-
-            # Draw section items
+            # Section items
             is_current_section = (section_idx == current_section)
 
             for item_idx, item in enumerate(section.items):
-                # BUGFIX: Stop at line 'lines' (footer position), not 'lines - 1'
                 if y_pos >= lines:
                     break
 
-                # V527 CRITICAL: Clear line FIRST with BG_DARK
-                sys.stdout.write(f"\033[{y_pos};1H{Colors.BG_DARK}{' ' * self.width}{Colors.RESET}")
-                sys.stdout.flush()
-
                 # Get item text with icon
-                # v527: Use double space for emojis with variation selector (FE0F)
                 if hasattr(item, 'icon') and item.icon:
                     if '\uFE0F' in item.icon:
-                        name = f"{item.icon}  {item.label}"  # 2 spaces for variation selector emojis
+                        name = f"{item.icon}  {item.label}"
                     else:
-                        name = f"{item.icon} {item.label}"   # 1 space for regular emojis
+                        name = f"{item.icon} {item.label}"
                 else:
                     name = item.label
 
-                # Apply lowercase if needed (keep emoji, lowercase text only)
                 if self.config.lowercase_ui:
                     parts = name.split(' ', 1)
                     if len(parts) == 2 and hasattr(item, 'icon') and item.icon:
@@ -114,54 +99,28 @@ class Sidebar:
                     else:
                         name = name.lower()
 
-                # V527 EXACT: Use emoji_safe_slice with max 22 chars
                 safe_name = emoji_safe_slice(name, 22)
-
-                # Determine if this item is selected
-                is_selected = (is_current_section and item_idx == selected_index and not is_dimmed)
+                is_selected = (is_current_section and item_idx == selected_index)
 
                 if is_selected:
-                    # V527: Selected item - two-step drawing
-                    # Step 1: Fill background
-                    sys.stdout.write(f"\033[{y_pos};1H{Colors.BG_ORANGE}{' ' * self.width}{Colors.RESET}")
-                    sys.stdout.flush()
-                    # Step 2: Draw text at column 2
-                    sys.stdout.write(f"\033[{y_pos};2H{Colors.BG_ORANGE}{Colors.WHITE} {safe_name}{Colors.RESET}")
-                    sys.stdout.flush()
+                    bg = Colors.BG_ORANGE_DIM if is_dimmed else Colors.BG_ORANGE
+                    output_buffer.append(f"\033[{y_pos};1H{bg}{' ' * self.width}{Colors.RESET}")
+                    output_buffer.append(f"\033[{y_pos};2H{bg}{Colors.WHITE} {safe_name}{Colors.RESET}")
                 else:
-                    # V527: Normal item - two-step drawing
-                    fg = text_color
-                    if not item.enabled:
-                        fg = Colors.DIM
-                    # Step 1: Already cleared above
-                    # Step 2: Draw text at column 2
-                    sys.stdout.write(f"\033[{y_pos};2H{Colors.BG_DARK}{fg} {safe_name}{Colors.RESET}")
-                    sys.stdout.flush()
+                    fg = Colors.DIM if not item.enabled else text_color
+                    output_buffer.append(f"\033[{y_pos};2H{Colors.BG_DARK}{fg} {safe_name}{Colors.RESET}")
 
                 y_pos += 1
 
-            # V527: Add 2 empty lines between sections with BG_DARK
-            for _ in range(2):
-                # BUGFIX: Stop at line 'lines' (footer position)
-                if y_pos < lines:
-                    sys.stdout.write(f"\033[{y_pos};1H{Colors.BG_DARK}{' ' * self.width}{Colors.RESET}")
-                    y_pos += 1
-            sys.stdout.flush()
+            # Section spacing
+            y_pos += 2
 
-        # V527: Fill remaining sidebar space with BG_DARK
-        # BUGFIX: Fill to line 'lines - 1' (footer is at line 'lines')
-        while y_pos < lines:
-            sys.stdout.write(f"\033[{y_pos};1H{Colors.BG_DARK}{' ' * self.width}{Colors.RESET}")
-            y_pos += 1
-        sys.stdout.flush()
-
-        # V527: Draw vertical separator
-        # BUGFIX: Use range(2, lines) to draw separator to line 'lines - 1'
+        # Add vertical separator to buffer
         for y in range(2, lines):
-            sys.stdout.write(f"\033[{y};{self.width + 1}H{Colors.DIM}│{Colors.RESET}")
-        sys.stdout.flush()
+            output_buffer.append(f"\033[{y};{self.width + 1}H{Colors.DIM}│{Colors.RESET}")
 
-        # V527: Force final flush to ensure everything is rendered
+        # Write entire buffer in one operation to prevent flickering
+        sys.stdout.write(''.join(output_buffer))
         sys.stdout.flush()
 
     def update_selection_fast(self, sections: List, current_section: int,
@@ -194,9 +153,9 @@ class Sidebar:
 
         cols, lines = get_terminal_size()
 
-        # V527: Get colors
+        # V527: Get colors - keep text readable even when content has focus
         is_dimmed = in_submenu
-        text_color = Colors.DIM if is_dimmed else Colors.WHITE
+        text_color = Colors.WHITE  # Keep text readable
 
         # Calculate Y positions for items
         curr_y = self._calculate_item_y_position(sections, current_section, selected_index)
@@ -242,7 +201,7 @@ class Sidebar:
             sys.stdout.flush()
 
         # V527: Draw new selection (with highlight)
-        if 0 <= selected_index < len(section.items) and not is_dimmed:
+        if 0 <= selected_index < len(section.items):
             curr_item = section.items[selected_index]
 
             # Get item text with icon
@@ -262,13 +221,18 @@ class Sidebar:
             # V527 EXACT: Use emoji_safe_slice with max 22 chars
             safe_name = emoji_safe_slice(name, 22)
 
-            # V527: Selected item - two-step drawing
-            # Step 1: Fill background
-            sys.stdout.write(f"\033[{curr_y};1H{Colors.BG_ORANGE}{' ' * self.width}{Colors.RESET}")
-            sys.stdout.flush()
-            # Step 2: Draw text at column 2
-            sys.stdout.write(f"\033[{curr_y};2H{Colors.BG_ORANGE}{Colors.WHITE} {safe_name}{Colors.RESET}")
-            sys.stdout.flush()
+            if is_dimmed:
+                # Inactive selection - dimmed orange background
+                sys.stdout.write(f"\033[{curr_y};1H{Colors.BG_ORANGE_DIM}{' ' * self.width}{Colors.RESET}")
+                sys.stdout.flush()
+                sys.stdout.write(f"\033[{curr_y};2H{Colors.BG_ORANGE_DIM}{Colors.WHITE} {safe_name}{Colors.RESET}")
+                sys.stdout.flush()
+            else:
+                # Active selection - orange background
+                sys.stdout.write(f"\033[{curr_y};1H{Colors.BG_ORANGE}{' ' * self.width}{Colors.RESET}")
+                sys.stdout.flush()
+                sys.stdout.write(f"\033[{curr_y};2H{Colors.BG_ORANGE}{Colors.WHITE} {safe_name}{Colors.RESET}")
+                sys.stdout.flush()
 
         # V527: Final flush for all updates (anti-flicker)
         sys.stdout.flush()

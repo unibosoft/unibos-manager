@@ -91,14 +91,14 @@ class UnibosDevTUI(BaseTUI):
                         enabled=True
                     ),
                     MenuItem(
-                        id='public_server',
-                        label=self.i18n.translate('menu.deployment'),
+                        id='deploy_servers',
+                        label=self.i18n.translate('menu.deploy'),
                         icon='🌍',
                         description='server deployment\n\n'
-                                   '→ deploy to rocksteady\n'
-                                   '→ ssh to server\n'
-                                   '→ server management\n\n'
-                                   'production deployment',
+                                   '→ rocksteady (production)\n'
+                                   '→ bebop (staging)\n'
+                                   '→ deploy & manage\n\n'
+                                   'multi-server deploy',
                         enabled=True
                     ),
                     MenuItem(
@@ -125,7 +125,7 @@ class UnibosDevTUI(BaseTUI):
         self.register_action('database_setup', self.handle_database_setup)
         self.register_action('code_forge', self.handle_code_forge)
         self.register_action('version_manager', self.handle_version_manager)
-        self.register_action('public_server', self.handle_public_server)
+        self.register_action('deploy_servers', self.handle_deploy_servers)
         self.register_action('ai_builder', self.handle_ai_builder)
         self.register_action('administration', self.handle_administration)
 
@@ -616,98 +616,173 @@ class UnibosDevTUI(BaseTUI):
         result = self.execute_command(['unibos-dev', 'db', 'restore'])
         self.show_command_output(result)
 
-    def handle_public_server(self, item: MenuItem) -> bool:
-        """Deploy to public server"""
+    # ===== DEPLOY SERVERS =====
+
+    # Server configurations
+    SERVERS = {
+        'rocksteady': {
+            'name': 'rocksteady',
+            'label': '🖥️  rocksteady',
+            'description': 'production server',
+            'env': 'production',
+            'icon': '🖥️',
+        },
+        'bebop': {
+            'name': 'bebop',
+            'label': '🧪 bebop',
+            'description': 'staging server',
+            'env': 'staging',
+            'icon': '🧪',
+        },
+    }
+
+    def handle_deploy_servers(self, item: MenuItem) -> bool:
+        """Server selection menu"""
         options = [
-            ("status", "📊 server status", "check rocksteady server status"),
-            ("deploy", "🚀 deploy", "deploy unibos to production"),
-            ("ssh", "🔐 ssh connection", "connect to rocksteady via ssh"),
-            ("logs", "📝 view logs", "show production server logs"),
-            ("backup", "💾 backup", "create server backup"),
+            ("rocksteady", "🖥️  rocksteady", "production server"),
+            ("bebop", "🧪 bebop", "staging server"),
             ("back", "← back", "return to dev tools"),
         ]
 
         handlers = {
-            "status": self._server_check_status,
-            "deploy": self._server_deploy,
-            "ssh": self._server_ssh,
-            "logs": self._server_logs,
-            "backup": self._server_backup,
+            "rocksteady": lambda: self._show_server_menu('rocksteady'),
+            "bebop": lambda: self._show_server_menu('bebop'),
         }
 
         return self.show_submenu(
-            title="deployment",
-            subtitle="rocksteady server management",
+            title="deploy",
+            subtitle="select target server",
             options=options,
             handlers=handlers
         )
 
-    def _server_check_status(self):
+    def _show_server_menu(self, server_name: str):
+        """Show operations menu for a specific server"""
+        server = self.SERVERS.get(server_name, {})
+        server_label = server.get('label', server_name)
+        server_env = server.get('env', 'unknown')
+
+        options = [
+            ("status", "📊 status", f"check {server_name} service status"),
+            ("deploy", "🚀 deploy", f"deploy to {server_name}"),
+            ("start", "▶️  start", f"start service on {server_name}"),
+            ("stop", "⏹️  stop", f"stop service on {server_name}"),
+            ("restart", "🔄 restart", f"restart service on {server_name}"),
+            ("logs", "📝 logs", f"view {server_name} logs"),
+            ("backup", "💾 backup", f"backup {server_name} database"),
+            ("backups", "📋 backups", f"list {server_name} backups"),
+            ("ssh", "🔐 ssh", f"ssh info for {server_name}"),
+            ("back", "← back", "return to server selection"),
+        ]
+
+        handlers = {
+            "status": lambda: self._server_status(server_name),
+            "deploy": lambda: self._server_deploy(server_name),
+            "start": lambda: self._server_start(server_name),
+            "stop": lambda: self._server_stop(server_name),
+            "restart": lambda: self._server_restart(server_name),
+            "logs": lambda: self._server_logs(server_name),
+            "backup": lambda: self._server_backup(server_name),
+            "backups": lambda: self._server_list_backups(server_name),
+            "ssh": lambda: self._server_ssh(server_name),
+        }
+
+        return self.show_submenu(
+            title=f"{server_label}",
+            subtitle=f"{server_env} environment",
+            options=options,
+            handlers=handlers
+        )
+
+    def _server_status(self, server: str):
         """Check server status"""
-        self.update_content(
-            title="server status",
-            lines=["📊 Checking rocksteady server status...", ""],
-            color=Colors.CYAN
+        result = self.execute_command_streaming(
+            ['unibos-dev', 'deploy', 'status', server],
+            title=f"checking {server} status"
         )
-        self.render()
-
-        result = self.execute_command(['unibos-dev', 'deploy', 'status', 'rocksteady'])
         self.show_command_output(result)
 
-    def _server_deploy(self):
-        """deploy to server"""
-        self.update_content(
-            title="deploying to rocksteady",
-            lines=["🚀 Deploying UNIBOS to production server...", ""],
-            color=Colors.CYAN
+    def _server_deploy(self, server: str):
+        """Deploy to server with live streaming output"""
+        result = self.execute_command_streaming(
+            ['unibos-dev', 'deploy', 'run', server],
+            title=f"deploying to {server}"
         )
-        self.render()
-
-        result = self.execute_command(['unibos-dev', 'deploy', 'rocksteady'])
         self.show_command_output(result)
 
-    def _server_ssh(self):
-        """ssh to server"""
+    def _server_start(self, server: str):
+        """Start server service"""
+        result = self.execute_command_streaming(
+            ['unibos-dev', 'deploy', 'start', server],
+            title=f"starting {server}"
+        )
+        self.show_command_output(result)
+
+    def _server_stop(self, server: str):
+        """Stop server service"""
+        result = self.execute_command_streaming(
+            ['unibos-dev', 'deploy', 'stop', server],
+            title=f"stopping {server}"
+        )
+        self.show_command_output(result)
+
+    def _server_restart(self, server: str):
+        """Restart server service"""
+        result = self.execute_command_streaming(
+            ['unibos-dev', 'deploy', 'restart', server],
+            title=f"restarting {server}"
+        )
+        self.show_command_output(result)
+
+    def _server_logs(self, server: str):
+        """View server logs"""
+        result = self.execute_command_streaming(
+            ['unibos-dev', 'deploy', 'logs', server],
+            title=f"{server} logs"
+        )
+        self.show_command_output(result)
+
+    def _server_backup(self, server: str):
+        """Create database backup"""
+        result = self.execute_command_streaming(
+            ['unibos-dev', 'deploy', 'backup', server],
+            title=f"backing up {server}"
+        )
+        self.show_command_output(result)
+
+    def _server_list_backups(self, server: str):
+        """List available backups"""
+        result = self.execute_command_streaming(
+            ['unibos-dev', 'deploy', 'backups', server],
+            title=f"{server} backups"
+        )
+        self.show_command_output(result)
+
+    def _server_ssh(self, server: str):
+        """SSH connection info"""
         self.update_content(
-            title="ssh connection",
+            title=f"ssh to {server}",
             lines=[
-                "🔐 Opening SSH connection to rocksteady...",
+                f"🔐 ssh connection to {server}",
                 "",
                 "run this command in your terminal:",
                 "",
-                "  ssh rocksteady",
+                f"  ssh {server}",
                 "",
-                "or use the deploy command for full options.",
+                f"or use: unibos-dev deploy ssh {server}",
                 "",
-                "press esc to continue"
+                "press esc to go back"
             ],
             color=Colors.YELLOW
         )
-        self.render()
 
-    def _server_logs(self):
-        """View server logs"""
-        self.update_content(
-            title="server logs",
-            lines=["📝 Fetching server logs...", ""],
-            color=Colors.CYAN
-        )
-        self.render()
+        sections = self.get_menu_sections()
+        self._navigation_redraw(sections)
 
-        result = self.execute_command(['unibos-dev', 'deploy', 'logs', 'rocksteady'])
-        self.show_command_output(result)
-
-    def _server_backup(self):
-        """Backup server"""
-        self.update_content(
-            title="server backup",
-            lines=["💾 Creating server backup...", ""],
-            color=Colors.CYAN
-        )
-        self.render()
-
-        result = self.execute_command(['unibos-dev', 'deploy', 'backup', 'rocksteady'])
-        self.show_command_output(result)
+        while True:
+            key = self.get_key()
+            if key == 'ESC':
+                break
 
     def handle_version_manager(self, item: MenuItem) -> bool:
         """Version control and archiving"""

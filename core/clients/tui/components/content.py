@@ -33,11 +33,10 @@ class ContentArea:
             content: Content text (can be multiline)
             item: Optional menu item for additional context
         """
-        cols, lines = get_terminal_size()
+        cols, term_lines = get_terminal_size()
 
         # V527: Hide cursor during draw
         sys.stdout.write('\033[?25l')
-        sys.stdout.flush()
 
         # Calculate content area dimensions
         # V527 spec: Sidebar=25 chars (cols 1-25), Separator=1 char (col 26), Content starts at col 27
@@ -45,35 +44,25 @@ class ContentArea:
         content_x = 27  # Content starts IMMEDIATELY after separator (no gap)
         content_width = cols - content_x - 2
         content_y_start = 3
-        # BUGFIX: Footer is at line 'lines', so fillable area is from line 2 to line 'lines - 1'
-        # Content height = (lines - 1) - content_y_start = lines - content_y_start - 1
-        content_height = lines - content_y_start - 1  # Fill to line before footer
+        # BUGFIX: Footer is at line 'term_lines', so fillable area is from line 2 to line 'term_lines - 1'
+        # Content height = (term_lines - 1) - content_y_start = term_lines - content_y_start - 1
+        content_height = term_lines - content_y_start - 1  # Fill to line before footer
 
-        # PERMANENT FIX: Clear content area with proper buffering
-        # V527 CRITICAL: Clear from line 3 to line 'lines - 1' (footer is at line 'lines')
-        # Line 1 = header, Line 2 = header separator, preserve both
-        # Build clear buffer first, then write all at once
-        clear_buffer = []
-        for y in range(3, lines):  # Clear lines 3 to lines-1, preserve header (lines 1-2)
-            clear_buffer.append(f"\033[{y};{content_x}H{' ' * content_width}")
+        # Build entire output in a single buffer to prevent flickering
+        output_buffer = []
 
-        # Write all clear operations in one buffer
-        sys.stdout.write(''.join(clear_buffer))
-
-        # Force flush to ensure clear completes before drawing
-        sys.stdout.flush()
-
-        # Redraw separator AFTER clear completes
-        self._redraw_separator()
-
-        # Another flush to ensure separator is drawn before content
-        sys.stdout.flush()
+        # Clear content area and draw separator in one pass
+        separator_col = 26
+        for y in range(3, term_lines):
+            # Clear line
+            output_buffer.append(f"\033[{y};{content_x}H{' ' * content_width}")
+            # Draw separator
+            output_buffer.append(f"\033[{y};{separator_col}H{Colors.DIM}│{Colors.RESET}")
 
         # Apply lowercase if configured (except for actual command output)
         display_title = title.lower() if self.config.lowercase_ui and not title.startswith("Command") else title
 
-        # Draw title with dynamic color based on content type
-        move_cursor(content_x, content_y_start)
+        # Determine title color based on content type
         title_lower = title.lower()
         if "error" in title_lower or "failed" in title_lower:
             title_color = Colors.RED
@@ -84,40 +73,31 @@ class ContentArea:
         else:
             title_color = Colors.CYAN
 
-        sys.stdout.write(f"{title_color}{Colors.BOLD}{display_title}{Colors.RESET}")
-        sys.stdout.flush()
+        # Add title to buffer
+        output_buffer.append(f"\033[{content_y_start};{content_x}H{title_color}{Colors.BOLD}{display_title}{Colors.RESET}")
 
-        # Draw separator line
-        y = content_y_start + 1
-        move_cursor(content_x, y)
-        sys.stdout.write(f"{Colors.DIM}{'─' * min(len(display_title) + 10, content_width)}{Colors.RESET}")
-        sys.stdout.flush()
+        # Add separator line to buffer
+        output_buffer.append(f"\033[{content_y_start + 1};{content_x}H{Colors.DIM}{'─' * min(len(display_title) + 10, content_width)}{Colors.RESET}")
 
         # Process content
         y = content_y_start + 3
         if content:
             # Split content into lines - handle both string and list types
             if isinstance(content, list):
-                # If content is already a list, use it directly
                 lines_list = content
             elif isinstance(content, str):
-                # If content is a string, split it
                 lines_list = content.split('\n')
             else:
-                # Fallback: convert to string and split
                 lines_list = str(content).split('\n')
 
             # Wrap long lines
             wrapped_lines = []
             for line in lines_list:
                 if len(line) > content_width - 2:
-                    # Wrap long lines but preserve some structure
                     wrapped = wrap_text(line, content_width - 2)
-                    # wrap_text() already returns a list, so extend directly
                     if isinstance(wrapped, list):
                         wrapped_lines.extend(wrapped)
                     else:
-                        # Fallback for unexpected types
                         wrapped_lines.append(str(wrapped))
                 else:
                     wrapped_lines.append(line)
@@ -130,87 +110,82 @@ class ContentArea:
             lines_shown = 0
             total_lines = len(wrapped_lines)
 
-            # Draw content lines
+            # Calculate max visible lines
+            max_content_lines = content_height - 4
+
+            # Helper function to get line color
+            def get_line_color(line: str) -> str:
+                if line.startswith('✓') or line.startswith('✅'):
+                    return Colors.GREEN
+                elif line.startswith('✗') or line.startswith('❌'):
+                    return Colors.RED
+                elif line.startswith('⚠') or line.startswith('ℹ️'):
+                    return Colors.YELLOW
+                elif line.startswith('→') or line.startswith('▶') or line.startswith('🌐'):
+                    return Colors.ORANGE
+                elif line.startswith('#') or line.startswith('='):
+                    return Colors.BOLD
+                elif line.lower().startswith('command:') or line.lower().startswith('file:'):
+                    return Colors.CYAN
+                elif line.startswith('─') or line.startswith('━'):
+                    return Colors.DIM
+                elif line.startswith('  ') or line.startswith('\t'):
+                    return Colors.DIM
+                elif "error" in line.lower() or "failed" in line.lower():
+                    return Colors.RED
+                elif "success" in line.lower() or "completed" in line.lower():
+                    return Colors.GREEN
+                else:
+                    return Colors.WHITE
+
+            # Add content lines to buffer
             for line in visible_lines:
-                if lines_shown >= content_height - 2:
+                if lines_shown >= max_content_lines:
                     # Show scroll indicator at bottom
                     remaining = total_lines - (self.scroll_position + lines_shown)
                     if remaining > 0:
-                        move_cursor(content_x, content_y_start + content_height)
                         if self.i18n:
                             msg = self.i18n.translate('more_lines', count=remaining)
                         else:
                             msg = f"↓ {remaining} more lines (use arrow keys to scroll)"
-                        sys.stdout.write(f"{Colors.DIM}{msg}{Colors.RESET}")
+                        output_buffer.append(f"\033[{content_y_start + content_height - 1};{content_x}H{Colors.DIM}{msg}{Colors.RESET}")
                     break
 
-                move_cursor(content_x, y)
-
-                # Special formatting for certain patterns
-                if line.startswith('✓') or line.startswith('✅'):
-                    sys.stdout.write(f"{Colors.GREEN}{line}{Colors.RESET}")
-                elif line.startswith('✗') or line.startswith('❌'):
-                    sys.stdout.write(f"{Colors.RED}{line}{Colors.RESET}")
-                elif line.startswith('⚠') or line.startswith('ℹ️'):
-                    sys.stdout.write(f"{Colors.YELLOW}{line}{Colors.RESET}")
-                elif line.startswith('→') or line.startswith('▶') or line.startswith('🌐'):
-                    sys.stdout.write(f"{Colors.ORANGE}{line}{Colors.RESET}")
-                elif line.startswith('#') or line.startswith('='):
-                    # Headers
-                    sys.stdout.write(f"{Colors.BOLD}{line}{Colors.RESET}")
-                elif line.lower().startswith('command:') or line.lower().startswith('file:'):
-                    # Command or file references
-                    sys.stdout.write(f"{Colors.CYAN}{line}{Colors.RESET}")
-                elif line.startswith('─') or line.startswith('━'):
-                    # Separators
-                    sys.stdout.write(f"{Colors.DIM}{line}{Colors.RESET}")
-                elif line.startswith('  ') or line.startswith('\t'):
-                    # Indented (likely code or command)
-                    sys.stdout.write(f"{Colors.DIM}{line}{Colors.RESET}")
-                elif "error" in line.lower() or "failed" in line.lower():
-                    # Error messages
-                    sys.stdout.write(f"{Colors.RED}{line}{Colors.RESET}")
-                elif "success" in line.lower() or "completed" in line.lower():
-                    # Success messages
-                    sys.stdout.write(f"{Colors.GREEN}{line}{Colors.RESET}")
-                else:
-                    sys.stdout.write(f"{Colors.WHITE}{line}{Colors.RESET}")
-
+                color = get_line_color(line)
+                output_buffer.append(f"\033[{y};{content_x}H{color}{line}{Colors.RESET}")
                 y += 1
                 lines_shown += 1
 
             # Show scroll indicator at top if scrolled
             if self.scroll_position > 0:
-                move_cursor(content_x, content_y_start + 2)
                 if self.i18n:
                     msg = self.i18n.translate('lines_above', count=self.scroll_position)
                 else:
                     msg = f"↑ {self.scroll_position} lines above"
-                sys.stdout.write(f"{Colors.DIM}{msg}{Colors.RESET}")
+                output_buffer.append(f"\033[{content_y_start + 2};{content_x}H{Colors.DIM}{msg}{Colors.RESET}")
 
         # Draw item metadata if available
         if item and hasattr(item, 'metadata'):
             y += 1
-            if y < lines - 2:
-                move_cursor(content_x, y)
-                sys.stdout.write(f"{Colors.DIM}───────────{Colors.RESET}")
+            if y < term_lines - 2:
+                output_buffer.append(f"\033[{y};{content_x}H{Colors.DIM}───────────{Colors.RESET}")
                 y += 1
 
             metadata = item.metadata
             if isinstance(metadata, dict):
                 for key, value in metadata.items():
-                    if y >= lines - 2:
+                    if y >= term_lines - 2:
                         break
-                    move_cursor(content_x, y)
                     text = f"{key}: {value}"
                     if self.config.lowercase_ui:
                         text = text.lower()
-                    sys.stdout.write(f"{Colors.DIM}{text}{Colors.RESET}")
+                    output_buffer.append(f"\033[{y};{content_x}H{Colors.DIM}{text}{Colors.RESET}")
                     y += 1
 
-        # V527: Final flush and show cursor
-        sys.stdout.flush()
-        sys.stdout.write('\033[?25h')
+        # Write entire buffer in one operation to prevent flickering
+        sys.stdout.write(''.join(output_buffer))
+
+        # V527: Final flush (keep cursor hidden)
         sys.stdout.flush()
 
     def clear(self, x: int, y: int, width: int, height: int):

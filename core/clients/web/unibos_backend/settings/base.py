@@ -297,29 +297,39 @@ STATICFILES_DIRS = [
     BASE_DIR / 'static',
 ]
 
-# Media files - Universal Data Directory (v533)
-# All media files stored in centralized /data directory structure at UNIBOS root
-# IMPORTANT: MEDIA_ROOT points to data/modules/ so module FileFields work correctly
-# Example: FileField(upload_to='documents/uploads/...') → /data/modules/documents/uploads/...
-MEDIA_URL = '/media/'
+# =============================================================================
+# DATA DIRECTORY STRUCTURE (v1.0.0)
+# =============================================================================
+# All runtime data is stored in the /data directory at UNIBOS root
+# This keeps data separate from code for security and easier backups
+#
+# Structure:
+#   data/
+#     logs/     - Application logs
+#     media/    - User uploaded files
+#     cache/    - Temporary cache files
+#     backups/  - Database and file backups
+#
+# Note: PostgreSQL data is managed by the system (not in this directory)
+# =============================================================================
+
 DATA_DIR = UNIBOS_ROOT / 'data'
-MEDIA_ROOT = DATA_DIR / 'modules'  # Changed from 'shared/media' to 'modules' for correct module paths
 
-# Static files root (v533)
-STATIC_ROOT = DATA_DIR / 'shared' / 'static'
+# Logs directory
+LOGS_DIR = DATA_DIR / 'logs'
 
-# Module-specific data directories (v533)
-# Each module stores its data in data/modules/<module_name>/
-MODULES_DATA_DIR = DATA_DIR / 'modules'
-DOCUMENTS_DATA_ROOT = MODULES_DATA_DIR / 'documents'
-WIMM_DATA_ROOT = MODULES_DATA_DIR / 'wimm'
-RECARIA_DATA_ROOT = MODULES_DATA_DIR / 'recaria'
-BIRLIKTEYIZ_DATA_ROOT = MODULES_DATA_DIR / 'birlikteyiz'
-MOVIES_DATA_ROOT = MODULES_DATA_DIR / 'movies'
-MUSIC_DATA_ROOT = MODULES_DATA_DIR / 'music'
-CCTV_DATA_ROOT = MODULES_DATA_DIR / 'cctv'
-RESTOPOS_DATA_ROOT = MODULES_DATA_DIR / 'restopos'
-STORE_DATA_ROOT = MODULES_DATA_DIR / 'store'
+# Media files (user uploads)
+MEDIA_URL = '/media/'
+MEDIA_ROOT = DATA_DIR / 'media'
+
+# Static files
+STATIC_ROOT = BASE_DIR / 'staticfiles'
+
+# Cache directory
+CACHE_DIR = DATA_DIR / 'cache'
+
+# Backups directory
+BACKUPS_DIR = DATA_DIR / 'backups'
 
 # UNIBOS Module System Configuration
 # Project root directory (contains modules/, core/, data/)
@@ -525,7 +535,7 @@ LOGGING = {
         'file': {
             'level': 'INFO',
             'class': 'logging.handlers.RotatingFileHandler',
-            'filename': BASE_DIR / 'logs' / 'django.log',
+            'filename': LOGS_DIR / 'django.log',
             'maxBytes': 1024 * 1024 * 15,  # 15MB
             'backupCount': 10,
             'formatter': 'json',
@@ -533,7 +543,7 @@ LOGGING = {
         'security': {
             'level': 'WARNING',
             'class': 'logging.handlers.RotatingFileHandler',
-            'filename': BASE_DIR / 'logs' / 'security.log',
+            'filename': LOGS_DIR / 'security.log',
             'maxBytes': 1024 * 1024 * 15,  # 15MB
             'backupCount': 10,
             'formatter': 'json',

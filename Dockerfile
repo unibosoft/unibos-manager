@@ -16,12 +16,11 @@ RUN apt-get update && apt-get install -y \
 # Set working directory
 WORKDIR /app
 
-# Copy requirements (updated for monorepo structure)
-COPY apps/web/backend/requirements*.txt ./
+# Copy requirements
+COPY core/clients/web/requirements.txt ./
 
 # Install Python dependencies
-RUN pip install --no-cache-dir --user -r requirements.txt || \
-    pip install --no-cache-dir --user -r requirements_minimal.txt
+RUN pip install --no-cache-dir --user -r requirements.txt
 
 # Final stage
 FROM python:3.11-slim
