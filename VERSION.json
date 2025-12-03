@@ -2,8 +2,8 @@
   "version": {
     "major": 1,
     "minor": 0,
-    "patch": 8,
-    "build": "20251203155625"
+    "patch": 9,
+    "build": "20251203160040"
   },
   "display": {
     "semantic": "1.0.0",
@@ -14,8 +14,8 @@
   },
   "build_info": {
     "date": "2025-12-03",
-    "time": "15:56:25",
-    "timestamp": "20251203155625"
+    "time": "16:00:40",
+    "timestamp": "20251203160040"
   },
   "git": {
     "commit": null,

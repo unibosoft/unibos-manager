@@ -1,6 +1,6 @@
 # UNIBOS Development Roadmap
 
-**Version:** v1.0.7
+**Version:** v1.0.8
 **Last Update:** 2025-12-03
 **Current Phase:** Production Ready - Active Development
 **Architecture:** 4-Tier CLI (dev, manager, server, prod)
@@ -42,6 +42,7 @@
 
 ### Version History (Recent)
 
+- **v1.0.8** (2025-12-03): Docs consolidation, README/CHANGELOG update
 - **v1.0.7** (2025-12-03): Log path standardization (data/logs/)
 - **v1.0.6** (2025-12-03): Archive exclusion fixes
 - **v1.0.5** (2025-12-03): Deploy pipeline improvements
@@ -125,7 +126,7 @@
 
 - [ ] **Breadcrumb Navigation**
   - File: `core/clients/tui/components/header.py`
-  - Display: `UNIBOS v1.0.7 > tools > version manager`
+  - Display: `UNIBOS v1.0.8 > tools > version manager`
 
 - [ ] **Terminal Resize Detection**
   - File: `core/clients/tui/base.py`
