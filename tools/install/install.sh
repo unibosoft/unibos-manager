@@ -14,7 +14,7 @@
 #   - Ubuntu/Debian Linux
 #
 # Author: UNIBOS Team
-# Version: 1.1.2
+# Version: 1.1.3
 #
 
 set -e
@@ -29,7 +29,7 @@ DIM='\033[2m'
 NC='\033[0m'
 
 # Configuration
-UNIBOS_VERSION="1.1.2"
+UNIBOS_VERSION="1.1.3"
 UNIBOS_REPO="https://github.com/unibosoft/unibos.git"
 CENTRAL_REGISTRY_URL="https://recaria.org"
 INSTALL_DIR="$HOME/unibos"
@@ -62,18 +62,99 @@ print_banner() {
 }
 
 # =============================================================================
-# MODE SELECTION
+# MODE SELECTION (Arrow Key Navigation)
 # =============================================================================
 
-show_menu() {
-    echo -e "  ${CYAN}Select action:${NC}"
+# Menu options
+MENU_OPTIONS=("Install" "Repair" "Uninstall")
+MENU_DESCRIPTIONS=("Fresh installation" "Fix existing installation" "Remove UNIBOS")
+MENU_COLORS=("$GREEN" "$YELLOW" "$RED")
+
+draw_menu() {
+    local selected=$1
+
+    # Move cursor up to redraw menu
+    if [ "$2" == "redraw" ]; then
+        printf "\033[4A"  # Move up 4 lines
+    fi
+
     echo ""
-    echo -e "    ${GREEN}1${NC}) Install    - Fresh installation"
-    echo -e "    ${YELLOW}2${NC}) Repair     - Fix existing installation"
-    echo -e "    ${RED}3${NC}) Uninstall  - Remove UNIBOS"
+    for i in "${!MENU_OPTIONS[@]}"; do
+        if [ $i -eq $selected ]; then
+            echo -e "   ${MENU_COLORS[$i]}▸ ${MENU_OPTIONS[$i]}${NC}  ${DIM}- ${MENU_DESCRIPTIONS[$i]}${NC}"
+        else
+            echo -e "     ${DIM}${MENU_OPTIONS[$i]}  - ${MENU_DESCRIPTIONS[$i]}${NC}"
+        fi
+    done
     echo ""
-    echo -e "    ${DIM}q) Quit${NC}"
-    echo ""
+}
+
+select_menu() {
+    local selected=0
+    local key
+
+    echo -e "  ${CYAN}Select action:${NC}  ${DIM}(↑↓ to navigate, Enter to select, q to quit)${NC}"
+
+    # Draw initial menu
+    draw_menu $selected
+
+    # Hide cursor
+    printf "\033[?25l"
+
+    # Trap to restore cursor on exit
+    trap 'printf "\033[?25h"' EXIT
+
+    while true; do
+        # Read single key
+        IFS= read -rsn1 key
+
+        case "$key" in
+            $'\x1b')  # Escape sequence (arrow keys)
+                read -rsn2 -t 0.1 key
+                case "$key" in
+                    '[A')  # Up arrow
+                        ((selected--))
+                        [ $selected -lt 0 ] && selected=$((${#MENU_OPTIONS[@]} - 1))
+                        draw_menu $selected "redraw"
+                        ;;
+                    '[B')  # Down arrow
+                        ((selected++))
+                        [ $selected -ge ${#MENU_OPTIONS[@]} ] && selected=0
+                        draw_menu $selected "redraw"
+                        ;;
+                esac
+                ;;
+            '')  # Enter key
+                printf "\033[?25h"  # Show cursor
+                echo ""
+                SELECTED_MODE="${MENU_OPTIONS[$selected],,}"  # lowercase
+                return 0
+                ;;
+            'q'|'Q')  # Quit
+                printf "\033[?25h"  # Show cursor
+                echo ""
+                exit 0
+                ;;
+            '1')  # Quick select
+                printf "\033[?25h"
+                echo ""
+                SELECTED_MODE="install"
+                return 0
+                ;;
+            '2')
+                printf "\033[?25h"
+                echo ""
+                SELECTED_MODE="repair"
+                return 0
+                ;;
+            '3')
+                printf "\033[?25h"
+                echo ""
+                SELECTED_MODE="uninstall"
+                return 0
+                ;;
+        esac
+    done
 }
 
 # =============================================================================
@@ -511,19 +592,10 @@ main() {
     # Check for command line argument
     MODE="${1:-}"
 
-    # If no argument, show menu
+    # If no argument, show interactive menu
     if [ -z "$MODE" ]; then
-        show_menu
-        read -p "  Choice [1]: " -n 1 -r choice
-        echo ""
-
-        case "$choice" in
-            1|"") MODE="install" ;;
-            2) MODE="repair" ;;
-            3) MODE="uninstall" ;;
-            q|Q) echo ""; exit 0 ;;
-            *) log_err "Invalid choice"; exit 1 ;;
-        esac
+        select_menu
+        MODE="$SELECTED_MODE"
     fi
 
     # Execute based on mode
