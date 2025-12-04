@@ -39,13 +39,16 @@ class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
         # Track session
         request = self.context.get('request')
         if request:
+            # refresh['exp'] Unix timestamp, datetime'a cevir
+            from datetime import datetime, timezone as dt_timezone
+            expires_dt = datetime.fromtimestamp(refresh['exp'], tz=dt_timezone.utc)
             UserSession.objects.create(
                 user=self.user,
                 session_key=refresh.payload['jti'],
                 ip_address=get_client_ip(request),
                 user_agent=request.META.get('HTTP_USER_AGENT', ''),
                 device_info=get_device_info(request),
-                expires_at=refresh['exp']
+                expires_at=expires_dt
             )
         
         return data

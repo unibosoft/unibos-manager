@@ -117,12 +117,15 @@ class RegisterView(generics.CreateAPIView):
         
         # Track session
         request = self.request
+        # refresh['exp'] Unix timestamp, datetime'a cevir
+        from datetime import datetime
+        expires_dt = datetime.fromtimestamp(refresh['exp'], tz=timezone.utc)
         UserSession.objects.create(
             user=user,
             session_key=refresh.payload['jti'],
             ip_address=get_client_ip(request),
             user_agent=request.META.get('HTTP_USER_AGENT', ''),
-            expires_at=refresh['exp']
+            expires_at=expires_dt
         )
         
         # Add tokens to response
@@ -149,10 +152,12 @@ class LogoutView(APIView):
             if refresh_token:
                 # Blacklist the refresh token
                 token = RefreshToken(refresh_token)
+                from datetime import datetime
+                expires_dt = datetime.fromtimestamp(token['exp'], tz=timezone.utc)
                 RefreshTokenBlacklist.objects.create(
                     token=refresh_token,
                     user=request.user,
-                    expires_at=timezone.datetime.fromtimestamp(token['exp'])
+                    expires_at=expires_dt
                 )
                 
                 # Invalidate session

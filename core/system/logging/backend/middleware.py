@@ -132,6 +132,11 @@ class SystemLoggingMiddleware:
         start_time = time.time()
         
         # Pre-process logging
+        # session_key None olabilir, bu durumda boş string kullan
+        session_key = ''
+        if hasattr(request, 'session') and request.session.session_key:
+            session_key = request.session.session_key
+
         request._log_data = {
             'timestamp': timezone.now(),
             'ip_address': self._get_client_ip(request),
@@ -139,7 +144,7 @@ class SystemLoggingMiddleware:
             'request_method': request.method,
             'request_path': request.path,
             'user': request.user if request.user.is_authenticated else None,
-            'session_key': request.session.session_key if hasattr(request, 'session') else '',
+            'session_key': session_key,
         }
         
         # Process request

@@ -51,6 +51,10 @@ deploy/
 # Manager doesn't need business modules (only management tools)
 modules/
 
+# ===== CRITICAL: NO MOBILE APP IN MANAGER =====
+# Mobile app is development-only
+core/clients/mobile/
+
 # ===== CRITICAL: NO ARCHIVES ON MANAGER =====
 # Archives are development-only
 archive/

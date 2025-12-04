@@ -157,17 +157,10 @@ node_modules/
 npm-debug.log
 yarn-error.log
 
-# ===== FLUTTER/MOBILE BUILD =====
-modules/*/mobile/build/
-modules/*/mobile/.dart_tool/
-modules/*/mobile/.flutter-plugins
-modules/*/mobile/.flutter-plugins-dependencies
-modules/*/mobile/android/build/
-modules/*/mobile/ios/build/
-modules/*/mobile/ios/Pods/
-modules/*/mobile/macos/build/
-modules/*/mobile/windows/build/
-modules/*/mobile/linux/build/
+# ===== FLUTTER/MOBILE - EXCLUDE ENTIRELY =====
+# Mobile app is development-only, not needed on production nodes
+core/clients/mobile/
+modules/*/mobile/
 
 # ===== TEST FILES =====
 .pytest_cache/

@@ -1,0 +1,133 @@
+{
+  "version": {
+    "major": 1,
+    "minor": 1,
+    "patch": 4,
+    "build": "20251204072502"
+  },
+  "display": {
+    "semantic": "1.1.4",
+    "full": "1.1.4+build.20251204072502",
+    "short": "v1.1.4 @07:25",
+    "compact": "v1.1.4 1204@0725",
+    "archive": "unibos_v1.1.4_b20251204072502"
+  },
+  "build_info": {
+    "date": "2025-12-04",
+    "time": "07:25:02",
+    "timestamp": "20251204072502"
+  },
+  "git": {
+    "commit": null,
+    "branch": "main",
+    "tag": "v1.0.0"
+  },
+  "migration": {
+    "from_version": "v0.534.0",
+    "from_build": "534",
+    "migration_date": "2025-12-01",
+    "note": "First stable release with timestamp-based build system"
+  },
+  "release_info": {
+    "release_date": "2025-12-01",
+    "author": "berk hatirli",
+    "location": "bitez, bodrum, mu\u011fla, t\u00fcrkiye, d\u00fcnya, g\u00fcne\u015f sistemi, samanyolu, evren",
+    "release_type": "stable",
+    "codename": "Phoenix Rising"
+  },
+  "description": "UNIBOS v1.0.0 - First stable release with new versioning system",
+  "features": [
+    "13 integrated business modules",
+    "4-profile architecture (dev, server, manager, prod)",
+    "Hybrid CLI/TUI system",
+    "PostgreSQL database",
+    "Django REST API backend",
+    "Cross-platform support (macOS, Linux, Windows, Raspberry Pi)",
+    "10 language support (EN, TR, ES, FR, DE, ZH, JA, PT, RU, AR)",
+    "Module registry system",
+    "Node identity system",
+    "Timestamp-based build versioning"
+  ],
+  "modules": {
+    "birlikteyiz": {
+      "version": "1.0",
+      "status": "integrated"
+    },
+    "cctv": {
+      "version": "1.0",
+      "status": "integrated"
+    },
+    "currencies": {
+      "version": "3.0",
+      "status": "integrated"
+    },
+    "documents": {
+      "version": "1.0",
+      "status": "integrated"
+    },
+    "movies": {
+      "version": "1.0",
+      "status": "integrated"
+    },
+    "music": {
+      "version": "1.0",
+      "status": "integrated"
+    },
+    "personal_inflation": {
+      "version": "1.0",
+      "status": "integrated"
+    },
+    "recaria": {
+      "version": "1.0",
+      "status": "integrated"
+    },
+    "restopos": {
+      "version": "1.0",
+      "status": "integrated"
+    },
+    "solitaire": {
+      "version": "1.0",
+      "status": "integrated"
+    },
+    "store": {
+      "version": "1.0",
+      "status": "integrated"
+    },
+    "wimm": {
+      "version": "1.0",
+      "status": "integrated"
+    },
+    "wims": {
+      "version": "1.0",
+      "status": "integrated"
+    }
+  },
+  "technical": {
+    "python_minimum": "3.8",
+    "python_recommended": "3.11",
+    "database": "PostgreSQL only",
+    "platforms": [
+      "Windows",
+      "macOS",
+      "Linux",
+      "Raspberry Pi"
+    ],
+    "terminal_minimum": "80x24",
+    "terminal_recommended": "120x40"
+  },
+  "changelog": [
+    {
+      "version": "v1.0.0",
+      "build": "20251201222554",
+      "date": "2025-12-01",
+      "description": "First stable release with new timestamp-based versioning system",
+      "changes": [
+        "Migration from v0.534.0 to v1.0.0",
+        "New versioning system: Semantic + Timestamp Build",
+        "Archive format: unibos_v{VERSION}_b{TIMESTAMP}/",
+        "533+ development iterations consolidated",
+        "All 13 modules integrated and stable"
+      ]
+    }
+  ]
+}

@@ -178,6 +178,48 @@ modules/*/mobile/macos/build/
 modules/*/mobile/windows/build/
 modules/*/mobile/linux/build/
 
+# ===== CORE/CLIENTS/MOBILE BUILD ARTIFACTS (SDK, Pods, etc) =====
+# Kaynak kod dahil, build/SDK dizinleri haric
+core/clients/mobile/build/
+core/clients/mobile/.dart_tool/
+core/clients/mobile/.flutter-plugins
+core/clients/mobile/.flutter-plugins-dependencies
+core/clients/mobile/.packages
+core/clients/mobile/.pub-cache/
+core/clients/mobile/.pub/
+# iOS artifacts
+core/clients/mobile/ios/Pods/
+core/clients/mobile/ios/.symlinks/
+core/clients/mobile/ios/Podfile.lock
+core/clients/mobile/ios/Flutter/Flutter.framework
+core/clients/mobile/ios/Flutter/Flutter.podspec
+core/clients/mobile/ios/Flutter/Generated.xcconfig
+core/clients/mobile/ios/Flutter/ephemeral/
+core/clients/mobile/ios/Flutter/app.flx
+core/clients/mobile/ios/Flutter/flutter_assets/
+core/clients/mobile/ios/ServiceDefinitions.json
+core/clients/mobile/ios/build/
+core/clients/mobile/ios/Runner.xcworkspace/xcuserdata/
+core/clients/mobile/ios/Runner.xcodeproj/xcuserdata/
+core/clients/mobile/ios/Runner.xcodeproj/project.xcworkspace/xcuserdata/
+# macOS artifacts
+core/clients/mobile/macos/Flutter/ephemeral/
+core/clients/mobile/macos/Pods/
+core/clients/mobile/macos/Podfile.lock
+core/clients/mobile/macos/build/
+# Android artifacts
+core/clients/mobile/android/build/
+core/clients/mobile/android/.gradle/
+core/clients/mobile/android/app/build/
+core/clients/mobile/android/local.properties
+# Windows/Linux artifacts
+core/clients/mobile/windows/build/
+core/clients/mobile/linux/build/
+# Generated Dart files
+core/clients/mobile/lib/generated/
+core/clients/mobile/*.g.dart
+core/clients/mobile/*.freezed.dart
+
 # ===== TEST & COVERAGE =====
 .pytest_cache/
 .coverage

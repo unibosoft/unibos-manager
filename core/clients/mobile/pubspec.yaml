@@ -1,0 +1,80 @@
+name: unibos_mobile
+description: "UNIBOS - Universal Basic Operating System Mobile App"
+publish_to: 'none'
+version: 1.1.4+20251204072502
+
+environment:
+  sdk: ^3.9.2
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+  # UI
+  cupertino_icons: ^1.0.8
+  google_fonts: ^6.2.1
+
+  # State Management
+  flutter_riverpod: ^2.6.1
+  riverpod_annotation: ^2.6.1
+
+  # Networking
+  dio: ^5.8.0
+  retrofit: ^4.4.1
+
+  # Navigation
+  go_router: ^14.8.1
+
+  # Storage
+  flutter_secure_storage: ^9.2.4
+  shared_preferences: ^2.5.3
+
+  # JSON & Models
+  json_annotation: ^4.9.0
+  freezed_annotation: ^2.4.4
+
+  # Utils
+  intl: ^0.20.2
+  cached_network_image: ^3.4.1
+  logger: ^2.5.0
+
+  # Maps (for birlikteyiz)
+  flutter_map: ^7.0.2
+  latlong2: ^0.9.1
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+
+  flutter_lints: ^5.0.0
+
+  # Code generation
+  build_runner: ^2.4.14
+  retrofit_generator: ^9.1.7
+  json_serializable: ^6.9.4
+  freezed: ^2.5.8
+  riverpod_generator: ^2.6.3
+
+  # App icon generator
+  flutter_launcher_icons: ^0.14.3
+
+flutter_launcher_icons:
+  ios: true
+  android: true
+  image_path: "assets/images/app_icon.png"
+  remove_alpha_ios: true
+
+flutter:
+  uses-material-design: true
+
+  assets:
+    - assets/images/
+    - assets/VERSION.json
+
+  # Using Google Fonts package for JetBrains Mono instead of local fonts
+  # fonts:
+  #   - family: JetBrainsMono
+  #     fonts:
+  #       - asset: assets/fonts/JetBrainsMono-Regular.ttf
+  #       - asset: assets/fonts/JetBrainsMono-Bold.ttf
+  #         weight: 700
