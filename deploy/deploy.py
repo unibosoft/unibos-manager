@@ -326,6 +326,10 @@ class ServerDeployer:
             # step 13: collect static files
             self.log_step("static")
             self._run_django_command("collectstatic --noinput")
+            # copy install.sh to staticfiles for https://recaria.org/install.sh
+            install_src = f"{self.config.deploy_path}/tools/install/install.sh"
+            install_dst = f"{self.config.deploy_path}/core/clients/web/staticfiles/install.sh"
+            self.ssh_cmd(f"cp {install_src} {install_dst} 2>/dev/null || true", quiet=True)
             self.log("  ✓ static files collected")
 
             # step 14: setup systemd
