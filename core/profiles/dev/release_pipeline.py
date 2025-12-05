@@ -53,9 +53,10 @@ class ReleasePipeline:
 
     Repositories:
     - dev: Full codebase (development)
-    - server: Server deployment (no cli_dev)
+    - hub: Hub server deployment
     - manager: Manager tools
-    - prod: Production nodes (minimal)
+    - node: Node deployment (end user)
+    - worker: Worker deployment (dedicated)
     """
 
     def __init__(self, project_root: Optional[Path] = None):
@@ -145,7 +146,7 @@ class ReleasePipeline:
         Args:
             release_type: 'daily', 'patch', 'minor', or 'major'
             message: Commit message
-            repos: List of repos to push to ['dev', 'server', 'manager', 'prod']
+            repos: List of repos to push to ['dev', 'hub', 'manager', 'node', 'worker']
             skip_tests: Skip test execution
             dry_run: Don't actually execute, just simulate
 
@@ -156,7 +157,7 @@ class ReleasePipeline:
 
         # Default repos
         if repos is None:
-            repos = ['dev', 'server', 'manager', 'prod']
+            repos = ['dev', 'hub', 'manager', 'node', 'worker']
 
         # Calculate version
         new_version = self.calculate_new_version(release_type)
@@ -484,9 +485,10 @@ class ReleasePipeline:
         # Map repo to template
         templates = {
             'dev': '.gitignore.dev',
-            'server': '.gitignore.server',
+            'hub': '.gitignore.hub',
             'manager': '.gitignore.manager',
-            'prod': '.gitignore.prod'
+            'node': '.gitignore.node',
+            'worker': '.gitignore.worker'
         }
 
         template = templates.get(repo)

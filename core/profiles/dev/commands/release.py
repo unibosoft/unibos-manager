@@ -61,7 +61,7 @@ def release_info():
 @click.argument('release_type', type=click.Choice(['build', 'patch', 'minor', 'major']), default='build')
 @click.option('--message', '-m', default='', help='Custom commit message')
 @click.option('--dry-run', is_flag=True, help='Simulate without executing')
-@click.option('--repos', '-r', multiple=True, default=['dev', 'server', 'manager', 'prod'],
+@click.option('--repos', '-r', multiple=True, default=['dev', 'hub', 'manager', 'node', 'worker'],
               help='Repositories to push to')
 def release_run(release_type, message, dry_run, repos):
     """Run release pipeline

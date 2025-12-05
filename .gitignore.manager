@@ -7,17 +7,19 @@
 # Bu template .gitignore dosyasına kopyalanarak kullanılır:
 #   cp .gitignore.manager .gitignore
 #
-# TEMPLATE ÇALIŞMA MANTIĞI (4-Repo Architecture):
+# TEMPLATE ÇALIŞMA MANTIĞI (5-Repo Architecture):
 # - .gitignore.dev     → unibos-dev repo için
 # - .gitignore.manager → unibos-manager repo için (bu dosya)
-# - .gitignore.server  → unibos-server repo için
-# - .gitignore.prod    → unibos (prod) repo için
+# - .gitignore.hub     → unibos-hub repo için
+# - .gitignore.node    → unibos (node) repo için
+# - .gitignore.worker  → unibos-worker repo için
 #
 # push-all komutu her repo'ya push ederken doğru template'i otomatik kopyalar:
 #   dev     → cp .gitignore.dev .gitignore     → push to dev
 #   manager → cp .gitignore.manager .gitignore → push to manager
-#   server  → cp .gitignore.server .gitignore  → push to server
-#   prod    → cp .gitignore.prod .gitignore    → push to prod
+#   hub     → cp .gitignore.hub .gitignore     → push to hub
+#   node    → cp .gitignore.node .gitignore    → push to node
+#   worker  → cp .gitignore.worker .gitignore  → push to worker
 #
 # DEĞİŞİKLİK YAPARKEN:
 # ✅ Bu template'i (.gitignore.manager) düzenleyebilirsiniz
@@ -29,14 +31,15 @@
 # Repo: https://github.com/unibosoft/unibos-manager
 # Purpose: Remote server management CLI
 # Includes: manager profile ONLY, SSH tools, deployment scripts
-# Excludes: dev/server/prod profiles (GÜVENLİK), modules/, archive/, data/
+# Excludes: dev/hub/node/worker profiles (GÜVENLİK), modules/, archive/, data/
 # =============================================================================
 
 # ===== CRITICAL: EXCLUDE OTHER PROFILES (SECURITY) =====
 # Only manager profile should be in manager repo
 core/profiles/dev/
-core/profiles/server/
-core/profiles/prod/
+core/profiles/hub/
+core/profiles/node/
+core/profiles/worker/
 setup-dev.py
 setup-server.py
 setup-prod.py
@@ -216,6 +219,7 @@ screenshot_move_log.json
 # NOTE: .gitignore.* templates SHOULD be in dev repo only
 # Manager repo only needs active .gitignore
 .gitignore.dev
-.gitignore.server
-.gitignore.prod
+.gitignore.hub
+.gitignore.node
+.gitignore.worker
 .gitignore.manager
