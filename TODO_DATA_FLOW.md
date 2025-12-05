@@ -1,10 +1,24 @@
 # UNIBOS Data Flow & Identity System
 
-**Version:** v2.0.0
+**Version:** v2.0.2
 **Created:** 2025-12-05
-**Status:** Approved - Ready for Implementation
+**Updated:** 2025-12-05
+**Status:** Phase 1 In Progress - Hub Auth API
 **Priority:** HIGH - Core Data & Auth Infrastructure
 **Depends On:** TODO_ARCHITECTURE.md
+
+---
+
+## Quick Status
+
+| Phase | Status | Notes |
+|-------|--------|-------|
+| Phase 1: Database Models | 🔄 In Progress | User, Node models exist |
+| Phase 2: Hub Auth API | 🔄 Starting | JWT implementation next |
+| Phase 3: Data Export Control | ⏳ Pending | After auth |
+| Phase 4: Sync Engine | ⏳ Pending | Core feature |
+| Phase 5: P2P Communication | ⏳ Pending | mDNS, LoRa |
+| Phase 6: Mobile Integration | ⏳ Pending | Flutter auth service |
 
 ---
 
