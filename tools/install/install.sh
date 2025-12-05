@@ -35,7 +35,8 @@ NC='\033[0m'
 
 # Configuration
 UNIBOS_VERSION="2.0.2"
-UNIBOS_REPO="https://github.com/unibosoft/unibos.git"
+UNIBOS_REPO_HTTPS="https://github.com/unibosoft/unibos.git"
+UNIBOS_REPO_SSH="git@github.com:unibosoft/unibos.git"
 HUB_URL="https://recaria.org"
 INSTALL_DIR="$HOME/unibos"
 VENV_DIR="$INSTALL_DIR/core/clients/web/venv"
@@ -336,10 +337,21 @@ install_unibos() {
         cd "$INSTALL_DIR" && git pull origin main 2>/dev/null || true
     else
         log "Cloning repository..."
-        git clone --depth 1 "$UNIBOS_REPO" "$INSTALL_DIR" || {
-            log_err "Clone failed. Check network or use GitHub PAT."
-            exit 1
-        }
+        # Try SSH first (for deploy key), fallback to HTTPS
+        if ssh -o BatchMode=yes -o ConnectTimeout=5 git@github.com 2>&1 | grep -q "successfully authenticated"; then
+            git clone --depth 1 "$UNIBOS_REPO_SSH" "$INSTALL_DIR" || {
+                log_warn "SSH clone failed, trying HTTPS..."
+                git clone --depth 1 "$UNIBOS_REPO_HTTPS" "$INSTALL_DIR" || {
+                    log_err "Clone failed. Setup SSH key or use GitHub PAT."
+                    exit 1
+                }
+            }
+        else
+            git clone --depth 1 "$UNIBOS_REPO_HTTPS" "$INSTALL_DIR" || {
+                log_err "Clone failed. Check network or use GitHub PAT."
+                exit 1
+            }
+        fi
     fi
 
     # Create venv and install
