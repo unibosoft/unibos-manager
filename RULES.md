@@ -66,6 +66,23 @@ TODO güncellendi → İlgili code/docs birlikte commit et
 → Tamamlanan TODO'lar: archive/planning/completed/
 ```
 
+### 5️⃣ DOKÜMANTASYON KURALI
+```
+✅ YAP:
+   • Mevcut dökümanları her zaman güncel tut
+   • Değişiklik yaptığında ilgili dökümanı güncelle
+   • TODO.md'yi sürekli güncel tut
+   • RULES.md'yi yeni kurallarla güncelle
+
+❌ YAPMA:
+   • Yeni dokümantasyon dosyası oluşturma
+   • Gereksiz README dosyaları yaratma
+   • Aynı bilgiyi birden fazla yerde tekrarlama
+   • Dökümantasyonu erteleme (değişiklikle birlikte güncelle!)
+
+⚠️ TEK İSTİSNA: Kullanıcı açıkça yeni döküman isterse
+```
+
 ---
 
 ## 🎬 HER OTURUM BAŞLANGICI - ZORUNLU CHECKLIST

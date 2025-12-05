@@ -3,6 +3,7 @@ Authentication views for UNIBOS
 Implements secure JWT-based authentication with rate limiting
 """
 
+from datetime import datetime, timezone as dt_timezone
 from django.contrib.auth import get_user_model
 from django.core.cache import cache
 from django.db import transaction
@@ -118,8 +119,7 @@ class RegisterView(generics.CreateAPIView):
         # Track session
         request = self.request
         # refresh['exp'] Unix timestamp, datetime'a cevir
-        from datetime import datetime
-        expires_dt = datetime.fromtimestamp(refresh['exp'], tz=timezone.utc)
+        expires_dt = datetime.fromtimestamp(refresh['exp'], tz=dt_timezone.utc)
         UserSession.objects.create(
             user=user,
             session_key=refresh.payload['jti'],
@@ -152,8 +152,7 @@ class LogoutView(APIView):
             if refresh_token:
                 # Blacklist the refresh token
                 token = RefreshToken(refresh_token)
-                from datetime import datetime
-                expires_dt = datetime.fromtimestamp(token['exp'], tz=timezone.utc)
+                expires_dt = datetime.fromtimestamp(token['exp'], tz=dt_timezone.utc)
                 RefreshTokenBlacklist.objects.create(
                     token=refresh_token,
                     user=request.user,
@@ -441,3 +440,201 @@ class RefreshTokenView(TokenRefreshView):
             )
         
         return super().post(request, *args, **kwargs)
+
+
+class OfflineLoginView(APIView):
+    """
+    Offline login view for Node-only authentication
+
+    This view allows users to login on a Node when the Hub is unreachable.
+    It uses cached user credentials (offline_hash) that were stored during
+    a previous successful Hub login.
+
+    Flow:
+    1. Client provides username/email and password
+    2. Node checks local UserOfflineCache for the user
+    3. If found and cache is valid, verify password against offline_hash
+    4. Generate a local JWT token (signed with node's key)
+    5. Return token with offline_mode=true flag
+    """
+    permission_classes = [AllowAny]
+    throttle_classes = [AuthRateThrottle]
+
+    def post(self, request):
+        from django.contrib.auth.hashers import check_password
+        import logging
+
+        logger = logging.getLogger('authentication')
+
+        username = request.data.get('username', '').strip()
+        password = request.data.get('password', '')
+
+        if not username or not password:
+            return Response(
+                {"detail": "Username and password are required."},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        # Check rate limiting
+        ip_address = get_client_ip(request)
+        ip_failures = LoginAttempt.get_recent_failures(ip_address=ip_address, minutes=30)
+        if ip_failures >= 5:
+            return Response(
+                {"detail": "Too many failed login attempts. Please try again later."},
+                status=status.HTTP_429_TOO_MANY_REQUESTS
+            )
+
+        # Try to find user locally (either by username or email)
+        try:
+            if '@' in username:
+                user = User.objects.get(email=username)
+            else:
+                user = User.objects.get(username=username)
+        except User.DoesNotExist:
+            # Try offline cache if user doesn't exist locally
+            try:
+                from .models import UserOfflineCache
+                if '@' in username:
+                    cache_entry = UserOfflineCache.objects.get(email=username)
+                else:
+                    cache_entry = UserOfflineCache.objects.get(username=username)
+
+                # Verify password against cached hash
+                if not check_password(password, cache_entry.offline_hash):
+                    LoginAttempt.objects.create(
+                        username=username,
+                        ip_address=ip_address,
+                        user_agent=request.META.get('HTTP_USER_AGENT', ''),
+                        is_successful=False,
+                        failure_reason='invalid_password_offline'
+                    )
+                    return Response(
+                        {"detail": "Invalid credentials."},
+                        status=status.HTTP_401_UNAUTHORIZED
+                    )
+
+                # Check cache validity
+                if not cache_entry.is_valid():
+                    return Response(
+                        {"detail": "Offline credentials expired. Please login online to refresh."},
+                        status=status.HTTP_401_UNAUTHORIZED
+                    )
+
+                # Generate offline JWT
+                response_data = self._generate_offline_token(cache_entry, request)
+                return Response(response_data, status=status.HTTP_200_OK)
+
+            except Exception:
+                LoginAttempt.objects.create(
+                    username=username,
+                    ip_address=ip_address,
+                    user_agent=request.META.get('HTTP_USER_AGENT', ''),
+                    is_successful=False,
+                    failure_reason='user_not_found'
+                )
+                return Response(
+                    {"detail": "Invalid credentials."},
+                    status=status.HTTP_401_UNAUTHORIZED
+                )
+
+        # User exists locally - verify password
+        if not user.check_password(password):
+            LoginAttempt.objects.create(
+                username=username,
+                ip_address=ip_address,
+                user_agent=request.META.get('HTTP_USER_AGENT', ''),
+                is_successful=False,
+                failure_reason='invalid_password',
+                user=user
+            )
+            return Response(
+                {"detail": "Invalid credentials."},
+                status=status.HTTP_401_UNAUTHORIZED
+            )
+
+        # Generate JWT for local user
+        refresh = RefreshToken.for_user(user)
+
+        # Add custom claims
+        refresh['email'] = user.email
+        refresh['username'] = user.username
+        refresh['is_staff'] = user.is_staff
+        refresh['offline_mode'] = True  # Mark as offline session
+
+        # Track session
+        expires_dt = datetime.fromtimestamp(refresh['exp'], tz=dt_timezone.utc)
+        UserSession.objects.create(
+            user=user,
+            session_key=refresh.payload['jti'],
+            ip_address=ip_address,
+            user_agent=request.META.get('HTTP_USER_AGENT', ''),
+            device_info={'offline_mode': True},
+            expires_at=expires_dt
+        )
+
+        # Track successful login
+        LoginAttempt.objects.create(
+            username=username,
+            ip_address=ip_address,
+            user_agent=request.META.get('HTTP_USER_AGENT', ''),
+            is_successful=True,
+            user=user
+        )
+
+        logger.info(f"Offline login successful for user {user.username} from {ip_address}")
+
+        return Response({
+            'refresh': str(refresh),
+            'access': str(refresh.access_token),
+            'user': {
+                'id': str(user.id),
+                'username': user.username,
+                'email': user.email,
+                'first_name': user.first_name,
+                'last_name': user.last_name,
+                'is_staff': user.is_staff,
+                'is_superuser': user.is_superuser,
+            },
+            'offline_mode': True,
+            'offline_hash': user.password,  # For caching on client
+        }, status=status.HTTP_200_OK)
+
+    def _generate_offline_token(self, cache_entry, request):
+        """Generate JWT token from offline cache entry"""
+        from rest_framework_simplejwt.tokens import AccessToken
+        import uuid
+
+        # Create a minimal access token
+        token = AccessToken()
+        token['user_id'] = str(cache_entry.global_uuid)
+        token['username'] = cache_entry.username
+        token['email'] = cache_entry.email
+        token['is_staff'] = cache_entry.is_staff
+        token['offline_mode'] = True
+        token['jti'] = str(uuid.uuid4())
+
+        # Track login attempt
+        ip_address = get_client_ip(request)
+        LoginAttempt.objects.create(
+            username=cache_entry.username,
+            ip_address=ip_address,
+            user_agent=request.META.get('HTTP_USER_AGENT', ''),
+            is_successful=True,
+            failure_reason='',
+        )
+
+        return {
+            'access': str(token),
+            'refresh': None,  # No refresh for pure offline mode
+            'user': {
+                'id': str(cache_entry.global_uuid),
+                'username': cache_entry.username,
+                'email': cache_entry.email,
+                'first_name': cache_entry.first_name,
+                'last_name': cache_entry.last_name,
+                'is_staff': cache_entry.is_staff,
+                'is_superuser': cache_entry.is_superuser,
+            },
+            'offline_mode': True,
+            'cache_expires_at': cache_entry.cache_valid_until.isoformat() if cache_entry.cache_valid_until else None,
+        }

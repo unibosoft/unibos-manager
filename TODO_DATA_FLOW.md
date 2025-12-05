@@ -3,7 +3,7 @@
 **Version:** v2.0.2
 **Created:** 2025-12-05
 **Updated:** 2025-12-05
-**Status:** Phase 1 In Progress - Hub Auth API
+**Status:** Phase 4 Complete - Export Control & Sync Engine Implemented
 **Priority:** HIGH - Core Data & Auth Infrastructure
 **Depends On:** TODO_ARCHITECTURE.md
 
@@ -13,12 +13,13 @@
 
 | Phase | Status | Notes |
 |-------|--------|-------|
-| Phase 1: Database Models | 🔄 In Progress | User, Node models exist |
-| Phase 2: Hub Auth API | 🔄 Starting | JWT implementation next |
-| Phase 3: Data Export Control | ⏳ Pending | After auth |
-| Phase 4: Sync Engine | ⏳ Pending | Core feature |
-| Phase 5: P2P Communication | ⏳ Pending | mDNS, LoRa |
-| Phase 6: Mobile Integration | ⏳ Pending | Flutter auth service |
+| Phase 1: Database Models | ✅ Complete | Auth migrations deployed |
+| Phase 2: Hub Auth API | ✅ Complete | JWT tested end-to-end |
+| Phase 2.5: Offline Auth | ✅ Complete | offline_hash, UserOfflineCache, OfflineLoginView |
+| Phase 3: Data Export Control | ✅ Complete | Kill switch, module permissions, audit logging |
+| Phase 4: Sync Engine | ✅ Complete | SyncSession, SyncRecord, VersionVector, OfflineOperation |
+| Phase 5: P2P Communication | 🔄 Next | mDNS, WebSocket transport, message signing |
+| Phase 6: Mobile Integration | 🔄 In Progress | Flutter auth exists, sync client pending |
 
 ---
 

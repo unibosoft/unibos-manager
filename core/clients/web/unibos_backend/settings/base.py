@@ -139,6 +139,8 @@ CORE_SYSTEM_APPS = [
     'core.system.common.backend',  # Common utilities
     'core.system.web_ui.backend',  # UNIBOS Web UI
     'core.system.nodes.backend',  # Node Registry for multi-node architecture
+    'core.system.sync.backend',  # Data Sync Engine for Hub-Node synchronization
+    'core.system.p2p.backend',  # P2P Communication (mDNS discovery, WebSocket transport)
 ]
 
 LOCAL_APPS = [
@@ -531,6 +533,14 @@ NODE_STALE_THRESHOLD_MINUTES = 15  # Consider stale after this time
 NODE_METRICS_RETENTION_DAYS = 7  # Keep metrics for 7 days
 NODE_EVENTS_RETENTION_DAYS = 30  # Keep events for 30 days
 CENTRAL_REGISTRY_URL = None  # Set in server/prod settings if not central
+
+# P2P Communication Settings
+P2P_ENABLED = True  # Enable P2P discovery and communication
+P2P_AUTO_CONNECT = True  # Auto-connect to discovered peers
+P2P_LISTEN_PORT = 8001  # WebSocket port for P2P connections
+P2P_MESSAGE_TTL = 3  # Time to live for relayed messages
+P2P_HEALTH_CHECK_INTERVAL = 60  # Seconds between health checks
+P2P_HUB_SYNC_INTERVAL = 300  # Seconds between hub peer list sync
 
 # Security Settings
 SECURE_BROWSER_XSS_FILTER = True

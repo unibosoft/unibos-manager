@@ -18,10 +18,10 @@ User = get_user_model()
 
 class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
     """Custom JWT token serializer with additional claims"""
-    
+
     def validate(self, attrs):
         data = super().validate(attrs)
-        
+
         # Add custom claims
         refresh = self.get_token(self.user)
         data['user'] = {
@@ -35,7 +35,11 @@ class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
             'roles': list(self.user.groups.values_list('name', flat=True)),
             'permissions': list(self.user.user_permissions.values_list('codename', flat=True)),
         }
-        
+
+        # Add offline_hash for offline authentication on nodes
+        # This is the bcrypt hash that nodes can use to verify password when Hub is unreachable
+        data['offline_hash'] = self.user.password  # Django stores bcrypt hash
+
         # Track session
         request = self.context.get('request')
         if request:
@@ -50,7 +54,7 @@ class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
                 device_info=get_device_info(request),
                 expires_at=expires_dt
             )
-        
+
         return data
     
     @classmethod

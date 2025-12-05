@@ -177,6 +177,10 @@ LOGGING = {
     },
 }
 
+# Node Identity (from .env file)
+NODE_UUID = os.environ.get('NODE_UUID', '')
+NODE_HOSTNAME = os.environ.get('NODE_HOSTNAME', os.environ.get('HOSTNAME', 'unknown-node'))
+
 # UNIBOS Node-specific settings
 UNIBOS_DEPLOYMENT_TYPE = 'node'  # server, node, dev
 UNIBOS_NODE_REGISTRY_ENABLED = False  # Nodes don't host registry

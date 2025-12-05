@@ -1,16 +1,19 @@
 # UNIBOS - Unicorn Bodrum Operating System
 
-> **v2.0.0** - Production-ready modular platform with 5-profile CLI architecture, real-time WebSocket, and multi-platform support
+> **v2.0.2** - Production-ready modular platform with 5-profile CLI architecture, P2P mesh networking, real-time WebSocket, federated auth, sync engine, and data export control
 
 ## Overview
 
 UNIBOS is a comprehensive modular operating system built with Django, featuring:
 
 - **5-Profile CLI Architecture** - dev, hub, manager, node, worker profiles
+- **P2P Mesh Networking** - mDNS discovery, WebSocket transport, direct node-to-node communication
 - **TUI Framework** - Full-featured terminal interface with i18n support
+- **Federated Authentication** - Hub JWT auth with offline mode support
+- **Sync Engine** - Version vector-based data synchronization
+- **Data Export Control** - Master kill switch with module-level permissions
 - **Real-time Updates** - WebSocket via Django Channels
 - **Background Tasks** - Celery with Redis for async processing (dedicated worker profile)
-- **Multi-node Foundation** - P2P architecture with mDNS discovery support
 - **13 Business Modules** - Finance, media, IoT, emergency alerts
 
 ## Quick Start
@@ -103,7 +106,10 @@ unibos-dev/
 │       ├── web_ui/                # Web interface
 │       ├── common/                # Shared utilities
 │       ├── logging/               # Audit logs
-│       └── version_manager/       # Version control
+│       ├── version_manager/       # Version control
+│       ├── nodes/                 # Node registry
+│       ├── sync/                  # Data sync engine
+│       └── p2p/                   # P2P mesh networking
 │
 ├── modules/                       # Business modules (13)
 │   ├── currencies/                # Currency & crypto tracking
@@ -143,8 +149,38 @@ unibos-dev/
 | Gunicorn/Uvicorn | **Active** | ASGI with WebSocket support |
 | Celery Worker | **Active** | 12 tasks discovered |
 | Django Channels | **Active** | Real-time WebSocket |
+| P2P Mesh | **Active** | mDNS discovery, WebSocket transport |
 | Deploy Pipeline | **Active** | 17-step automated deployment |
 | Release Pipeline | **Active** | Patch/minor/major to 5 repos |
+
+## P2P Mesh Networking
+
+UNIBOS nodes can communicate directly via P2P mesh networking:
+
+### Features
+- **mDNS Discovery** - Automatic node discovery on local network via Zeroconf
+- **WebSocket Transport** - Real-time bidirectional communication
+- **Message Signing** - HMAC-based message authentication
+- **Dual-path Routing** - Direct P2P or Hub relay fallback
+- **Avahi Compatible** - Works with existing avahi-daemon installations
+- **WiFi Direct** - Direct AP mode for router-less P2P communication
+
+### API Endpoints
+```
+GET  /api/v1/p2p/status/     # P2P service status
+POST /api/v1/p2p/start/      # Start P2P service
+POST /api/v1/p2p/stop/       # Stop P2P service
+GET  /api/v1/p2p/peers/      # List discovered peers
+POST /api/v1/p2p/send/       # Send P2P message
+POST /api/v1/p2p/broadcast/  # Broadcast to all peers
+```
+
+### Active Nodes
+| Node | Platform | WiFi Direct | Status |
+|------|----------|-------------|--------|
+| unicorn-main | Raspberry Pi 5 (8GB) | AP Mode (UNIBOS-P2P) | P2P Active |
+| unicorn-station | Raspberry Pi 4 (8GB) | Client (10.42.0.67) | P2P Active |
+| birlikteyiz-000000003 | Raspberry Pi Zero 2W | - | P2P Active |
 
 ## Requirements
 
@@ -333,5 +369,5 @@ Bitez, Bodrum, Mugla, Turkiye
 
 ---
 
-**Current Version**: v2.0.0
+**Current Version**: v2.0.2
 **Last Updated**: 2025-12-05

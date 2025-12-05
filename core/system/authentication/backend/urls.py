@@ -17,6 +17,7 @@ from .views import (
     TwoFactorSetupView,
     TwoFactorVerifyView,
     RefreshTokenView,
+    OfflineLoginView,
 )
 
 router = DefaultRouter()
@@ -27,6 +28,7 @@ app_name = 'authentication'
 urlpatterns = [
     # Token endpoints
     path('login/', LoginView.as_view(), name='login'),
+    path('login/offline/', OfflineLoginView.as_view(), name='offline-login'),
     path('register/', RegisterView.as_view(), name='register'),
     path('logout/', LogoutView.as_view(), name='logout'),
     path('logout-all/', LogoutAllView.as_view(), name='logout-all'),

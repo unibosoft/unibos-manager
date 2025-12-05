@@ -61,6 +61,12 @@ urlpatterns = [
     # Node Registry API
     path(f'{API_V1_PREFIX}nodes/', include('core.system.nodes.backend.urls', namespace='nodes')),
 
+    # Sync Engine API
+    path(f'{API_V1_PREFIX}sync/', include('core.system.sync.backend.urls', namespace='sync')),
+
+    # P2P Communication API
+    path(f'{API_V1_PREFIX}p2p/', include('core.system.p2p.backend.urls', namespace='p2p')),
+
     # Movies Module - Movie/Series Collection Management
     path('movies/', include('modules.movies.backend.urls', namespace='movies')),
 

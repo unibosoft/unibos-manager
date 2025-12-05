@@ -179,17 +179,111 @@ class TwoFactorAuth(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='two_factor')
     secret = models.CharField(max_length=32)
     is_enabled = models.BooleanField(default=False)
-    
+
     # Backup codes
     backup_codes = models.JSONField(default=list)
-    
+
     # Metadata
     created_at = models.DateTimeField(auto_now_add=True)
     last_used_at = models.DateTimeField(null=True, blank=True)
-    
+
     class Meta:
         db_table = 'auth_two_factor'
-    
+
     def __str__(self):
         status = "enabled" if self.is_enabled else "disabled"
         return f"2FA {status} for {self.user.username}"
+
+
+class UserOfflineCache(models.Model):
+    """
+    Cache for Hub user credentials to enable offline authentication on Nodes.
+
+    When a user logs in via Hub, nodes can cache their credentials here.
+    This allows the user to authenticate on the node even when Hub is unreachable.
+    """
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+
+    # User identification (from Hub)
+    global_uuid = models.UUIDField(unique=True, db_index=True)
+    username = models.CharField(max_length=150, db_index=True)
+    email = models.EmailField(db_index=True)
+
+    # User info
+    first_name = models.CharField(max_length=150, blank=True)
+    last_name = models.CharField(max_length=150, blank=True)
+    is_staff = models.BooleanField(default=False)
+    is_superuser = models.BooleanField(default=False)
+
+    # Offline authentication
+    offline_hash = models.CharField(max_length=128)  # bcrypt hash for offline verification
+
+    # Cached permissions (from Hub)
+    cached_permissions = models.JSONField(default=dict)
+    cached_roles = models.JSONField(default=list)
+
+    # Cache validity
+    cached_at = models.DateTimeField(auto_now=True)
+    cache_valid_until = models.DateTimeField()  # Default 7 days from cache time
+
+    # Hub sync tracking
+    last_synced_with_hub = models.DateTimeField(null=True, blank=True)
+    hub_url = models.URLField(blank=True)  # Which hub this cache came from
+
+    class Meta:
+        db_table = 'auth_user_offline_cache'
+        indexes = [
+            models.Index(fields=['username']),
+            models.Index(fields=['email']),
+            models.Index(fields=['cache_valid_until']),
+        ]
+        ordering = ['-cached_at']
+
+    def __str__(self):
+        return f"Offline cache for {self.username} (valid until {self.cache_valid_until})"
+
+    def is_valid(self):
+        """Check if cache is still valid"""
+        return timezone.now() < self.cache_valid_until
+
+    def refresh_validity(self, days=7):
+        """Extend cache validity"""
+        self.cache_valid_until = timezone.now() + timedelta(days=days)
+        self.save(update_fields=['cache_valid_until', 'cached_at'])
+
+    @classmethod
+    def cache_from_hub_response(cls, hub_response, offline_hash, hub_url=''):
+        """
+        Create or update cache from Hub login response
+
+        Args:
+            hub_response: Dict with user data from Hub login
+            offline_hash: The user's password hash for offline verification
+            hub_url: URL of the Hub that provided this data
+        """
+        user_data = hub_response.get('user', {})
+
+        cache_entry, created = cls.objects.update_or_create(
+            global_uuid=user_data.get('id'),
+            defaults={
+                'username': user_data.get('username', ''),
+                'email': user_data.get('email', ''),
+                'first_name': user_data.get('first_name', ''),
+                'last_name': user_data.get('last_name', ''),
+                'is_staff': user_data.get('is_staff', False),
+                'is_superuser': user_data.get('is_superuser', False),
+                'offline_hash': offline_hash,
+                'cached_permissions': user_data.get('permissions', []),
+                'cached_roles': user_data.get('roles', []),
+                'cache_valid_until': timezone.now() + timedelta(days=7),
+                'last_synced_with_hub': timezone.now(),
+                'hub_url': hub_url,
+            }
+        )
+
+        return cache_entry, created
+
+    @classmethod
+    def cleanup_expired(cls):
+        """Remove expired cache entries"""
+        return cls.objects.filter(cache_valid_until__lt=timezone.now()).delete()

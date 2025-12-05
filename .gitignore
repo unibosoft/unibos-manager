@@ -76,6 +76,7 @@ downloads/
 eggs/
 .eggs/
 lib/
+!core/clients/mobile/lib/
 lib64/
 parts/
 sdist/
