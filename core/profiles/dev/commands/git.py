@@ -424,7 +424,9 @@ def push_prod(dry_run, force):
               help='Which repositories to push to (default: all)')
 @click.option('--dry-run', '-d', is_flag=True,
               help='Show what would be pushed without actually pushing')
-def push_all(message, repos, dry_run):
+@click.option('--with-version', '-v', is_flag=True,
+              help='Also push version branch (auto-detected from local branches)')
+def push_all(message, repos, dry_run, with_version):
     """
     Push to multiple repositories with correct .gitignore templates
 
@@ -440,11 +442,13 @@ def push_all(message, repos, dry_run):
         unibos-dev git push-all "feat: feature"   # Commit and push
         unibos-dev git push-all --repos dev       # Push to dev only
         unibos-dev git push-all --dry-run         # Simulate
+        unibos-dev git push-all --with-version    # Also push version branch
 
     This command:
     1. Optionally commits changes with provided message
     2. Pushes to each repo with appropriate .gitignore template
-    3. Ensures security (cli_dev never goes to hub/node)
+    3. Optionally pushes version branch (e.g., v2.0.0+build.xxx)
+    4. Ensures security (cli_dev never goes to hub/node)
     """
     project_root = get_project_root()
 
@@ -518,9 +522,33 @@ def push_all(message, repos, dry_run):
 
     click.echo("")
 
+    # Detect version branch if --with-version flag is set
+    version_branch = None
+    if with_version:
+        try:
+            # Get all local branches matching version pattern
+            result = subprocess.run(
+                ['git', 'branch', '--list', 'v*'],
+                capture_output=True, text=True, check=True
+            )
+            branches = [b.strip().lstrip('* ') for b in result.stdout.strip().split('\n') if b.strip()]
+
+            # Find the latest version branch (highest version number)
+            version_branches = [b for b in branches if b.startswith('v') and '+build.' in b]
+            if version_branches:
+                # Sort by version and build timestamp
+                version_branches.sort(reverse=True)
+                version_branch = version_branches[0]
+                click.echo(f"🏷️  version branch detected: {version_branch}")
+            else:
+                click.echo("⚠️  no version branch found (pattern: v*.*.+build.*)")
+        except subprocess.CalledProcessError:
+            click.echo("⚠️  could not detect version branch")
+        click.echo("")
+
     # Step 3: Push to each repository
     for i, repo in enumerate(repo_list, 1):
-        _push_to_single_repo(repo, dry_run, project_root, i, len(repo_list))
+        _push_to_single_repo(repo, dry_run, project_root, i, len(repo_list), version_branch)
 
     # Step 4: Restore dev .gitignore
     click.echo(f"{len(repo_list) + 1}️⃣  restoring .gitignore.dev as active...")
@@ -539,8 +567,17 @@ def push_all(message, repos, dry_run):
         click.echo(f"   ✓ {repo:8s} → https://github.com/unibosoft/{repo_name}.git")
 
 
-def _push_to_single_repo(repo, dry_run, root_dir, step_num, total_steps):
-    """Helper function to push to a single repository with correct .gitignore"""
+def _push_to_single_repo(repo, dry_run, root_dir, step_num, total_steps, version_branch=None):
+    """Helper function to push to a single repository with correct .gitignore
+
+    Args:
+        repo: Repository name (dev, hub, manager, node, worker)
+        dry_run: If True, don't make any changes
+        root_dir: Project root directory
+        step_num: Current step number for display
+        total_steps: Total number of steps for display
+        version_branch: Optional version branch to push (e.g., 'v2.0.0+build.20251205150933')
+    """
 
     # Map repo name to template and remote
     repo_config = {
@@ -588,7 +625,7 @@ def _push_to_single_repo(repo, dry_run, root_dir, step_num, total_steps):
     else:
         click.echo(f"   [dry run] would activate {config['template']}")
 
-    # Push to remote
+    # Push main branch to remote
     if not dry_run:
         try:
             result = subprocess.run(
@@ -596,14 +633,29 @@ def _push_to_single_repo(repo, dry_run, root_dir, step_num, total_steps):
                 capture_output=True, text=True, check=True
             )
             if "Everything up-to-date" in result.stderr:
-                click.echo(f"   ✅ already up-to-date")
+                click.echo(f"   ✅ main: already up-to-date")
             else:
-                click.echo(f"   ✅ pushed to {config['url']}")
+                click.echo(f"   ✅ main: pushed to {config['url']}")
         except subprocess.CalledProcessError as e:
-            click.echo(f"   ❌ push failed: {e.stderr}", err=True)
-            click.echo(f"   continuing with other repositories...")
+            click.echo(f"   ❌ main push failed: {e.stderr}", err=True)
+
+        # Push version branch if provided
+        if version_branch:
+            try:
+                result = subprocess.run(
+                    ['git', 'push', config['remote'], version_branch],
+                    capture_output=True, text=True, check=True
+                )
+                if "Everything up-to-date" in result.stderr:
+                    click.echo(f"   ✅ {version_branch}: already up-to-date")
+                else:
+                    click.echo(f"   ✅ {version_branch}: pushed to {config['url']}")
+            except subprocess.CalledProcessError as e:
+                click.echo(f"   ❌ {version_branch} push failed: {e.stderr}", err=True)
     else:
-        click.echo(f"   [dry run] would push to {config['remote']}")
+        click.echo(f"   [dry run] would push main to {config['remote']}")
+        if version_branch:
+            click.echo(f"   [dry run] would push {version_branch} to {config['remote']}")
 
     click.echo("")
 
