@@ -11,6 +11,7 @@ def sidebar_context(request):
     
     # Base modules - always visible (using CLI emojis)
     modules = [
+        {'id': 'messenger', 'name': 'messenger', 'icon': '💬'},
         {'id': 'recaria', 'name': 'recaria', 'icon': '🪐'},
         {'id': 'birlikteyiz', 'name': 'birlikteyiz', 'icon': '📡'},
         {'id': 'kisisel_enflasyon', 'name': 'kişisel enflasyon', 'icon': '📈'},

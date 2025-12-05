@@ -1,9 +1,9 @@
 # UNIBOS Data Flow & Identity System
 
-**Version:** v2.0.2
+**Version:** v2.2.0
 **Created:** 2025-12-05
 **Updated:** 2025-12-05
-**Status:** Phase 4 Complete - Export Control & Sync Engine Implemented
+**Status:** Phase 6 Complete - Messenger Module with E2E Encryption
 **Priority:** HIGH - Core Data & Auth Infrastructure
 **Depends On:** TODO_ARCHITECTURE.md
 
@@ -18,8 +18,9 @@
 | Phase 2.5: Offline Auth | ✅ Complete | offline_hash, UserOfflineCache, OfflineLoginView |
 | Phase 3: Data Export Control | ✅ Complete | Kill switch, module permissions, audit logging |
 | Phase 4: Sync Engine | ✅ Complete | SyncSession, SyncRecord, VersionVector, OfflineOperation |
-| Phase 5: P2P Communication | 🔄 Next | mDNS, WebSocket transport, message signing |
-| Phase 6: Mobile Integration | 🔄 In Progress | Flutter auth exists, sync client pending |
+| Phase 5: P2P Communication | ✅ Complete | mDNS, WebSocket transport, message signing |
+| Phase 6: Mobile Integration | ✅ Complete | Flutter auth, sync client, messenger |
+| Phase 7: Messenger Module | ✅ Complete | E2E encryption, P2P messaging, WebSocket consumer |
 
 ---
 
@@ -38,7 +39,8 @@
 11. [Database Models](#11-database-models)
 12. [API Specifications](#12-api-specifications)
 13. [Mobile Integration](#13-mobile-integration)
-14. [Implementation Phases](#14-implementation-phases)
+14. [Messenger Module](#14-messenger-module)
+15. [Implementation Phases](#15-implementation-phases)
 
 ---
 
@@ -1370,7 +1372,219 @@ class NodeDiscoveryService {
 
 ---
 
-## 14. Implementation Phases
+## 14. Messenger Module
+
+### 14.1 Overview
+
+The Messenger module provides end-to-end encrypted messaging between UNIBOS users. It supports both Hub-relayed and P2P direct communication, integrates with the existing identity system, and follows local-first privacy principles.
+
+### 14.2 Encryption Flow
+
+```
++------------------------------------------------------------------+
+|                    MESSENGER E2E ENCRYPTION                        |
+|                                                                   |
+|  KEY GENERATION (Per Device):                                      |
+|  +------------------------------------------------------------+  |
+|  | 1. Generate X25519 key pair (Curve25519)                    |  |
+|  |    - Private key: Never leaves device                       |  |
+|  |    - Public key: Stored on hub/node                        |  |
+|  |                                                            |  |
+|  | 2. Generate Ed25519 signing key pair                        |  |
+|  |    - For message authentication                            |  |
+|  |    - Prevents message tampering                            |  |
+|  |                                                            |  |
+|  | 3. Register keys with hub (public keys only)               |  |
+|  +------------------------------------------------------------+  |
+|                                                                   |
+|  MESSAGE ENCRYPTION:                                               |
+|  +------------------------------------------------------------+  |
+|  | Sender (Alice) -> Recipient (Bob):                          |  |
+|  |                                                            |  |
+|  | 1. Alice retrieves Bob's public key from hub               |  |
+|  | 2. Alice derives shared secret:                             |  |
+|  |    shared = X25519(alice_private, bob_public)              |  |
+|  | 3. Generate random 24-byte nonce                            |  |
+|  | 4. Encrypt message:                                         |  |
+|  |    ciphertext = AES-256-GCM(shared, nonce, plaintext)      |  |
+|  | 5. Sign encrypted payload:                                  |  |
+|  |    signature = Ed25519.sign(alice_signing_key, ciphertext) |  |
+|  | 6. Send: {ciphertext, nonce, signature, sender_key_id}     |  |
+|  +------------------------------------------------------------+  |
+|                                                                   |
+|  MESSAGE DECRYPTION:                                               |
+|  +------------------------------------------------------------+  |
+|  | Recipient (Bob) receives message:                           |  |
+|  |                                                            |  |
+|  | 1. Verify signature with Alice's signing public key        |  |
+|  | 2. Derive shared secret:                                    |  |
+|  |    shared = X25519(bob_private, alice_public)              |  |
+|  | 3. Decrypt message:                                         |  |
+|  |    plaintext = AES-256-GCM.decrypt(shared, nonce, cipher)  |  |
+|  +------------------------------------------------------------+  |
+|                                                                   |
++------------------------------------------------------------------+
+```
+
+### 14.3 Group Encryption
+
+```
++------------------------------------------------------------------+
+|                    GROUP MESSAGE ENCRYPTION                        |
+|                                                                   |
+|  GROUP KEY MANAGEMENT:                                             |
+|  +------------------------------------------------------------+  |
+|  | 1. Group creator generates random group key (AES-256)       |  |
+|  | 2. Group key encrypted for each participant:                |  |
+|  |    encrypted_key_alice = encrypt(group_key, alice_pubkey)  |  |
+|  |    encrypted_key_bob = encrypt(group_key, bob_pubkey)      |  |
+|  | 3. Each participant stores their encrypted group key        |  |
+|  +------------------------------------------------------------+  |
+|                                                                   |
+|  MESSAGE FLOW:                                                     |
+|  +------------------------------------------------------------+  |
+|  | 1. Sender decrypts group key with their private key        |  |
+|  | 2. Encrypt message with group key (not individual keys)    |  |
+|  | 3. All participants can decrypt with same group key        |  |
+|  | 4. Signature still uses sender's individual signing key    |  |
+|  +------------------------------------------------------------+  |
+|                                                                   |
+|  KEY ROTATION (on member removal):                                 |
+|  +------------------------------------------------------------+  |
+|  | 1. Generate new group key                                   |  |
+|  | 2. Re-encrypt for remaining members only                    |  |
+|  | 3. Old messages remain encrypted with old key               |  |
+|  | 4. New messages use new key                                 |  |
+|  +------------------------------------------------------------+  |
+|                                                                   |
++------------------------------------------------------------------+
+```
+
+### 14.4 Transport Modes
+
+| Mode | Description | Use Case |
+|------|-------------|----------|
+| **Hub Relay** | Messages routed through Hub | Cross-network, offline delivery |
+| **P2P Direct** | Direct WebSocket between peers | Same LAN, lower latency |
+| **Hybrid** | P2P when available, Hub fallback | Best of both worlds |
+
+```
++------------------------------------------------------------------+
+|                    TRANSPORT MODE SELECTION                        |
+|                                                                   |
+|  User creates conversation with transport_mode = "hybrid":         |
+|                                                                   |
+|  1. Check if recipient is on same network (mDNS discovery)        |
+|  2. If YES: Attempt P2P WebSocket connection                       |
+|     - Success: Use P2P for this session                           |
+|     - Failure: Fall back to Hub relay                             |
+|  3. If NO: Use Hub relay                                           |
+|                                                                   |
+|  User can override per-conversation:                               |
+|  - transport_mode = "hub" -> Always use Hub                        |
+|  - transport_mode = "p2p" -> Prefer P2P, fail if unavailable      |
+|  - transport_mode = "hybrid" -> Automatic selection (default)      |
+|                                                                   |
++------------------------------------------------------------------+
+```
+
+### 14.5 Messenger Data Models
+
+```python
+# Additional models for Messenger module
+
+class UserEncryptionKey(models.Model):
+    """E2E encryption keys per device"""
+    id = UUIDField(primary_key=True)
+    user = ForeignKey(User)
+    key_id = UUIDField(unique=True)
+    device_id = CharField(max_length=100)
+    device_name = CharField(max_length=100)
+    public_key = TextField()  # X25519 base64
+    signing_public_key = TextField()  # Ed25519 base64
+    is_primary = BooleanField(default=False)
+    is_revoked = BooleanField(default=False)
+    revoked_at = DateTimeField(null=True)
+    created_at = DateTimeField(auto_now_add=True)
+
+class Conversation(models.Model):
+    """Chat conversation"""
+    id = UUIDField(primary_key=True)
+    conversation_type = CharField(choices=['direct', 'group', 'channel'])
+    name = CharField(max_length=255, blank=True)
+    description = TextField(blank=True)
+    created_by = ForeignKey(User)
+    is_encrypted = BooleanField(default=True)
+    transport_mode = CharField(choices=['hub', 'p2p', 'hybrid'], default='hub')
+    p2p_enabled = BooleanField(default=False)
+    last_message_at = DateTimeField(null=True)
+    created_at = DateTimeField(auto_now_add=True)
+
+class Message(models.Model):
+    """Encrypted message"""
+    id = UUIDField(primary_key=True)
+    conversation = ForeignKey(Conversation)
+    sender = ForeignKey(User)
+    encrypted_content = TextField()
+    content_nonce = CharField(max_length=64)
+    signature = TextField()
+    sender_key_id = UUIDField()
+    message_type = CharField(choices=['text', 'image', 'file', 'audio', 'video', 'system'])
+    reply_to = ForeignKey('self', null=True)
+    is_edited = BooleanField(default=False)
+    edited_at = DateTimeField(null=True)
+    expires_at = DateTimeField(null=True)
+    transport_mode = CharField()  # How it was delivered
+    created_at = DateTimeField(auto_now_add=True)
+```
+
+### 14.6 Messenger Export Control
+
+Messenger integrates with the existing Data Export Control system:
+
+```
++------------------------------------------------------------------+
+|                MODULE EXPORT SETTINGS - MESSENGER                  |
+|                                                                   |
+|  MESSENGER                                                         |
+|  +------------------------------------------------------------+  |
+|  | [X] Message content                     ALWAYS LOCAL        |  |
+|  |     (E2E encrypted, never decrypted on hub)                |  |
+|  |                                                            |  |
+|  | [ ] Conversation metadata               <- Optional export  |  |
+|  |     (names, participant list, last activity)               |  |
+|  |                                                            |  |
+|  | [ ] Message delivery status             <- Optional export  |  |
+|  |     (timestamps, read receipts)                            |  |
+|  |                                                            |  |
+|  | [X] Encryption keys (private)           NEVER EXPORT        |  |
+|  +------------------------------------------------------------+  |
+|                                                                   |
+|  Note: Even with Hub relay, message CONTENT is E2E encrypted.     |
+|  Hub only sees encrypted ciphertext, never plaintext.             |
+|                                                                   |
++------------------------------------------------------------------+
+```
+
+### 14.7 WebSocket Events
+
+| Event | Direction | Description |
+|-------|-----------|-------------|
+| `message.new` | Server -> Client | New message in conversation |
+| `message.edited` | Server -> Client | Message was edited |
+| `message.deleted` | Server -> Client | Message was deleted |
+| `message.read` | Server -> Client | Read receipt |
+| `typing.start` | Bidirectional | User started typing |
+| `typing.stop` | Bidirectional | User stopped typing |
+| `participant.joined` | Server -> Client | New participant added |
+| `participant.left` | Server -> Client | Participant left/removed |
+| `p2p.offer` | Bidirectional | WebRTC offer for P2P |
+| `p2p.answer` | Bidirectional | WebRTC answer |
+| `p2p.ice` | Bidirectional | ICE candidate exchange |
+
+---
+
+## 15. Implementation Phases
 
 ### Phase 1: Local Identity (Week 1-2)
 
@@ -1484,24 +1698,70 @@ class NodeDiscoveryService {
     [ ] Emergency alerts
 ```
 
-### Phase 6: Mobile Integration (Week 11-12)
+### Phase 6: Mobile Integration (Week 11-12) ✅ COMPLETE
 
 ```
-[ ] 6.1 Auth Service (Flutter)
-    [ ] Hub login
-    [ ] Local login
-    [ ] Offline login
-    [ ] Token management
+[x] 6.1 Auth Service (Flutter)
+    [x] Hub login
+    [x] Local login
+    [x] Offline login
+    [x] Token management
 
-[ ] 6.2 Node Connection
-    [ ] Node discovery
-    [ ] Connection management
-    [ ] Auto-reconnect
+[x] 6.2 Node Connection
+    [x] Node discovery
+    [x] Connection management
+    [x] Auto-reconnect
 
-[ ] 6.3 Data Sync
-    [ ] Sync status UI
-    [ ] Conflict resolution UI
-    [ ] Export settings UI
+[x] 6.3 Data Sync
+    [x] Sync status UI
+    [x] Conflict resolution UI
+    [x] Export settings UI
+```
+
+### Phase 7: Messenger Module ✅ COMPLETE
+
+```
+[x] 7.1 Backend Models
+    [x] UserEncryptionKey model
+    [x] Conversation model
+    [x] Participant model
+    [x] Message model with E2E fields
+    [x] MessageAttachment, Reaction, ReadReceipt
+
+[x] 7.2 Encryption System
+    [x] X25519 key generation (cryptography library)
+    [x] Ed25519 signing keys
+    [x] AES-256-GCM encryption helpers
+    [x] Key rotation and revocation support
+
+[x] 7.3 REST API Endpoints
+    [x] Conversation CRUD
+    [x] Message CRUD with encryption
+    [x] Key management endpoints
+    [x] P2P control endpoints
+    [x] Typing indicators
+    [x] Search functionality
+
+[x] 7.4 WebSocket Consumer
+    [x] MessengerConsumer implementation
+    [x] Real-time message delivery
+    [x] Typing indicators
+    [x] P2P signaling support
+    [x] Presence events
+
+[x] 7.5 Flutter Client
+    [x] MessengerService API client
+    [x] Data models (messenger_models.dart)
+    [x] Riverpod providers (messenger_provider.dart)
+    [x] UI screens (ConversationList, Chat, NewConversation, Settings)
+    [x] UI widgets (ConversationTile, MessageBubble, MessageInput, TypingIndicator)
+
+[x] 7.6 Web UI
+    [x] Terminal-style chat interface (UNIBOS theme)
+    [x] Sidebar navigation integration
+    [x] WebSocket integration
+    [x] P2P/Hub mode toggle
+    [x] Encryption status display
 ```
 
 ---

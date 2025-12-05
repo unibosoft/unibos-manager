@@ -1,0 +1,769 @@
+{% extends "web_ui/base.html" %}
+{% load static %}
+
+{% block title %}messenger - unibos{% endblock %}
+
+{% block module_name %}messenger{% endblock %}
+
+{% block module_css %}
+<style>
+    .messenger-container {
+        display: flex;
+        height: calc(100vh - 150px);
+        background: var(--bg-dark);
+        border-radius: 5px;
+        overflow: hidden;
+        border: 1px solid var(--dark-gray);
+    }
+
+    /* Conversation List */
+    .conversation-list {
+        width: 300px;
+        border-right: 1px solid var(--dark-gray);
+        display: flex;
+        flex-direction: column;
+        background: rgba(0, 0, 0, 0.2);
+    }
+
+    .conversation-header {
+        padding: 15px;
+        border-bottom: 1px solid var(--dark-gray);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .conversation-header h3 {
+        color: var(--orange);
+        font-size: 14px;
+        margin: 0;
+        text-transform: lowercase;
+    }
+
+    .new-chat-btn {
+        background: var(--orange);
+        color: var(--bg-black);
+        border: none;
+        padding: 6px 12px;
+        border-radius: 3px;
+        cursor: pointer;
+        font-size: 12px;
+        font-family: 'JetBrains Mono', monospace;
+        transition: all 0.2s;
+    }
+
+    .new-chat-btn:hover {
+        background: var(--orange-bright);
+        transform: translateY(-1px);
+    }
+
+    .conversation-search {
+        padding: 10px 15px;
+        border-bottom: 1px solid var(--dark-gray);
+    }
+
+    .conversation-search input {
+        width: 100%;
+        background: rgba(60, 60, 60, 0.4);
+        border: 1px solid rgba(255, 140, 0, 0.2);
+        color: var(--white);
+        padding: 8px 12px;
+        border-radius: 4px;
+        font-size: 12px;
+        font-family: 'JetBrains Mono', monospace;
+    }
+
+    .conversation-search input:focus {
+        outline: none;
+        border-color: var(--orange);
+    }
+
+    .conversation-items {
+        flex: 1;
+        overflow-y: auto;
+    }
+
+    .conversation-item {
+        display: flex;
+        align-items: center;
+        padding: 12px 15px;
+        cursor: pointer;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        transition: all 0.2s;
+    }
+
+    .conversation-item:hover {
+        background: rgba(255, 140, 0, 0.1);
+    }
+
+    .conversation-item.active {
+        background: rgba(255, 140, 0, 0.2);
+        border-left: 3px solid var(--orange);
+    }
+
+    .conversation-avatar {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        background: var(--orange);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: var(--bg-black);
+        font-weight: bold;
+        font-size: 14px;
+        margin-right: 12px;
+        flex-shrink: 0;
+    }
+
+    .conversation-info {
+        flex: 1;
+        min-width: 0;
+    }
+
+    .conversation-name {
+        font-size: 13px;
+        font-weight: bold;
+        margin-bottom: 3px;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+    }
+
+    .conversation-name .encryption-icon {
+        color: var(--green);
+        font-size: 10px;
+    }
+
+    .conversation-name .p2p-icon {
+        color: var(--orange);
+        font-size: 10px;
+    }
+
+    .conversation-preview {
+        font-size: 11px;
+        color: var(--gray);
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    .conversation-meta {
+        text-align: right;
+        flex-shrink: 0;
+        margin-left: 10px;
+    }
+
+    .conversation-time {
+        font-size: 10px;
+        color: var(--gray);
+        margin-bottom: 4px;
+    }
+
+    .conversation-badge {
+        background: var(--orange);
+        color: var(--bg-black);
+        font-size: 10px;
+        padding: 2px 6px;
+        border-radius: 10px;
+        font-weight: bold;
+    }
+
+    /* Chat Area */
+    .chat-area {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        background: rgba(0, 0, 0, 0.1);
+    }
+
+    .chat-header {
+        padding: 15px 20px;
+        border-bottom: 1px solid var(--dark-gray);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        background: rgba(0, 0, 0, 0.2);
+    }
+
+    .chat-header-info {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
+
+    .chat-header-name {
+        font-weight: bold;
+        font-size: 14px;
+    }
+
+    .chat-header-status {
+        font-size: 11px;
+        color: var(--gray);
+        display: flex;
+        align-items: center;
+        gap: 4px;
+    }
+
+    .chat-header-status .status-dot {
+        width: 6px;
+        height: 6px;
+        border-radius: 50%;
+        background: var(--green);
+    }
+
+    .chat-header-actions {
+        display: flex;
+        gap: 10px;
+    }
+
+    .chat-action-btn {
+        background: transparent;
+        border: 1px solid rgba(255, 140, 0, 0.3);
+        color: var(--orange);
+        width: 32px;
+        height: 32px;
+        border-radius: 3px;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: all 0.2s;
+    }
+
+    .chat-action-btn:hover {
+        background: rgba(255, 140, 0, 0.1);
+        border-color: var(--orange);
+    }
+
+    /* Messages Area */
+    .chat-messages {
+        flex: 1;
+        overflow-y: auto;
+        padding: 20px;
+        display: flex;
+        flex-direction: column;
+        gap: 15px;
+    }
+
+    .message {
+        max-width: 70%;
+        display: flex;
+        flex-direction: column;
+    }
+
+    .message.sent {
+        align-self: flex-end;
+    }
+
+    .message.received {
+        align-self: flex-start;
+    }
+
+    .message-sender {
+        font-size: 11px;
+        color: var(--orange);
+        margin-bottom: 4px;
+    }
+
+    .message-bubble {
+        padding: 10px 15px;
+        border-radius: 12px;
+        font-size: 13px;
+        line-height: 1.4;
+    }
+
+    .message.sent .message-bubble {
+        background: rgba(255, 140, 0, 0.2);
+        border-bottom-right-radius: 4px;
+    }
+
+    .message.received .message-bubble {
+        background: rgba(60, 60, 60, 0.5);
+        border-bottom-left-radius: 4px;
+    }
+
+    .message-meta {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        margin-top: 4px;
+        font-size: 10px;
+        color: var(--gray);
+    }
+
+    .message.sent .message-meta {
+        justify-content: flex-end;
+    }
+
+    .message-status {
+        color: var(--green);
+    }
+
+    .message-p2p {
+        color: var(--orange);
+    }
+
+    /* Chat Input */
+    .chat-input-area {
+        padding: 15px 20px;
+        border-top: 1px solid var(--dark-gray);
+        display: flex;
+        gap: 10px;
+        align-items: flex-end;
+        background: rgba(0, 0, 0, 0.2);
+    }
+
+    .chat-input-actions {
+        display: flex;
+        gap: 5px;
+    }
+
+    .input-action-btn {
+        background: transparent;
+        border: none;
+        color: var(--gray);
+        font-size: 18px;
+        cursor: pointer;
+        padding: 8px;
+        transition: color 0.2s;
+    }
+
+    .input-action-btn:hover {
+        color: var(--orange);
+    }
+
+    .chat-input {
+        flex: 1;
+        background: rgba(60, 60, 60, 0.4);
+        border: 1px solid rgba(255, 140, 0, 0.2);
+        color: var(--white);
+        padding: 12px 15px;
+        border-radius: 20px;
+        font-size: 13px;
+        font-family: 'JetBrains Mono', monospace;
+        resize: none;
+        max-height: 120px;
+    }
+
+    .chat-input:focus {
+        outline: none;
+        border-color: var(--orange);
+    }
+
+    .send-btn {
+        background: var(--orange);
+        color: var(--bg-black);
+        border: none;
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: all 0.2s;
+        font-size: 16px;
+    }
+
+    .send-btn:hover {
+        background: var(--orange-bright);
+        transform: scale(1.05);
+    }
+
+    .send-btn:disabled {
+        background: var(--gray);
+        cursor: not-allowed;
+        transform: none;
+    }
+
+    /* Empty State */
+    .empty-state {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        color: var(--gray);
+    }
+
+    .empty-state-icon {
+        font-size: 64px;
+        margin-bottom: 20px;
+        opacity: 0.5;
+    }
+
+    .empty-state-title {
+        font-size: 18px;
+        margin-bottom: 10px;
+    }
+
+    .empty-state-text {
+        font-size: 12px;
+        text-align: center;
+        max-width: 300px;
+    }
+
+    /* Transport Mode Indicator */
+    .transport-indicator {
+        display: flex;
+        align-items: center;
+        gap: 5px;
+        font-size: 11px;
+        padding: 4px 10px;
+        border-radius: 12px;
+        background: rgba(255, 140, 0, 0.1);
+        border: 1px solid rgba(255, 140, 0, 0.3);
+    }
+
+    .transport-indicator.hub {
+        color: var(--cyan);
+        border-color: rgba(0, 255, 255, 0.3);
+        background: rgba(0, 255, 255, 0.1);
+    }
+
+    .transport-indicator.p2p {
+        color: var(--orange);
+    }
+
+    /* Typing Indicator */
+    .typing-indicator {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 8px 15px;
+        font-size: 11px;
+        color: var(--gray);
+        font-style: italic;
+    }
+
+    .typing-dots {
+        display: flex;
+        gap: 3px;
+    }
+
+    .typing-dots span {
+        width: 6px;
+        height: 6px;
+        border-radius: 50%;
+        background: var(--gray);
+        animation: typing 1.2s infinite;
+    }
+
+    .typing-dots span:nth-child(2) {
+        animation-delay: 0.2s;
+    }
+
+    .typing-dots span:nth-child(3) {
+        animation-delay: 0.4s;
+    }
+
+    @keyframes typing {
+        0%, 60%, 100% {
+            transform: translateY(0);
+        }
+        30% {
+            transform: translateY(-4px);
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="messenger-container">
+    <!-- Conversation List -->
+    <div class="conversation-list">
+        <div class="conversation-header">
+            <h3>conversations</h3>
+            <button class="new-chat-btn" onclick="openNewChat()">+ new</button>
+        </div>
+
+        <div class="conversation-search">
+            <input type="text" placeholder="search conversations..." id="conversationSearch">
+        </div>
+
+        <div class="conversation-items" id="conversationList">
+            <!-- Conversations will be loaded here -->
+            <div class="conversation-item active" onclick="selectConversation('1')">
+                <div class="conversation-avatar">AB</div>
+                <div class="conversation-info">
+                    <div class="conversation-name">
+                        <span>alice & bob</span>
+                        <span class="encryption-icon" title="encrypted">🔒</span>
+                        <span class="p2p-icon" title="p2p enabled">📡</span>
+                    </div>
+                    <div class="conversation-preview">hey, did you see the new...</div>
+                </div>
+                <div class="conversation-meta">
+                    <div class="conversation-time">12:34</div>
+                    <div class="conversation-badge">3</div>
+                </div>
+            </div>
+
+            <div class="conversation-item" onclick="selectConversation('2')">
+                <div class="conversation-avatar">TM</div>
+                <div class="conversation-info">
+                    <div class="conversation-name">
+                        <span>team meeting</span>
+                        <span class="encryption-icon" title="encrypted">🔒</span>
+                    </div>
+                    <div class="conversation-preview">meeting at 3pm tomorrow</div>
+                </div>
+                <div class="conversation-meta">
+                    <div class="conversation-time">yesterday</div>
+                </div>
+            </div>
+
+            <div class="conversation-item" onclick="selectConversation('3')">
+                <div class="conversation-avatar">JD</div>
+                <div class="conversation-info">
+                    <div class="conversation-name">
+                        <span>john doe</span>
+                        <span class="encryption-icon" title="encrypted">🔒</span>
+                    </div>
+                    <div class="conversation-preview">thanks for the help!</div>
+                </div>
+                <div class="conversation-meta">
+                    <div class="conversation-time">mon</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Chat Area -->
+    <div class="chat-area" id="chatArea">
+        <div class="chat-header">
+            <div class="chat-header-info">
+                <div class="conversation-avatar">AB</div>
+                <div>
+                    <div class="chat-header-name">alice & bob</div>
+                    <div class="chat-header-status">
+                        <span class="status-dot"></span>
+                        <span>online</span>
+                    </div>
+                </div>
+            </div>
+            <div class="chat-header-actions">
+                <div class="transport-indicator p2p">
+                    <span>📡</span>
+                    <span>p2p direct</span>
+                </div>
+                <button class="chat-action-btn" title="voice call">📞</button>
+                <button class="chat-action-btn" title="video call">📹</button>
+                <button class="chat-action-btn" title="settings">⚙️</button>
+            </div>
+        </div>
+
+        <div class="chat-messages" id="chatMessages">
+            <div class="message received">
+                <div class="message-sender">alice</div>
+                <div class="message-bubble">hey, did you see the new feature in unibos?</div>
+                <div class="message-meta">
+                    <span>12:30</span>
+                    <span class="message-p2p" title="sent via p2p">📡</span>
+                </div>
+            </div>
+
+            <div class="message sent">
+                <div class="message-bubble">yeah! the messenger module looks great</div>
+                <div class="message-meta">
+                    <span>12:31</span>
+                    <span class="message-status">✓✓</span>
+                    <span class="message-p2p" title="sent via p2p">📡</span>
+                </div>
+            </div>
+
+            <div class="message received">
+                <div class="message-sender">bob</div>
+                <div class="message-bubble">love the end-to-end encryption and p2p support!</div>
+                <div class="message-meta">
+                    <span>12:32</span>
+                    <span class="message-p2p" title="sent via p2p">📡</span>
+                </div>
+            </div>
+
+            <div class="message sent">
+                <div class="message-bubble">absolutely. the x25519 key exchange with aes-256-gcm is solid security</div>
+                <div class="message-meta">
+                    <span>12:33</span>
+                    <span class="message-status">✓✓</span>
+                    <span class="message-p2p" title="sent via p2p">📡</span>
+                </div>
+            </div>
+
+            <div class="message received">
+                <div class="message-sender">alice</div>
+                <div class="message-bubble">and being able to switch between hub relay and direct p2p is super useful</div>
+                <div class="message-meta">
+                    <span>12:34</span>
+                    <span class="message-p2p" title="sent via p2p">📡</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="typing-indicator" id="typingIndicator" style="display: none;">
+            <div class="typing-dots">
+                <span></span>
+                <span></span>
+                <span></span>
+            </div>
+            <span>alice is typing...</span>
+        </div>
+
+        <div class="chat-input-area">
+            <div class="chat-input-actions">
+                <button class="input-action-btn" title="attach file">📎</button>
+                <button class="input-action-btn" title="emoji">😊</button>
+            </div>
+            <textarea class="chat-input" id="messageInput" placeholder="type a message..." rows="1"></textarea>
+            <button class="send-btn" id="sendBtn" onclick="sendMessage()" disabled>➤</button>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    const messageInput = document.getElementById('messageInput');
+    const sendBtn = document.getElementById('sendBtn');
+    const chatMessages = document.getElementById('chatMessages');
+    const typingIndicator = document.getElementById('typingIndicator');
+
+    // Enable/disable send button based on input
+    messageInput.addEventListener('input', function() {
+        sendBtn.disabled = this.value.trim() === '';
+
+        // Auto-resize textarea
+        this.style.height = 'auto';
+        this.style.height = Math.min(this.scrollHeight, 120) + 'px';
+    });
+
+    // Send message on Enter (Shift+Enter for new line)
+    messageInput.addEventListener('keydown', function(e) {
+        if (e.key === 'Enter' && !e.shiftKey) {
+            e.preventDefault();
+            if (!sendBtn.disabled) {
+                sendMessage();
+            }
+        }
+    });
+
+    function sendMessage() {
+        const text = messageInput.value.trim();
+        if (!text) return;
+
+        // Add message to chat
+        const messageDiv = document.createElement('div');
+        messageDiv.className = 'message sent';
+        messageDiv.innerHTML = `
+            <div class="message-bubble">${escapeHtml(text)}</div>
+            <div class="message-meta">
+                <span>${new Date().toLocaleTimeString('en-US', {hour: '2-digit', minute: '2-digit', hour12: false})}</span>
+                <span class="message-status">✓</span>
+                <span class="message-p2p" title="sending via p2p">📡</span>
+            </div>
+        `;
+        chatMessages.appendChild(messageDiv);
+
+        // Clear input
+        messageInput.value = '';
+        messageInput.style.height = 'auto';
+        sendBtn.disabled = true;
+
+        // Scroll to bottom
+        chatMessages.scrollTop = chatMessages.scrollHeight;
+
+        // TODO: Actually send via WebSocket/API
+        // simulateResponse(text);
+    }
+
+    function selectConversation(id) {
+        // Remove active class from all items
+        document.querySelectorAll('.conversation-item').forEach(item => {
+            item.classList.remove('active');
+        });
+
+        // Add active class to selected item
+        event.currentTarget.classList.add('active');
+
+        // TODO: Load conversation messages via API
+        console.log('Selected conversation:', id);
+    }
+
+    function openNewChat() {
+        // TODO: Open new conversation modal
+        alert('new conversation feature coming soon!');
+    }
+
+    function escapeHtml(text) {
+        const div = document.createElement('div');
+        div.textContent = text;
+        return div.innerHTML;
+    }
+
+    // Simulate typing indicator
+    function showTyping(show) {
+        typingIndicator.style.display = show ? 'flex' : 'none';
+        if (show) {
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+    }
+
+    // WebSocket connection for real-time messaging
+    let ws;
+    function connectWebSocket() {
+        const wsProtocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+        ws = new ReconnectingWebSocket(`${wsProtocol}//${window.location.host}/ws/messenger/`);
+
+        ws.onopen = function() {
+            console.log('messenger websocket connected');
+        };
+
+        ws.onmessage = function(e) {
+            const data = JSON.parse(e.data);
+            handleWebSocketMessage(data);
+        };
+
+        ws.onclose = function() {
+            console.log('messenger websocket disconnected');
+        };
+    }
+
+    function handleWebSocketMessage(data) {
+        switch(data.type) {
+            case 'new_message':
+                // Add received message
+                const messageDiv = document.createElement('div');
+                messageDiv.className = 'message received';
+                messageDiv.innerHTML = `
+                    <div class="message-sender">${data.sender}</div>
+                    <div class="message-bubble">${escapeHtml(data.content)}</div>
+                    <div class="message-meta">
+                        <span>${data.time}</span>
+                        ${data.p2p ? '<span class="message-p2p" title="received via p2p">📡</span>' : ''}
+                    </div>
+                `;
+                chatMessages.appendChild(messageDiv);
+                chatMessages.scrollTop = chatMessages.scrollHeight;
+                break;
+
+            case 'typing':
+                showTyping(data.is_typing);
+                break;
+
+            case 'message_delivered':
+                // Update message status
+                break;
+        }
+    }
+
+    // Initialize
+    document.addEventListener('DOMContentLoaded', function() {
+        // Scroll to bottom of messages
+        chatMessages.scrollTop = chatMessages.scrollHeight;
+
+        // Connect WebSocket
+        connectWebSocket();
+    });
+</script>
+{% endblock %}

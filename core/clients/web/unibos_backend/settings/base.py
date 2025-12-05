@@ -108,6 +108,7 @@ def get_dynamic_modules():
         'modules.wims.backend',
         'modules.solitaire.backend',
         'modules.store.backend',
+        'modules.messenger.backend',  # Encrypted messaging with P2P support
     ]
 
     try:

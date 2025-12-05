@@ -4,6 +4,7 @@ Implements secure JWT-based authentication with rate limiting
 """
 
 from datetime import datetime, timezone as dt_timezone
+from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.core.cache import cache
 from django.db import transaction
@@ -27,6 +28,15 @@ from .serializers import (
     UserSessionSerializer,
     TwoFactorSetupSerializer,
     TwoFactorVerifySerializer,
+    # Identity Enhancement serializers
+    AccountLinkSerializer,
+    AccountLinkInitSerializer,
+    AccountLinkVerifySerializer,
+    EmailVerificationRequestSerializer,
+    EmailVerificationConfirmSerializer,
+    HubKeyPairSerializer,
+    HubKeyPairCreateSerializer,
+    PermissionSyncSerializer,
 )
 from .models import (
     RefreshTokenBlacklist,
@@ -34,6 +44,10 @@ from .models import (
     LoginAttempt,
     PasswordResetToken,
     TwoFactorAuth,
+    # Identity Enhancement models
+    AccountLink,
+    EmailVerificationToken,
+    HubKeyPair,
 )
 from .utils import (
     get_client_ip,
@@ -638,3 +652,384 @@ class OfflineLoginView(APIView):
             'offline_mode': True,
             'cache_expires_at': cache_entry.cache_valid_until.isoformat() if cache_entry.cache_valid_until else None,
         }
+
+
+# ========== Identity Enhancement Views ==========
+
+class AccountLinkInitView(APIView):
+    """
+    Initialize account linking between local Node account and Hub account.
+
+    Flow:
+    1. User provides Hub credentials
+    2. Node authenticates with Hub
+    3. Hub sends verification code to user's email
+    4. Verification code stored locally for later verification
+    """
+    permission_classes = [IsAuthenticated]
+    serializer_class = AccountLinkInitSerializer
+
+    def post(self, request):
+        import requests
+        import secrets
+        import logging
+
+        logger = logging.getLogger('authentication')
+        serializer = self.serializer_class(data=request.data)
+        serializer.is_valid(raise_exception=True)
+
+        hub_url = serializer.validated_data['hub_url'].rstrip('/')
+        hub_username = serializer.validated_data['hub_username']
+        hub_password = serializer.validated_data['hub_password']
+
+        # Check if user already has a link
+        if hasattr(request.user, 'hub_link'):
+            existing_link = request.user.hub_link
+            if existing_link.status == 'active':
+                return Response(
+                    {"detail": "Account is already linked to a Hub account."},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+            # Delete pending/revoked link to allow re-linking
+            existing_link.delete()
+
+        try:
+            # Authenticate with Hub
+            auth_response = requests.post(
+                f"{hub_url}/api/v1/auth/login/",
+                json={'username': hub_username, 'password': hub_password},
+                timeout=10
+            )
+
+            if auth_response.status_code != 200:
+                return Response(
+                    {"detail": "Invalid Hub credentials."},
+                    status=status.HTTP_401_UNAUTHORIZED
+                )
+
+            hub_data = auth_response.json()
+            hub_user = hub_data.get('user', {})
+
+            # Generate verification code
+            verification_code = ''.join(secrets.choice('0123456789') for _ in range(6))
+
+            # Create account link (pending)
+            link = AccountLink.objects.create(
+                local_user=request.user,
+                hub_user_uuid=hub_user.get('id'),
+                hub_username=hub_user.get('username'),
+                hub_email=hub_user.get('email'),
+                hub_url=hub_url,
+                verification_code=verification_code,
+                verification_expires=timezone.now() + timezone.timedelta(hours=1),
+                status='pending'
+            )
+
+            # TODO: Send verification code to Hub user's email
+            # For now, return the code in response (dev mode)
+            logger.info(f"Account link initiated: {request.user.username} -> {hub_username}")
+
+            return Response({
+                'message': 'Verification code sent to your Hub email.',
+                'link_id': str(link.id),
+                'hub_username': hub_username,
+                'hub_email': hub_user.get('email'),
+                # DEV ONLY - remove in production
+                'verification_code': verification_code if settings.DEBUG else None,
+            }, status=status.HTTP_201_CREATED)
+
+        except requests.RequestException as e:
+            logger.error(f"Hub connection failed: {e}")
+            return Response(
+                {"detail": "Could not connect to Hub. Please try again later."},
+                status=status.HTTP_503_SERVICE_UNAVAILABLE
+            )
+
+
+class AccountLinkVerifyView(APIView):
+    """Verify account link with verification code"""
+    permission_classes = [IsAuthenticated]
+    serializer_class = AccountLinkVerifySerializer
+
+    def post(self, request):
+        import logging
+        logger = logging.getLogger('authentication')
+
+        serializer = self.serializer_class(data=request.data)
+        serializer.is_valid(raise_exception=True)
+
+        verification_code = serializer.validated_data['verification_code']
+
+        try:
+            link = AccountLink.objects.get(
+                local_user=request.user,
+                status='pending'
+            )
+
+            if link.verification_expires and link.verification_expires < timezone.now():
+                return Response(
+                    {"detail": "Verification code has expired. Please initiate linking again."},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+
+            if link.verification_code != verification_code:
+                return Response(
+                    {"detail": "Invalid verification code."},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+
+            # Verify the link
+            link.verify()
+            logger.info(f"Account link verified: {request.user.username} -> {link.hub_username}")
+
+            return Response({
+                'message': 'Account successfully linked to Hub.',
+                'link': AccountLinkSerializer(link).data
+            }, status=status.HTTP_200_OK)
+
+        except AccountLink.DoesNotExist:
+            return Response(
+                {"detail": "No pending account link found."},
+                status=status.HTTP_404_NOT_FOUND
+            )
+
+
+class AccountLinkStatusView(APIView):
+    """Get current account link status"""
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        try:
+            link = AccountLink.objects.get(local_user=request.user)
+            return Response(AccountLinkSerializer(link).data)
+        except AccountLink.DoesNotExist:
+            return Response(
+                {"detail": "No account link found.", "linked": False},
+                status=status.HTTP_200_OK
+            )
+
+    def delete(self, request):
+        """Revoke account link"""
+        try:
+            link = AccountLink.objects.get(local_user=request.user)
+            link.status = 'revoked'
+            link.save()
+            return Response(
+                {"detail": "Account link revoked successfully."},
+                status=status.HTTP_200_OK
+            )
+        except AccountLink.DoesNotExist:
+            return Response(
+                {"detail": "No account link found."},
+                status=status.HTTP_404_NOT_FOUND
+            )
+
+
+class EmailVerificationRequestView(APIView):
+    """Request email verification token"""
+    permission_classes = [IsAuthenticated]
+    serializer_class = EmailVerificationRequestSerializer
+
+    def post(self, request):
+        import logging
+        logger = logging.getLogger('authentication')
+
+        serializer = self.serializer_class(data=request.data)
+        serializer.is_valid(raise_exception=True)
+
+        email = serializer.validated_data['email']
+        verification_type = serializer.validated_data.get('verification_type', 'registration')
+
+        # Create verification token
+        token = EmailVerificationToken.create_token(
+            user=request.user,
+            email=email,
+            verification_type=verification_type,
+            ip_address=get_client_ip(request)
+        )
+
+        # TODO: Send verification email
+        logger.info(f"Email verification requested: {request.user.username} -> {email}")
+
+        return Response({
+            'message': 'Verification email sent.',
+            'email': email,
+            # DEV ONLY
+            'token': token.token if settings.DEBUG else None,
+        }, status=status.HTTP_201_CREATED)
+
+
+class EmailVerificationConfirmView(APIView):
+    """Confirm email verification"""
+    permission_classes = [AllowAny]
+    serializer_class = EmailVerificationConfirmSerializer
+
+    def post(self, request):
+        import logging
+        logger = logging.getLogger('authentication')
+
+        serializer = self.serializer_class(data=request.data)
+        serializer.is_valid(raise_exception=True)
+
+        token_value = serializer.validated_data['token']
+
+        try:
+            token = EmailVerificationToken.objects.get(
+                token=token_value,
+                is_used=False
+            )
+
+            if not token.is_valid():
+                return Response(
+                    {"detail": "Token has expired."},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+
+            # Mark token as used
+            token.mark_used()
+
+            # Update user email if it's a change verification
+            if token.verification_type == 'change':
+                token.user.email = token.email
+                token.user.save()
+
+            logger.info(f"Email verified: {token.user.username} -> {token.email}")
+
+            return Response({
+                'message': 'Email verified successfully.',
+                'email': token.email,
+                'verification_type': token.verification_type
+            }, status=status.HTTP_200_OK)
+
+        except EmailVerificationToken.DoesNotExist:
+            return Response(
+                {"detail": "Invalid or already used token."},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+
+class HubKeyPairListView(APIView):
+    """List active Hub key pairs (public keys only for Nodes)"""
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        keys = HubKeyPair.objects.filter(is_active=True)
+        serializer = HubKeyPairSerializer(keys, many=True)
+        return Response(serializer.data)
+
+
+class HubKeyPairCreateView(APIView):
+    """Create new Hub key pair (Hub only)"""
+    permission_classes = [IsAuthenticated]
+    serializer_class = HubKeyPairCreateSerializer
+
+    def post(self, request):
+        # Only allow on Hub instances
+        from core.instance.node_identity import get_node_identity
+        identity = get_node_identity()
+
+        if identity.get('node_type') != 'hub':
+            return Response(
+                {"detail": "Key pair creation is only allowed on Hub instances."},
+                status=status.HTTP_403_FORBIDDEN
+            )
+
+        if not request.user.is_staff:
+            return Response(
+                {"detail": "Only staff members can create key pairs."},
+                status=status.HTTP_403_FORBIDDEN
+            )
+
+        serializer = self.serializer_class(data=request.data)
+        serializer.is_valid(raise_exception=True)
+
+        key_pair = HubKeyPair.generate_key_pair(
+            key_name=serializer.validated_data['key_name'],
+            key_type=serializer.validated_data.get('key_type', 'jwt'),
+            key_size=serializer.validated_data.get('key_size', 2048)
+        )
+
+        if serializer.validated_data.get('set_as_primary'):
+            # Unset other primary keys
+            HubKeyPair.objects.filter(is_primary=True).update(is_primary=False)
+            key_pair.is_primary = True
+            key_pair.save()
+
+        return Response({
+            'message': 'Key pair created successfully.',
+            'key': HubKeyPairSerializer(key_pair).data
+        }, status=status.HTTP_201_CREATED)
+
+
+class HubPrimaryKeyView(APIView):
+    """Get primary Hub public key for JWT verification"""
+    permission_classes = [AllowAny]
+
+    def get(self, request):
+        key = HubKeyPair.get_primary_key()
+        if not key:
+            return Response(
+                {"detail": "No primary key configured."},
+                status=status.HTTP_404_NOT_FOUND
+            )
+
+        return Response({
+            'key_id': key.key_id,
+            'public_key': key.public_key,
+            'algorithm': key.algorithm,
+        })
+
+
+class PermissionSyncView(APIView):
+    """
+    Sync permissions from Hub to Node.
+    Called by Hub to push permission updates to linked accounts.
+    """
+    permission_classes = [IsAuthenticated]
+    serializer_class = PermissionSyncSerializer
+
+    def post(self, request):
+        import logging
+        logger = logging.getLogger('authentication')
+
+        # Verify request is from Hub (check JWT issuer or use API key)
+        # For now, require staff permission
+        if not request.user.is_staff:
+            return Response(
+                {"detail": "Permission sync requires staff access."},
+                status=status.HTTP_403_FORBIDDEN
+            )
+
+        serializer = self.serializer_class(data=request.data)
+        serializer.is_valid(raise_exception=True)
+
+        hub_user_uuid = serializer.validated_data['hub_user_uuid']
+        permissions = serializer.validated_data.get('permissions', [])
+        roles = serializer.validated_data.get('roles', [])
+
+        try:
+            link = AccountLink.objects.get(
+                hub_user_uuid=hub_user_uuid,
+                status='active'
+            )
+
+            # Update synced permissions
+            link.synced_permissions = permissions
+            link.synced_roles = roles
+            link.last_permission_sync = timezone.now()
+            link.save()
+
+            logger.info(f"Permissions synced for {link.local_user.username}: {len(permissions)} permissions, {len(roles)} roles")
+
+            return Response({
+                'message': 'Permissions synced successfully.',
+                'local_user': link.local_user.username,
+                'permissions_count': len(permissions),
+                'roles_count': len(roles)
+            }, status=status.HTTP_200_OK)
+
+        except AccountLink.DoesNotExist:
+            return Response(
+                {"detail": "No active account link found for this Hub user."},
+                status=status.HTTP_404_NOT_FOUND
+            )

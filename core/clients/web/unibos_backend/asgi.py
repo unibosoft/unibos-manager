@@ -66,6 +66,18 @@ try:
 except (ImportError, AttributeError):
     pass
 
+try:
+    import core.system.authentication.backend.routing
+    websocket_urlpatterns += core.system.authentication.backend.routing.websocket_urlpatterns
+except (ImportError, AttributeError):
+    pass
+
+try:
+    import modules.messenger.backend.routing
+    websocket_urlpatterns += modules.messenger.backend.routing.websocket_urlpatterns
+except (ImportError, AttributeError):
+    pass
+
 # ASGI application with WebSocket support
 application = ProtocolTypeRouter({
     # HTTP protocol

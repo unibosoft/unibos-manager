@@ -32,6 +32,13 @@ class UnibosModules {
   static const List<UnibosModule> all = [
     // main modules
     UnibosModule(
+      id: 'messenger',
+      name: 'messenger',
+      description: 'secure encrypted messaging',
+      icon: '💬',
+      route: '/messenger',
+    ),
+    UnibosModule(
       id: 'currencies',
       name: 'currencies',
       description: 'exchange rates and crypto prices',

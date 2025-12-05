@@ -2,20 +2,20 @@
   "version": {
     "major": 2,
     "minor": 1,
-    "patch": 0,
-    "build": "20251205185637"
+    "patch": 1,
+    "build": "20251205222621"
   },
   "display": {
-    "semantic": "2.1.0",
-    "full": "2.1.0+build.20251205185637",
-    "short": "v2.1.0 @18:56",
-    "compact": "v2.1.0 1205@1856",
-    "archive": "unibos_v2.1.0_b20251205185637"
+    "semantic": "2.1.1",
+    "full": "2.1.1+build.20251205222621",
+    "short": "v2.1.1 @22:26",
+    "compact": "v2.1.1 1205@2226",
+    "archive": "unibos_v2.1.1_b20251205222621"
   },
   "build_info": {
     "date": "2025-12-05",
-    "time": "18:56:37",
-    "timestamp": "20251205185637"
+    "time": "22:26:22",
+    "timestamp": "20251205222621"
   },
   "git": {
     "commit": null,
@@ -64,6 +64,15 @@
     "documents": {
       "version": "1.0",
       "status": "integrated"
+    },
+    "messenger": {
+      "version": "1.0",
+      "status": "integrated",
+      "features": [
+        "e2e-encryption",
+        "p2p-support",
+        "group-chat"
+      ]
     },
     "movies": {
       "version": "1.0",

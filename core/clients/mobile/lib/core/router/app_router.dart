@@ -8,6 +8,10 @@ import '../version/version_info.dart';
 import '../../features/auth/screens/login_screen.dart';
 import '../../features/dashboard/screens/dashboard_screen.dart';
 import '../../features/settings/screens/settings_screen.dart';
+import '../../features/messenger/screens/conversation_list_screen.dart';
+import '../../features/messenger/screens/chat_screen.dart';
+import '../../features/messenger/screens/new_conversation_screen.dart';
+import '../../features/messenger/screens/conversation_settings_screen.dart';
 
 /// route paths
 class AppRoutes {
@@ -34,6 +38,11 @@ class AppRoutes {
   static const String solitaire = '/modules/solitaire';
   static const String store = '/modules/store';
   static const String recaria = '/modules/recaria';
+
+  // messenger routes
+  static const String messenger = '/messenger';
+  static const String messengerNew = '/messenger/new';
+  static const String messengerChat = '/messenger/chat';
 }
 
 /// router provider
@@ -107,6 +116,34 @@ final routerProvider = Provider<GoRouter>((ref) {
           final moduleId = state.pathParameters['moduleId'] ?? '';
           return ModulePlaceholderScreen(moduleId: moduleId);
         },
+      ),
+
+      // messenger routes
+      GoRoute(
+        path: AppRoutes.messenger,
+        builder: (context, state) => const ConversationListScreen(),
+        routes: [
+          GoRoute(
+            path: 'new',
+            builder: (context, state) => const NewConversationScreen(),
+          ),
+          GoRoute(
+            path: 'chat/:conversationId',
+            builder: (context, state) {
+              final conversationId = state.pathParameters['conversationId'] ?? '';
+              return ChatScreen(conversationId: conversationId);
+            },
+            routes: [
+              GoRoute(
+                path: 'settings',
+                builder: (context, state) {
+                  final conversationId = state.pathParameters['conversationId'] ?? '';
+                  return ConversationSettingsScreen(conversationId: conversationId);
+                },
+              ),
+            ],
+          ),
+        ],
       ),
     ],
   );

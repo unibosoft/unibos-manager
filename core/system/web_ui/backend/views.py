@@ -102,7 +102,14 @@ class ModuleView(BaseUIView):
         # Map module IDs to their proper names
         if module_id == 'kisisel_enflasyon':
             return redirect('personal_inflation:dashboard')
-        
+
+        # Messenger has its own template
+        if module_id == 'messenger':
+            return render(request, 'messenger/dashboard.html', {
+                'current_module': 'messenger',
+                'page_title': 'UNIBOS - Messenger'
+            })
+
         # Redirect CCTV to its own app
         if module_id == 'cctv':
             return redirect('cctv:dashboard')

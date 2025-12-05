@@ -10,7 +10,7 @@ from rest_framework.exceptions import ValidationError
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 from rest_framework_simplejwt.tokens import RefreshToken
 
-from .models import UserSession, TwoFactorAuth
+from .models import UserSession, TwoFactorAuth, AccountLink, EmailVerificationToken, HubKeyPair
 from .utils import get_client_ip, get_device_info
 
 User = get_user_model()
@@ -231,15 +231,110 @@ class TwoFactorVerifySerializer(serializers.Serializer):
 class RefreshTokenSerializer(serializers.Serializer):
     """Refresh token serializer"""
     refresh = serializers.CharField(required=True)
-    
+
     def validate(self, attrs):
         refresh = attrs['refresh']
-        
+
         try:
             RefreshToken(refresh)
         except Exception:
             raise serializers.ValidationError(
                 "Invalid refresh token"
             )
-        
+
         return attrs
+
+
+# ========== Identity Enhancement Serializers ==========
+
+class AccountLinkSerializer(serializers.ModelSerializer):
+    """Account link serializer for local-to-hub linking"""
+    local_username = serializers.CharField(source='local_user.username', read_only=True)
+
+    class Meta:
+        model = AccountLink
+        fields = (
+            'id', 'local_username', 'hub_user_uuid', 'hub_username', 'hub_email',
+            'status', 'verified_at', 'hub_url', 'last_permission_sync',
+            'synced_permissions', 'synced_roles', 'created_at', 'linked_by'
+        )
+        read_only_fields = (
+            'id', 'local_username', 'status', 'verified_at',
+            'last_permission_sync', 'synced_permissions', 'synced_roles',
+            'created_at'
+        )
+
+
+class AccountLinkInitSerializer(serializers.Serializer):
+    """Initialize account linking - sent to Hub"""
+    hub_url = serializers.URLField(required=True)
+    hub_username = serializers.CharField(required=True, max_length=150)
+    hub_password = serializers.CharField(required=True, write_only=True)
+
+
+class AccountLinkVerifySerializer(serializers.Serializer):
+    """Verify account link with code"""
+    verification_code = serializers.CharField(required=True, min_length=6, max_length=6)
+
+
+class EmailVerificationTokenSerializer(serializers.ModelSerializer):
+    """Email verification token serializer"""
+
+    class Meta:
+        model = EmailVerificationToken
+        fields = (
+            'id', 'email', 'verification_type', 'is_used',
+            'created_at', 'expires_at'
+        )
+        read_only_fields = fields
+
+
+class EmailVerificationRequestSerializer(serializers.Serializer):
+    """Request email verification"""
+    email = serializers.EmailField(required=True)
+    verification_type = serializers.ChoiceField(
+        choices=['registration', 'change', 'recovery'],
+        default='registration'
+    )
+
+
+class EmailVerificationConfirmSerializer(serializers.Serializer):
+    """Confirm email verification"""
+    token = serializers.CharField(required=True, max_length=100)
+
+
+class HubKeyPairSerializer(serializers.ModelSerializer):
+    """Hub key pair serializer (public key only for Nodes)"""
+
+    class Meta:
+        model = HubKeyPair
+        fields = (
+            'id', 'key_id', 'key_name', 'key_type', 'public_key',
+            'algorithm', 'key_size', 'is_active', 'is_primary',
+            'created_at', 'expires_at'
+        )
+        read_only_fields = fields
+
+
+class HubKeyPairCreateSerializer(serializers.Serializer):
+    """Create new hub key pair (Hub only)"""
+    key_name = serializers.CharField(required=True, max_length=100)
+    key_type = serializers.ChoiceField(
+        choices=['jwt', 'node', 'export'],
+        default='jwt'
+    )
+    key_size = serializers.IntegerField(default=2048, min_value=2048, max_value=4096)
+    set_as_primary = serializers.BooleanField(default=False)
+
+
+class PermissionSyncSerializer(serializers.Serializer):
+    """Permission sync from Hub to Node"""
+    hub_user_uuid = serializers.UUIDField(required=True)
+    permissions = serializers.ListField(
+        child=serializers.CharField(),
+        default=list
+    )
+    roles = serializers.ListField(
+        child=serializers.CharField(),
+        default=list
+    )

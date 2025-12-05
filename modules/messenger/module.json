@@ -1,0 +1,46 @@
+{
+  "id": "messenger",
+  "name": "messenger",
+  "version": "1.0.0",
+  "display_name": "Messenger",
+  "description": "Security-first encrypted messaging with P2P support",
+  "author": "UNIBOS Team",
+  "icon": "💬",
+  "category": "communication",
+  "status": "active",
+  "capabilities": {
+    "backend": true,
+    "web": true,
+    "mobile": true,
+    "cli": false,
+    "realtime": true
+  },
+  "features": [
+    "end-to-end-encryption",
+    "p2p-messaging",
+    "hub-relay",
+    "group-chats",
+    "file-attachments",
+    "read-receipts",
+    "typing-indicators"
+  ],
+  "dependencies": {
+    "python": [
+      "cryptography>=41.0.0",
+      "pynacl>=1.5.0"
+    ],
+    "system_modules": [
+      "authentication",
+      "p2p"
+    ]
+  },
+  "api_prefix": "/api/v1/messenger/",
+  "websocket_prefix": "/ws/messenger/",
+  "has_frontend": true,
+  "has_mobile": true,
+  "encryption": {
+    "algorithm": "AES-256-GCM",
+    "key_exchange": "X25519",
+    "signing": "Ed25519"
+  }
+}

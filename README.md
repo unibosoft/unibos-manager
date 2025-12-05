@@ -1,6 +1,6 @@
 # UNIBOS - Unicorn Bodrum Operating System
 
-> **v2.0.2** - Production-ready modular platform with 5-profile CLI architecture, P2P mesh networking, real-time WebSocket, federated auth, sync engine, and data export control
+> **v2.2.0** - Production-ready modular platform with 5-profile CLI architecture, P2P mesh networking, end-to-end encrypted messenger, real-time WebSocket, federated auth, sync engine, data export control, and cross-platform mobile client
 
 ## Overview
 
@@ -14,7 +14,8 @@ UNIBOS is a comprehensive modular operating system built with Django, featuring:
 - **Data Export Control** - Master kill switch with module-level permissions
 - **Real-time Updates** - WebSocket via Django Channels
 - **Background Tasks** - Celery with Redis for async processing (dedicated worker profile)
-- **13 Business Modules** - Finance, media, IoT, emergency alerts
+- **End-to-End Encrypted Messenger** - X25519 key exchange, AES-256-GCM, P2P/Hub transport
+- **14 Business Modules** - Finance, media, IoT, emergency alerts, secure messaging
 
 ## Quick Start
 
@@ -111,8 +112,9 @@ unibos-dev/
 │       ├── sync/                  # Data sync engine
 │       └── p2p/                   # P2P mesh networking
 │
-├── modules/                       # Business modules (13)
+├── modules/                       # Business modules (14)
 │   ├── currencies/                # Currency & crypto tracking
+│   ├── messenger/                 # E2E encrypted messaging with P2P support
 │   ├── wimm/                      # Financial management (Where Is My Money)
 │   ├── wims/                      # Inventory management (Where Is My Stuff)
 │   ├── documents/                 # OCR & document scanning
@@ -181,6 +183,76 @@ POST /api/v1/p2p/broadcast/  # Broadcast to all peers
 | unicorn-main | Raspberry Pi 5 (8GB) | AP Mode (UNIBOS-P2P) | P2P Active |
 | unicorn-station | Raspberry Pi 4 (8GB) | Client (10.42.0.67) | P2P Active |
 | birlikteyiz-000000003 | Raspberry Pi Zero 2W | - | P2P Active |
+
+## Identity & Authentication
+
+### Account Linking
+Link local Node accounts to Hub accounts for unified identity:
+
+```
+POST /api/v1/auth/link/init/     # Initialize linking with Hub credentials
+POST /api/v1/auth/link/verify/   # Verify with 6-digit code
+GET  /api/v1/auth/link/status/   # Get link status
+DELETE /api/v1/auth/link/status/ # Revoke link
+```
+
+### Email Verification
+```
+POST /api/v1/auth/email/verify/request/  # Request verification email
+POST /api/v1/auth/email/verify/confirm/  # Confirm with token
+```
+
+### Hub Key Management (RS256)
+```
+GET  /api/v1/auth/keys/         # List active keys
+POST /api/v1/auth/keys/create/  # Create new key pair (Hub only)
+GET  /api/v1/auth/keys/primary/ # Get primary public key
+```
+
+### Permission Sync
+```
+POST /api/v1/auth/permissions/sync/  # Sync permissions from Hub to Node
+```
+
+### WebSocket Notifications
+Real-time authentication events via WebSocket:
+```
+WS /ws/auth/notifications/  # Session events, security alerts, link status
+```
+
+## Messenger Module
+
+Security-first encrypted messaging with P2P support.
+
+### Security Features
+- **End-to-End Encryption**: X25519 key exchange + AES-256-GCM
+- **Message Signing**: Ed25519 digital signatures
+- **Perfect Forward Secrecy**: Session-based key derivation
+- **Device Key Management**: Multi-device support with key rotation
+
+### Transport Modes
+- **Hub Relay**: Messages routed through central server (default)
+- **P2P Direct**: Direct peer-to-peer with mDNS discovery
+- **Hybrid**: User-selectable per conversation
+
+### API Endpoints
+```
+GET  /api/v1/messenger/conversations/          # List conversations
+POST /api/v1/messenger/conversations/          # Create conversation
+GET  /api/v1/messenger/conversations/{id}/     # Get conversation
+POST /api/v1/messenger/conversations/{id}/messages/  # Send message
+GET  /api/v1/messenger/conversations/{id}/messages/  # Get messages
+POST /api/v1/messenger/keys/generate/          # Generate encryption keys
+GET  /api/v1/messenger/keys/                   # Get user's keys
+GET  /api/v1/messenger/keys/public/{user_id}/  # Get user's public keys
+POST /api/v1/messenger/p2p/connect/            # Initiate P2P connection
+POST /api/v1/messenger/p2p/answer/             # Answer P2P connection
+```
+
+### WebSocket
+```
+WS /ws/messenger/  # Real-time messaging, typing indicators, P2P signaling
+```
 
 ## Requirements
 
@@ -344,6 +416,17 @@ Multi-engine OCR (Tesseract, PaddleOCR, EasyOCR) with document scanning and Turk
 
 Personal finance (Where Is My Money) and inventory (Where Is My Stuff) management.
 
+### messenger
+
+End-to-end encrypted messaging with P2P support. Features include:
+- X25519 key exchange with AES-256-GCM encryption
+- Hub relay or P2P direct transport (user-selectable)
+- Group chats with group key management
+- Message reactions, replies, and threading
+- File attachments with encrypted transfer
+- Typing indicators and read receipts
+- Multi-device key synchronization
+
 ## Documentation
 
 - `TODO.md` - Comprehensive development roadmap
@@ -369,5 +452,5 @@ Bitez, Bodrum, Mugla, Turkiye
 
 ---
 
-**Current Version**: v2.0.2
+**Current Version**: v2.2.0
 **Last Updated**: 2025-12-05

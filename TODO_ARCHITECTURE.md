@@ -1,9 +1,9 @@
 # UNIBOS Platform Architecture
 
-**Version:** v2.0.2
+**Version:** v2.2.0
 **Created:** 2025-12-05
 **Updated:** 2025-12-05
-**Status:** Phase 1-3 Complete - Auth, Sync, Export Control Deployed
+**Status:** Phase 1-6 Complete - Auth, Sync, Export Control, Messenger Deployed
 **Priority:** HIGH - Foundation for All Development
 
 ---
@@ -15,8 +15,9 @@
 | Phase 1: Foundation Refactor | ✅ Complete | Profile restructure, settings refactor |
 | Phase 2: Hub Features | ✅ Complete | Auth API, Sync, Export Control deployed |
 | Phase 3: Worker System | ✅ Complete | Celery services deployed on Hub & nodes |
-| Phase 4: Node Enhancements | 🔄 Next | P2P mDNS discovery |
+| Phase 4: Node Enhancements | ✅ Complete | P2P mDNS discovery, WiFi Direct |
 | Phase 5: Build Pipeline | ⏳ Pending | Future |
+| Phase 6: Messenger Module | ✅ Complete | E2E encryption, P2P messaging, WebSocket |
 
 ---
 
@@ -32,8 +33,9 @@
 8. [Settings & Configuration](#8-settings--configuration)
 9. [Colocation Support](#9-colocation-support)
 10. [Build & Deploy Pipeline](#10-build--deploy-pipeline)
-11. [Implementation Roadmap](#11-implementation-roadmap)
-12. [Technical Specifications](#12-technical-specifications)
+11. [Messenger Module Architecture](#11-messenger-module-architecture)
+12. [Implementation Roadmap](#12-implementation-roadmap)
+13. [Technical Specifications](#13-technical-specifications)
 
 ---
 
@@ -988,7 +990,208 @@ build/
 
 ---
 
-## 11. Implementation Roadmap
+## 11. Messenger Module Architecture
+
+### 11.1 Overview
+
+The Messenger module provides end-to-end encrypted messaging with support for both Hub-relayed and P2P direct communication modes. It integrates with the existing UNIBOS identity system and follows the local-first, privacy-focused principles.
+
+### 11.2 Encryption Architecture
+
+```
++------------------------------------------------------------------+
+|                    MESSENGER ENCRYPTION                            |
+|                                                                   |
+|  Key Generation:                                                   |
+|  +------------------------------------------------------------+  |
+|  | User generates key pair on each device:                     |  |
+|  | - X25519 (Curve25519) for key exchange                     |  |
+|  | - Ed25519 for message signing                               |  |
+|  | - Keys stored: public on server, private on device only    |  |
+|  +------------------------------------------------------------+  |
+|                                                                   |
+|  Message Encryption:                                               |
+|  +------------------------------------------------------------+  |
+|  | 1. Sender derives shared secret (X25519 + recipient pubkey)|  |
+|  | 2. Generate random nonce (24 bytes)                         |  |
+|  | 3. Encrypt with AES-256-GCM (content + nonce)              |  |
+|  | 4. Sign encrypted payload with Ed25519                      |  |
+|  | 5. Send: encrypted_content, nonce, signature, sender_key_id|  |
+|  +------------------------------------------------------------+  |
+|                                                                   |
+|  Group Encryption:                                                 |
+|  +------------------------------------------------------------+  |
+|  | - Group key generated per conversation                      |  |
+|  | - Group key encrypted for each participant's public key    |  |
+|  | - New members receive re-encrypted group key               |  |
+|  | - Key rotation on member removal                            |  |
+|  +------------------------------------------------------------+  |
+|                                                                   |
++------------------------------------------------------------------+
+```
+
+### 11.3 Transport Modes
+
+```
++------------------------------------------------------------------+
+|                    TRANSPORT ARCHITECTURE                          |
+|                                                                   |
+|  MODE 1: HUB RELAY (Default)                                       |
+|  +------------------------------------------------------------+  |
+|  | Client A --> Hub --> Client B                               |  |
+|  | - Messages stored encrypted on hub                          |  |
+|  | - Offline delivery supported                                |  |
+|  | - Cross-network (different LANs) supported                  |  |
+|  | - Hub cannot read message content (E2E)                     |  |
+|  +------------------------------------------------------------+  |
+|                                                                   |
+|  MODE 2: P2P DIRECT                                                |
+|  +------------------------------------------------------------+  |
+|  | Client A <--> Client B (direct WebSocket)                   |  |
+|  | - Uses mDNS for peer discovery                              |  |
+|  | - Lower latency, no server storage                          |  |
+|  | - Only works on same LAN or with port forwarding           |  |
+|  | - Falls back to Hub if P2P fails                            |  |
+|  +------------------------------------------------------------+  |
+|                                                                   |
+|  MODE 3: HYBRID (User selectable per conversation)                 |
+|  +------------------------------------------------------------+  |
+|  | - Attempts P2P first if peers on same network              |  |
+|  | - Automatic fallback to Hub relay                           |  |
+|  | - Seamless mode switching                                   |  |
+|  +------------------------------------------------------------+  |
+|                                                                   |
++------------------------------------------------------------------+
+```
+
+### 11.4 WebSocket Architecture
+
+```
++------------------------------------------------------------------+
+|                    MESSENGER WEBSOCKET                             |
+|                                                                   |
+|  Client Connection:                                                |
+|  +------------------------------------------------------------+  |
+|  | ws://node:8000/ws/messenger/                                |  |
+|  | - JWT authentication in connection params                   |  |
+|  | - Auto-join user's conversation groups                      |  |
+|  | - Heartbeat for presence detection                          |  |
+|  +------------------------------------------------------------+  |
+|                                                                   |
+|  Event Types:                                                      |
+|  +------------------------------------------------------------+  |
+|  | Messaging:                                                  |  |
+|  | - message.new: New message in conversation                  |  |
+|  | - message.edited: Message content updated                   |  |
+|  | - message.deleted: Message removed                          |  |
+|  | - message.read: Read receipt                                |  |
+|  |                                                            |  |
+|  | Presence:                                                   |  |
+|  | - typing.start: User started typing                         |  |
+|  | - typing.stop: User stopped typing                          |  |
+|  | - presence.online: User came online                         |  |
+|  | - presence.offline: User went offline                       |  |
+|  |                                                            |  |
+|  | P2P Signaling:                                              |  |
+|  | - p2p.offer: WebRTC offer                                   |  |
+|  | - p2p.answer: WebRTC answer                                 |  |
+|  | - p2p.ice: ICE candidate                                    |  |
+|  +------------------------------------------------------------+  |
+|                                                                   |
++------------------------------------------------------------------+
+```
+
+### 11.5 Data Models
+
+```python
+# Core Messenger Models (core/system/messenger/backend/models.py)
+
+class UserEncryptionKey:
+    """User's encryption key pair for E2E"""
+    user: FK(User)
+    key_id: UUID
+    device_id: str
+    device_name: str
+    public_key: str (X25519 base64)
+    signing_public_key: str (Ed25519 base64)
+    is_primary: bool
+    is_revoked: bool
+    created_at: datetime
+
+class Conversation:
+    """Chat conversation (direct, group, or channel)"""
+    id: UUID
+    conversation_type: str (direct, group, channel)
+    name: str (optional for direct)
+    description: str
+    created_by: FK(User)
+    is_encrypted: bool (default True)
+    transport_mode: str (hub, p2p, hybrid)
+    p2p_enabled: bool
+    last_message_at: datetime
+
+class Participant:
+    """User membership in conversation"""
+    conversation: FK(Conversation)
+    user: FK(User)
+    role: str (owner, admin, member)
+    encrypted_group_key: str (group key encrypted for user)
+    notification_muted: bool
+    joined_at: datetime
+    left_at: datetime (nullable)
+
+class Message:
+    """Encrypted message in conversation"""
+    id: UUID
+    conversation: FK(Conversation)
+    sender: FK(User)
+    encrypted_content: str (AES-256-GCM encrypted)
+    content_nonce: str (24-byte nonce)
+    signature: str (Ed25519 signature)
+    sender_key_id: UUID (which key was used)
+    message_type: str (text, image, file, audio, video, system)
+    reply_to: FK(Message, nullable)
+    is_edited: bool
+    expires_at: datetime (optional)
+    transport_mode: str (how message was delivered)
+```
+
+### 11.6 API Endpoints Summary
+
+| Category | Endpoint | Method | Description |
+|----------|----------|--------|-------------|
+| Conversations | `/api/v1/messenger/conversations/` | GET, POST | List/create |
+| | `/api/v1/messenger/conversations/{id}/` | GET, PATCH, DELETE | Details/update/leave |
+| | `/api/v1/messenger/conversations/{id}/participants/` | POST | Add participant |
+| Messages | `/api/v1/messenger/conversations/{id}/messages/` | GET, POST | List/send |
+| | `/api/v1/messenger/messages/{id}/` | PATCH, DELETE | Edit/delete |
+| | `/api/v1/messenger/messages/{id}/read/` | POST | Mark read |
+| | `/api/v1/messenger/messages/{id}/reactions/` | POST, DELETE | Reactions |
+| Keys | `/api/v1/messenger/keys/generate/` | POST | Generate key pair |
+| | `/api/v1/messenger/keys/` | GET | My keys |
+| | `/api/v1/messenger/keys/public/{user_id}/` | GET | User's public keys |
+| P2P | `/api/v1/messenger/p2p/status/` | GET | P2P sessions |
+| | `/api/v1/messenger/p2p/connect/` | POST | Initiate P2P |
+| | `/api/v1/messenger/p2p/answer/` | POST | Answer P2P |
+
+### 11.7 Client Implementation
+
+**Flutter Mobile:**
+- `MessengerService` - API client for all endpoints
+- `messenger_models.dart` - Data models
+- `messenger_provider.dart` - Riverpod state management
+- Screens: ConversationList, Chat, NewConversation, ConversationSettings
+- Widgets: ConversationTile, MessageBubble, MessageInput, TypingIndicator
+
+**Web UI:**
+- Terminal-style chat interface matching UNIBOS theme
+- Conversation sidebar with unread indicators
+- Message area with timestamps and encryption status
+- WebSocket integration for real-time updates
+
+---
+
+## 12. Implementation Roadmap
 
 ### Phase 1: Foundation Refactor (Week 1-2) ✅ COMPLETED
 
@@ -1077,11 +1280,51 @@ build/
     [ ] Rollback support
 ```
 
+### Phase 6: Messenger Module ✅ COMPLETED
+
+```
+[x] 6.1 Backend Models
+    [x] UserEncryptionKey model
+    [x] Conversation model
+    [x] Participant model
+    [x] Message model with E2E fields
+    [x] MessageAttachment, Reaction, ReadReceipt
+
+[x] 6.2 Encryption System
+    [x] X25519 key generation
+    [x] Ed25519 signing keys
+    [x] AES-256-GCM encryption helpers
+    [x] Key rotation support
+
+[x] 6.3 REST API
+    [x] Conversation CRUD
+    [x] Message CRUD with encryption
+    [x] Key management endpoints
+    [x] P2P control endpoints
+
+[x] 6.4 WebSocket Consumer
+    [x] MessengerConsumer implementation
+    [x] Real-time message delivery
+    [x] Typing indicators
+    [x] P2P signaling support
+
+[x] 6.5 Flutter Client
+    [x] MessengerService API client
+    [x] Data models
+    [x] Riverpod providers
+    [x] UI screens and widgets
+
+[x] 6.6 Web UI
+    [x] Terminal-style chat interface
+    [x] Sidebar navigation integration
+    [x] WebSocket integration
+```
+
 ---
 
-## 12. Technical Specifications
+## 13. Technical Specifications
 
-### 12.1 Technology Stack
+### 13.1 Technology Stack
 
 | Layer | Technology |
 |-------|------------|
@@ -1094,7 +1337,7 @@ build/
 | Mobile | Flutter 3.16+ |
 | CLI | Python, Click |
 
-### 12.2 System Requirements
+### 13.2 System Requirements
 
 | Component | Minimum | Recommended |
 |-----------|---------|-------------|
@@ -1105,7 +1348,7 @@ build/
 | **Worker (CPU)** | 2 CPU, 4GB RAM | 4 CPU, 8GB RAM |
 | **Worker (GPU)** | 4 CPU, 8GB RAM, GPU | 8 CPU, 16GB RAM, GPU |
 
-### 12.3 Port Allocations
+### 13.3 Port Allocations
 
 | Service | Port | Description |
 |---------|------|-------------|

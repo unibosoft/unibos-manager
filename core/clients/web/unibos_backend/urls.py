@@ -67,6 +67,9 @@ urlpatterns = [
     # P2P Communication API
     path(f'{API_V1_PREFIX}p2p/', include('core.system.p2p.backend.urls', namespace='p2p')),
 
+    # Messenger Module - Encrypted messaging with P2P support
+    path(f'{API_V1_PREFIX}messenger/', include('modules.messenger.backend.urls', namespace='messenger')),
+
     # Movies Module - Movie/Series Collection Management
     path('movies/', include('modules.movies.backend.urls', namespace='movies')),
 

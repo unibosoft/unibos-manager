@@ -287,3 +287,293 @@ class UserOfflineCache(models.Model):
     def cleanup_expired(cls):
         """Remove expired cache entries"""
         return cls.objects.filter(cache_valid_until__lt=timezone.now()).delete()
+
+
+class AccountLink(models.Model):
+    """
+    Links a local Node account to a Hub account.
+
+    This enables:
+    - Single sign-on across Hub and Nodes
+    - Permission synchronization from Hub to Node
+    - Seamless authentication when Hub is online
+    - Offline fallback using UserOfflineCache
+    """
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+
+    # Local user (on this Node)
+    local_user = models.OneToOneField(
+        User,
+        on_delete=models.CASCADE,
+        related_name='hub_link'
+    )
+
+    # Hub user identification
+    hub_user_uuid = models.UUIDField(unique=True, db_index=True)
+    hub_username = models.CharField(max_length=150)
+    hub_email = models.EmailField()
+
+    # Link status
+    LINK_STATUS_CHOICES = [
+        ('pending', 'Pending Verification'),
+        ('active', 'Active'),
+        ('suspended', 'Suspended'),
+        ('revoked', 'Revoked'),
+    ]
+    status = models.CharField(max_length=20, choices=LINK_STATUS_CHOICES, default='pending')
+
+    # Verification
+    verification_code = models.CharField(max_length=6, blank=True)
+    verification_expires = models.DateTimeField(null=True, blank=True)
+    verified_at = models.DateTimeField(null=True, blank=True)
+
+    # Hub connection info
+    hub_url = models.URLField()
+
+    # Permission sync
+    last_permission_sync = models.DateTimeField(null=True, blank=True)
+    synced_permissions = models.JSONField(default=list)
+    synced_roles = models.JSONField(default=list)
+
+    # Metadata
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    linked_by = models.CharField(max_length=20, choices=[
+        ('user', 'User Initiated'),
+        ('admin', 'Admin Initiated'),
+        ('auto', 'Auto-detected'),
+    ], default='user')
+
+    class Meta:
+        db_table = 'auth_account_links'
+        indexes = [
+            models.Index(fields=['hub_user_uuid']),
+            models.Index(fields=['status']),
+            models.Index(fields=['hub_email']),
+        ]
+
+    def __str__(self):
+        return f"{self.local_user.username} <-> {self.hub_username}@Hub"
+
+    def is_active(self):
+        return self.status == 'active'
+
+    def generate_verification_code(self):
+        """Generate a 6-digit verification code"""
+        import random
+        self.verification_code = ''.join([str(random.randint(0, 9)) for _ in range(6)])
+        self.verification_expires = timezone.now() + timedelta(minutes=15)
+        self.save(update_fields=['verification_code', 'verification_expires'])
+        return self.verification_code
+
+    def verify(self, code):
+        """Verify the link with a code"""
+        if self.verification_code != code:
+            return False, "Invalid verification code"
+        if timezone.now() > self.verification_expires:
+            return False, "Verification code expired"
+
+        self.status = 'active'
+        self.verified_at = timezone.now()
+        self.verification_code = ''
+        self.save(update_fields=['status', 'verified_at', 'verification_code'])
+        return True, "Account linked successfully"
+
+    def sync_permissions_from_hub(self, permissions, roles):
+        """Update permissions from Hub"""
+        self.synced_permissions = permissions
+        self.synced_roles = roles
+        self.last_permission_sync = timezone.now()
+        self.save(update_fields=['synced_permissions', 'synced_roles', 'last_permission_sync'])
+
+
+class EmailVerificationToken(models.Model):
+    """
+    Email verification tokens for user registration and email changes.
+    """
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='email_verifications')
+
+    # Token
+    token = models.CharField(max_length=64, unique=True, db_index=True)
+
+    # Email to verify
+    email = models.EmailField()
+    verification_type = models.CharField(max_length=20, choices=[
+        ('registration', 'New Registration'),
+        ('change', 'Email Change'),
+        ('recovery', 'Account Recovery'),
+    ], default='registration')
+
+    # Status
+    is_used = models.BooleanField(default=False)
+    used_at = models.DateTimeField(null=True, blank=True)
+
+    # Timestamps
+    created_at = models.DateTimeField(auto_now_add=True)
+    expires_at = models.DateTimeField()
+
+    # Security
+    ip_address = models.GenericIPAddressField(null=True, blank=True)
+
+    class Meta:
+        db_table = 'auth_email_verification_tokens'
+        indexes = [
+            models.Index(fields=['token']),
+            models.Index(fields=['user', 'is_used']),
+            models.Index(fields=['expires_at']),
+        ]
+        ordering = ['-created_at']
+
+    def __str__(self):
+        return f"Email verification for {self.email}"
+
+    def is_valid(self):
+        return not self.is_used and timezone.now() < self.expires_at
+
+    def mark_used(self):
+        self.is_used = True
+        self.used_at = timezone.now()
+        self.save(update_fields=['is_used', 'used_at'])
+
+    @classmethod
+    def create_token(cls, user, email, verification_type='registration', valid_hours=24):
+        """Create a new verification token"""
+        import secrets
+        token = secrets.token_urlsafe(48)
+        return cls.objects.create(
+            user=user,
+            token=token,
+            email=email,
+            verification_type=verification_type,
+            expires_at=timezone.now() + timedelta(hours=valid_hours)
+        )
+
+    @classmethod
+    def cleanup_expired(cls):
+        return cls.objects.filter(expires_at__lt=timezone.now()).delete()
+
+
+class HubKeyPair(models.Model):
+    """
+    RSA key pairs for Hub authentication and signing.
+
+    Used for:
+    - JWT RS256 signing (Hub signs, Nodes verify)
+    - Inter-node message authentication
+    - Data export signatures
+    """
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+
+    # Key identification
+    key_id = models.CharField(max_length=64, unique=True, db_index=True)
+    key_name = models.CharField(max_length=100)
+
+    # Key type
+    key_type = models.CharField(max_length=20, choices=[
+        ('jwt', 'JWT Signing'),
+        ('node', 'Node Authentication'),
+        ('export', 'Data Export Signing'),
+    ], default='jwt')
+
+    # Keys (PEM format)
+    public_key = models.TextField()
+    private_key = models.TextField(blank=True)  # Only stored on Hub, not on Nodes
+
+    # Key metadata
+    algorithm = models.CharField(max_length=20, default='RS256')
+    key_size = models.IntegerField(default=2048)
+
+    # Status
+    is_active = models.BooleanField(default=True)
+    is_primary = models.BooleanField(default=False)
+
+    # Validity
+    created_at = models.DateTimeField(auto_now_add=True)
+    expires_at = models.DateTimeField(null=True, blank=True)
+    revoked_at = models.DateTimeField(null=True, blank=True)
+
+    # Usage tracking
+    last_used = models.DateTimeField(null=True, blank=True)
+    use_count = models.PositiveIntegerField(default=0)
+
+    class Meta:
+        db_table = 'auth_hub_key_pairs'
+        indexes = [
+            models.Index(fields=['key_id']),
+            models.Index(fields=['key_type', 'is_active']),
+            models.Index(fields=['is_primary']),
+        ]
+        ordering = ['-created_at']
+
+    def __str__(self):
+        status = "active" if self.is_active else "inactive"
+        return f"{self.key_name} ({self.key_type}) - {status}"
+
+    def is_valid(self):
+        if not self.is_active:
+            return False
+        if self.revoked_at:
+            return False
+        if self.expires_at and timezone.now() > self.expires_at:
+            return False
+        return True
+
+    def revoke(self):
+        self.is_active = False
+        self.revoked_at = timezone.now()
+        self.save(update_fields=['is_active', 'revoked_at'])
+
+    def record_use(self):
+        self.last_used = timezone.now()
+        self.use_count += 1
+        self.save(update_fields=['last_used', 'use_count'])
+
+    @classmethod
+    def generate_key_pair(cls, key_name, key_type='jwt', key_size=2048):
+        """Generate a new RSA key pair"""
+        from cryptography.hazmat.primitives import serialization
+        from cryptography.hazmat.primitives.asymmetric import rsa
+        from cryptography.hazmat.backends import default_backend
+        import secrets
+
+        # Generate RSA key
+        private_key = rsa.generate_private_key(
+            public_exponent=65537,
+            key_size=key_size,
+            backend=default_backend()
+        )
+
+        # Serialize keys
+        private_pem = private_key.private_bytes(
+            encoding=serialization.Encoding.PEM,
+            format=serialization.PrivateFormat.PKCS8,
+            encryption_algorithm=serialization.NoEncryption()
+        ).decode('utf-8')
+
+        public_pem = private_key.public_key().public_bytes(
+            encoding=serialization.Encoding.PEM,
+            format=serialization.PublicFormat.SubjectPublicKeyInfo
+        ).decode('utf-8')
+
+        # Generate key ID
+        key_id = secrets.token_urlsafe(32)
+
+        return cls.objects.create(
+            key_id=key_id,
+            key_name=key_name,
+            key_type=key_type,
+            public_key=public_pem,
+            private_key=private_pem,
+            key_size=key_size,
+            expires_at=timezone.now() + timedelta(days=365)  # 1 year validity
+        )
+
+    @classmethod
+    def get_primary_key(cls, key_type='jwt'):
+        """Get the primary active key for a type"""
+        return cls.objects.filter(
+            key_type=key_type,
+            is_active=True,
+            is_primary=True
+        ).first()

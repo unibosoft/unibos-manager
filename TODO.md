@@ -1,12 +1,170 @@
 # UNIBOS Development TODO
 
-**Version:** v2.0.2
+**Version:** v2.2.0
 **Updated:** 2025-12-05
 **Status:** Active Development
 
 ---
 
-## Current Sprint: P2P & Mobile Integration
+## Current Sprint: Messenger Module Development
+
+### Phase 6: Messenger Module ✅ COMPLETE
+> **Security-First Encrypted Messaging with P2P Support**
+
+#### 6.1 Backend Models & Database ✅
+- [x] `Conversation` model - Group/direct chat support
+  - [x] UUID primary key
+  - [x] conversation_type (direct, group, channel)
+  - [x] created_by, created_at
+  - [x] is_encrypted flag
+  - [x] p2p_enabled flag, transport_mode
+- [x] `Participant` model - Conversation membership
+  - [x] user, conversation FK
+  - [x] role (owner, admin, member)
+  - [x] joined_at, left_at
+  - [x] notification_muted settings
+  - [x] encrypted_group_key for E2E encryption
+- [x] `Message` model - Core message entity
+  - [x] UUID primary key
+  - [x] conversation FK
+  - [x] sender FK
+  - [x] encrypted_content, content_nonce
+  - [x] message_type (text, image, file, audio, video, system)
+  - [x] reply_to (self FK for threads)
+  - [x] delivered_at, read_by_count
+  - [x] is_edited, edited_at
+  - [x] signature, sender_key_id
+- [x] `MessageAttachment` model - File attachments
+  - [x] message FK
+  - [x] file_url, file_type, file_size, file_name
+  - [x] encrypted_key, nonce (for E2E)
+  - [x] thumbnail_url (for images)
+- [x] `MessageReaction` model - Emoji reactions
+- [x] `MessageReadReceipt` model - Per-user read tracking
+- [x] `UserEncryptionKey` model - E2E key management
+  - [x] user FK
+  - [x] public_key, signing_public_key
+  - [x] key_id, device_id
+  - [x] is_primary, is_revoked, revoked_at
+
+#### 6.2 Security & Encryption ✅
+- [x] End-to-End Encryption (E2E)
+  - [x] X25519 key exchange (Curve25519)
+  - [x] AES-256-GCM message encryption
+  - [x] Ed25519 message signing
+  - [x] Perfect Forward Secrecy (PFS) with session keys
+- [x] Key Management
+  - [x] User key pair generation (server-side with cryptography library)
+  - [x] Key rotation mechanism (revoke + generate new)
+  - [x] Device key linking (device_id, device_name)
+  - [x] Primary key designation
+- [x] Message Security
+  - [x] Message signing (Ed25519)
+  - [x] Replay attack prevention (nonce)
+  - [x] Message expiration (expires_at field)
+  - [x] client_message_id for deduplication
+
+#### 6.3 Transport Modes (User Selectable) ✅
+- [x] **Hub Relay Mode** (Default)
+  - [x] Messages routed through Hub server
+  - [x] Offline message queuing
+  - [x] Cross-network delivery
+  - [x] Full encryption maintained
+- [x] **P2P Direct Mode**
+  - [x] Direct WebSocket between peers
+  - [x] mDNS peer discovery integration
+  - [x] Fallback to Hub if P2P fails
+  - [x] Lower latency, no server storage
+- [x] **Hybrid Mode**
+  - [x] P2P when available, Hub fallback
+  - [x] Automatic mode switching
+  - [x] User-selectable per conversation
+
+#### 6.4 REST API Endpoints ✅
+- [x] Conversations
+  - [x] `POST /api/v1/messenger/conversations/` - Create conversation
+  - [x] `GET /api/v1/messenger/conversations/` - List conversations
+  - [x] `GET /api/v1/messenger/conversations/{id}/` - Get conversation details
+  - [x] `PATCH /api/v1/messenger/conversations/{id}/` - Update conversation
+  - [x] `DELETE /api/v1/messenger/conversations/{id}/` - Delete/leave
+  - [x] `POST /api/v1/messenger/conversations/{id}/participants/` - Add participants
+  - [x] `DELETE /api/v1/messenger/conversations/{id}/participants/{user_id}/` - Remove
+  - [x] `POST /api/v1/messenger/conversations/{id}/read-all/` - Mark all read
+- [x] Messages
+  - [x] `POST /api/v1/messenger/conversations/{id}/messages/` - Send message
+  - [x] `GET /api/v1/messenger/conversations/{id}/messages/` - Get messages (paginated)
+  - [x] `PATCH /api/v1/messenger/messages/{id}/` - Edit message
+  - [x] `DELETE /api/v1/messenger/messages/{id}/` - Delete message
+  - [x] `POST /api/v1/messenger/messages/{id}/read/` - Mark as read
+  - [x] `POST /api/v1/messenger/messages/{id}/reactions/` - Add reaction
+  - [x] `DELETE /api/v1/messenger/messages/{id}/reactions/` - Remove reaction
+- [x] Encryption Keys
+  - [x] `POST /api/v1/messenger/keys/generate/` - Generate key pair
+  - [x] `GET /api/v1/messenger/keys/` - Get my keys
+  - [x] `GET /api/v1/messenger/keys/public/{user_id}/` - Get user's public keys
+  - [x] `POST /api/v1/messenger/keys/{id}/revoke/` - Revoke key
+- [x] P2P Control
+  - [x] `GET /api/v1/messenger/p2p/status/` - P2P connection status
+  - [x] `POST /api/v1/messenger/p2p/connect/` - Initiate P2P
+  - [x] `POST /api/v1/messenger/p2p/answer/` - Answer P2P
+  - [x] `POST /api/v1/messenger/p2p/disconnect/{session_id}/` - Close P2P
+- [x] Typing & Search
+  - [x] `POST /api/v1/messenger/typing/` - Send typing indicator
+  - [x] `POST /api/v1/messenger/search/` - Search messages
+
+#### 6.5 WebSocket Endpoints ✅
+- [x] `/ws/messenger/` - Main messaging WebSocket (MessengerConsumer)
+  - [x] `message.new` - New message received
+  - [x] `message.edited` - Message edited
+  - [x] `message.deleted` - Message deleted
+  - [x] `message.read` - Read receipt
+  - [x] `typing.start` / `typing.stop` - Typing indicators
+  - [x] `participant.joined` / `participant.left` - Membership changes
+  - [x] `p2p.offer` / `p2p.answer` / `p2p.ice` - P2P signaling
+
+#### 6.6 Flutter Mobile Client ✅
+- [x] Core Services
+  - [x] `MessengerService` - Full API client (messenger_service.dart)
+  - [x] Data Models (messenger_models.dart)
+    - [x] Conversation, Participant, Message, MessageReaction
+    - [x] MessageReadReceipt, MessageAttachment
+    - [x] UserEncryptionKey, P2PSession
+- [x] State Management (Riverpod)
+  - [x] `conversationsProvider` - Conversation list state
+  - [x] `messagesProvider` - Message state per conversation
+  - [x] `encryptionKeysProvider` - Key management
+  - [x] `p2pStatusProvider` - P2P connection status
+  - [x] `typingStateProvider` - Typing indicators
+- [x] UI Screens
+  - [x] `ConversationListScreen` - Chat list with transport mode
+  - [x] `ChatScreen` - Message view & input
+  - [x] `NewConversationScreen` - Create direct/group chat
+  - [x] `ConversationSettingsScreen` - Chat settings, encryption, participants
+- [x] UI Components
+  - [x] `ConversationTile` - Conversation list item
+  - [x] `MessageBubble` - Message display with reactions
+  - [x] `MessageInput` - Text input with send
+  - [x] `TypingIndicator` - Animated typing dots
+
+#### 6.7 Web UI Interface ✅
+- [x] Terminal-style chat interface (UNIBOS theme)
+- [x] Conversation sidebar with unread count
+- [x] Message area with timestamps
+- [x] Input area with command support
+- [x] P2P/Hub mode toggle and status
+- [x] Encryption status display (🔒 indicator)
+- [x] Added to main sidebar navigation
+
+#### 6.8 Testing & Security Audit 🔄 PENDING
+- [ ] Unit tests for encryption
+- [ ] Integration tests for messaging flow
+- [ ] P2P connection tests
+- [ ] Security penetration testing
+- [ ] Message delivery reliability tests
+
+---
+
+## Previous Sprint: P2P & Mobile Integration
 
 ### Completed This Sprint - Flutter Sync Client
 - [x] Flutter Sync Client Integration
@@ -18,11 +176,13 @@
   - [x] SyncScreen UI with status, pending changes
   - [x] ConflictResolutionScreen with visual diff
 
-### Next Up
-- [ ] iOS/Android Testing
-  - [ ] Test sync on iOS Simulator
-  - [ ] Test sync on Android Emulator
-  - [ ] Test offline queue persistence
+### Completed - Multi-Platform Testing (2025-12-05)
+- [x] iOS/Android Testing
+  - [x] Test sync on iOS Simulator (iPhone 16e, iOS 26.0)
+  - [x] Test sync on Android Emulator (API 36, Android 16)
+  - [x] Test offline queue persistence (SharedPreferences)
+  - [x] Hub login flow verified on both platforms
+  - [x] JWT token exchange working
 
 ### Completed This Sprint (2025-12-05)
 - [x] P2P Node Communication
@@ -61,12 +221,31 @@
 
 ## Backlog
 
-### Phase 1: Identity Enhancements
-- [ ] Account linking (local to hub)
-- [ ] Email verification flow (already has models)
-- [ ] Permission sync to nodes
-- [ ] WebSocket auth notifications
-- [ ] RS256 key pair generation for hub
+### Phase 1: Identity Enhancements ✅ COMPLETE
+- [x] Account linking (local to hub)
+  - [x] AccountLink model with verification flow
+  - [x] `/api/v1/auth/link/init/` - Initialize linking
+  - [x] `/api/v1/auth/link/verify/` - Verify with code
+  - [x] `/api/v1/auth/link/status/` - Get/revoke link
+- [x] Email verification flow
+  - [x] EmailVerificationToken model
+  - [x] `/api/v1/auth/email/verify/request/`
+  - [x] `/api/v1/auth/email/verify/confirm/`
+- [x] Permission sync to nodes
+  - [x] PermissionSyncSerializer
+  - [x] `/api/v1/auth/permissions/sync/`
+  - [x] AccountLink stores synced_permissions/roles
+- [x] WebSocket auth notifications
+  - [x] AuthNotificationConsumer
+  - [x] Session created/revoked notifications
+  - [x] Security alert notifications
+  - [x] Account link status change notifications
+  - [x] `/ws/auth/notifications/` endpoint
+- [x] RS256 key pair generation for hub
+  - [x] HubKeyPair model with RSA generation
+  - [x] `/api/v1/auth/keys/` - List keys
+  - [x] `/api/v1/auth/keys/create/` - Create key pair
+  - [x] `/api/v1/auth/keys/primary/` - Get primary key
 
 ### Phase 2: Data Sync Engine ✅ COMPLETE
 - [x] Version vector implementation
@@ -88,11 +267,11 @@
 - [x] WiFi Direct (AP mode + client mode)
 - [ ] LoRa integration (optional)
 
-### Phase 5: Multi-Platform Testing
-- [ ] iOS Simulator testing
-- [ ] Android Emulator testing
-- [ ] Raspberry Pi deployment
-- [ ] Cross-device sync verification
+### Phase 5: Multi-Platform Testing ✅ COMPLETE
+- [x] iOS Simulator testing
+- [x] Android Emulator testing
+- [x] Raspberry Pi deployment (3 nodes active)
+- [x] Cross-device sync verification
 
 ---
 
@@ -272,7 +451,9 @@ curl -X POST https://recaria.org/api/v1/nodes/register/ \
 3. ~~**Sync Engine** - Core data flow feature~~ ✅
 4. ~~**Data Export Control** - Kill switch, module permissions~~ ✅
 5. ~~**P2P** - Advanced networking~~ ✅
-6. **Flutter Sync Client** - Mobile sync integration (NEXT)
+6. ~~**Flutter Sync Client** - Mobile sync integration~~ ✅
+7. ~~**Messenger Module** - E2E encrypted messaging~~ ✅
+8. **Messenger Testing** - Unit/integration tests (NEXT)
 
 ---
 
