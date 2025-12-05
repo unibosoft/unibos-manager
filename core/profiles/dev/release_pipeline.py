@@ -385,6 +385,7 @@ class ReleasePipeline:
             'archive',  # Don't copy archive directory at all
             'data',     # Runtime data (logs, backups, cache, media)
             'data_db',  # Database files
+            'core/clients/mobile',  # Mobile SDK source (development only)
         }
 
         def ignore_patterns(directory, files):
