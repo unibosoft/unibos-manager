@@ -6,11 +6,11 @@
     "build": "20251205150933"
   },
   "display": {
-    "semantic": "1.1.4",
-    "full": "1.1.4+build.20251204072502",
-    "short": "v1.1.4 @07:25",
-    "compact": "v1.1.4 1204@0725",
-    "archive": "unibos_v1.1.4_b20251204072502"
+    "semantic": "2.0.0",
+    "full": "2.0.0+build.20251205150933",
+    "short": "v2.0.0 @15:09",
+    "compact": "v2.0.0 1205@1509",
+    "archive": "unibos_v2.0.0_b20251205150933"
   },
   "build_info": {
     "date": "2025-12-05",
@@ -38,7 +38,7 @@
   "description": "UNIBOS v1.0.0 - First stable release with new versioning system",
   "features": [
     "13 integrated business modules",
-    "4-profile architecture (dev, server, manager, prod)",
+    "5-profile architecture (dev, hub, manager, node, worker)",
     "Hybrid CLI/TUI system",
     "PostgreSQL database",
     "Django REST API backend",

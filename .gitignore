@@ -7,29 +7,31 @@
 # Bu template .gitignore dosyasına kopyalanarak kullanılır:
 #   cp .gitignore.dev .gitignore
 #
-# TEMPLATE ÇALIŞMA MANTIĞI (4-Repo Architecture):
+# TEMPLATE ÇALIŞMA MANTIĞI (5-Repo Architecture):
 # - .gitignore.dev     → unibos-dev repo için (bu dosya)
 # - .gitignore.manager → unibos-manager repo için
-# - .gitignore.server  → unibos-server repo için
-# - .gitignore.prod    → unibos (prod) repo için
+# - .gitignore.hub     → unibos-hub repo için
+# - .gitignore.node    → unibos (node) repo için
+# - .gitignore.worker  → unibos-worker repo için
 #
 # push-all komutu her repo'ya push ederken doğru template'i otomatik kopyalar:
 #   dev     → cp .gitignore.dev .gitignore     → push to dev
 #   manager → cp .gitignore.manager .gitignore → push to manager
-#   server  → cp .gitignore.server .gitignore  → push to server
-#   prod    → cp .gitignore.prod .gitignore    → push to prod
+#   hub     → cp .gitignore.hub .gitignore     → push to hub
+#   node    → cp .gitignore.node .gitignore    → push to node
+#   worker  → cp .gitignore.worker .gitignore  → push to worker
 #
 # DEĞİŞİKLİK YAPARKEN:
 # ✅ Bu template'i (.gitignore.dev) düzenleyebilirsiniz
-# ✅ Ortak değişiklikleri diğer template'lere (.manager, .server, .prod) de ekleyin
+# ✅ Ortak değişiklikleri diğer template'lere de ekleyin
 # ✅ cp .gitignore.dev .gitignore ile aktif hale getirin
 #
 # Bu şablon unibos-dev repo'su için tasarlanmıştır.
-# Tüm development tools, tüm profiller (dev, manager, server, prod), tüm modüller dahildir.
+# Tüm development tools, tüm profiller (dev, manager, hub, node, worker), tüm modüller dahildir.
 #
 # Repo: https://github.com/unibosoft/unibos-dev
 # Purpose: Full development environment with all tools and profiles
-# Includes: All 4 profiles (dev, manager, server, prod), all modules, all settings
+# Includes: All 5 profiles (dev, manager, hub, node, worker), all modules, all settings
 # =============================================================================
 
 # ===== CRITICAL: DEVELOPMENT-ONLY DATA (NEVER COMMIT) =====
@@ -99,8 +101,8 @@ debug_output.txt
 
 # ===== DJANGO GENERATED =====
 staticfiles/
-core/web/staticfiles/
-core/web/media/
+core/clients/web/staticfiles/
+core/clients/web/media/
 modules/*/backend/staticfiles/
 modules/*/backend/media/
 modules/*/backend/uploads/
@@ -177,6 +179,48 @@ modules/*/mobile/ios/Pods/
 modules/*/mobile/macos/build/
 modules/*/mobile/windows/build/
 modules/*/mobile/linux/build/
+
+# ===== CORE/CLIENTS/MOBILE BUILD ARTIFACTS (SDK, Pods, etc) =====
+# Kaynak kod dahil, build/SDK dizinleri haric
+core/clients/mobile/build/
+core/clients/mobile/.dart_tool/
+core/clients/mobile/.flutter-plugins
+core/clients/mobile/.flutter-plugins-dependencies
+core/clients/mobile/.packages
+core/clients/mobile/.pub-cache/
+core/clients/mobile/.pub/
+# iOS artifacts
+core/clients/mobile/ios/Pods/
+core/clients/mobile/ios/.symlinks/
+core/clients/mobile/ios/Podfile.lock
+core/clients/mobile/ios/Flutter/Flutter.framework
+core/clients/mobile/ios/Flutter/Flutter.podspec
+core/clients/mobile/ios/Flutter/Generated.xcconfig
+core/clients/mobile/ios/Flutter/ephemeral/
+core/clients/mobile/ios/Flutter/app.flx
+core/clients/mobile/ios/Flutter/flutter_assets/
+core/clients/mobile/ios/ServiceDefinitions.json
+core/clients/mobile/ios/build/
+core/clients/mobile/ios/Runner.xcworkspace/xcuserdata/
+core/clients/mobile/ios/Runner.xcodeproj/xcuserdata/
+core/clients/mobile/ios/Runner.xcodeproj/project.xcworkspace/xcuserdata/
+# macOS artifacts
+core/clients/mobile/macos/Flutter/ephemeral/
+core/clients/mobile/macos/Pods/
+core/clients/mobile/macos/Podfile.lock
+core/clients/mobile/macos/build/
+# Android artifacts
+core/clients/mobile/android/build/
+core/clients/mobile/android/.gradle/
+core/clients/mobile/android/app/build/
+core/clients/mobile/android/local.properties
+# Windows/Linux artifacts
+core/clients/mobile/windows/build/
+core/clients/mobile/linux/build/
+# Generated Dart files
+core/clients/mobile/lib/generated/
+core/clients/mobile/*.g.dart
+core/clients/mobile/*.freezed.dart
 
 # ===== TEST & COVERAGE =====
 .pytest_cache/

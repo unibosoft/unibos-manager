@@ -307,6 +307,20 @@ class ReleasePipeline:
                 'patch': parts[2],
                 'build': build
             }
+
+            # Update display info to match current version
+            build_date = build[:8]  # YYYYMMDD
+            build_time = build[8:]  # HHMMSS
+            short_date = f"{build_date[4:6]}{build_date[6:8]}"  # MMDD
+            short_time = f"{build_time[:2]}{build_time[2:4]}"  # HHMM
+            data['display'] = {
+                'semantic': version,
+                'full': f"{version}+build.{build}",
+                'short': f"v{version} @{build_time[:2]}:{build_time[2:4]}",
+                'compact': f"v{version} {short_date}@{short_time}",
+                'archive': f"unibos_v{version}_b{build}"
+            }
+
             data['build_info'] = {
                 'date': datetime.now().strftime("%Y-%m-%d"),
                 'time': datetime.now().strftime("%H:%M:%S"),
