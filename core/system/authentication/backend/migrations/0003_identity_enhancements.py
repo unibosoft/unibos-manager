@@ -79,71 +79,8 @@ class Migration(migrations.Migration):
                 'ordering': ['-created_at'],
             },
         ),
-        migrations.RenameIndex(
-            model_name='loginattempt',
-            new_name='auth_login__ip_addr_0fb781_idx',
-            old_name='auth_login_ip_addr_idx',
-        ),
-        migrations.RenameIndex(
-            model_name='loginattempt',
-            new_name='auth_login__usernam_7e0f3d_idx',
-            old_name='auth_login_user_idx',
-        ),
-        migrations.RenameIndex(
-            model_name='loginattempt',
-            new_name='auth_login__attempt_1e2094_idx',
-            old_name='auth_login_time_idx',
-        ),
-        migrations.RenameIndex(
-            model_name='passwordresettoken',
-            new_name='auth_passwo_token_48dd7e_idx',
-            old_name='auth_reset_token_idx',
-        ),
-        migrations.RenameIndex(
-            model_name='passwordresettoken',
-            new_name='auth_passwo_expires_ca8703_idx',
-            old_name='auth_reset_exp_idx',
-        ),
-        migrations.RenameIndex(
-            model_name='refreshtokenblacklist',
-            new_name='auth_refres_expires_986810_idx',
-            old_name='auth_black_exp_idx',
-        ),
-        migrations.RenameIndex(
-            model_name='refreshtokenblacklist',
-            new_name='auth_refres_user_id_c8cb79_idx',
-            old_name='auth_black_user_idx',
-        ),
-        migrations.RenameIndex(
-            model_name='userofflinecache',
-            new_name='auth_user_o_usernam_0ffa22_idx',
-            old_name='auth_cache_user_idx',
-        ),
-        migrations.RenameIndex(
-            model_name='userofflinecache',
-            new_name='auth_user_o_email_23293c_idx',
-            old_name='auth_cache_email_idx',
-        ),
-        migrations.RenameIndex(
-            model_name='userofflinecache',
-            new_name='auth_user_o_cache_v_435c90_idx',
-            old_name='auth_cache_valid_idx',
-        ),
-        migrations.RenameIndex(
-            model_name='usersession',
-            new_name='auth_user_s_user_id_e0ab05_idx',
-            old_name='auth_sess_user_idx',
-        ),
-        migrations.RenameIndex(
-            model_name='usersession',
-            new_name='auth_user_s_expires_3df8ae_idx',
-            old_name='auth_sess_exp_idx',
-        ),
-        migrations.RenameIndex(
-            model_name='usersession',
-            new_name='auth_user_s_last_ac_33d8b9_idx',
-            old_name='auth_sess_act_idx',
-        ),
+        # Note: RenameIndex operations removed - indexes already exist with new names
+        # after database restore from backup
         migrations.AddField(
             model_name='accountlink',
             name='local_user',
