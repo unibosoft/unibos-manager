@@ -2,7 +2,7 @@
 
 > **⚠️ KRİTİK:** Bu dosya ana dizindedir, Claude her oturumda MUTLAKA görecektir.
 > **AMAÇ:** Claude'u doğru kural dosyalarına yönlendirmek, detay vermek DEĞİL!
-> **VERSİYON:** v1.0.0 (First Stable Release - Phoenix Rising)
+> **VERSİYON:** v2.0.0 (5-Profile Architecture)
 
 ---
 
@@ -26,8 +26,8 @@
    • ReleasePipeline sınıfı (core/profiles/dev/release_pipeline.py)
    • ./tools/scripts/backup_database.sh (database backup için)
    • ./core/deployment/rocksteady_deploy.sh (deployment için)
-   • unibos git sync-prod (local prod sync için)
-   • unibos git push-dev / push-prod (git operations için)
+   • unibos-dev git push-all (tüm repolara push için)
+   • unibos-dev git push-all --repos dev,hub,manager,node,worker
 
 ⚠️ BU KURAL İHLAL EDİLEMEZ - HİÇBİR İSTİSNA YOK!
 ⚠️ DEPLOYMENT MUTLAKA ./core/deployment/rocksteady_deploy.sh İLE YAPILMALI!
@@ -107,7 +107,7 @@ Merhaba Berk! 👋
 📸 Screenshot: [VAR: dosya adı / YOK]
 ⏰ Istanbul: [YYYY-MM-DD HH:MM:SS +03:00]
 🔧 Git status: [Clean / X files changed]
-📌 Version: [v1.0.0+BUILD_TIMESTAMP]
+📌 Version: [v2.0.0+BUILD_TIMESTAMP]
 
 Ne üzerinde çalışmamı istersin?
 ```
@@ -138,19 +138,21 @@ Ne üzerinde çalışmamı istersin?
 2. **Script:** `./core/deployment/rocksteady_deploy.sh`
 3. **⚠️ MUTLAKA:** Pre-flight checks yapılır, manuel komut yasak!
 
-### Dev/Prod Workflow Yapacaksan:
-1. **[docs/guides/dev-prod-workflow.md](docs/guides/dev-prod-workflow.md)** ← Detaylı workflow guide
-2. **[docs/guides/git-workflow-usage.md](docs/guides/git-workflow-usage.md)** ← CLI usage guide
-3. **CLI Commands:**
-   - `unibos git setup` - Git remotes kurulumu
-   - `unibos git push-dev` - Dev repo'ya push
-   - `unibos git push-prod` - Prod repo'ya push (filtered!)
-   - `unibos git sync-prod` - Local prod'a sync (filtered!)
-4. **⚠️ KRITIK:**
-   - Dev database: `unibos_dev` / `unibos_dev_user`
-   - Prod database: `unibos_db` / `unibos_db_user`
-   - `.prodignore` file defines exclusions
-   - ASLA manuel rsync veya git push kullanma!
+### Multi-Repo Workflow Yapacaksan:
+1. **5 Repo Mimarisi:**
+   - `unibos-dev` - Tam geliştirme ortamı
+   - `unibos-hub` - Hub server (Identity Provider, Registry)
+   - `unibos-manager` - Uzak yönetim araçları
+   - `unibos` (node) - Local node uygulaması
+   - `unibos-worker` - Background task processing
+2. **CLI Commands:**
+   - `unibos-dev git setup --force` - Git remotes kurulumu
+   - `unibos-dev git push-all --repos all` - Tüm repolara push
+   - `unibos-dev git push-all --repos dev,hub` - Seçili repolara push
+3. **⚠️ KRİTİK:**
+   - Her repo için ayrı .gitignore.{profile} template'i var
+   - Push sırasında otomatik olarak doğru template aktive edilir
+   - ASLA manuel git push kullanma, her zaman push-all komutunu kullan!
 
 ---
 
@@ -223,9 +225,8 @@ core/deployment/
 | **CLAUDE_SESSION_PROTOCOL.md** | SCREENSHOT_MANAGEMENT.md, CODE_QUALITY_STANDARDS.md | RULES.md checklist, CLAUDE.md index |
 | **SCREENSHOT_MANAGEMENT.md** | CLAUDE_SESSION_PROTOCOL.md | .archiveignore screenshot path'leri |
 | **CODE_QUALITY_STANDARDS.md** | CLAUDE_SESSION_PROTOCOL.md | Kod değişikliklerinde uyumluluk |
-| **dev-prod-workflow.md** | .prodignore, git-workflow-usage.md | CLI commands (git.py), database credentials consistency |
-| **.prodignore** | dev-prod-workflow.md, git.py | Exclusion list in documentation, rsync/git operations |
-| **core/cli/commands/git.py** | .prodignore, dev-prod-workflow.md | Exclusion patterns, workflow documentation |
+| **.gitignore.{profile}** | git.py, release_pipeline.py | 5-repo push templates |
+| **core/profiles/dev/commands/git.py** | .gitignore templates | Push-all command, repo config |
 
 ### Atomik Commit Kuralı
 
@@ -281,35 +282,33 @@ Her değişiklik sonrası kendine şu soruları sor:
 
 ## 📝 Son Güncelleme
 
-**Tarih:** 2025-12-02
-**Versiyon:** v1.0.0+20251202003028 (Phoenix Rising)
-**Neden:** v1.0.0 stable release ve yeni versiyonlama sistemi
+**Tarih:** 2025-12-05
+**Versiyon:** v2.0.0+20251205150933 (5-Profile Architecture)
+**Neden:** v2.0.0 major release - 5-profile architecture migration
 
 **Değişiklikler:**
-- ✅ Semantic Versioning + Timestamp Build sistemi (`v1.0.0+BUILD`)
-- ✅ ReleasePipeline sınıfı eklendi (`core/profiles/dev/release_pipeline.py`)
-- ✅ TUI'dan quick release desteği (versions → 📦 quick release)
-- ✅ 4 repo'ya otomatik push (dev, server, manager, prod)
-- ✅ Merkezi splash modülü (`core/clients/cli/framework/ui/splash.py`)
-- ✅ Arşiv yapısı güncellendi (`unibos_v{VERSION}_b{BUILD}`)
-- ✅ Header formatı: `v1.0.0+20251202003028`
-- ✅ TUI otomatik restart after release
-- ✅ Archive exclusion düzeltildi (archive kendini kopyalamıyor)
-- ✅ Git status TUI'da düzeltildi
-- ✅ Conventional Commits + Otomatik CHANGELOG sistemi eklendi
-- ✅ ChangelogManager sınıfı (`core/profiles/dev/changelog_manager.py`)
+- ✅ 5-Profile Architecture: dev, hub, manager, node, worker
+- ✅ 5-Repo System: unibos-dev, unibos-hub, unibos-manager, unibos, unibos-worker
+- ✅ Worker profile with real Celery integration
+- ✅ Profile renames: server→hub, prod→node
+- ✅ Git push-all command updated for 5 repos
+- ✅ .gitignore templates for each repo (.gitignore.{profile})
+- ✅ Deploy system updated (HubDeployer)
+- ✅ Release pipeline updated for 5-repo push
+- ✅ VERSION.json display sync fix
+- ✅ Mobile SDK excluded from archives
 
-**Bir Önceki Güncelleme:** 2025-11-15 - Dev/prod workflow ve deployment kuralları
+**Bir Önceki Güncelleme:** 2025-12-02 - v1.0.0 stable release
 **Sonraki Gözden Geçirme:** Her major script veya kural değişikliğinde
 
 ---
 
-## 📌 VERSİYONLAMA KURALLARI (2025-12-02)
+## 📌 VERSİYONLAMA KURALLARI (2025-12-05)
 
 ### Semantic Versioning + Timestamp Build
 ```
 FORMAT: MAJOR.MINOR.PATCH+BUILD_TIMESTAMP
-ÖRNEK:  v1.0.0+20251202003028
+ÖRNEK:  v2.0.0+20251205150933
 
 MAJOR (X.0.0): Breaking changes
   ↳ CLI komut yapısı değişti
@@ -333,15 +332,15 @@ BUILD (YYYYMMDDHHmmss): Her release'de otomatik güncellenir
 ### Version Dosyası
 ```python
 # core/version.py
-__version__ = "1.0.0"           # Semantic version
-__version_info__ = (1, 0, 0)    # Tuple format
-__build__ = "20251202003028"    # Timestamp build
+__version__ = "2.0.0"           # Semantic version
+__version_info__ = (2, 0, 0)    # Tuple format
+__build__ = "20251205150933"    # Timestamp build
 
 # Fonksiyonlar:
-get_version()           # "1.0.0"
-get_build()             # "20251202003028"
+get_version()           # "2.0.0"
+get_build()             # "20251205150933"
 get_full_version()      # Dict with all info
-get_short_version_string()  # "v1.0.0"
+get_short_version_string()  # "v2.0.0"
 parse_build_timestamp() # Parse build to date/time
 ```
 
@@ -359,7 +358,7 @@ parse_build_timestamp() # Parse build to date/time
    - Version güncellenir
    - Arşiv oluşturulur
    - Git commit + tag
-   - 4 repo'ya push (dev, server, manager, prod)
+   - 5 repo'ya push (dev, hub, manager, node, worker)
 6. TUI otomatik restart olur
 ```
 
@@ -372,7 +371,7 @@ pipeline = ReleasePipeline()
 result = pipeline.run(
     release_type='minor',      # build, patch, minor, major
     message='feat: new feature',
-    repos=['dev', 'server', 'manager', 'prod']
+    repos=['dev', 'hub', 'manager', 'node', 'worker']
 )
 ```
 
@@ -381,11 +380,11 @@ result = pipeline.run(
 archive/versions/
   ├── old_pattern_v001_v533/     # Pre-1.0 arşivi (v0.1.0 - v0.533.0)
   ├── unibos_v1.0.0_b20251202000650/
-  ├── unibos_v1.0.0_b20251202002447/
-  └── unibos_v1.0.0_b20251202003028/
+  ├── unibos_v1.1.x_b.../
+  └── unibos_v2.0.0_b20251205150933/
 
 # Arşiv isimlendirme: unibos_v{VERSION}_b{BUILD}
-# Örnek: unibos_v1.0.0_b20251202003028
+# Örnek: unibos_v2.0.0_b20251205150933
 ```
 
 ### Detaylı Döküman
@@ -470,12 +469,12 @@ CHANGELOG.md oluşturur.
 ```
 CHANGELOG.md
 ├── [Unreleased]          # Henüz release edilmemiş değişiklikler
-├── [1.1.0] - 2025-12-03  # En son release
+├── [2.0.0] - 2025-12-05  # En son release (5-profile architecture)
 │   ├── Added             # feat commits
 │   ├── Changed           # refactor, style commits
 │   ├── Fixed             # fix commits
 │   └── ...
-└── [1.0.0] - 2025-12-01  # Önceki release
+└── [1.x.x] - 2025-12-0x  # Önceki releases
 ```
 
 ---

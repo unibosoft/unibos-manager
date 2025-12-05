@@ -1,15 +1,15 @@
 # UNIBOS - Unicorn Bodrum Operating System
 
-> **v1.0.8** - Production-ready modular platform with 4-tier CLI architecture, real-time WebSocket, and multi-platform support
+> **v2.0.0** - Production-ready modular platform with 5-profile CLI architecture, real-time WebSocket, and multi-platform support
 
 ## Overview
 
 UNIBOS is a comprehensive modular operating system built with Django, featuring:
 
-- **4-Tier CLI Architecture** - dev, manager, server, prod profiles
+- **5-Profile CLI Architecture** - dev, hub, manager, node, worker profiles
 - **TUI Framework** - Full-featured terminal interface with i18n support
 - **Real-time Updates** - WebSocket via Django Channels
-- **Background Tasks** - Celery with Redis for async processing
+- **Background Tasks** - Celery with Redis for async processing (dedicated worker profile)
 - **Multi-node Foundation** - P2P architecture with mDNS discovery support
 - **13 Business Modules** - Finance, media, IoT, emergency alerts
 
@@ -40,33 +40,44 @@ unibos-dev manager status    # Check all instances
 unibos-dev manager ssh rocksteady  # SSH to server
 ```
 
-### Server (unibos-server)
+### Hub Server (unibos-hub)
 
 ```bash
-# On production server
-unibos-server tui            # Server management TUI
-unibos-server status         # Check server status
-unibos-server logs           # View server logs
+# On hub server (Rocksteady/Bebop)
+unibos-hub tui               # Hub management TUI
+unibos-hub status            # Check hub status
+unibos-hub logs              # View hub logs
 ```
 
-### Production (unibos)
+### Node (unibos)
 
 ```bash
-# End-user interface
-unibos tui                   # Launch production TUI
-unibos status                # Check system status
+# Local node interface
+unibos tui                   # Launch node TUI
+unibos status                # Check node status
+```
+
+### Worker (unibos-worker)
+
+```bash
+# Background task processing
+unibos-worker start          # Start Celery workers
+unibos-worker start --type ocr  # Start OCR worker
+unibos-worker status         # Check worker status
+unibos-worker stop           # Stop all workers
 ```
 
 ## Architecture
 
-### 4-Tier CLI System
+### 5-Profile CLI System
 
 | Profile | Command | Purpose | Target |
 |---------|---------|---------|--------|
 | **dev** | `unibos-dev` | Development & DevOps | Developers |
+| **hub** | `unibos-hub` | Hub server management | Hub operators |
 | **manager** | `unibos-manager` | Multi-node orchestration | System admins |
-| **server** | `unibos-server` | Single server management | Server operators |
-| **prod** | `unibos` | End-user application | All users |
+| **node** | `unibos` | Local node application | End users |
+| **worker** | `unibos-worker` | Background task processing | Task workers |
 
 ### Project Structure
 
@@ -79,9 +90,10 @@ unibos-dev/
 │   │   └── web/                   # Django backend
 │   ├── profiles/                  # CLI profiles
 │   │   ├── dev/                   # Developer profile
+│   │   ├── hub/                   # Hub server profile
 │   │   ├── manager/               # Manager profile
-│   │   ├── server/                # Server profile
-│   │   └── prod/                  # Production profile
+│   │   ├── node/                  # Node profile
+│   │   └── worker/                # Worker profile
 │   ├── platform/                  # Platform detection
 │   ├── instance/                  # Node identity
 │   └── system/                    # System modules
@@ -132,7 +144,7 @@ unibos-dev/
 | Celery Worker | **Active** | 12 tasks discovered |
 | Django Channels | **Active** | Real-time WebSocket |
 | Deploy Pipeline | **Active** | 17-step automated deployment |
-| Release Pipeline | **Active** | Patch/minor/major to 4 repos |
+| Release Pipeline | **Active** | Patch/minor/major to 5 repos |
 
 ## Requirements
 
@@ -187,14 +199,15 @@ DJANGO_SETTINGS_MODULE=unibos_backend.settings.development \
 
 ## Deployment
 
-### 4-Repo Architecture
+### 5-Repo Architecture
 
 | Repo | Purpose | Contains |
 |------|---------|----------|
 | `unibos-dev` | Development | Full codebase + dev tools |
-| `unibos-manager` | Manager | Manager profile only |
-| `unibos-server` | Server | Server deployment |
-| `unibos` (prod) | Production | End-user application |
+| `unibos-hub` | Hub Server | Hub profile for central servers |
+| `unibos-manager` | Manager | Remote management tools |
+| `unibos` | Node | Local node application |
+| `unibos-worker` | Worker | Background task processing |
 
 ### Deploy to Rocksteady Server
 
@@ -244,7 +257,7 @@ unibos-dev release run major -m "feat!: breaking change"
 ### TUI Framework
 
 - Full-featured terminal interface
-- Profile-based inheritance (DevTUI, ServerTUI, ManagerTUI, ProdTUI)
+- Profile-based inheritance (DevTUI, HubTUI, ManagerTUI, NodeTUI)
 - 3-section menu structure
 - Keyboard navigation with vim-style bindings
 - i18n support (Turkish/English)
@@ -320,5 +333,5 @@ Bitez, Bodrum, Mugla, Turkiye
 
 ---
 
-**Current Version**: v1.0.8
-**Last Updated**: 2025-12-03
+**Current Version**: v2.0.0
+**Last Updated**: 2025-12-05

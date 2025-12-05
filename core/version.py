@@ -21,9 +21,9 @@ __version_info__ = (2, 0, 0)
 __build__ = "20251205150933"
 
 # Version metadata
-VERSION_NAME = "First Stable Release"
-VERSION_CODENAME = "Phoenix Rising"
-RELEASE_DATE = "2025-12-01"
+VERSION_NAME = "5-Profile Architecture"
+VERSION_CODENAME = "Constellation"
+RELEASE_DATE = "2025-12-05"
 RELEASE_TYPE = "stable"  # development, alpha, beta, rc, stable
 
 # Development history
