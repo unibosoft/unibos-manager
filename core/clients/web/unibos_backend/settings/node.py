@@ -52,10 +52,13 @@ DATABASES = {
 
 # Redis - Optional (nodes can work without it)
 # Use lightweight in-memory cache if Redis not available
-REDIS_AVAILABLE = os.environ.get('REDIS_ENABLED', 'False') == 'True'
+# Check for REDIS_URL or REDIS_ENABLED
+REDIS_URL = os.environ.get('REDIS_URL', '')
+REDIS_AVAILABLE = bool(REDIS_URL) or os.environ.get('REDIS_ENABLED', 'False') == 'True'
 
 if REDIS_AVAILABLE:
-    REDIS_URL = os.environ.get('REDIS_URL', 'redis://localhost:6379/0')
+    if not REDIS_URL:
+        REDIS_URL = 'redis://localhost:6379/0'
     CACHES = {
         'default': {
             'BACKEND': 'django_redis.cache.RedisCache',
@@ -132,6 +135,10 @@ MEDIA_ROOT = os.environ.get('MEDIA_ROOT', os.path.join(BASE_DIR, 'data', 'media'
 EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'  # Console output only
 
 # Logging - Node-friendly (minimal disk I/O for Raspberry Pi)
+# Log files stored in data/logs directory
+LOG_DIR = Path(os.environ.get('LOG_DIR', os.path.join(BASE_DIR.parent.parent.parent, 'data', 'logs')))
+LOG_DIR.mkdir(parents=True, exist_ok=True)
+
 LOGGING = {
     'version': 1,
     'disable_existing_loggers': False,
@@ -150,7 +157,7 @@ LOGGING = {
         'file': {
             'level': 'WARNING',  # Only warnings/errors to file
             'class': 'logging.handlers.RotatingFileHandler',
-            'filename': os.path.join(BASE_DIR, 'logs', 'node.log'),
+            'filename': str(LOG_DIR / 'node.log'),
             'maxBytes': 1024 * 1024 * 5,  # 5MB (smaller for nodes)
             'backupCount': 2,  # Keep less history
             'formatter': 'simple',
