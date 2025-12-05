@@ -16,9 +16,9 @@ import json
 import os
 
 # Current version
-__version__ = "2.1.2"
-__version_info__ = (2, 1, 2)
-__build__ = "20251205232551"
+__version__ = "2.1.3"
+__version_info__ = (2, 1, 3)
+__build__ = "20251205233815"
 
 # Version metadata
 VERSION_NAME = "5-Profile Architecture"

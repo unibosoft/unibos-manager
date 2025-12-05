@@ -8,7 +8,222 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 
+
 ---
+
+## [2.1.3] - 2025-12-05
+
+### Breaking Changes
+
+- 💥 **git**: remove all archive/ from git tracking
+  - ⚠️ Archive directory is now completely local-only
+- 💥 **v533**: Complete core-based architecture migration
+  - ⚠️ Major architectural restructure to 2-layer core/modules design
+
+### Added
+
+- ✨ **messenger**: Double Ratchet Algorithm for Perfect Forward Secrecy
+- ✨ Messenger module with E2E encryption, P2P support, WebSocket consumer, Flutter client
+- ✨ P2P mesh networking, sync engine, export control, Flutter sync client
+- ✨ add SSH clone support with deploy key fallback
+- ✨ update install script for v2.0 node architecture
+- ✨ add Celery worker and beat services for hub deployment
+- ✨ implement Celery worker and beat services for hub
+- ✨ add version branch push support to push-all command
+- ✨ add arrow-key selectable menu to install script
+- ✨ add install/repair/uninstall modes to install script
+- ✨ add install/repair/uninstall modes to install script
+- ✨ add modules_core app, fix gitignore paths
+- ✨ add modules_core Django app for shared models
+- ✨ **edge**: Raspberry Pi edge node installation system
+- ✨ **edge**: add Raspberry Pi edge node installation system
+- ✨ **nodes**: Node Registry for P2P foundation
+- ✨ **nodes**: add Celery tasks for node heartbeat monitoring
+- ✨ **nodes**: add Node Registry Django app for P2P foundation
+- ✨ **tui**: alternate screen buffer, multi-server deploy, improved UX
+- ✨ **cli**: add help command and release CLI
+- ✨ **cli**: add comprehensive help command with topic-based documentation
+- ✨ add release CLI commands for version management
+- ✨ **dev**: enhance dev profile with uvicorn server and changelog manager
+- ✨ **birlikteyiz**: add background earthquake scheduler and EMSC WebSocket
+- ✨ **tui**: enhance version manager with new versioning system support
+- ✨ **v0.534.0**: 4-tier CLI architecture and comprehensive updates
+- ✨ **cli**: simplify CLI usage and create unibos-manager command
+- ✨ **tui**: transform TUI to display all content in right panel
+- ✨ **git**: add push-all command for 3-repo architecture
+- ✨ **phase1**: implement three-CLI architecture with multi-repo deployment
+- ✨ **cli**: implement v527 EXACT ui/ux with all lowercase
+- ✨ **cli**: implement full v527 UI/UX layout + version v0.534.0
+- ✨ **cli**: implement hybrid mode for unibos-dev
+- ✨ **cli**: add interactive menu base system
+- ✨ **cli**: port v527 interactive CLI UI foundation
+- ✨ **cli**: add --setup flag to deploy rocksteady command
+- ✨ **packaging**: add modern pyproject.toml for unified CLI packaging
+- ✨ **deployment**: add pipx installation for unibos-server
+- ✨ **deployment**: update rocksteady deployment for v1.0.0
+- ✨ **django**: integrate module registry with Django settings
+- ✨ **modules**: implement module registry & discovery system
+- ✨ **identity**: implement node identity & persistence system
+- ✨ **cli**: complete service management implementation
+- ✨ **platform**: add cross-platform service management
+- ✨ **versioning**: implement semantic versioning system
+- ✨ **platform**: add platform detection system with psutil integration
+- ✨ **cli**: add setup files for 3-tier CLI architecture
+- ✨ **cli**: create server CLI for rocksteady management
+- ✨ **cli**: create production CLI for end users
+- ✨ **cli**: rename cli to cli-dev for developer commands
+- ✨ **cli**: push to both main and v533 branches
+- ✨ **git**: enhance dev/prod workflow safety
+- ✨ **devops**: implement dev/prod git workflow with CLI automation
+- ✨ **v533**: Complete Priority 1 & 2 - CLI Tool + Module Path Migration
+- ✨ **v533**: Complete module architecture migration - Phase 2.3
+- ✨ **phase2.3**: migrate module FileFields to new v533 data paths
+- ✨ **platform**: add Phase 3 foundation and TODO
+- ✨ **architecture**: v533 migration Phase 1 & 2 completed
+- ✨ **sdk**: add storage path management to UnibosModule
+
+### Changed
+
+- ♻️ update repo structure for 5-repo architecture
+- ♻️ rename profiles (server→hub, prod→node) and add worker
+- 💄 lowercase help documentation
+- 💄 **cli**: convert help documentation to lowercase
+- ♻️ **system**: improve admin views and context processors
+- ♻️ **tui**: improve TUI architecture and i18n system
+- ♻️ **tui**: atomic navigation redraw to prevent flicker
+- ♻️ **tui**: remove redundant navigation hints from content area
+- ♻️ **tui**: simplify version manager content area UX
+- 💄 **tui**: convert version manager to lowercase (v527 style)
+- ♻️ **gitignore**: implement Approach 1 - templates only in dev repo
+- ♻️ **core**: Phase 9 - Update configuration files
+- ♻️ **core**: Phase 8 - Update all imports and references
+- ♻️ remove old core/cli (replaced by core/clients/cli/framework/)
+- ♻️ **core**: Phase 6-7 - TUI/CLI frameworks + profiles migration
+- ♻️ **core**: Phase 1-5 - Major architecture restructuring
+- ♻️ **ignore**: update all ignore files for v533 architecture
+
+### Fixed
+
+- 🐛 remove RenameIndex from migration (indexes already named)
+- 🐛 update DB user password if already exists
+- 🐛 node settings LOG_DIR and REDIS detection
+- 🐛 update deploy module and rocksteady config for hub
+- 🐛 update VERSION.json display info in release pipeline
+- 🐛 exclude mobile SDK from version archives
+- 🐛 update deploy system for hub architecture
+- 🐛 update release pipeline and manager gitignore for 5-repo
+- 🐛 exclude flutter sdk from archive
+- 🐛 copy install.sh to staticfiles after collectstatic in deploy
+- 🐛 uninstall confirmation reads from /dev/tty, lowercase text
+- 🐛 menu redraw cursor positioning
+- 🐛 read from /dev/tty to support curl pipe input
+- 🐛 correct version parsing in install script
+- 🐛 install script with lowercase text, system info display, and proper menu selection
+- 🐛 correct gitignore paths (core/web → core/clients/web)
+- 🐛 update log paths from /var/log/unibos to data/logs
+- 🐛 correct database user name in config (unibos_user not unibos_db_user)
+- 🐛 deploy improvements - correct health endpoint, logging to data dir, config sync
+- 🐛 exclude sql files from release archives
+- 🐛 exclude data directory from release archives
+- 🐛 infrastructure improvements and documentation updates
+- 🐛 deploy system improvements and prometheus fix
+- 🐛 **web_ui**: Q+W solitaire shortcut now works on first press
+- 🐛 **tui**: disable terminal echo during render to prevent escape sequence leak
+- 🐛 **tui**: prevent render corruption with rendering lock and higher debounce
+- 🐛 **tui**: remove line-above clear that was erasing sidebar
+- 🐛 **tui**: aggressive input flush and line clear in footer
+- 🐛 **tui**: flush input buffer before redrawing header/footer
+- 🐛 **tui**: redraw header/footer after sidebar navigation
+- 🐛 **tui**: full render on section change to preserve header
+- 🐛 **tui**: add terminal resize detection to version manager submenu
+- 🐛 **tui**: fix version manager submenu navigation blinking
+- 🐛 **tui**: implement v527-style navigation for sidebar and submenus
+- 🐛 **tui**: implement circular navigation and fix content area input
+- 🐛 **tui**: implement v527-based emoji spacing and navigation fixes
+- 🐛 **tui**: improve Django server process management with PID tracking
+- 🐛 **tui**: fix Enter key handling by adding missing show_command_output method
+- 🐛 **cli**: restore splash screen and fix syntax errors in production CLI
+- 🐛 **cli**: correct PYTHONPATH and Django paths for TUI functionality
+- 🐛 **tui**: correct ModuleInfo attribute access in platform_modules
+- 🐛 **tui**: improve dev_shell and platform_identity actions
+- 🐛 **tui**: fix all TUI menu actions and update Django paths
+- 🐛 **tui**: resolve interactive mode path issues and improve action handling
+- 🐛 **packaging**: resolve pipx installation and import path issues
+- 🐛 **setup**: update setup.py entry points for profiles structure
+- 🐛 **cli**: implement v527 exact navigation structure
+- 🐛 **cli**: complete lowercase conversion (final 2 descriptions)
+- 🐛 **cli**: navigation wrapping + complete lowercase conversion
+- 🐛 **cli**: fix corrupted spinner characters in terminal.py
+- 🐛 **cli**: rename CLI dirs to Python-compatible names
+- 🐛 **cli**: use Django venv Python instead of CLI Python
+- 🐛 **cli**: use sys.executable instead of hardcoded 'python' command
+- 🐛 **cli**: use git root for project path detection
+- 🐛 **cli**: remove dangerous git add -A from push-prod command
+- 🐛 **birlikteyiz**: Change default time range to 30 days for earthquake map
+- 🐛 **v533**: Add db_table meta to core models for backward compatibility
+- 🐛 **v533**: Custom migration for JSONB→ArrayField + emergency settings update
+- 🐛 **version**: Restore VERSION.json and fix v533 display in web UI
+- 🐛 **backup**: Replace Django dumpdata with pg_dump for database backups
+
+### Documentation
+
+- 📝 Messenger security tests and documentation update
+- 📝 Messenger security tests and documentation update
+- 📝 comprehensive TODO.md update with API inventory
+- 📝 consolidate TODO files with status tracking
+- 📝 document version branch strategy (immutable snapshot)
+- 📝 update README, RULES for v2.0.0 5-profile architecture
+- 📝 consolidate TODO files, update worker architecture
+- 📝 **todo**: mark Node Registry as completed
+- 📝 update README and CHANGELOG with current features
+- 📝 **changelog**: add entries for Q+W fix, birlikteyiz scheduler, TUI improvements
+- 📝 update RULES.md and CLI splash screen
+- 📝 add comprehensive TUI server management documentation
+- 📝 **platform**: add comprehensive platform detection documentation
+- 📝 **cli**: add comprehensive three-tier CLI architecture documentation
+- 📝 **dev-prod**: improve dev/prod workflow documentation and rules
+- 📝 add comprehensive git workflow usage guide
+- 📝 add comprehensive guides for setup, CLI, development, and deployment
+- 📝 reorganize into 3-category structure (rules/guides/design)
+- 📝 **planning**: Organize roadmaps and create comprehensive future planning
+
+### Maintenance
+
+- 🔧 release v2.0.1
+- 🔧 release v2.0.0
+- 🔧 add mobile gitignore rules - dev includes source, others exclude entirely
+- 🔧 rollback version to v1.1.1, update raspberry roadmap
+- 🔧 consolidate docs into TODO.md, remove docs directory
+- 🔧 release v1.0.1
+- 🔧 remove deprecated .archiveignore file
+- 🔧 **web**: update gunicorn config and requirements
+- 🔧 release v1.0.0
+- 🔧 release v1.0.0
+- 🔧 release v1.0.0
+- 🔧 add archive to all releases
+- 🔧 release v1.0.0
+- 🔧 release v1.0.0
+- 🔧 fix branch naming format
+- 🔧 test release/v branch format
+- 🔧 pipeline multi-repo test
+- 🔧 release v1.0.0
+- 🔧 test release pipeline
+- 🔧 migrate to v1.0.0 with timestamp-based versioning
+- 🔧 **dev**: restore dev gitignore
+- 🔧 **prod**: update gitignore for prod repo
+- 🔧 **manager**: update gitignore for manager repo
+- 🔧 **server**: update gitignore for server repo
+- 🔧 **dev**: restore dev gitignore template
+- 🔧 **prod**: configure gitignore for prod repo
+- 🔧 **server**: configure gitignore for server repo
+- 🔧 **manager**: configure gitignore for manager repo
+- 🔧 clean up test files after TUI fix verification
+- 🔧 **setup**: update for v1.0.0 stable release
+- 🔧 **git**: remove SQL file from tracking
+- 🔧 **archive**: remove erroneously committed v532 legacy structures
+- 🔧 clean up root directory - move deprecated files to archive
+- 🔧 configure egg-info to build in build/ directory
+- 🔧 update .rsyncignore for platform/ structure
 
 ## [2.1.2] - 2025-12-05
 
