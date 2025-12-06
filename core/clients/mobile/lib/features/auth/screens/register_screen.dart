@@ -276,18 +276,19 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                               child: LinearProgressIndicator(
                                 value: _passwordStrength,
                                 backgroundColor:
-                                    UnibosColors.gray.withValues(alpha: 0.3),
+                                    UnibosColors.bgBlack.withValues(alpha: 0.5),
                                 valueColor: AlwaysStoppedAnimation<Color>(
                                     _getStrengthColor()),
                                 minHeight: 4,
                               ),
                             ),
                           ),
-                          const SizedBox(width: 8),
+                          const SizedBox(width: 12),
                           Text(
                             _getStrengthText(),
                             style: TextStyle(
                               fontSize: 12,
+                              fontWeight: FontWeight.w500,
                               color: _getStrengthColor(),
                             ),
                           ),
