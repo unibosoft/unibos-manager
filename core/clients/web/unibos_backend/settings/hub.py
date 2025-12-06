@@ -134,6 +134,9 @@ EMAIL_HOST_PASSWORD = os.environ.get('EMAIL_PASSWORD', '')
 DEFAULT_FROM_EMAIL = os.environ.get('EMAIL_FROM', 'berk@recaria.org')
 SERVER_EMAIL = os.environ.get('SERVER_EMAIL', 'berk@recaria.org')
 
+# Frontend URL for email links (verification, password reset, etc.)
+FRONTEND_URL = os.environ.get('FRONTEND_URL', 'https://recaria.org')
+
 # Logging - Production server
 # Log files stored in data/logs directory (created by deploy)
 LOG_DIR = Path(os.environ.get('LOG_DIR', '/home/ubuntu/unibos/data/logs'))

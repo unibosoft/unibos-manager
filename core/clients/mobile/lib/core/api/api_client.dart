@@ -171,11 +171,25 @@ class ApiClient {
           } else if (data.containsKey('detail')) {
             message = data['detail'].toString();
           }
-          // Check nested details for more specific error
+          // Check nested details for validation errors
           if (data.containsKey('details') && data['details'] is Map) {
             final details = data['details'] as Map;
             if (details.containsKey('detail')) {
               message = details['detail'].toString();
+            } else {
+              // Collect field-specific validation errors
+              final errors = <String>[];
+              details.forEach((key, value) {
+                if (value is List && value.isNotEmpty) {
+                  // Format: "password: [error1, error2]"
+                  errors.add('$key: ${value.first}');
+                } else if (value is String) {
+                  errors.add('$key: $value');
+                }
+              });
+              if (errors.isNotEmpty) {
+                message = errors.join('\n');
+              }
             }
           }
         }

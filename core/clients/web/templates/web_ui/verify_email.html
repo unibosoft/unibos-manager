@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>UNIBOS - Email Verification</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: #0a0a0a;
+            color: #f0f0f0;
+            font-family: 'Courier New', monospace;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .terminal-container {
+            width: 90%;
+            max-width: 450px;
+            background: rgba(20, 20, 20, 0.95);
+            border: 1px solid #ff8c00;
+            border-radius: 8px;
+            padding: 40px 30px;
+            box-shadow: 0 0 30px rgba(255, 140, 0, 0.2);
+            text-align: center;
+        }
+
+        h1 {
+            color: #ff8c00;
+            margin-bottom: 10px;
+            font-size: 32px;
+            text-shadow: 0 0 10px rgba(255, 140, 0, 0.3);
+        }
+
+        .version {
+            color: #808080;
+            margin-bottom: 30px;
+            font-size: 12px;
+        }
+
+        .icon {
+            font-size: 64px;
+            margin-bottom: 20px;
+        }
+
+        .icon.success {
+            color: #44ff44;
+        }
+
+        .icon.error {
+            color: #ff4444;
+        }
+
+        .icon.pending {
+            color: #ffaa00;
+        }
+
+        .message {
+            font-size: 18px;
+            margin-bottom: 15px;
+        }
+
+        .message.success {
+            color: #44ff44;
+        }
+
+        .message.error {
+            color: #ff4444;
+        }
+
+        .details {
+            color: #808080;
+            font-size: 14px;
+            margin-bottom: 30px;
+        }
+
+        .username {
+            color: #ff8c00;
+            font-weight: bold;
+        }
+
+        .email {
+            color: #a0a0a0;
+        }
+
+        .login-button {
+            display: inline-block;
+            padding: 15px 40px;
+            background: #ff8c00;
+            border: none;
+            color: #000;
+            font-weight: bold;
+            font-size: 16px;
+            text-transform: lowercase;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-family: 'Courier New', monospace;
+            letter-spacing: 2px;
+            text-decoration: none;
+            border-radius: 4px;
+        }
+
+        .login-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(255, 140, 0, 0.4);
+            background: #ffa500;
+        }
+
+        .login-button.secondary {
+            background: transparent;
+            border: 1px solid #ff8c00;
+            color: #ff8c00;
+        }
+
+        .login-button.secondary:hover {
+            background: rgba(255, 140, 0, 0.1);
+        }
+
+        .footer {
+            margin-top: 40px;
+            color: #606060;
+            font-size: 12px;
+        }
+
+        /* Subtle scanlines effect */
+        .terminal-container::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(
+                rgba(255, 140, 0, 0.01) 50%,
+                transparent 50%
+            );
+            background-size: 100% 2px;
+            pointer-events: none;
+            animation: scanlines 8s linear infinite;
+        }
+
+        @keyframes scanlines {
+            0% { background-position: 0 0; }
+            100% { background-position: 0 10px; }
+        }
+
+        .help-text {
+            color: #808080;
+            font-size: 13px;
+            margin-top: 20px;
+        }
+
+        .help-text a {
+            color: #ff8c00;
+            text-decoration: none;
+        }
+
+        .help-text a:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+    <div class="terminal-container">
+        <h1>recaria</h1>
+        <div class="version">email verification</div>
+
+        {% if verified %}
+            <!-- Success state -->
+            <div class="icon success">✓</div>
+            <div class="message success">email verified successfully!</div>
+            <div class="details">
+                welcome, <span class="username">{{ username }}</span><br>
+                <span class="email">{{ email }}</span> has been verified
+            </div>
+            <a href="/login/" class="login-button">proceed to login</a>
+
+        {% elif error %}
+            <!-- Error state -->
+            <div class="icon error">✗</div>
+            <div class="message error">{{ error }}</div>
+            <div class="details">
+                the verification link may have expired or already been used.
+            </div>
+            <a href="/login/" class="login-button secondary">go to login</a>
+            <div class="help-text">
+                need a new verification link?<br>
+                <a href="/register/">create a new account</a> or contact support
+            </div>
+
+        {% else %}
+            <!-- No token state -->
+            <div class="icon pending">?</div>
+            <div class="message">no verification token provided</div>
+            <div class="details">
+                please use the link from your verification email.
+            </div>
+            <a href="/login/" class="login-button secondary">go to login</a>
+            <div class="help-text">
+                didn't receive an email?<br>
+                check your spam folder or <a href="/register/">register again</a>
+            </div>
+        {% endif %}
+
+        <div class="footer">
+            secure connection | recaria.org<br>
+            &copy; 2025 unibos | all rights reserved
+        </div>
+    </div>
+</body>
+</html>

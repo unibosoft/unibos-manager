@@ -6,7 +6,7 @@ from django.urls import path, include
 from rest_framework.routers import DefaultRouter
 from .views import (
     MainView, ModuleView, ToolView, APIStatusView,
-    LoginView, RegisterView, ProfileView, SettingsView, logout_view, solitaire_view, exit_solitaire,
+    LoginView, RegisterView, VerifyEmailView, ProfileView, SettingsView, logout_view, solitaire_view, exit_solitaire,
     store_solitaire_return_url
 )
 from .api_views import (
@@ -31,6 +31,7 @@ urlpatterns = [
     # Authentication
     path('login/', LoginView.as_view(), name='login'),
     path('register/', RegisterView.as_view(), name='register'),
+    path('verify-email/', VerifyEmailView.as_view(), name='verify_email'),
     path('logout/', logout_view, name='logout'),
     path('profile/', ProfileView.as_view(), name='profile'),
     path('settings/', SettingsView.as_view(), name='settings'),

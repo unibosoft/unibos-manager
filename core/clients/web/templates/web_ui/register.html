@@ -147,9 +147,9 @@
             border-radius: 2px;
         }
 
-        .password-strength-bar.weak { width: 33%; background: #ff4444; }
-        .password-strength-bar.medium { width: 66%; background: #ffaa00; }
-        .password-strength-bar.strong { width: 100%; background: #44ff44; }
+        .password-strength-bar.weak { background: #ff4444; }
+        .password-strength-bar.medium { background: #ffaa00; }
+        .password-strength-bar.strong { background: #44ff44; }
 
         .password-strength-text {
             font-size: 11px;
@@ -379,7 +379,7 @@
                     </div>
                     <span class="password-strength-text" id="strengthText"></span>
                 </div>
-                <div class="input-hint">minimum 8 characters</div>
+                <div class="input-hint" id="passwordHint">min 8 chars, upper+lower, number, special char</div>
                 <div class="input-error" id="passwordError"></div>
             </div>
 
@@ -432,32 +432,111 @@
         const strengthText = document.getElementById('strengthText');
         const registerButton = document.getElementById('registerButton');
 
-        // Password strength checker
+        // Common patterns to avoid (must match backend)
+        const commonPatterns = ['12345', 'qwerty', 'asdfg', 'password', 'admin', 'letmein', 'welcome', 'monkey', 'dragon'];
+
+        // Check for sequential characters (abc, 123)
+        function hasSequentialChars(str) {
+            for (let i = 0; i < str.length - 2; i++) {
+                if (str.charCodeAt(i) + 1 === str.charCodeAt(i + 1) &&
+                    str.charCodeAt(i + 1) + 1 === str.charCodeAt(i + 2)) {
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        // Password strength checker - synced with backend rules
         function checkPasswordStrength(password) {
+            const passwordHint = document.getElementById('passwordHint');
+
             // Hide if empty
             if (!password) {
                 strengthContainer.classList.remove('show');
+                passwordHint.textContent = 'min 8 chars, upper+lower, number, special char';
                 return;
             }
 
             // Show container
             strengthContainer.classList.add('show');
 
-            let strength = 0;
-            if (password.length >= 8) strength++;
-            if (password.match(/[a-z]/) && password.match(/[A-Z]/)) strength++;
-            if (password.match(/[0-9]/)) strength++;
-            if (password.match(/[^a-zA-Z0-9]/)) strength++;
+            let score = 0;
+            let issues = [];
+
+            // Backend requires minimum 8 characters
+            if (password.length >= 8) {
+                score++;
+            } else {
+                issues.push('min 8 chars');
+            }
+
+            // Must have lowercase
+            if (password.match(/[a-z]/)) {
+                score++;
+            } else {
+                issues.push('lowercase');
+            }
+
+            // Must have uppercase
+            if (password.match(/[A-Z]/)) {
+                score++;
+            } else {
+                issues.push('uppercase');
+            }
+
+            // Must have digit
+            if (password.match(/[0-9]/)) {
+                score++;
+            } else {
+                issues.push('number');
+            }
+
+            // Must have special character (backend exact set)
+            if (password.match(/[!@#$%^&*(),.?":{}|<>]/)) {
+                score++;
+            } else {
+                issues.push('special char');
+            }
+
+            // Check for sequential characters
+            if (hasSequentialChars(password)) {
+                issues.push('no sequential');
+            } else if (password.length >= 3) {
+                score++;
+            }
+
+            // Check for repeated characters (aaa)
+            if (password.match(/(.)\1{2,}/)) {
+                issues.push('no repeated');
+            } else if (password.length >= 3) {
+                score++;
+            }
+
+            // Check for common patterns
+            const passwordLower = password.toLowerCase();
+            if (commonPatterns.some(p => passwordLower.includes(p))) {
+                issues.push('no common words');
+            }
+
+            // Update hint with missing requirements
+            if (issues.length > 0) {
+                passwordHint.textContent = 'needs: ' + issues.join(', ');
+            } else {
+                passwordHint.textContent = 'password meets all requirements';
+            }
 
             // Reset classes
             strengthBar.className = 'password-strength-bar';
             strengthText.className = 'password-strength-text';
 
-            if (strength >= 4) {
+            // Max score is 7
+            const percentage = score / 7;
+
+            if (percentage >= 0.9) {
                 strengthBar.classList.add('strong');
                 strengthText.classList.add('strong');
                 strengthText.textContent = 'strong';
-            } else if (strength >= 2) {
+            } else if (percentage >= 0.6) {
                 strengthBar.classList.add('medium');
                 strengthText.classList.add('medium');
                 strengthText.textContent = 'fair';
@@ -466,6 +545,9 @@
                 strengthText.classList.add('weak');
                 strengthText.textContent = 'weak';
             }
+
+            // Update bar width based on actual percentage
+            strengthBar.style.width = Math.round(percentage * 100) + '%';
         }
 
         passwordInput.addEventListener('input', () => {

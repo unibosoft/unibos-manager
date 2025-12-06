@@ -22,6 +22,12 @@ DATABASES = {
 SESSION_COOKIE_SECURE = False
 CSRF_COOKIE_SECURE = False
 
+# Frontend URL for email links (verification, password reset, etc.)
+FRONTEND_URL = 'http://localhost:8000'
+
+# Email - Console backend for development (prints to console)
+EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+
 # CORS settings for Flutter web app
 CORS_ALLOW_ALL_ORIGINS = True
 CORS_ALLOW_CREDENTIALS = True
@@ -39,5 +45,8 @@ REST_FRAMEWORK = {
         'burst': '6000/minute',
     },
 }
+
+# Disable mail server SSH in development (logs commands instead)
+MAIL_USE_SSH = False
 
 print("💻 Development settings with PostgreSQL")

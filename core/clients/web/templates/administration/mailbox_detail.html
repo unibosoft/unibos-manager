@@ -54,13 +54,27 @@
             </div>
         </div>
 
+        {% if not mailbox.mailbox_created %}
+        <div class="detail-section" style="border-color: #ffc107;">
+            <h2 style="color: #ffc107;">server provisioning</h2>
+            <p style="margin-bottom: 15px;">this mailbox has not been provisioned on the mail server yet.</p>
+            <form method="post" style="display: inline;">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="provision">
+                <button type="submit" class="btn btn-primary">
+                    provision on server now
+                </button>
+            </form>
+        </div>
+        {% endif %}
+
         <div class="detail-section">
             <h2>usage statistics</h2>
             <div class="detail-grid">
                 <div class="detail-item">
                     <label>storage used:</label>
                     <div class="progress" style="width: 200px;">
-                        <div class="progress-bar" 
+                        <div class="progress-bar"
                              style="width: {{ mailbox.usage_percentage }}%">
                             {{ mailbox.current_usage_mb|floatformat:1 }}mb / {{ mailbox.mailbox_size_mb }}mb
                         </div>
@@ -75,6 +89,15 @@
                     <span>{{ mailbox.messages_received }}</span>
                 </div>
             </div>
+            {% if mailbox.mailbox_created %}
+            <form method="post" style="margin-top: 15px;">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="refresh_stats">
+                <button type="submit" class="btn btn-secondary" style="font-size: 12px;">
+                    refresh stats from server
+                </button>
+            </form>
+            {% endif %}
         </div>
 
         <div class="detail-section">
@@ -209,16 +232,52 @@
                     </button>
                 </form>
                 
-                <form method="post" style="display: inline;">
+                <form method="post" style="display: inline;" id="deleteForm">
                     {% csrf_token %}
                     <input type="hidden" name="action" value="delete">
-                    <button type="submit" class="btn btn-danger" 
+                    {% if mailbox.mailbox_created %}
+                    <label style="color: #dc3545; margin-right: 10px;">
+                        <input type="checkbox" name="delete_data">
+                        also delete server data
+                    </label>
+                    {% endif %}
+                    <button type="submit" class="btn btn-danger"
                             onclick="return confirm('permanently delete this mailbox? this cannot be undone!')">
                         delete mailbox
                     </button>
                 </form>
             </div>
         </div>
+
+        {% if server_status %}
+        <div class="detail-section" style="border-color: #17a2b8;">
+            <h2 style="color: #17a2b8;">mail server status</h2>
+            <div class="detail-grid">
+                <div class="detail-item">
+                    <label>connection:</label>
+                    <span class="badge {% if server_status.connection %}badge-success{% else %}badge-danger{% endif %}">
+                        {% if server_status.connection %}connected{% else %}disconnected{% endif %}
+                    </span>
+                </div>
+                <div class="detail-item">
+                    <label>postfix:</label>
+                    <span class="badge {% if server_status.postfix %}badge-success{% else %}badge-danger{% endif %}">
+                        {% if server_status.postfix %}running{% else %}stopped{% endif %}
+                    </span>
+                </div>
+                <div class="detail-item">
+                    <label>dovecot:</label>
+                    <span class="badge {% if server_status.dovecot %}badge-success{% else %}badge-danger{% endif %}">
+                        {% if server_status.dovecot %}running{% else %}stopped{% endif %}
+                    </span>
+                </div>
+                <div class="detail-item">
+                    <label>disk usage:</label>
+                    <span>{{ server_status.disk_usage }}</span>
+                </div>
+            </div>
+        </div>
+        {% endif %}
     </div>
 </div>
 

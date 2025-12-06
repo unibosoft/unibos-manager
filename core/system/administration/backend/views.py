@@ -11,14 +11,18 @@ from django.db.models import Count, Q
 from django.utils import timezone
 from django.http import JsonResponse
 from .models import Role, UserRole, Department, PermissionRequest, AuditLog, SystemSetting, ScreenLock, RecariaMailbox
+from .mail_service import MailProvisioner
 from modules.solitaire.backend.models import SolitairePlayer, SolitaireGameSession, SolitaireActivity, SolitaireMoveHistory
 from modules.birlikteyiz.backend.models import CronJob, EarthquakeDataSource
 import json
+import logging
 from datetime import timedelta
 from django.http import HttpResponse
 from django.core.paginator import Paginator
 from django.db.models import Avg
 import csv
+
+logger = logging.getLogger('unibos.mail')
 
 
 def is_admin(user):
@@ -1343,49 +1347,80 @@ def mailbox_create(request):
     if request.method == 'POST':
         user_id = request.POST.get('user_id')
         email_prefix = request.POST.get('email_prefix', '').lower()
-        
+        provision_now = request.POST.get('provision_now') == 'on'
+
         if not user_id or not email_prefix:
             messages.error(request, 'user and email prefix are required')
             return redirect('administration:mailbox_list')
-        
+
         user = get_object_or_404(User, id=user_id)
         email_address = f"{email_prefix}@recaria.org"
-        
+
         # Check if email already exists
         if RecariaMailbox.objects.filter(email_address=email_address).exists():
             messages.error(request, f'email address {email_address} already exists')
             return redirect('administration:mailbox_list')
-        
+
         # Check if user already has a mailbox
         if RecariaMailbox.objects.filter(user=user).exists():
             messages.error(request, f'user {user.username} already has a mailbox')
             return redirect('administration:mailbox_list')
-        
-        # Create mailbox
+
+        mailbox_size = int(request.POST.get('mailbox_size_mb', 1024))
+
+        # Create mailbox record
         mailbox = RecariaMailbox.objects.create(
             user=user,
             email_address=email_address,
-            mailbox_size_mb=int(request.POST.get('mailbox_size_mb', 1024)),
+            mailbox_size_mb=mailbox_size,
             daily_send_limit=int(request.POST.get('daily_send_limit', 500)),
             attachment_size_limit_mb=int(request.POST.get('attachment_size_limit_mb', 25)),
             imap_enabled=request.POST.get('imap_enabled') == 'on',
             pop3_enabled=request.POST.get('pop3_enabled') == 'on',
             smtp_enabled=request.POST.get('smtp_enabled') == 'on',
         )
-        
+
+        temp_password = None
+
+        # Provision on mail server if requested
+        if provision_now:
+            try:
+                provisioner = MailProvisioner()
+                success, msg, temp_password = provisioner.create_mailbox(
+                    email=email_address,
+                    quota_mb=mailbox_size
+                )
+
+                if success:
+                    mailbox.mailbox_created = True
+                    mailbox.password_set = True
+                    mailbox.save()
+                    messages.success(request, f'mailbox provisioned on server. temp password: {temp_password}')
+                    logger.info(f'mailbox provisioned: {email_address}')
+                else:
+                    messages.warning(request, f'mailbox record created but server provisioning failed: {msg}')
+                    logger.warning(f'mailbox provisioning failed: {email_address} - {msg}')
+            except Exception as e:
+                messages.warning(request, f'mailbox record created but server error: {str(e)}')
+                logger.error(f'mailbox provisioning error: {email_address} - {e}')
+
         # Log the action
         AuditLog.objects.create(
             user=request.user,
             action='user_create',
             target_user=user,
             target_object=f'mailbox: {email_address}',
-            details={'mailbox_id': mailbox.id, 'email': email_address},
+            details={
+                'mailbox_id': str(mailbox.id),
+                'email': email_address,
+                'provisioned': mailbox.mailbox_created
+            },
             ip_address=request.META.get('REMOTE_ADDR')
         )
-        
+
         messages.success(request, f'mailbox {email_address} created for {user.username}')
         return redirect('administration:mailbox_detail', mailbox_id=mailbox.id)
-    
+
     return redirect('administration:mailbox_list')
 
 
@@ -1394,10 +1429,11 @@ def mailbox_create(request):
 def mailbox_detail(request, mailbox_id):
     """view and manage a specific mailbox"""
     mailbox = get_object_or_404(RecariaMailbox, id=mailbox_id)
-    
+    provisioner = MailProvisioner()
+
     if request.method == 'POST':
         action = request.POST.get('action')
-        
+
         if action == 'update_settings':
             mailbox.mailbox_size_mb = int(request.POST.get('mailbox_size_mb', 1024))
             mailbox.daily_send_limit = int(request.POST.get('daily_send_limit', 500))
@@ -1406,9 +1442,29 @@ def mailbox_detail(request, mailbox_id):
             mailbox.pop3_enabled = request.POST.get('pop3_enabled') == 'on'
             mailbox.smtp_enabled = request.POST.get('smtp_enabled') == 'on'
             mailbox.save()
-            
+
             messages.success(request, 'mailbox settings updated')
-            
+
+        elif action == 'provision':
+            # Provision mailbox on server
+            try:
+                success, msg, temp_password = provisioner.create_mailbox(
+                    email=mailbox.email_address,
+                    quota_mb=mailbox.mailbox_size_mb
+                )
+
+                if success:
+                    mailbox.mailbox_created = True
+                    mailbox.password_set = True
+                    mailbox.save()
+                    messages.success(request, f'mailbox provisioned! temp password: {temp_password}')
+                    logger.info(f'mailbox provisioned: {mailbox.email_address}')
+                else:
+                    messages.error(request, f'provisioning failed: {msg}')
+            except Exception as e:
+                messages.error(request, f'server error: {str(e)}')
+                logger.error(f'mailbox provisioning error: {e}')
+
         elif action == 'toggle_active':
             mailbox.is_active = not mailbox.is_active
             if not mailbox.is_active:
@@ -1416,55 +1472,129 @@ def mailbox_detail(request, mailbox_id):
             else:
                 mailbox.suspended_reason = ''
             mailbox.save()
-            
+
+            # Sync with mail server
+            if mailbox.mailbox_created:
+                try:
+                    provisioner.suspend_mailbox(mailbox.email_address, not mailbox.is_active)
+                except Exception as e:
+                    logger.warning(f'could not sync suspend status to server: {e}')
+
             status = 'activated' if mailbox.is_active else 'suspended'
             messages.success(request, f'mailbox {status}')
-            
+
         elif action == 'set_forwarding':
             mailbox.forwarding_enabled = request.POST.get('forwarding_enabled') == 'on'
             mailbox.forwarding_address = request.POST.get('forwarding_address', '')
             mailbox.save()
-            
+
+            # Sync forwarding with mail server
+            if mailbox.mailbox_created:
+                try:
+                    forward_to = mailbox.forwarding_address if mailbox.forwarding_enabled else ''
+                    provisioner.set_forwarding(mailbox.email_address, forward_to, keep_copy=True)
+                except Exception as e:
+                    logger.warning(f'could not sync forwarding to server: {e}')
+
             if mailbox.forwarding_enabled:
                 messages.success(request, f'forwarding enabled to {mailbox.forwarding_address}')
             else:
                 messages.success(request, 'forwarding disabled')
-                
+
         elif action == 'set_autoresponder':
             mailbox.auto_responder_enabled = request.POST.get('auto_responder_enabled') == 'on'
             mailbox.auto_responder_message = request.POST.get('auto_responder_message', '')
             mailbox.save()
-            
+
+            # Sync auto-responder with mail server
+            if mailbox.mailbox_created:
+                try:
+                    provisioner.set_auto_responder(
+                        mailbox.email_address,
+                        mailbox.auto_responder_enabled,
+                        mailbox.auto_responder_message
+                    )
+                except Exception as e:
+                    logger.warning(f'could not sync auto-responder to server: {e}')
+
             if mailbox.auto_responder_enabled:
                 messages.success(request, 'auto-responder enabled')
             else:
                 messages.success(request, 'auto-responder disabled')
-                
+
         elif action == 'reset_password':
-            # This would integrate with mail server API to reset password
-            messages.info(request, 'password reset functionality will be implemented with mail server api')
-            
+            # Generate and set new password
+            try:
+                from .mail_service import generate_password
+                new_password = generate_password()
+                success, msg = provisioner.change_password(mailbox.email_address, new_password)
+
+                if success:
+                    messages.success(request, f'password reset! new password: {new_password}')
+                    logger.info(f'password reset for: {mailbox.email_address}')
+                else:
+                    messages.error(request, f'password reset failed: {msg}')
+            except Exception as e:
+                messages.error(request, f'error resetting password: {str(e)}')
+                logger.error(f'password reset error: {e}')
+
+        elif action == 'refresh_stats':
+            # Refresh usage statistics from server
+            if mailbox.mailbox_created:
+                try:
+                    success, stats = provisioner.get_mailbox_usage(mailbox.email_address)
+                    if success:
+                        mailbox.current_usage_mb = stats['size_mb']
+                        mailbox.messages_received = stats.get('message_count', mailbox.messages_received)
+                        mailbox.save()
+                        messages.success(request, f'stats updated: {stats["size_mb"]}mb, {stats["message_count"]} messages')
+                    else:
+                        messages.warning(request, f'could not fetch stats: {stats.get("error", "unknown")}')
+                except Exception as e:
+                    messages.error(request, f'error fetching stats: {str(e)}')
+            else:
+                messages.warning(request, 'mailbox not provisioned on server yet')
+
         elif action == 'delete':
             email = mailbox.email_address
             user = mailbox.user
+            delete_data = request.POST.get('delete_data') == 'on'
+
+            # Delete from mail server if provisioned
+            if mailbox.mailbox_created:
+                try:
+                    provisioner.delete_mailbox(email, delete_data=delete_data)
+                    logger.info(f'mailbox deleted from server: {email}')
+                except Exception as e:
+                    logger.warning(f'could not delete mailbox from server: {e}')
+
             mailbox.delete()
-            
+
             AuditLog.objects.create(
                 user=request.user,
                 action='user_delete',
                 target_user=user,
                 target_object=f'mailbox: {email}',
+                details={'deleted_server_data': delete_data},
                 ip_address=request.META.get('REMOTE_ADDR')
             )
-            
+
             messages.success(request, f'mailbox {email} deleted')
             return redirect('administration:mailbox_list')
-        
+
         return redirect('administration:mailbox_detail', mailbox_id=mailbox.id)
-    
+
+    # Get server status for context
+    server_status = None
+    try:
+        server_status = provisioner.get_server_status()
+    except Exception:
+        pass
+
     context = {
         'mailbox': mailbox,
+        'server_status': server_status,
         'pending_requests_count': PermissionRequest.objects.filter(status='pending').count(),
     }
-    
+
     return render(request, 'administration/mailbox_detail.html', context)

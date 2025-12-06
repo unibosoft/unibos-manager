@@ -149,3 +149,77 @@ def get_location_from_ip(ip_address: str) -> Dict[str, str]:
         'country': 'TR',
         'city': 'Istanbul',
     }
+
+
+def send_email_verification(user, token: str, verification_type: str = 'registration') -> None:
+    """
+    Send email verification link to user.
+
+    Args:
+        user: User instance
+        token: Verification token string
+        verification_type: 'registration', 'change', or 'recovery'
+    """
+    verify_url = f"{settings.FRONTEND_URL}/verify-email?token={token}"
+
+    # Subject based on type
+    subjects = {
+        'registration': 'Welcome to UNIBOS - Verify Your Email',
+        'change': 'UNIBOS - Confirm Your New Email',
+        'recovery': 'UNIBOS - Account Recovery',
+    }
+    subject = subjects.get(verification_type, 'UNIBOS - Email Verification')
+
+    context = {
+        'user': user,
+        'verify_url': verify_url,
+        'site_name': 'UNIBOS',
+        'verification_type': verification_type,
+    }
+
+    # Try to use template, fallback to simple text
+    try:
+        html_message = render_to_string('emails/email_verification.html', context)
+        plain_message = render_to_string('emails/email_verification.txt', context)
+    except Exception:
+        # Fallback plain text email
+        plain_message = f"""Hello {user.username},
+
+Please verify your email address by clicking the link below:
+
+{verify_url}
+
+This link will expire in 24 hours.
+
+If you didn't create an account with UNIBOS, please ignore this email.
+
+Best regards,
+UNIBOS Team
+"""
+        html_message = f"""
+<html>
+<body style="font-family: 'Courier New', monospace; background-color: #0a0a0a; color: #f0f0f0; padding: 40px;">
+    <div style="max-width: 500px; margin: 0 auto; background: rgba(20, 20, 20, 0.95); border: 1px solid #ff8c00; border-radius: 8px; padding: 30px;">
+        <h1 style="color: #ff8c00; text-align: center;">UNIBOS</h1>
+        <p>Hello {user.username},</p>
+        <p>Please verify your email address by clicking the button below:</p>
+        <div style="text-align: center; margin: 30px 0;">
+            <a href="{verify_url}" style="background: #ff8c00; color: #000; padding: 15px 30px; text-decoration: none; font-weight: bold; border-radius: 4px;">Verify Email</a>
+        </div>
+        <p style="color: #808080; font-size: 12px;">This link will expire in 24 hours.</p>
+        <p style="color: #808080; font-size: 12px;">If you didn't create an account with UNIBOS, please ignore this email.</p>
+        <hr style="border-color: #303030; margin: 20px 0;">
+        <p style="color: #606060; font-size: 11px; text-align: center;">UNIBOS - Universal Basic Operating System</p>
+    </div>
+</body>
+</html>
+"""
+
+    send_mail(
+        subject=subject,
+        message=plain_message,
+        from_email=settings.DEFAULT_FROM_EMAIL,
+        recipient_list=[user.email],
+        html_message=html_message,
+        fail_silently=True,  # Don't fail registration if email fails
+    )

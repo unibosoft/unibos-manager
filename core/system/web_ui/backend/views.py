@@ -667,6 +667,40 @@ class RegisterView(TemplateView):
         return context
 
 
+class VerifyEmailView(TemplateView):
+    """Email verification page view"""
+    template_name = 'web_ui/verify_email.html'
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        token = self.request.GET.get('token', '')
+        context['token'] = token
+        context['verified'] = False
+        context['error'] = None
+
+        if token:
+            # Verify the token
+            from core.system.authentication.backend.models import EmailVerificationToken
+            try:
+                verification = EmailVerificationToken.objects.get(
+                    token=token,
+                    is_used=False
+                )
+
+                if verification.is_valid():
+                    # Mark as verified
+                    verification.mark_used()
+                    context['verified'] = True
+                    context['email'] = verification.email
+                    context['username'] = verification.user.username
+                else:
+                    context['error'] = 'verification link has expired'
+            except EmailVerificationToken.DoesNotExist:
+                context['error'] = 'invalid verification link'
+
+        return context
+
+
 @method_decorator(csrf_exempt, name='dispatch')
 class LoginView(TemplateView):
     """Login page view"""

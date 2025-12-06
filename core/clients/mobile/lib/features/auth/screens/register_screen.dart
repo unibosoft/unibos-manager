@@ -24,6 +24,13 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
   bool _acceptedTerms = false;
   String? _errorMessage;
   double _passwordStrength = 0;
+  List<String> _passwordIssues = [];
+
+  // Common patterns to check against
+  static const _commonPatterns = [
+    '12345', 'qwerty', 'asdfg', 'password', 'admin',
+    'letmein', 'welcome', 'monkey', 'dragon',
+  ];
 
   @override
   void dispose() {
@@ -35,29 +42,91 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
   }
 
   void _updatePasswordStrength(String password) {
-    double strength = 0;
-    if (password.length >= 8) strength += 0.25;
-    if (password.contains(RegExp(r'[a-z]')) &&
-        password.contains(RegExp(r'[A-Z]'))) strength += 0.25;
-    if (password.contains(RegExp(r'[0-9]'))) strength += 0.25;
-    if (password.contains(RegExp(r'[!@#$%^&*(),.?":{}|<>]'))) strength += 0.25;
+    int score = 0;
+    List<String> issues = [];
+
+    // Backend requires minimum 8 characters
+    if (password.length >= 8) {
+      score++;
+    } else {
+      issues.add('min 8 characters');
+    }
+
+    // Must have lowercase
+    if (password.contains(RegExp(r'[a-z]'))) {
+      score++;
+    } else {
+      issues.add('lowercase letter');
+    }
+
+    // Must have uppercase
+    if (password.contains(RegExp(r'[A-Z]'))) {
+      score++;
+    } else {
+      issues.add('uppercase letter');
+    }
+
+    // Must have digit
+    if (password.contains(RegExp(r'[0-9]'))) {
+      score++;
+    } else {
+      issues.add('number');
+    }
+
+    // Must have special character (backend exact set)
+    if (password.contains(RegExp(r'[!@#$%^&*(),.?":{}|<>]'))) {
+      score++;
+    } else {
+      issues.add('special char (!@#\$%^&*...)');
+    }
+
+    // Check for sequential characters (abc, 123)
+    bool hasSequential = false;
+    for (int i = 0; i < password.length - 2; i++) {
+      if (password.codeUnitAt(i) + 1 == password.codeUnitAt(i + 1) &&
+          password.codeUnitAt(i + 1) + 1 == password.codeUnitAt(i + 2)) {
+        hasSequential = true;
+        break;
+      }
+    }
+    if (hasSequential) {
+      issues.add('no sequential chars');
+    } else if (password.length >= 3) {
+      score++;
+    }
+
+    // Check for repeated characters (aaa)
+    if (RegExp(r'(.)\1{2,}').hasMatch(password)) {
+      issues.add('no repeated chars');
+    } else if (password.length >= 3) {
+      score++;
+    }
+
+    // Check for common patterns
+    String passwordLower = password.toLowerCase();
+    bool hasCommon = _commonPatterns.any((p) => passwordLower.contains(p));
+    if (hasCommon) {
+      issues.add('no common words');
+    }
 
     setState(() {
-      _passwordStrength = strength;
+      // Max score is 7 (length, lower, upper, digit, special, no-seq, no-repeat)
+      _passwordStrength = password.isEmpty ? 0 : (score / 7).clamp(0.0, 1.0);
+      _passwordIssues = issues;
     });
   }
 
   Color _getStrengthColor() {
-    if (_passwordStrength <= 0.25) return UnibosColors.danger;
-    if (_passwordStrength <= 0.5) return UnibosColors.warning;
-    if (_passwordStrength <= 0.75) return UnibosColors.orange;
+    if (_passwordStrength < 0.5) return UnibosColors.danger;
+    if (_passwordStrength < 0.7) return UnibosColors.warning;
+    if (_passwordStrength < 0.9) return UnibosColors.orange;
     return UnibosColors.success;
   }
 
   String _getStrengthText() {
-    if (_passwordStrength <= 0.25) return 'weak';
-    if (_passwordStrength <= 0.5) return 'fair';
-    if (_passwordStrength <= 0.75) return 'good';
+    if (_passwordStrength < 0.5) return 'weak';
+    if (_passwordStrength < 0.7) return 'fair';
+    if (_passwordStrength < 0.9) return 'good';
     return 'strong';
   }
 
@@ -271,15 +340,21 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                       Row(
                         children: [
                           Expanded(
-                            child: ClipRRect(
-                              borderRadius: BorderRadius.circular(2),
-                              child: LinearProgressIndicator(
-                                value: _passwordStrength,
-                                backgroundColor:
-                                    UnibosColors.bgBlack.withValues(alpha: 0.5),
-                                valueColor: AlwaysStoppedAnimation<Color>(
-                                    _getStrengthColor()),
-                                minHeight: 4,
+                            child: Container(
+                              height: 4,
+                              decoration: BoxDecoration(
+                                color: UnibosColors.bgBlack.withValues(alpha: 0.5),
+                                borderRadius: BorderRadius.circular(2),
+                              ),
+                              child: FractionallySizedBox(
+                                alignment: Alignment.centerLeft,
+                                widthFactor: _passwordStrength > 0 ? _passwordStrength : 0.05,
+                                child: Container(
+                                  decoration: BoxDecoration(
+                                    color: _getStrengthColor(),
+                                    borderRadius: BorderRadius.circular(2),
+                                  ),
+                                ),
                               ),
                             ),
                           ),
@@ -294,6 +369,17 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                           ),
                         ],
                       ),
+                      // Show missing requirements
+                      if (_passwordIssues.isNotEmpty) ...[
+                        const SizedBox(height: 6),
+                        Text(
+                          'needs: ${_passwordIssues.join(", ")}',
+                          style: TextStyle(
+                            fontSize: 11,
+                            color: _getStrengthColor(),
+                          ),
+                        ),
+                      ],
                       const SizedBox(height: 8),
                     ],
                     const SizedBox(height: 8),

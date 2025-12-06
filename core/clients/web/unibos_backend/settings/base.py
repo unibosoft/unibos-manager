@@ -278,7 +278,7 @@ AUTH_PASSWORD_VALIDATORS = [
     {
         'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator',
         'OPTIONS': {
-            'min_length': 10,
+            'min_length': 8,
         }
     },
     {
@@ -634,3 +634,14 @@ DATA_UPLOAD_MAX_MEMORY_SIZE = 5 * 1024 * 1024  # 5MB
 # Custom Settings
 UNIBOS_VERSION = '1.0.0'
 UNIBOS_ENVIRONMENT = env('ENVIRONMENT', default='development')
+
+# =============================================================================
+# MAIL SERVER SETTINGS (recaria.org)
+# =============================================================================
+# Configuration for mail server provisioning via SSH
+MAIL_SERVER_HOST = env('MAIL_SERVER_HOST', default='mail.recaria.org')
+MAIL_SERVER_SSH_USER = env('MAIL_SERVER_SSH_USER', default='ubuntu')
+MAIL_SERVER_SSH_KEY = env('MAIL_SERVER_SSH_KEY', default='/home/ubuntu/.ssh/id_rsa')
+MAIL_DOMAIN = env('MAIL_DOMAIN', default='recaria.org')
+# Set to False in development to log commands instead of executing
+MAIL_USE_SSH = env.bool('MAIL_USE_SSH', default=True)

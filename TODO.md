@@ -1,7 +1,7 @@
 # UNIBOS Development TODO
 
-**Version:** v2.1.1
-**Updated:** 2025-12-05
+**Version:** v2.1.4
+**Updated:** 2025-12-06
 **Status:** Active Development
 
 ---
@@ -305,7 +305,27 @@
 
 ## Completed
 
-### v2.0.2 (2025-12-05) - Current
+### v2.1.4 (2025-12-06) - Current
+- [x] User Registration Flow
+  - [x] Web UI register page (terminal-style design)
+  - [x] Flutter RegisterScreen with password strength
+  - [x] Password validation synced across backend/web/mobile
+  - [x] Backend validation error display in Flutter
+  - [x] Email verification on registration
+  - [x] Web verify-email page
+  - [x] Login ↔ Register navigation links
+- [x] Password policy: min 8 chars, upper+lower, digit, special char
+- [x] recaria.org Mail Server Management
+  - [x] `mail_service.py` - SSH-based Postfix/Dovecot provisioning
+  - [x] Mailbox CRUD (create, delete, password reset)
+  - [x] Forwarding and auto-responder configuration
+  - [x] Usage statistics from mail server
+  - [x] `sync_mailboxes` management command
+  - [x] Web UI in Administration > Recaria Mail
+  - [x] Server status display in mailbox detail
+  - [x] MAIL_USE_SSH config setting
+
+### v2.0.2 (2025-12-05)
 - [x] Celery worker service implementation
 - [x] Celery beat scheduler service
 - [x] Systemd service files (web, worker, beat)

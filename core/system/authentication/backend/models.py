@@ -437,7 +437,7 @@ class EmailVerificationToken(models.Model):
         self.save(update_fields=['is_used', 'used_at'])
 
     @classmethod
-    def create_token(cls, user, email, verification_type='registration', valid_hours=24):
+    def create_token(cls, user, email, verification_type='registration', valid_hours=24, ip_address=None):
         """Create a new verification token"""
         import secrets
         token = secrets.token_urlsafe(48)
@@ -446,7 +446,8 @@ class EmailVerificationToken(models.Model):
             token=token,
             email=email,
             verification_type=verification_type,
-            expires_at=timezone.now() + timedelta(hours=valid_hours)
+            expires_at=timezone.now() + timedelta(hours=valid_hours),
+            ip_address=ip_address
         )
 
     @classmethod

@@ -52,6 +52,7 @@ from .models import (
 from .utils import (
     get_client_ip,
     send_password_reset_email,
+    send_email_verification,
     generate_otp_secret,
     verify_otp,
     generate_backup_codes,
@@ -129,7 +130,7 @@ class RegisterView(generics.CreateAPIView):
         user = serializer.save()
         # Generate tokens for immediate login
         refresh = RefreshToken.for_user(user)
-        
+
         # Track session
         request = self.request
         # refresh['exp'] Unix timestamp, datetime'a cevir
@@ -141,7 +142,22 @@ class RegisterView(generics.CreateAPIView):
             user_agent=request.META.get('HTTP_USER_AGENT', ''),
             expires_at=expires_dt
         )
-        
+
+        # Create email verification token and send email
+        try:
+            verification_token = EmailVerificationToken.create_token(
+                user=user,
+                email=user.email,
+                verification_type='registration',
+                ip_address=get_client_ip(request)
+            )
+            send_email_verification(user, verification_token.token, 'registration')
+        except Exception as e:
+            # Log but don't fail registration
+            import logging
+            logger = logging.getLogger('authentication')
+            logger.warning(f"Failed to send verification email for {user.username}: {e}")
+
         # Add tokens to response
         self.tokens = {
             'refresh': str(refresh),
