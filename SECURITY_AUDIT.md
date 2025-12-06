@@ -1,6 +1,6 @@
 # UNIBOS Security Audit Report
 
-**Version:** v2.1.2
+**Version:** v2.1.4
 **Date:** 2025-12-05
 **Auditor:** Internal Security Review
 **Status:** PASSED
@@ -9,7 +9,7 @@
 
 ## Executive Summary
 
-The UNIBOS Messenger module encryption implementation has been thoroughly tested for common cryptographic vulnerabilities. All 103 security tests passed, demonstrating a robust implementation of end-to-end encryption with Perfect Forward Secrecy.
+The UNIBOS Messenger module encryption implementation has been thoroughly tested for common cryptographic vulnerabilities. All 123 security tests passed, demonstrating a robust implementation of end-to-end encryption with Perfect Forward Secrecy.
 
 ### Test Results
 
@@ -29,7 +29,9 @@ The UNIBOS Messenger module encryption implementation has been thoroughly tested
 | Timing Attacks | 1 | PASSED |
 | Key Management | 3 | PASSED |
 | **Double Ratchet** | **34** | **PASSED** |
-| **TOTAL** | **103** | **PASSED** |
+| **File Attachments** | **20** | **PASSED** |
+| **Read Receipts** | **18** | **PASSED** |
+| **TOTAL** | **141** | **PASSED** |
 
 ---
 
@@ -153,6 +155,8 @@ modules/messenger/backend/tests/
 ├── test_encryption.py      # 43 tests - Core encryption
 ├── test_security.py        # 26 tests - Security penetration
 ├── test_double_ratchet.py  # 34 tests - Double Ratchet Algorithm
+├── test_attachments.py     # 20 tests - Encrypted file attachments
+├── test_read_receipts.py   # 18 tests - Read receipt functionality
 ├── test_integration.py     # Django integration tests
 ├── test_p2p.py            # P2P session tests
 └── test_delivery.py       # Delivery queue tests

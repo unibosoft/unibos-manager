@@ -673,6 +673,95 @@ class AttachmentUploadView(APIView):
         )
 
 
+class AttachmentDownloadView(APIView):
+    """Download message attachment"""
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, conversation_id, message_id, attachment_id):
+        """Download encrypted attachment file"""
+        # Verify user is participant in conversation
+        attachment = get_object_or_404(
+            MessageAttachment,
+            id=attachment_id,
+            message_id=message_id,
+            message__conversation_id=conversation_id,
+            message__conversation__participants__user=request.user,
+            message__conversation__participants__is_active=True
+        )
+
+        # Return attachment metadata and download URL
+        from django.http import FileResponse
+        import os
+
+        if not attachment.file:
+            return Response(
+                {'detail': 'File not found.'},
+                status=status.HTTP_404_NOT_FOUND
+            )
+
+        # Stream the encrypted file
+        response = FileResponse(
+            attachment.file.open('rb'),
+            content_type='application/octet-stream'
+        )
+        response['Content-Disposition'] = f'attachment; filename="{attachment.original_filename}.enc"'
+        response['X-File-Hash'] = attachment.file_hash
+        response['X-File-Size'] = str(attachment.file_size)
+        response['X-Original-Filename'] = attachment.original_filename
+        response['X-File-Type'] = attachment.file_type
+
+        return response
+
+
+class AttachmentListView(APIView):
+    """List attachments for a message"""
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, conversation_id, message_id):
+        """Get all attachments for a message"""
+        message = get_object_or_404(
+            Message,
+            id=message_id,
+            conversation_id=conversation_id,
+            conversation__participants__user=request.user,
+            conversation__participants__is_active=True
+        )
+
+        attachments = message.attachments.all()
+        serializer = MessageAttachmentSerializer(attachments, many=True)
+        return Response(serializer.data)
+
+
+class AttachmentMetadataView(APIView):
+    """Get attachment metadata (for decryption)"""
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, conversation_id, message_id, attachment_id):
+        """Get attachment metadata including encryption keys"""
+        attachment = get_object_or_404(
+            MessageAttachment,
+            id=attachment_id,
+            message_id=message_id,
+            message__conversation_id=conversation_id,
+            message__conversation__participants__user=request.user,
+            message__conversation__participants__is_active=True
+        )
+
+        return Response({
+            'id': str(attachment.id),
+            'original_filename': attachment.original_filename,
+            'file_type': attachment.file_type,
+            'file_size': attachment.file_size,
+            'encrypted_file_key': attachment.encrypted_file_key,
+            'file_nonce': attachment.file_nonce,
+            'file_hash': attachment.file_hash,
+            'encrypted_thumbnail_key': attachment.encrypted_thumbnail_key,
+            'encrypted_metadata': attachment.encrypted_metadata,
+            'is_processed': attachment.is_processed,
+            'created_at': attachment.created_at.isoformat()
+        })
+
+
 # ========== P2P Views ==========
 
 class P2PStatusView(APIView):
@@ -928,3 +1017,161 @@ class MarkAllReadView(APIView):
         participant.save(update_fields=['last_read_at', 'unread_count'])
 
         return Response({'detail': 'All messages marked as read.'})
+
+
+# ========== Read Receipt Views ==========
+
+class ReadReceiptsView(APIView):
+    """Get read receipts for a message"""
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, conversation_id, message_id):
+        """Get all read receipts for a message"""
+        message = get_object_or_404(
+            Message,
+            id=message_id,
+            conversation_id=conversation_id,
+            conversation__participants__user=request.user,
+            conversation__participants__is_active=True
+        )
+
+        receipts = message.read_receipts.select_related('user').order_by('read_at')
+
+        from .serializers import MessageReadReceiptSerializer
+        serializer = MessageReadReceiptSerializer(receipts, many=True)
+        return Response(serializer.data)
+
+
+class BatchReadView(APIView):
+    """Mark multiple messages as read at once"""
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request, conversation_id):
+        """Mark multiple messages as read"""
+        message_ids = request.data.get('message_ids', [])
+        device_id = request.data.get('device_id', '')
+
+        if not message_ids:
+            return Response(
+                {'detail': 'message_ids required.'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        # Verify user is participant
+        participant = get_object_or_404(
+            Participant,
+            conversation_id=conversation_id,
+            user=request.user,
+            is_active=True
+        )
+
+        # Get valid messages
+        messages = Message.objects.filter(
+            id__in=message_ids,
+            conversation_id=conversation_id,
+            is_deleted=False
+        )
+
+        # Create read receipts
+        read_count = 0
+        last_message = None
+        for message in messages:
+            receipt, created = MessageReadReceipt.objects.get_or_create(
+                message=message,
+                user=request.user,
+                defaults={'device_id': device_id}
+            )
+            if created:
+                read_count += 1
+                if not last_message or message.created_at > last_message.created_at:
+                    last_message = message
+
+        # Update participant's last read
+        if last_message:
+            participant.last_read_at = timezone.now()
+            participant.last_read_message_id = last_message.id
+            participant.unread_count = max(0, participant.unread_count - read_count)
+            participant.save(update_fields=['last_read_at', 'last_read_message_id', 'unread_count'])
+
+        # Notify sender via WebSocket
+        self._notify_read_receipts(conversation_id, message_ids, request.user)
+
+        return Response({
+            'marked_count': read_count,
+            'read_at': timezone.now().isoformat()
+        })
+
+    def _notify_read_receipts(self, conversation_id, message_ids, reader):
+        """Send WebSocket notification for read receipts"""
+        try:
+            from channels.layers import get_channel_layer
+            from asgiref.sync import async_to_sync
+
+            channel_layer = get_channel_layer()
+            group_name = f"messenger_conversation_{conversation_id}"
+
+            async_to_sync(channel_layer.group_send)(group_name, {
+                'type': 'message.read',
+                'message_ids': [str(mid) for mid in message_ids],
+                'reader_id': str(reader.id),
+                'reader_username': reader.username,
+                'read_at': timezone.now().isoformat(),
+            })
+        except Exception as e:
+            logger.warning(f"Failed to send read receipt notification: {e}")
+
+
+class ReadStatusView(APIView):
+    """Get read status for messages"""
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request, conversation_id):
+        """Get read status for multiple messages"""
+        message_ids = request.data.get('message_ids', [])
+
+        if not message_ids:
+            return Response(
+                {'detail': 'message_ids required.'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        # Verify user is participant
+        if not Participant.objects.filter(
+            conversation_id=conversation_id,
+            user=request.user,
+            is_active=True
+        ).exists():
+            return Response(
+                {'detail': 'Not a participant.'},
+                status=status.HTTP_403_FORBIDDEN
+            )
+
+        # Get read counts for each message
+        from django.db.models import Count
+        read_counts = MessageReadReceipt.objects.filter(
+            message_id__in=message_ids
+        ).values('message_id').annotate(
+            count=Count('id')
+        )
+
+        # Get all receipts for detailed view
+        receipts = MessageReadReceipt.objects.filter(
+            message_id__in=message_ids
+        ).select_related('user').order_by('read_at')
+
+        result = {}
+        for msg_id in message_ids:
+            msg_receipts = [r for r in receipts if str(r.message_id) == str(msg_id)]
+            result[str(msg_id)] = {
+                'read_count': len(msg_receipts),
+                'readers': [
+                    {
+                        'user_id': str(r.user_id),
+                        'username': r.user.username,
+                        'read_at': r.read_at.isoformat()
+                    }
+                    for r in msg_receipts
+                ]
+            }
+
+        return Response(result)

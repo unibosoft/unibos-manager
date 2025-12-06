@@ -14,6 +14,9 @@ from .views import (
     # Messages
     MessageViewSet,
     AttachmentUploadView,
+    AttachmentDownloadView,
+    AttachmentListView,
+    AttachmentMetadataView,
     # P2P
     P2PStatusView,
     P2PConnectView,
@@ -23,6 +26,10 @@ from .views import (
     TypingIndicatorView,
     MessageSearchView,
     MarkAllReadView,
+    # Read Receipts
+    ReadReceiptsView,
+    BatchReadView,
+    ReadStatusView,
 )
 
 app_name = 'messenger'
@@ -81,6 +88,15 @@ urlpatterns = [
     path('conversations/<uuid:conversation_id>/messages/<uuid:message_id>/attachments/',
          AttachmentUploadView.as_view(), name='attachment-upload'),
 
+    path('conversations/<uuid:conversation_id>/messages/<uuid:message_id>/attachments/list/',
+         AttachmentListView.as_view(), name='attachment-list'),
+
+    path('conversations/<uuid:conversation_id>/messages/<uuid:message_id>/attachments/<uuid:attachment_id>/',
+         AttachmentDownloadView.as_view(), name='attachment-download'),
+
+    path('conversations/<uuid:conversation_id>/messages/<uuid:message_id>/attachments/<uuid:attachment_id>/metadata/',
+         AttachmentMetadataView.as_view(), name='attachment-metadata'),
+
     # ========== P2P ==========
     path('p2p/status/', P2PStatusView.as_view(), name='p2p-status'),
     path('p2p/connect/', P2PConnectView.as_view(), name='p2p-connect'),
@@ -90,4 +106,14 @@ urlpatterns = [
     # ========== Typing & Search ==========
     path('typing/', TypingIndicatorView.as_view(), name='typing-indicator'),
     path('search/', MessageSearchView.as_view(), name='message-search'),
+
+    # ========== Read Receipts ==========
+    path('conversations/<uuid:conversation_id>/messages/<uuid:message_id>/receipts/',
+         ReadReceiptsView.as_view(), name='read-receipts'),
+
+    path('conversations/<uuid:conversation_id>/batch-read/',
+         BatchReadView.as_view(), name='batch-read'),
+
+    path('conversations/<uuid:conversation_id>/read-status/',
+         ReadStatusView.as_view(), name='read-status'),
 ]
