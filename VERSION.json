@@ -2,20 +2,20 @@
   "version": {
     "major": 2,
     "minor": 1,
-    "patch": 3,
-    "build": "20251205233815"
+    "patch": 4,
+    "build": "20251206111314"
   },
   "display": {
-    "semantic": "2.1.3",
-    "full": "2.1.3+build.20251205233815",
-    "short": "v2.1.3 @23:38",
-    "compact": "v2.1.3 1205@2338",
-    "archive": "unibos_v2.1.3_b20251205233815"
+    "semantic": "2.1.4",
+    "full": "2.1.4+build.20251206111314",
+    "short": "v2.1.4 @11:13",
+    "compact": "v2.1.4 1206@1113",
+    "archive": "unibos_v2.1.4_b20251206111314"
   },
   "build_info": {
-    "date": "2025-12-05",
-    "time": "23:38:15",
-    "timestamp": "20251205233815"
+    "date": "2025-12-06",
+    "time": "11:13:14",
+    "timestamp": "20251206111314"
   },
   "git": {
     "commit": null,
