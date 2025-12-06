@@ -342,28 +342,6 @@
             </div>
 
             <div class="input-group">
-                <label for="firstName">first name</label>
-                <input
-                    type="text"
-                    id="firstName"
-                    name="first_name"
-                    placeholder="enter first name (optional)"
-                    autocomplete="given-name"
-                >
-            </div>
-
-            <div class="input-group">
-                <label for="lastName">last name</label>
-                <input
-                    type="text"
-                    id="lastName"
-                    name="last_name"
-                    placeholder="enter last name (optional)"
-                    autocomplete="family-name"
-                >
-            </div>
-
-            <div class="input-group">
                 <label for="password">password</label>
                 <input
                     type="password"
@@ -546,9 +524,7 @@
                         username: usernameInput.value,
                         email: emailInput.value,
                         password: passwordInput.value,
-                        password_confirm: passwordConfirmInput.value,
-                        first_name: document.getElementById('firstName').value,
-                        last_name: document.getElementById('lastName').value
+                        password_confirm: passwordConfirmInput.value
                     }),
                 });
 
