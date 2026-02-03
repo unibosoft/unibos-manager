@@ -389,6 +389,7 @@ class ReleasePipeline:
             'local.properties',
             'Generated.xcconfig',
             'ServiceDefinitions.json',
+            'flutter_export_environment.sh',
         }
 
         # File extensions to exclude
