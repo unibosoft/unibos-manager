@@ -513,6 +513,42 @@ curl -X POST https://recaria.org/api/v1/nodes/register/ \
 
 ---
 
+## Technical Debt
+
+### TD-1: Dynamic Module Loading Fallback (Priority: LOW)
+- [ ] `get_dynamic_modules()` in `core/clients/web/unibos_backend/settings/base.py` always falls back to hardcoded 14-module list
+- [ ] Module `.enabled` marker files are effectively ignored
+- [ ] Fix: Make registry the primary source, remove hardcoded fallback or make it configurable
+
+### TD-2: Empty Placeholder Directories (Priority: LOW)
+- [ ] `core/base/platform/offline/` - empty
+- [ ] `core/base/platform/orchestration/` - empty
+- [ ] `core/base/platform/routing/` - empty
+- [ ] `core/base/p2p/` - empty
+- [ ] `core/base/services/` - empty
+- [ ] `core/base/sync/` - empty
+- [ ] Decision: Remove if not planned, or add stub implementations
+
+### TD-3: CI/CD Pipeline (Priority: MEDIUM)
+- [ ] No GitHub Actions or equivalent CI/CD configuration exists
+- [ ] Add workflow to run messenger test suite (141 tests) on push
+- [ ] Add linting and type checking steps
+- [ ] Add deployment automation trigger
+
+### TD-4: Test Coverage Outside Messenger (Priority: MEDIUM)
+- [ ] 13 business modules have no test coverage
+- [ ] System apps (authentication, users, admin, sync, p2p, nodes) lack tests
+- [ ] No `conftest.py` or `pytest.ini` at project root
+- [ ] Add tests incrementally with new features
+
+### TD-5: Credential Management (Priority: HIGH)
+- [ ] `rocksteady.config.json` contains production SECRET_KEY and DB password in git
+- [ ] Move sensitive values to `.env` file on server
+- [ ] Add `rocksteady.config.json` to `.gitignore` (keep a `.example` template)
+- [ ] Rotate production SECRET_KEY after migration
+
+---
+
 ## Related Documents
 - [TODO_ARCHITECTURE.md](./TODO_ARCHITECTURE.md) - System architecture details
 - [TODO_DATA_FLOW.md](./TODO_DATA_FLOW.md) - Data flow & identity specs

@@ -356,7 +356,7 @@ class DocumentExportView(LoginRequiredMixin, View):
         documents = Document.objects.filter(
             user=request.user,
             is_deleted=False
-        ).order_by('-created_at')
+        ).order_by('-uploaded_at')
         
         if format_type == 'json':
             # Export as JSON
@@ -366,7 +366,7 @@ class DocumentExportView(LoginRequiredMixin, View):
                     'id': str(doc.id),
                     'filename': doc.original_filename,
                     'type': doc.document_type,
-                    'created': doc.created_at.isoformat(),
+                    'created': doc.uploaded_at.isoformat(),
                     'ocr_text': doc.ocr_text or '',
                     'ocr_confidence': doc.ocr_confidence,
                     'status': doc.processing_status
@@ -391,7 +391,7 @@ class DocumentExportView(LoginRequiredMixin, View):
                     str(doc.id),
                     doc.original_filename,
                     doc.document_type,
-                    doc.created_at.strftime('%Y-%m-%d %H:%M:%S'),
+                    doc.uploaded_at.strftime('%Y-%m-%d %H:%M:%S'),
                     doc.processing_status,
                     doc.ocr_confidence or '',
                     (doc.ocr_text or '')[:100]  # First 100 chars of OCR text

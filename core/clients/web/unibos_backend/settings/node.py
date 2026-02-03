@@ -128,15 +128,16 @@ STATIC_URL = '/static/'
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 
 # Media files - Local storage
+# Inherits DATA_DIR from base.py (UNIBOS_ROOT / 'data')
 MEDIA_URL = '/media/'
-MEDIA_ROOT = os.environ.get('MEDIA_ROOT', os.path.join(BASE_DIR, 'data', 'media'))
+MEDIA_ROOT = os.environ.get('MEDIA_ROOT', str(DATA_DIR / 'media'))
 
 # Email - Optional (nodes can work offline)
 EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'  # Console output only
 
 # Logging - Node-friendly (minimal disk I/O for Raspberry Pi)
 # Log files stored in data/logs directory
-LOG_DIR = Path(os.environ.get('LOG_DIR', os.path.join(BASE_DIR.parent.parent.parent, 'data', 'logs')))
+LOG_DIR = Path(os.environ.get('LOG_DIR', str(DATA_DIR / 'logs')))
 LOG_DIR.mkdir(parents=True, exist_ok=True)
 
 LOGGING = {

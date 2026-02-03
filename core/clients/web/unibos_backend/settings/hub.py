@@ -120,8 +120,10 @@ STATIC_URL = '/static/'
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 
 # Media files - Central storage
+# Inherits DATA_DIR from base.py (UNIBOS_ROOT / 'data')
+# Override via MEDIA_ROOT env var if needed
 MEDIA_URL = '/media/'
-MEDIA_ROOT = os.environ.get('MEDIA_ROOT', '/var/www/unibos/data/media/')
+MEDIA_ROOT = os.environ.get('MEDIA_ROOT', str(DATA_DIR / 'media'))
 
 # Email - Server configuration
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
@@ -139,7 +141,7 @@ FRONTEND_URL = os.environ.get('FRONTEND_URL', 'https://recaria.org')
 
 # Logging - Production server
 # Log files stored in data/logs directory (created by deploy)
-LOG_DIR = Path(os.environ.get('LOG_DIR', '/home/ubuntu/unibos/data/logs'))
+LOG_DIR = Path(os.environ.get('LOG_DIR', str(DATA_DIR / 'logs')))
 LOG_DIR.mkdir(parents=True, exist_ok=True)
 
 LOGGING = {

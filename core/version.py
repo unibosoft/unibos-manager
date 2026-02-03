@@ -16,9 +16,9 @@ import json
 import os
 
 # Current version
-__version__ = "2.1.5"
-__version_info__ = (2, 1, 5)
-__build__ = "20260203150320"
+__version__ = "2.1.6"
+__version_info__ = (2, 1, 6)
+__build__ = "20260203162451"
 
 # Version metadata
 VERSION_NAME = "5-Profile Architecture"
@@ -37,9 +37,9 @@ DEVELOPMENT_HISTORY = {
 }
 
 # Next milestone
-NEXT_VERSION = "1.1.0"
+NEXT_VERSION = "2.2.0"
 NEXT_RELEASE_TYPE = "stable"
-NEXT_RELEASE_NAME = "DevOps TUI"
+NEXT_RELEASE_NAME = "Production Ready"
 PLANNED_RELEASE_DATE = "TBD"
 
 # Feature flags
@@ -51,8 +51,8 @@ FEATURES = {
     "module_system": True,       # Phase 2.1 & 2.2 - Complete
     "dynamic_modules": True,     # Django integration - Complete
     "timestamp_versioning": True, # New versioning system - Complete
-    "p2p_network": False,        # Phase 3 - Planned
-    "raspberry_pi_full": False,  # Phase 5 - Planned
+    "p2p_network": True,         # Phase 3 - Complete
+    "raspberry_pi_full": True,   # Phase 5 - Complete
 }
 
 

@@ -3,296 +3,323 @@ Document Module Serializers
 REST API serializers for document management and OCR
 """
 from rest_framework import serializers
-from django.contrib.auth import get_user_model
 from django.core.files.base import ContentFile
-from django.db import transaction as db_transaction
-import hashlib
 import mimetypes
-from pathlib import Path
 
 from .models import (
-    DocumentCategory, Document, OCRResult,
-    DocumentBatch, DocumentTemplate, DocumentIntegration
+    Document, ParsedReceipt, ReceiptItem,
+    DocumentBatch, OCRTemplate,
+    CreditCard, Subscription, ExpenseCategory, ExpenseGroup,
+    DocumentType, ProcessingStatus
 )
 
 
-class DocumentCategorySerializer(serializers.ModelSerializer):
-    """Document category serializer"""
-    document_count = serializers.SerializerMethodField()
-    
+class ReceiptItemSerializer(serializers.ModelSerializer):
+    """Individual receipt item serializer"""
+
     class Meta:
-        model = DocumentCategory
+        model = ReceiptItem
         fields = [
-            'id', 'name', 'slug', 'icon', 'color',
-            'keywords', 'document_count'
+            'id', 'name', 'barcode', 'category',
+            'quantity', 'unit', 'unit_price', 'total_price',
+            'discount_amount', 'discount_percentage', 'tax_rate',
+            'linked_product_id', 'linked_stock_item_id',
+            'created_at'
         ]
-    
-    def get_document_count(self, obj):
-        """Get number of documents in this category"""
-        return obj.document_set.count()
+        read_only_fields = ['id', 'created_at']
 
 
-class OCRResultSerializer(serializers.ModelSerializer):
-    """OCR result serializer"""
-    
+class ParsedReceiptSerializer(serializers.ModelSerializer):
+    """Parsed receipt data serializer"""
+    items = ReceiptItemSerializer(many=True, read_only=True)
+    items_count = serializers.SerializerMethodField()
+
     class Meta:
-        model = OCRResult
+        model = ParsedReceipt
         fields = [
-            'id', 'ocr_provider', 'vendor_name', 'vendor_address',
-            'vendor_tax_id', 'vendor_phone', 'transaction_date',
-            'transaction_number', 'subtotal', 'tax_amount',
-            'discount_amount', 'total_amount', 'currency',
-            'payment_method', 'card_last_four', 'line_items',
-            'confidence_scores', 'processing_time',
-            'is_verified', 'verified_by', 'verified_at',
-            'manual_corrections', 'created_at', 'updated_at'
+            'id', 'document', 'store_name', 'store_address',
+            'store_phone', 'store_tax_id',
+            'transaction_date', 'receipt_number', 'cashier_id',
+            'subtotal', 'tax_amount', 'discount_amount', 'total_amount',
+            'payment_method', 'card_last_digits', 'currency',
+            'raw_ocr_data', 'items', 'items_count',
+            'created_at', 'updated_at'
         ]
-        read_only_fields = ['created_at', 'updated_at']
+        read_only_fields = ['id', 'created_at', 'updated_at']
+
+    def get_items_count(self, obj):
+        return obj.items.count()
 
 
 class DocumentSerializer(serializers.ModelSerializer):
-    """Document serializer with OCR results"""
-    ocr_result = OCRResultSerializer(read_only=True)
-    category_name = serializers.CharField(source='category.name', read_only=True)
-    file_size_mb = serializers.SerializerMethodField()
-    is_expired = serializers.ReadOnlyField()
-    
+    """Document serializer with optional parsed receipt"""
+    parsed_receipt = ParsedReceiptSerializer(read_only=True)
+    status_display = serializers.CharField(
+        source='get_processing_status_display', read_only=True
+    )
+    type_display = serializers.CharField(
+        source='get_document_type_display', read_only=True
+    )
+    thumbnail_url = serializers.SerializerMethodField()
+
     class Meta:
         model = Document
         fields = [
-            'id', 'document_id', 'original_file', 'processed_file',
-            'original_filename', 'file_size', 'file_size_mb',
-            'mime_type', 'document_type', 'category', 'category_name',
-            'tags', 'document_date', 'expiry_date', 'is_expired',
-            'ocr_status', 'ocr_confidence', 'processing_started_at',
-            'processing_completed_at', 'processing_error',
-            'extracted_text', 'extracted_text_language',
-            'is_sensitive', 'is_encrypted', 'is_shared',
-            'share_token', 'share_expires_at', 'notes',
-            'metadata', 'created_at', 'updated_at',
-            'last_accessed_at', 'access_count', 'is_archived',
-            'archived_at', 'ocr_result'
+            'id', 'user', 'document_type', 'type_display',
+            'original_filename', 'file_path', 'thumbnail_path',
+            'processing_status', 'status_display',
+            'ocr_text', 'ocr_confidence', 'ocr_processed_at',
+            'tesseract_text', 'tesseract_confidence', 'tesseract_parsed_data',
+            'ollama_text', 'ollama_confidence', 'ollama_parsed_data', 'ollama_model',
+            'preferred_ocr_method',
+            'ai_processed', 'ai_parsed_data', 'ai_provider',
+            'ai_confidence', 'ai_processed_at',
+            'analysis_results', 'last_analysis_at',
+            'uploaded_at', 'updated_at',
+            'tags', 'custom_metadata',
+            'is_deleted', 'deleted_at',
+            'parsed_receipt', 'thumbnail_url'
         ]
         read_only_fields = [
-            'document_id', 'file_hash', 'file_size',
-            'processing_started_at', 'processing_completed_at',
-            'extracted_text', 'searchable_content',
-            'created_at', 'updated_at', 'last_accessed_at',
-            'access_count'
+            'id', 'user', 'uploaded_at', 'updated_at',
+            'ocr_processed_at', 'ai_processed_at', 'last_analysis_at',
+            'deleted_at'
         ]
-    
-    def get_file_size_mb(self, obj):
-        """Get file size in MB"""
-        return round(obj.file_size / (1024 * 1024), 2) if obj.file_size else 0
+
+    def get_thumbnail_url(self, obj):
+        if obj.thumbnail_path:
+            try:
+                return obj.thumbnail_path.url
+            except Exception:
+                return None
+        return None
 
 
-class DocumentUploadSerializer(serializers.ModelSerializer):
-    """Serializer for document upload"""
-    auto_process = serializers.BooleanField(default=True, write_only=True)
-    extract_to_modules = serializers.ListField(
-        child=serializers.CharField(),
-        required=False,
-        write_only=True,
-        help_text="List of modules to extract data to: ['wimm', 'wims', 'personal_inflation']"
+class DocumentListSerializer(serializers.ModelSerializer):
+    """Lightweight document serializer for list views"""
+    status_display = serializers.CharField(
+        source='get_processing_status_display', read_only=True
     )
-    
+    type_display = serializers.CharField(
+        source='get_document_type_display', read_only=True
+    )
+    thumbnail_url = serializers.SerializerMethodField()
+    store_name = serializers.SerializerMethodField()
+    total_amount = serializers.SerializerMethodField()
+
     class Meta:
         model = Document
         fields = [
-            'original_file', 'document_type', 'category',
-            'tags', 'document_date', 'expiry_date',
-            'is_sensitive', 'notes', 'metadata',
-            'auto_process', 'extract_to_modules'
+            'id', 'document_type', 'type_display',
+            'original_filename', 'processing_status', 'status_display',
+            'ocr_confidence', 'uploaded_at',
+            'thumbnail_url', 'store_name', 'total_amount',
+            'is_deleted', 'tags'
         ]
-    
-    def validate_original_file(self, value):
-        """Validate uploaded file"""
-        # Check file size (max 50MB)
-        if value.size > 50 * 1024 * 1024:
-            raise serializers.ValidationError("File size cannot exceed 50MB")
-        
-        # Check file type
-        mime_type, _ = mimetypes.guess_type(value.name)
+
+    def get_thumbnail_url(self, obj):
+        if obj.thumbnail_path:
+            try:
+                return obj.thumbnail_path.url
+            except Exception:
+                return None
+        return None
+
+    def get_store_name(self, obj):
+        try:
+            if hasattr(obj, 'parsed_receipt') and obj.parsed_receipt:
+                return obj.parsed_receipt.store_name
+        except Exception:
+            pass
+        return None
+
+    def get_total_amount(self, obj):
+        try:
+            if hasattr(obj, 'parsed_receipt') and obj.parsed_receipt:
+                return str(obj.parsed_receipt.total_amount) if obj.parsed_receipt.total_amount else None
+        except Exception:
+            pass
+        return None
+
+
+class DocumentUploadSerializer(serializers.Serializer):
+    """Serializer for document upload"""
+    files = serializers.ListField(
+        child=serializers.FileField(),
+        max_length=100,
+        help_text="Document files to upload (max 100)"
+    )
+    document_type = serializers.ChoiceField(
+        choices=DocumentType.choices,
+        default=DocumentType.RECEIPT
+    )
+    batch_name = serializers.CharField(required=False, max_length=255)
+    auto_ocr = serializers.BooleanField(default=True)
+
+    def validate_files(self, value):
+        """Validate uploaded files"""
         allowed_types = [
             'application/pdf', 'image/jpeg', 'image/jpg',
             'image/png', 'image/tiff', 'image/bmp', 'image/gif'
         ]
-        if mime_type not in allowed_types:
-            raise serializers.ValidationError(f"File type {mime_type} is not supported")
-        
-        return value
-    
-    @db_transaction.atomic
-    def create(self, validated_data):
-        """Create document and trigger processing"""
-        # Extract custom fields
-        auto_process = validated_data.pop('auto_process', True)
-        extract_to_modules = validated_data.pop('extract_to_modules', [])
-        
-        # Set file metadata
-        file = validated_data['original_file']
-        validated_data['original_filename'] = file.name
-        validated_data['file_size'] = file.size
-        validated_data['mime_type'], _ = mimetypes.guess_type(file.name)
-        
-        # Calculate file hash for deduplication
-        sha256_hash = hashlib.sha256()
-        for chunk in file.chunks():
-            sha256_hash.update(chunk)
-        validated_data['file_hash'] = sha256_hash.hexdigest()
-        
-        # Check for duplicate
-        existing = Document.objects.filter(
-            user=validated_data['user'],
-            file_hash=validated_data['file_hash']
-        ).first()
-        
-        if existing:
-            raise serializers.ValidationError({
-                'original_file': 'This file has already been uploaded',
-                'existing_id': existing.id
-            })
-        
-        # Create document
-        document = super().create(validated_data)
-        
-        # Trigger OCR processing if requested
-        if auto_process:
-            from .tasks import process_document_ocr
-            process_document_ocr.delay(document.id)
-        
-        # Create integration records for requested modules
-        for module in extract_to_modules:
-            DocumentIntegration.objects.create(
-                document=document,
-                module=module,
-                related_model='',
-                related_object_id=0
+
+        for file in value:
+            # Check file size (max 50MB per file)
+            if file.size > 50 * 1024 * 1024:
+                raise serializers.ValidationError(
+                    f"File '{file.name}' exceeds 50MB limit"
+                )
+
+            # Check file type
+            mime_type, _ = mimetypes.guess_type(file.name)
+            if mime_type not in allowed_types:
+                raise serializers.ValidationError(
+                    f"File type '{mime_type}' is not supported for '{file.name}'"
+                )
+
+        # Check total size (max 500MB)
+        total_size = sum(f.size for f in value)
+        if total_size > 500 * 1024 * 1024:
+            raise serializers.ValidationError(
+                "Total batch size cannot exceed 500MB"
             )
-        
-        return document
+
+        return value
 
 
 class DocumentBatchSerializer(serializers.ModelSerializer):
-    """Document batch upload serializer"""
-    progress_percentage = serializers.ReadOnlyField()
-    
+    """Document batch serializer"""
+    progress_percentage = serializers.SerializerMethodField()
+
     class Meta:
         model = DocumentBatch
         fields = [
-            'id', 'batch_id', 'total_documents',
-            'processed_documents', 'failed_documents',
+            'id', 'user', 'batch_name',
+            'total_documents', 'processed_documents', 'failed_documents',
             'status', 'progress_percentage',
-            'started_at', 'completed_at', 'errors'
+            'started_at', 'completed_at'
         ]
         read_only_fields = [
-            'batch_id', 'total_documents', 'processed_documents',
-            'failed_documents', 'status', 'started_at',
-            'completed_at', 'errors'
+            'id', 'user', 'started_at', 'completed_at'
         ]
 
-
-class DocumentBatchUploadSerializer(serializers.Serializer):
-    """Serializer for batch document upload"""
-    documents = serializers.ListField(
-        child=serializers.FileField(),
-        max_length=100,
-        help_text="List of document files to upload (max 100)"
-    )
-    document_type = serializers.CharField(required=False)
-    category = serializers.PrimaryKeyRelatedField(
-        queryset=DocumentCategory.objects.all(),
-        required=False
-    )
-    auto_process = serializers.BooleanField(default=True)
-    extract_to_modules = serializers.ListField(
-        child=serializers.CharField(),
-        required=False
-    )
-    
-    def validate_documents(self, value):
-        """Validate batch of documents"""
-        if len(value) > 100:
-            raise serializers.ValidationError("Cannot upload more than 100 documents at once")
-        
-        total_size = sum(file.size for file in value)
-        if total_size > 500 * 1024 * 1024:  # 500MB total
-            raise serializers.ValidationError("Total batch size cannot exceed 500MB")
-        
-        return value
+    def get_progress_percentage(self, obj):
+        if obj.total_documents > 0:
+            return round(
+                (obj.processed_documents + obj.failed_documents)
+                / obj.total_documents * 100, 1
+            )
+        return 0
 
 
-class DocumentTemplateSerializer(serializers.ModelSerializer):
-    """Document template serializer"""
-    
+class OCRTemplateSerializer(serializers.ModelSerializer):
+    """OCR template serializer"""
+
     class Meta:
-        model = DocumentTemplate
+        model = OCRTemplate
         fields = [
-            'id', 'name', 'document_type',
-            'extraction_patterns', 'field_mappings',
-            'vendor_keywords', 'validation_rules',
-            'sample_document', 'is_active',
+            'id', 'store_name', 'store_aliases',
+            'field_mappings', 'regex_patterns',
+            'layout_type', 'has_header', 'has_footer',
             'created_at', 'updated_at'
         ]
-        read_only_fields = ['created_at', 'updated_at']
-
-
-class DocumentIntegrationSerializer(serializers.ModelSerializer):
-    """Document integration serializer"""
-    document_name = serializers.CharField(
-        source='document.original_filename',
-        read_only=True
-    )
-    
-    class Meta:
-        model = DocumentIntegration
-        fields = [
-            'id', 'document', 'document_name', 'module',
-            'related_model', 'related_object_id',
-            'status', 'processed_at', 'error_message',
-            'synced_data', 'created_at', 'updated_at'
-        ]
-        read_only_fields = [
-            'processed_at', 'created_at', 'updated_at'
-        ]
+        read_only_fields = ['id', 'created_at', 'updated_at']
 
 
 class DocumentSearchSerializer(serializers.Serializer):
     """Serializer for document search"""
-    query = serializers.CharField(required=True, min_length=2)
-    document_types = serializers.MultipleChoiceField(
-        choices=[
-            'receipt', 'invoice', 'statement', 'contract',
-            'report', 'tax_document', 'warranty', 'manual',
-            'identification', 'medical', 'insurance', 'other'
-        ],
+    q = serializers.CharField(required=True, min_length=2)
+    type = serializers.ChoiceField(
+        choices=DocumentType.choices,
         required=False
     )
-    categories = serializers.ListField(
-        child=serializers.IntegerField(),
+    status = serializers.ChoiceField(
+        choices=ProcessingStatus.choices,
         required=False
     )
-    date_from = serializers.DateField(required=False)
-    date_to = serializers.DateField(required=False)
-    has_ocr = serializers.BooleanField(required=False)
-    is_verified = serializers.BooleanField(required=False)
-    
-    def validate(self, data):
-        """Validate search parameters"""
-        if 'date_from' in data and 'date_to' in data:
-            if data['date_from'] > data['date_to']:
-                raise serializers.ValidationError("date_from cannot be after date_to")
-        return data
+    limit = serializers.IntegerField(
+        required=False, default=10, min_value=1, max_value=100
+    )
+
+
+class CreditCardSerializer(serializers.ModelSerializer):
+    """Credit card serializer"""
+    utilization_rate = serializers.ReadOnlyField()
+
+    class Meta:
+        model = CreditCard
+        fields = [
+            'id', 'user', 'bank_name', 'card_name',
+            'last_four_digits', 'card_type',
+            'credit_limit', 'current_balance', 'available_credit',
+            'statement_day', 'payment_due_day',
+            'is_active', 'expiry_date',
+            'color', 'notes', 'utilization_rate',
+            'created_at', 'updated_at'
+        ]
+        read_only_fields = ['id', 'user', 'created_at', 'updated_at']
+
+
+class SubscriptionSerializer(serializers.ModelSerializer):
+    """Subscription serializer"""
+    yearly_cost = serializers.ReadOnlyField()
+
+    class Meta:
+        model = Subscription
+        fields = [
+            'id', 'user', 'service_name', 'category',
+            'amount', 'currency', 'billing_cycle',
+            'payment_method', 'billing_day',
+            'is_active', 'start_date', 'end_date', 'next_billing_date',
+            'notify_before_days', 'auto_renew',
+            'icon', 'color', 'notes', 'yearly_cost',
+            'created_at', 'updated_at'
+        ]
+        read_only_fields = ['id', 'user', 'created_at', 'updated_at']
+
+
+class ExpenseCategorySerializer(serializers.ModelSerializer):
+    """Expense category serializer"""
+    subcategories = serializers.SerializerMethodField()
+
+    class Meta:
+        model = ExpenseCategory
+        fields = [
+            'id', 'user', 'name', 'parent',
+            'icon', 'color', 'monthly_budget',
+            'is_system', 'subcategories',
+            'created_at'
+        ]
+        read_only_fields = ['id', 'user', 'created_at']
+
+    def get_subcategories(self, obj):
+        children = obj.subcategories.all()
+        if children.exists():
+            return ExpenseCategorySerializer(children, many=True).data
+        return []
+
+
+class ExpenseGroupSerializer(serializers.ModelSerializer):
+    """Expense group serializer"""
+
+    class Meta:
+        model = ExpenseGroup
+        fields = [
+            'id', 'user', 'name', 'description',
+            'budget', 'start_date', 'end_date',
+            'color', 'is_active',
+            'created_at'
+        ]
+        read_only_fields = ['id', 'user', 'created_at']
 
 
 class DocumentStatisticsSerializer(serializers.Serializer):
     """Document statistics serializer"""
     total_documents = serializers.IntegerField()
-    total_size_mb = serializers.FloatField()
+    pending_documents = serializers.IntegerField()
+    processing_documents = serializers.IntegerField()
+    completed_documents = serializers.IntegerField()
+    failed_documents = serializers.IntegerField()
+    deleted_documents = serializers.IntegerField()
     documents_by_type = serializers.DictField()
-    documents_by_category = serializers.ListField()
-    ocr_statistics = serializers.DictField()
-    recent_uploads = DocumentSerializer(many=True)
-    storage_usage = serializers.DictField()
-    processing_queue = serializers.IntegerField()
-    integration_status = serializers.DictField()
+    recent_uploads = DocumentListSerializer(many=True)

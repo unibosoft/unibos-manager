@@ -9,7 +9,6 @@ from .views import (
     DocumentUploadView,
     DocumentDetailView,
     DocumentViewerView,
-    RecycleBinView,
     CreditCardManagementView,
     SubscriptionManagementView,
     select_ocr_method,
@@ -47,6 +46,13 @@ from .bulk_views import (
 )
 from . import receipt_processing_views
 from . import simple_receipt_view
+from .document_sharing_views import (
+    share_document,
+    view_shared_document,
+    my_shared_documents,
+    revoke_share,
+    public_document_view,
+)
 
 app_name = 'documents'
 
@@ -63,7 +69,6 @@ urlpatterns = [
     # Document management
     path('list/', DocumentListView.as_view(), name='document_list'),
     path('upload/', DocumentUploadView.as_view(), name='upload'),
-    path('recycle-bin/', RecycleBinView.as_view(), name='recycle_bin'),
     path('document/<uuid:document_id>/', DocumentDetailView.as_view(), name='document_detail'),
     path('document/<uuid:document_id>/view/', DocumentViewerView.as_view(), name='document_view'),
     path('document/<uuid:document_id>/select-ocr/', select_ocr_method, name='select_ocr_method'),
@@ -115,6 +120,13 @@ urlpatterns = [
     path('simple-receipt-hub/', simple_receipt_view.simple_receipt_hub, name='simple_receipt_hub'),
     path('process-receipt-ollama/', simple_receipt_view.process_receipt_ollama, name='process_receipt_ollama'),
     
+    # Document sharing
+    path('document/<uuid:document_id>/share/', share_document, name='share_document'),
+    path('shared/<uuid:share_id>/', view_shared_document, name='view_shared_document'),
+    path('shared/', my_shared_documents, name='my_shared_documents'),
+    path('share/<uuid:share_id>/revoke/', revoke_share, name='revoke_share'),
+    path('public/<str:share_link>/', public_document_view, name='public_document_view'),
+
     # Convenience redirects for receipt processing
     path('receipt-hub/', receipt_processing_views.receipt_dashboard, name='receipt_hub'),
     path('upload-receipt/', receipt_processing_views.upload_receipt, name='upload_receipt'),

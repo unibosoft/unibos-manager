@@ -46,6 +46,9 @@ urlpatterns = [
     # CCTV Module (separate from API for web interface)
     path('cctv/', include('modules.cctv.backend.urls', namespace='cctv')),
 
+    # Documents Module - REST API
+    path(f'{API_V1_PREFIX}documents/', include('modules.documents.backend.api_urls')),
+
     # Documents Module (Recaria OCR & Document Management)
     path('documents/', include('modules.documents.backend.urls', namespace='documents')),
 

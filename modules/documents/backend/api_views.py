@@ -702,7 +702,11 @@ def analysis_retry_method(request, document_id, method):
 
         elif method == 'hybrid':
             # re-run hybrid (paddleocr + llama vision parsing)
-            if not document.paddle_text:
+            # paddle text is stored in analysis_results JSONField
+            paddle_text = ''
+            if document.analysis_results and 'paddleocr' in document.analysis_results:
+                paddle_text = document.analysis_results['paddleocr'].get('text', '')
+            if not paddle_text:
                 return JsonResponse({'success': False, 'error': 'paddleocr required first'}, status=400)
 
             import base64
@@ -712,7 +716,7 @@ def analysis_retry_method(request, document_id, method):
 
             ollama = OllamaService()
             ollama.current_model = 'llama3.2-vision'
-            result = ollama.analyze_receipt(ocr_text=document.paddle_text, image_base64=image_base64)
+            result = ollama.analyze_receipt(ocr_text=paddle_text, image_base64=image_base64)
 
             if result.get('success'):
                 # save hybrid results
@@ -759,9 +763,9 @@ def analysis_select_method(request, document_id, method):
             document.ocr_text = document.ollama_text
             document.ocr_confidence = document.ollama_confidence
 
-            # if hybrid, also copy structured data
+            # if hybrid, also copy parsed data to ai_parsed_data
             if method == 'hybrid' and document.ollama_parsed_data:
-                document.structured_data = document.ollama_parsed_data
+                document.ai_parsed_data = document.ollama_parsed_data
 
         elif method == 'paddleocr':
             return JsonResponse({'success': False, 'error': 'paddleocr not yet implemented'}, status=501)
@@ -867,15 +871,25 @@ def analysis_run_all(request, document_id):
 
         # method 2: hybrid (paddleocr + ai parsing)
         try:
-            # Ensure PaddleOCR has run first
-            if not document.paddle_text:
+            # Get paddle text from analysis_results JSONField
+            paddle_text = ''
+            if document.analysis_results and 'paddleocr' in document.analysis_results:
+                paddle_text = document.analysis_results['paddleocr'].get('text', '')
+
+            if not paddle_text:
                 # Run PaddleOCR if not already done
                 try:
                     ocr_processor = OCRProcessor()
                     paddle_result = ocr_processor.process_paddle(document.file_path.path)
                     if paddle_result.get('success'):
-                        document.paddle_text = paddle_result.get('text', '')
-                        document.paddle_confidence = paddle_result.get('confidence', 0)
+                        paddle_text = paddle_result.get('text', '')
+                        # Store in analysis_results
+                        if not document.analysis_results:
+                            document.analysis_results = {}
+                        document.analysis_results['paddleocr'] = {
+                            'text': paddle_text,
+                            'confidence': paddle_result.get('confidence', 0),
+                        }
                         document.save()
                         logger.info(f"paddleocr completed for document {document_id}")
                 except Exception as paddle_error:
@@ -883,11 +897,11 @@ def analysis_run_all(request, document_id):
                     results['hybrid']['error'] = f'paddleocr failed: {str(paddle_error)}'
 
             # Now run hybrid if we have PaddleOCR text
-            if document.paddle_text:
+            if paddle_text:
                 ollama = OllamaService()
                 ollama.current_model = 'llama3.2-vision'
                 result = ollama.analyze_receipt(
-                    ocr_text=document.paddle_text,
+                    ocr_text=paddle_text,
                     image_base64=image_base64
                 )
 
@@ -908,6 +922,7 @@ def analysis_run_all(request, document_id):
             else:
                 results['hybrid']['error'] = 'no paddleocr text available'
                 logger.warning(f"hybrid ocr skipped: no paddleocr text for document {document_id}")
+
 
         except Exception as e:
             results['hybrid']['error'] = str(e)

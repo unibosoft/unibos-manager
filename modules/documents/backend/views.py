@@ -148,7 +148,7 @@ class DocumentsDashboardView(LoginRequiredMixin, BaseUIView):
             # Active challenges
             context['active_challenges'] = UserChallenge.objects.filter(
                 user=user,
-                is_completed=False,
+                completed=False,
                 challenge__end_date__gte=timezone.now()
             ).count()
             

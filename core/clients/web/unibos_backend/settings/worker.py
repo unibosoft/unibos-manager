@@ -74,7 +74,7 @@ CELERY_TASK_ACKS_LATE = True  # Acknowledge after task completion
 SECRET_KEY = os.environ.get('SECRET_KEY', 'django-insecure-worker-key-change-this!')
 
 # Logging - Worker specific
-LOG_DIR = Path(os.environ.get('LOG_DIR', '/var/log/unibos'))
+LOG_DIR = Path(os.environ.get('LOG_DIR', str(DATA_DIR / 'logs')))
 LOG_DIR.mkdir(parents=True, exist_ok=True)
 
 LOGGING = {
