@@ -27,10 +27,7 @@ def sidebar_context(request):
     ]
     
     # Base tools - conditionally add administration (using CLI emojis)
-    tools = [
-        {'id': 'system_scrolls', 'name': 'system scrolls', 'icon': '📊'},
-        {'id': 'web_forge', 'name': 'web forge', 'icon': '🌐'},
-    ]
+    tools = []
     
     # Add administration for admin users
     if request.user.is_authenticated:
@@ -39,10 +36,7 @@ def sidebar_context(request):
     
     # Dev tools
     dev_tools = [
-        {'id': 'ai_builder', 'name': 'ai builder', 'icon': '🤖'},
         {'id': 'database_setup', 'name': 'database setup', 'icon': '🗄️'},
-        {'id': 'web_forge_dev', 'name': 'web forge', 'icon': '🌐'},
-        {'id': 'sd_card', 'name': 'sd card', 'icon': '💾'},
         {'id': 'version_manager', 'name': 'version manager', 'icon': '📊', 'url': '/version-manager/'},
     ]
     
