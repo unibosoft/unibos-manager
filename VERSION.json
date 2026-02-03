@@ -3,19 +3,19 @@
     "major": 2,
     "minor": 1,
     "patch": 5,
-    "build": "20251206172920"
+    "build": "20260203150320"
   },
   "display": {
     "semantic": "2.1.5",
-    "full": "2.1.5+build.20251206172920",
-    "short": "v2.1.5 @17:29",
-    "compact": "v2.1.5 1206@1729",
-    "archive": "unibos_v2.1.5_b20251206172920"
+    "full": "2.1.5+build.20260203150320",
+    "short": "v2.1.5 @15:03",
+    "compact": "v2.1.5 0203@1503",
+    "archive": "unibos_v2.1.5_b20260203150320"
   },
   "build_info": {
-    "date": "2025-12-06",
-    "time": "17:29:20",
-    "timestamp": "20251206172920"
+    "date": "2026-02-03",
+    "time": "15:03:20",
+    "timestamp": "20260203150320"
   },
   "git": {
     "commit": null,

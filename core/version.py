@@ -18,7 +18,7 @@ import os
 # Current version
 __version__ = "2.1.5"
 __version_info__ = (2, 1, 5)
-__build__ = "20251206172920"
+__build__ = "20260203150320"
 
 # Version metadata
 VERSION_NAME = "5-Profile Architecture"
