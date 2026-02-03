@@ -641,7 +641,7 @@ UNIBOS_ENVIRONMENT = env('ENVIRONMENT', default='development')
 # Configuration for mail server provisioning via SSH
 MAIL_SERVER_HOST = env('MAIL_SERVER_HOST', default='mail.recaria.org')
 MAIL_SERVER_SSH_USER = env('MAIL_SERVER_SSH_USER', default='ubuntu')
-MAIL_SERVER_SSH_KEY = env('MAIL_SERVER_SSH_KEY', default='/home/ubuntu/.ssh/id_rsa')
+MAIL_SERVER_SSH_KEY = env('MAIL_SERVER_SSH_KEY', default='/home/ubuntu/.ssh/id_ed25519')
 MAIL_DOMAIN = env('MAIL_DOMAIN', default='recaria.org')
 # Set to False in development to log commands instead of executing
 MAIL_USE_SSH = env.bool('MAIL_USE_SSH', default=True)

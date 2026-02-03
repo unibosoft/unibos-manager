@@ -1,99 +1,207 @@
 {% extends "administration/base_admin.html" %}
 
-{% block title %}recaria.org mailboxes{% endblock %}
+{% block title %}recaria.org mail - administration{% endblock %}
 
 {% block admin_content %}
-<div class="admin-container">
-    <div class="admin-header">
-        <h1 class="admin-title">recaria.org mailboxes</h1>
-        <div class="admin-actions">
-            <button onclick="showCreateModal()" class="btn btn-success">
-                <i class="fas fa-plus"></i> create mailbox
-            </button>
+<!-- Page Header -->
+<div class="mail-header">
+    <div class="mail-header-content">
+        <h1>📧 recaria.org mail</h1>
+        <p>mail server management & mailbox administration</p>
+    </div>
+    <div class="mail-header-actions">
+        <button onclick="refreshServerStatus()" class="btn-secondary" id="refreshBtn">
+            <span class="refresh-icon">🔄</span> refresh status
+        </button>
+        <button onclick="showCreateModal()" class="btn-primary">
+            ➕ create mailbox
+        </button>
+    </div>
+</div>
+
+{% if messages %}
+<div class="messages">
+    {% for message in messages %}
+    <div class="alert alert-{{ message.tags }}">{{ message }}</div>
+    {% endfor %}
+</div>
+{% endif %}
+
+<!-- Server Status Section -->
+<div class="section">
+    <h2>🖥️ mail server status</h2>
+    <div class="server-status-grid">
+        <div class="status-card {% if server_status.connection %}status-ok{% else %}status-error{% endif %}">
+            <div class="status-icon">{% if server_status.connection %}✅{% else %}❌{% endif %}</div>
+            <div class="status-info">
+                <div class="status-label">connection</div>
+                <div class="status-value">{% if server_status.connection %}connected{% else %}disconnected{% endif %}</div>
+            </div>
+        </div>
+        <div class="status-card {% if server_status.postfix %}status-ok{% else %}status-error{% endif %}">
+            <div class="status-icon">{% if server_status.postfix %}✅{% else %}❌{% endif %}</div>
+            <div class="status-info">
+                <div class="status-label">postfix (smtp)</div>
+                <div class="status-value">{% if server_status.postfix %}running{% else %}stopped{% endif %}</div>
+            </div>
+        </div>
+        <div class="status-card {% if server_status.dovecot %}status-ok{% else %}status-error{% endif %}">
+            <div class="status-icon">{% if server_status.dovecot %}✅{% else %}❌{% endif %}</div>
+            <div class="status-info">
+                <div class="status-label">dovecot (imap/pop3)</div>
+                <div class="status-value">{% if server_status.dovecot %}running{% else %}stopped{% endif %}</div>
+            </div>
+        </div>
+        <div class="status-card {% if server_status.opendkim %}status-ok{% else %}status-warning{% endif %}">
+            <div class="status-icon">{% if server_status.opendkim %}✅{% else %}⚠️{% endif %}</div>
+            <div class="status-info">
+                <div class="status-label">opendkim (dkim)</div>
+                <div class="status-value">{% if server_status.opendkim %}running{% else %}stopped{% endif %}</div>
+            </div>
+        </div>
+        <div class="status-card status-info-card">
+            <div class="status-icon">💾</div>
+            <div class="status-info">
+                <div class="status-label">disk usage</div>
+                <div class="status-value">{{ server_status.disk_usage|default:"unknown" }}</div>
+            </div>
         </div>
     </div>
+</div>
 
-    {% if messages %}
-        <div class="messages">
-            {% for message in messages %}
-                <div class="alert alert-{{ message.tags }}">{{ message }}</div>
-            {% endfor %}
-        </div>
-    {% endif %}
-
-    <div class="admin-stats">
+<!-- Statistics Section -->
+<div class="section">
+    <h2>📊 statistics</h2>
+    <div class="stats-grid">
         <div class="stat-card">
-            <div class="stat-value">{{ mailboxes.count }}</div>
+            <div class="stat-value">{{ stats.total }}</div>
             <div class="stat-label">total mailboxes</div>
         </div>
         <div class="stat-card">
-            <div class="stat-value">{{ mailboxes|length }}</div>
+            <div class="stat-value positive">{{ stats.active }}</div>
             <div class="stat-label">active mailboxes</div>
         </div>
         <div class="stat-card">
-            <div class="stat-value">{{ users_without_mailbox.count }}</div>
+            <div class="stat-value">{{ stats.provisioned }}</div>
+            <div class="stat-label">provisioned on server</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-value {% if stats.pending > 0 %}negative{% endif %}">{{ stats.pending }}</div>
+            <div class="stat-label">pending provision</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-value">{{ stats.storage_used_mb|floatformat:0 }} mb</div>
+            <div class="stat-label">storage used</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-value">{{ stats.users_without_mailbox }}</div>
             <div class="stat-label">users without mailbox</div>
         </div>
     </div>
+</div>
 
-    <div class="admin-table-container">
-        <table class="admin-table">
+<!-- Quick Actions -->
+<div class="section">
+    <h2>⚡ quick actions</h2>
+    <div class="button-group">
+        <button onclick="showCreateModal()" class="btn-primary">➕ create mailbox</button>
+        <button onclick="syncAllMailboxes()" class="btn-secondary">🔄 sync all mailboxes</button>
+        <button onclick="provisionPending()" class="btn-secondary" {% if stats.pending == 0 %}disabled{% endif %}>
+            📦 provision pending ({{ stats.pending }})
+        </button>
+        <a href="https://mail.recaria.org" target="_blank" class="btn-secondary">🌐 webmail</a>
+    </div>
+</div>
+
+<!-- Mailboxes Table -->
+<div class="section">
+    <div class="section-header">
+        <h2>📬 mailboxes</h2>
+        <div class="section-controls">
+            <input type="text" id="searchMailbox" class="form-input" placeholder="search mailboxes..." style="width: 250px;" onkeyup="filterMailboxes()">
+        </div>
+    </div>
+
+    <div class="content-box">
+        <table class="data-table" id="mailboxTable">
             <thead>
                 <tr>
                     <th>email address</th>
                     <th>user</th>
-                    <th>size (mb)</th>
-                    <th>usage</th>
+                    <th>storage</th>
                     <th>status</th>
+                    <th>protocols</th>
                     <th>created</th>
                     <th>actions</th>
                 </tr>
             </thead>
             <tbody>
                 {% for mailbox in mailboxes %}
-                <tr>
+                <tr class="mailbox-row">
                     <td>
-                        <strong>{{ mailbox.email_address }}</strong>
-                    </td>
-                    <td>
-                        <a href="{% url 'administration:user_detail' mailbox.user.id %}">
-                            {{ mailbox.user.username }}
-                        </a>
-                    </td>
-                    <td>{{ mailbox.mailbox_size_mb }}</td>
-                    <td>
-                        <div class="progress" style="width: 100px;">
-                            <div class="progress-bar" 
-                                 style="width: {{ mailbox.usage_percentage }}%"
-                                 title="{{ mailbox.current_usage_mb }}mb / {{ mailbox.mailbox_size_mb }}mb">
-                                {{ mailbox.usage_percentage|floatformat:0 }}%
-                            </div>
+                        <div class="email-cell">
+                            <span class="email-icon">📧</span>
+                            <strong>{{ mailbox.email_address }}</strong>
                         </div>
                     </td>
                     <td>
-                        {% if mailbox.is_active %}
-                            <span class="badge badge-success">active</span>
-                        {% else %}
-                            <span class="badge badge-danger">suspended</span>
-                        {% endif %}
-                        
-                        {% if mailbox.mailbox_created %}
-                            <span class="badge badge-info">created</span>
-                        {% else %}
-                            <span class="badge badge-warning">pending</span>
-                        {% endif %}
-                    </td>
-                    <td>{{ mailbox.created_at|date:"Y-m-d" }}</td>
-                    <td>
-                        <a href="{% url 'administration:mailbox_detail' mailbox.id %}" 
-                           class="btn btn-sm btn-primary">
-                            manage
+                        <a href="{% url 'administration:user_detail' mailbox.user.id %}" class="user-link">
+                            <span class="user-avatar-small">{{ mailbox.user.username|first|upper }}</span>
+                            {{ mailbox.user.username }}
                         </a>
+                    </td>
+                    <td>
+                        <div class="storage-cell">
+                            <div class="storage-bar">
+                                <div class="storage-fill {% if mailbox.usage_percentage > 80 %}storage-warning{% elif mailbox.usage_percentage > 95 %}storage-danger{% endif %}"
+                                     style="width: {{ mailbox.usage_percentage }}%"></div>
+                            </div>
+                            <span class="storage-text">{{ mailbox.current_usage_mb|floatformat:0 }} / {{ mailbox.mailbox_size_mb }} mb</span>
+                        </div>
+                    </td>
+                    <td>
+                        <div class="status-badges">
+                            {% if mailbox.is_active %}
+                            <span class="badge badge-active">active</span>
+                            {% else %}
+                            <span class="badge badge-inactive">suspended</span>
+                            {% endif %}
+
+                            {% if mailbox.mailbox_created %}
+                            <span class="badge badge-approved">provisioned</span>
+                            {% else %}
+                            <span class="badge badge-pending">pending</span>
+                            {% endif %}
+                        </div>
+                    </td>
+                    <td>
+                        <div class="protocol-icons">
+                            {% if mailbox.imap_enabled %}<span class="protocol-badge" title="IMAP">imap</span>{% endif %}
+                            {% if mailbox.pop3_enabled %}<span class="protocol-badge" title="POP3">pop3</span>{% endif %}
+                            {% if mailbox.smtp_enabled %}<span class="protocol-badge" title="SMTP">smtp</span>{% endif %}
+                        </div>
+                    </td>
+                    <td class="text-muted">{{ mailbox.created_at|date:"Y-m-d" }}</td>
+                    <td>
+                        <div class="actions">
+                            <a href="{% url 'administration:mailbox_detail' mailbox.id %}" class="action-link">manage</a>
+                            {% if not mailbox.mailbox_created %}
+                            <form method="post" action="{% url 'administration:mailbox_detail' mailbox.id %}" style="display: inline;">
+                                {% csrf_token %}
+                                <input type="hidden" name="action" value="provision">
+                                <button type="submit" class="action-link" style="background: none; border: none; cursor: pointer;">provision</button>
+                            </form>
+                            {% endif %}
+                        </div>
                     </td>
                 </tr>
                 {% empty %}
                 <tr>
-                    <td colspan="7" class="text-center">no mailboxes created yet</td>
+                    <td colspan="7" class="text-center text-muted" style="padding: 40px;">
+                        <div style="font-size: 48px; margin-bottom: 15px;">📭</div>
+                        <div>no mailboxes created yet</div>
+                        <button onclick="showCreateModal()" class="btn-primary" style="margin-top: 15px;">create first mailbox</button>
+                    </td>
                 </tr>
                 {% endfor %}
             </tbody>
@@ -101,137 +209,348 @@
     </div>
 </div>
 
+<!-- DNS Information -->
+<div class="section">
+    <h2>🌐 dns configuration</h2>
+    <div class="content-box dns-info">
+        <div class="dns-grid">
+            <div class="dns-record">
+                <div class="dns-type">MX</div>
+                <div class="dns-content">
+                    <code>recaria.org → mail.recaria.org (priority 10)</code>
+                </div>
+            </div>
+            <div class="dns-record">
+                <div class="dns-type">SPF</div>
+                <div class="dns-content">
+                    <code>v=spf1 mx a ip4:158.178.201.117 ~all</code>
+                </div>
+            </div>
+            <div class="dns-record">
+                <div class="dns-type">DKIM</div>
+                <div class="dns-content">
+                    <code>mail._domainkey.recaria.org</code>
+                </div>
+            </div>
+            <div class="dns-record">
+                <div class="dns-type">DMARC</div>
+                <div class="dns-content">
+                    <code>v=DMARC1; p=none; rua=mailto:postmaster@recaria.org</code>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
 <!-- Create Mailbox Modal -->
 <div id="createMailboxModal" class="modal" style="display: none;">
     <div class="modal-content">
         <div class="modal-header">
-            <h2>create recaria.org mailbox</h2>
+            <h2>➕ create recaria.org mailbox</h2>
             <button onclick="hideCreateModal()" class="modal-close">&times;</button>
         </div>
         <form method="post" action="{% url 'administration:mailbox_create' %}">
             {% csrf_token %}
             <div class="modal-body">
                 <div class="form-group">
-                    <label>select user</label>
-                    <select name="user_id" class="form-control" required>
+                    <label class="form-label">select user</label>
+                    <select name="user_id" class="form-select" required>
                         <option value="">-- select user --</option>
                         {% for user in users_without_mailbox %}
-                        <option value="{{ user.id }}">
-                            {{ user.username }} ({{ user.email }})
-                        </option>
+                        <option value="{{ user.id }}">{{ user.username }} ({{ user.email }})</option>
                         {% endfor %}
                     </select>
+                    {% if not users_without_mailbox %}
+                    <div class="form-hint text-muted">all users already have mailboxes</div>
+                    {% endif %}
                 </div>
-                
+
                 <div class="form-group">
-                    <label>email prefix</label>
-                    <div class="input-group">
-                        <input type="text" name="email_prefix" 
-                               class="form-control" 
-                               placeholder="username" 
-                               pattern="[a-z0-9.-]+" 
-                               required>
-                        <span class="input-group-addon">@recaria.org</span>
+                    <label class="form-label">email address</label>
+                    <div class="email-input-group">
+                        <input type="text" name="email_prefix" class="form-input" placeholder="username" pattern="[a-z0-9.-]+" required style="border-radius: 4px 0 0 4px;">
+                        <span class="email-suffix">@recaria.org</span>
                     </div>
                 </div>
-                
-                <div class="form-group">
-                    <label>mailbox size (mb)</label>
-                    <input type="number" name="mailbox_size_mb" 
-                           class="form-control" 
-                           value="1024" min="100" max="10240">
+
+                <div class="form-row-3">
+                    <div class="form-group">
+                        <label class="form-label">mailbox size (mb)</label>
+                        <input type="number" name="mailbox_size_mb" class="form-input" value="1024" min="100" max="10240">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">daily send limit</label>
+                        <input type="number" name="daily_send_limit" class="form-input" value="500" min="10" max="5000">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">attachment limit (mb)</label>
+                        <input type="number" name="attachment_size_limit_mb" class="form-input" value="25" min="1" max="100">
+                    </div>
                 </div>
-                
+
                 <div class="form-group">
-                    <label>daily send limit</label>
-                    <input type="number" name="daily_send_limit" 
-                           class="form-control" 
-                           value="500" min="10" max="5000">
-                </div>
-                
-                <div class="form-group">
-                    <label>attachment size limit (mb)</label>
-                    <input type="number" name="attachment_size_limit_mb" 
-                           class="form-control" 
-                           value="25" min="1" max="100">
-                </div>
-                
-                <div class="form-group">
-                    <label>protocols</label>
-                    <div class="checkbox-group">
-                        <label>
-                            <input type="checkbox" name="imap_enabled" checked>
-                            enable imap
+                    <label class="form-label">protocols</label>
+                    <div class="checkbox-row">
+                        <label class="checkbox-label">
+                            <input type="checkbox" name="imap_enabled" checked> imap
                         </label>
-                        <label>
-                            <input type="checkbox" name="pop3_enabled">
-                            enable pop3
+                        <label class="checkbox-label">
+                            <input type="checkbox" name="pop3_enabled"> pop3
                         </label>
-                        <label>
-                            <input type="checkbox" name="smtp_enabled" checked>
-                            enable smtp
+                        <label class="checkbox-label">
+                            <input type="checkbox" name="smtp_enabled" checked> smtp
                         </label>
                     </div>
                 </div>
 
-                <div class="form-group" style="margin-top: 15px; padding-top: 15px; border-top: 1px solid #333;">
-                    <label>
+                <div class="form-group provision-option">
+                    <label class="checkbox-label highlight">
                         <input type="checkbox" name="provision_now" checked>
-                        <strong style="color: #28a745;">provision on mail server immediately</strong>
+                        <strong>provision on mail server immediately</strong>
                     </label>
-                    <div style="font-size: 11px; color: #888; margin-top: 5px;">
-                        if checked, mailbox will be created on mail.recaria.org server with a temporary password
-                    </div>
+                    <div class="form-hint">if checked, mailbox will be created on mail.recaria.org with a temporary password</div>
                 </div>
             </div>
             <div class="modal-footer">
-                <button type="button" onclick="hideCreateModal()" class="btn btn-secondary">
-                    cancel
-                </button>
-                <button type="submit" class="btn btn-primary">
-                    create mailbox
-                </button>
+                <button type="button" onclick="hideCreateModal()" class="btn-secondary">cancel</button>
+                <button type="submit" class="btn-primary">create mailbox</button>
             </div>
         </form>
     </div>
 </div>
 
 <style>
-.progress {
-    background-color: #f0f0f0;
-    border-radius: 4px;
-    height: 20px;
-    overflow: hidden;
-    display: inline-block;
+/* Mail Page Specific Styles */
+.mail-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 30px;
+    padding-bottom: 20px;
+    border-bottom: 2px solid var(--orange);
 }
 
-.progress-bar {
-    background-color: #28a745;
-    color: white;
-    text-align: center;
-    line-height: 20px;
+.mail-header h1 {
+    color: var(--orange);
+    font-size: 24px;
+    margin: 0 0 5px 0;
+    text-transform: lowercase;
+}
+
+.mail-header p {
+    color: var(--gray);
+    margin: 0;
+    font-size: 14px;
+}
+
+.mail-header-actions {
+    display: flex;
+    gap: 10px;
+}
+
+/* Server Status Grid */
+.server-status-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 15px;
+}
+
+.status-card {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    background: rgba(20, 20, 20, 0.5);
+    border: 1px solid #333;
+    border-radius: 4px;
+    padding: 15px;
+    transition: all 0.3s;
+}
+
+.status-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+.status-card.status-ok {
+    border-color: #4CAF50;
+}
+
+.status-card.status-error {
+    border-color: #dc3545;
+}
+
+.status-card.status-warning {
+    border-color: #ffc107;
+}
+
+.status-card.status-info-card {
+    border-color: var(--cyan);
+}
+
+.status-icon {
+    font-size: 24px;
+}
+
+.status-label {
+    color: var(--gray);
     font-size: 11px;
+    text-transform: lowercase;
+}
+
+.status-value {
+    color: var(--white);
+    font-size: 14px;
+    font-weight: bold;
+}
+
+/* Storage Cell */
+.storage-cell {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.storage-bar {
+    width: 100px;
+    height: 6px;
+    background: #333;
+    border-radius: 3px;
+    overflow: hidden;
+}
+
+.storage-fill {
+    height: 100%;
+    background: var(--orange);
     transition: width 0.3s;
 }
 
+.storage-fill.storage-warning {
+    background: #ffc107;
+}
+
+.storage-fill.storage-danger {
+    background: #dc3545;
+}
+
+.storage-text {
+    font-size: 11px;
+    color: var(--gray);
+}
+
+/* Email Cell */
+.email-cell {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.email-icon {
+    font-size: 16px;
+}
+
+/* User Link */
+.user-link {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: var(--cyan);
+    text-decoration: none;
+}
+
+.user-link:hover {
+    color: var(--orange);
+}
+
+.user-avatar-small {
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    background: var(--orange);
+    color: var(--bg-black);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    font-weight: bold;
+}
+
+/* Status Badges */
+.status-badges {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 5px;
+}
+
+/* Protocol Icons */
+.protocol-icons {
+    display: flex;
+    gap: 5px;
+}
+
+.protocol-badge {
+    font-size: 10px;
+    padding: 2px 6px;
+    background: var(--dark-gray);
+    border-radius: 3px;
+    color: var(--cyan);
+    text-transform: uppercase;
+}
+
+/* DNS Info */
+.dns-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 15px;
+}
+
+.dns-record {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    padding: 10px;
+    background: var(--bg-black);
+    border-radius: 4px;
+}
+
+.dns-type {
+    font-size: 11px;
+    font-weight: bold;
+    padding: 4px 8px;
+    background: var(--orange);
+    color: var(--bg-black);
+    border-radius: 3px;
+    min-width: 50px;
+    text-align: center;
+}
+
+.dns-content code {
+    font-size: 12px;
+    color: var(--cyan);
+    word-break: break-all;
+}
+
+/* Modal Styles */
 .modal {
     position: fixed;
     top: 0;
     left: 0;
     width: 100%;
     height: 100%;
-    background-color: rgba(0,0,0,0.5);
+    background-color: rgba(0, 0, 0, 0.7);
     z-index: 1000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
 .modal-content {
     background-color: #1a1a1a;
-    margin: 5% auto;
-    padding: 0;
     width: 600px;
     max-width: 90%;
+    max-height: 90vh;
+    overflow-y: auto;
     border-radius: 8px;
-    color: #e0e0e0;
+    border: 1px solid #333;
 }
 
 .modal-header {
@@ -242,14 +561,10 @@
     align-items: center;
 }
 
-.modal-body {
-    padding: 20px;
-}
-
-.modal-footer {
-    padding: 20px;
-    border-top: 1px solid #333;
-    text-align: right;
+.modal-header h2 {
+    color: var(--orange);
+    margin: 0;
+    font-size: 18px;
 }
 
 .modal-close {
@@ -258,54 +573,173 @@
     font-size: 28px;
     cursor: pointer;
     color: #999;
+    line-height: 1;
 }
 
-.form-group {
-    margin-bottom: 15px;
+.modal-close:hover {
+    color: var(--orange);
 }
 
-.form-group label {
-    display: block;
-    margin-bottom: 5px;
-    color: #28a745;
+.modal-body {
+    padding: 20px;
 }
 
-.form-control {
-    width: 100%;
-    padding: 8px 12px;
-    background-color: #2a2a2a;
-    border: 1px solid #444;
-    color: #e0e0e0;
-    border-radius: 4px;
+.modal-footer {
+    padding: 20px;
+    border-top: 1px solid #333;
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
 }
 
-.input-group {
+/* Email Input Group */
+.email-input-group {
     display: flex;
 }
 
-.input-group-addon {
-    padding: 8px 12px;
-    background-color: #333;
-    border: 1px solid #444;
-    border-left: none;
-    border-radius: 0 4px 4px 0;
-    color: #28a745;
+.email-input-group input {
+    flex: 1;
+    border-right: none;
 }
 
-.checkbox-group label {
-    display: block;
-    margin-bottom: 5px;
-    color: #e0e0e0;
+.email-suffix {
+    padding: 10px 15px;
+    background: var(--dark-gray);
+    border: 1px solid var(--dark-gray);
+    border-radius: 0 4px 4px 0;
+    color: var(--orange);
+    font-weight: bold;
+}
+
+/* Form Row */
+.form-row-3 {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 15px;
+}
+
+/* Checkbox Row */
+.checkbox-row {
+    display: flex;
+    gap: 20px;
+}
+
+.checkbox-label {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: var(--white);
+    cursor: pointer;
+}
+
+.checkbox-label input {
+    accent-color: var(--orange);
+}
+
+/* Provision Option */
+.provision-option {
+    margin-top: 20px;
+    padding-top: 20px;
+    border-top: 1px solid #333;
+}
+
+.provision-option .highlight {
+    color: #4CAF50;
+}
+
+.form-hint {
+    font-size: 11px;
+    color: var(--gray);
+    margin-top: 5px;
+}
+
+/* Refresh Animation */
+@keyframes spin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}
+
+.refresh-icon.spinning {
+    display: inline-block;
+    animation: spin 1s linear infinite;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .mail-header {
+        flex-direction: column;
+        gap: 15px;
+    }
+
+    .mail-header-actions {
+        width: 100%;
+    }
+
+    .form-row-3 {
+        grid-template-columns: 1fr;
+    }
+
+    .server-status-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
 }
 </style>
 
 <script>
 function showCreateModal() {
-    document.getElementById('createMailboxModal').style.display = 'block';
+    document.getElementById('createMailboxModal').style.display = 'flex';
 }
 
 function hideCreateModal() {
     document.getElementById('createMailboxModal').style.display = 'none';
 }
+
+function filterMailboxes() {
+    const search = document.getElementById('searchMailbox').value.toLowerCase();
+    const rows = document.querySelectorAll('.mailbox-row');
+
+    rows.forEach(row => {
+        const text = row.textContent.toLowerCase();
+        row.style.display = text.includes(search) ? '' : 'none';
+    });
+}
+
+function refreshServerStatus() {
+    const btn = document.getElementById('refreshBtn');
+    const icon = btn.querySelector('.refresh-icon');
+    icon.classList.add('spinning');
+    btn.disabled = true;
+
+    // Reload the page to get fresh server status
+    setTimeout(() => {
+        window.location.reload();
+    }, 500);
+}
+
+function syncAllMailboxes() {
+    if (confirm('sync all mailboxes with mail server?')) {
+        alert('sync functionality will be implemented via management command');
+    }
+}
+
+function provisionPending() {
+    if (confirm('provision all pending mailboxes on mail server?')) {
+        alert('batch provision functionality will be implemented');
+    }
+}
+
+// Close modal on outside click
+document.getElementById('createMailboxModal').addEventListener('click', function(e) {
+    if (e.target === this) {
+        hideCreateModal();
+    }
+});
+
+// Close modal on escape key
+document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') {
+        hideCreateModal();
+    }
+});
 </script>
 {% endblock %}

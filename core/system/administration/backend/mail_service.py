@@ -20,22 +20,30 @@ class MailConfig:
     """mail server configuration"""
     mail_server: str = 'mail.recaria.org'
     ssh_user: str = 'ubuntu'
-    ssh_key_path: str = '/home/ubuntu/.ssh/id_rsa'
+    ssh_key_path: str = '/home/ubuntu/.ssh/id_ed25519'
     domain: str = 'recaria.org'
     vmail_path: str = '/var/mail/vhosts'
     vmailbox_file: str = '/etc/postfix/vmailbox'
     dovecot_users_file: str = '/etc/dovecot/users'
     use_ssh: bool = True  # set to false for local testing
+    local_mode: bool = False  # set to true when mail server is localhost
 
 
 def get_mail_config() -> MailConfig:
     """get mail configuration from settings or defaults"""
+    mail_server = getattr(settings, 'MAIL_SERVER_HOST', 'mail.recaria.org')
+
+    # detect if mail server is local (same machine)
+    local_hosts = ['localhost', '127.0.0.1', 'mail.recaria.org']
+    is_local = mail_server in local_hosts
+
     return MailConfig(
-        mail_server=getattr(settings, 'MAIL_SERVER_HOST', 'mail.recaria.org'),
+        mail_server=mail_server,
         ssh_user=getattr(settings, 'MAIL_SERVER_SSH_USER', 'ubuntu'),
-        ssh_key_path=getattr(settings, 'MAIL_SERVER_SSH_KEY', '/home/ubuntu/.ssh/id_rsa'),
+        ssh_key_path=getattr(settings, 'MAIL_SERVER_SSH_KEY', '/home/ubuntu/.ssh/id_ed25519'),
         domain=getattr(settings, 'MAIL_DOMAIN', 'recaria.org'),
         use_ssh=getattr(settings, 'MAIL_USE_SSH', True),
+        local_mode=is_local,
     )
 
 
@@ -69,15 +77,39 @@ def hash_password_dovecot(password: str) -> str:
 
 
 def run_ssh_command(command: str, config: Optional[MailConfig] = None) -> Tuple[bool, str]:
-    """run a command on the mail server via ssh"""
+    """run a command on the mail server via ssh or locally"""
     if config is None:
         config = get_mail_config()
 
     if not config.use_ssh:
-        # local mode for testing
-        logger.info(f"[local mode] would run: {command}")
-        return True, "local mode - command logged"
+        # development mode - just log commands
+        logger.info(f"[dev mode] would run: {command}")
+        return True, "dev mode - command logged"
 
+    # if mail server is local, run command directly (no SSH needed)
+    if config.local_mode:
+        try:
+            result = subprocess.run(
+                ['bash', '-c', command],
+                capture_output=True,
+                text=True,
+                timeout=30
+            )
+
+            if result.returncode == 0:
+                return True, result.stdout.strip()
+            else:
+                logger.error(f"local command failed: {result.stderr}")
+                return False, result.stderr.strip()
+
+        except subprocess.TimeoutExpired:
+            logger.error("local command timed out")
+            return False, "command timed out"
+        except Exception as e:
+            logger.error(f"local command error: {e}")
+            return False, str(e)
+
+    # remote mode - use SSH
     ssh_cmd = [
         'ssh',
         '-i', config.ssh_key_path,

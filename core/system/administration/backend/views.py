@@ -1325,18 +1325,54 @@ def cron_jobs_admin(request):
 @login_required(login_url='/login/')
 @user_passes_test(is_admin, login_url='/login/')
 def mailbox_list(request):
-    """list all recaria.org mailboxes"""
-    mailboxes = RecariaMailbox.objects.all().select_related('user')
+    """list all recaria.org mailboxes with server status"""
+    mailboxes = RecariaMailbox.objects.all().select_related('user').order_by('-created_at')
     users_without_mailbox = User.objects.exclude(
         id__in=RecariaMailbox.objects.values_list('user_id', flat=True)
-    )
-    
+    ).order_by('username')
+
+    # Get mail server status
+    try:
+        provisioner = MailProvisioner()
+        server_status = provisioner.get_server_status()
+    except Exception as e:
+        logger.error(f"Failed to get mail server status: {e}")
+        server_status = {
+            'connection': False,
+            'postfix': False,
+            'dovecot': False,
+            'opendkim': False,
+            'mailbox_count': 0,
+            'disk_usage': 'unknown',
+            'error': str(e)
+        }
+
+    # Calculate statistics
+    total_mailboxes = mailboxes.count()
+    active_mailboxes = mailboxes.filter(is_active=True).count()
+    provisioned_mailboxes = mailboxes.filter(mailbox_created=True).count()
+    pending_mailboxes = mailboxes.filter(mailbox_created=False).count()
+
+    # Calculate total storage used
+    total_storage_used = sum(m.current_usage_mb for m in mailboxes)
+    total_storage_allocated = sum(m.mailbox_size_mb for m in mailboxes)
+
     context = {
         'mailboxes': mailboxes,
         'users_without_mailbox': users_without_mailbox,
         'pending_requests_count': PermissionRequest.objects.filter(status='pending').count(),
+        'server_status': server_status,
+        'stats': {
+            'total': total_mailboxes,
+            'active': active_mailboxes,
+            'provisioned': provisioned_mailboxes,
+            'pending': pending_mailboxes,
+            'storage_used_mb': total_storage_used,
+            'storage_allocated_mb': total_storage_allocated,
+            'users_without_mailbox': users_without_mailbox.count(),
+        }
     }
-    
+
     return render(request, 'administration/mailboxes.html', context)
 
 

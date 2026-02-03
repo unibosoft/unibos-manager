@@ -324,6 +324,11 @@
   - [x] Web UI in Administration > Recaria Mail
   - [x] Server status display in mailbox detail
   - [x] MAIL_USE_SSH config setting
+  - [x] Local mode support (SSH-free for same-machine deployments)
+  - [x] OpenDKIM setup for DKIM email signing
+  - [x] DNS configuration guide (SPF, DKIM, DMARC)
+  - [x] Enhanced admin UI with real-time server status
+  - [x] Statistics dashboard and quick actions
 
 ### v2.0.2 (2025-12-05)
 - [x] Celery worker service implementation
